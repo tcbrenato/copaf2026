@@ -8,7 +8,7 @@ import Programme from './components/Programme'
 import Modules from './components/Modules'
 import Inscription from './components/Inscription'
 import Footer from './components/Footer'
-import Admin from './components/Admin'
+import AdminDashboard from './components/Admin'
 
 function App() {
   useEffect(() => {
@@ -36,7 +36,7 @@ function App() {
         } />
 
         {/* Dashboard Admin */}
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<AdminDashboard />} />
 
       </Routes>
     </Router>
@@ -44,3 +44,10 @@ function App() {
 }
 
 export default App
+```
+
+---
+
+Ensuite vérifie que le fichier **`public/_redirects`** existe avec ce contenu :
+```
+/*  /index.html  200
