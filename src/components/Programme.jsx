@@ -13,7 +13,7 @@ const Programme = () => {
       icon: '🧭',
       color: '#0073f4',
       sessions: [
-        { heure: '09h00 - 10h30', titre: "Conférence d'ouverture", desc: 'L\'IA au coeur de la révolution du Smart Port. Panorama mondial et spécificités africaines.', icon: '🎤' },
+        { heure: '09h00 - 10h30', titre: "Conférence d'ouverture", desc: "L'IA au coeur de la révolution du Smart Port. Panorama mondial et spécificités africaines.", icon: '🎤' },
         { heure: '11h00 - 12h30', titre: 'Démystification technique', desc: 'Comprendre la Data, le Machine Learning et la Vision par Ordinateur sans jargon.', icon: '💡' },
         { heure: '14h00 - 15h30', titre: 'Études de cas', desc: 'Succès et échecs des projets IA dans les ports de Tanger Med et Durban.', icon: '📊' },
         { heure: '16h00 - 17h30', titre: 'Atelier de réflexion', desc: 'Diagnostic de maturité digitale de votre autorité portuaire.', icon: '🔍' },
@@ -43,8 +43,8 @@ const Programme = () => {
       sessions: [
         { heure: '09h00 - 10h30', titre: "Modèle économique de l'IA", desc: "Calculer le ROI d'un projet technologique portuaire.", icon: '💰' },
         { heure: '11h00 - 12h30', titre: 'Gouvernance de la donnée', desc: 'Créer une culture Data-Driven et recruter les talents nécessaires.', icon: '📈' },
-        { heure: '14h00 - 15h30', titre: 'Atelier Action Plan', desc: 'Élaboration d\'une feuille de route de transformation digitale personnalisée.', icon: '📋' },
-        { heure: '16h00 - 17h00', titre: 'Table ronde finale', desc: 'Signature d\'un manifeste pour la coopération technologique entre ports africains.', icon: '🤝' },
+        { heure: '14h00 - 15h30', titre: 'Atelier Action Plan', desc: "Élaboration d'une feuille de route de transformation digitale personnalisée.", icon: '📋' },
+        { heure: '16h00 - 17h00', titre: 'Table ronde finale', desc: "Signature d'un manifeste pour la coopération technologique entre ports africains.", icon: '🤝' },
       ]
     },
   ]
@@ -56,10 +56,11 @@ const Programme = () => {
       padding: 'clamp(60px, 10vw, 100px) clamp(20px, 5vw, 60px)',
       background: '#ffffff',
       fontFamily: 'Roboto, sans-serif',
+      textAlign: 'center',
     }}>
 
       {/* HEADER */}
-      <div style={{ textAlign: 'center', marginBottom: 'clamp(36px, 6vw, 56px)' }}>
+      <div style={{ marginBottom: 'clamp(36px, 6vw, 56px)' }}>
         <div style={{
           display: 'inline-block',
           background: 'rgba(0,115,244,0.08)',
@@ -122,7 +123,8 @@ const Programme = () => {
             }}
           >
             <span style={{ fontSize: 'clamp(14px, 2.5vw, 18px)' }}>{j.icon}</span>
-            <div style={{ textAlign: 'left' }}>
+            {/* Texte du bouton centré */}
+            <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 'clamp(9px, 1.2vw, 11px)', opacity: 0.75 }}>{j.date}</div>
               <div>{j.jour}</div>
             </div>
@@ -136,15 +138,18 @@ const Programme = () => {
         border: '1px solid rgba(0,115,244,0.12)',
         borderRadius: 20, overflow: 'hidden',
         boxShadow: '0 4px 40px rgba(0,14,145,0.06)',
-        marginBottom: 'clamp(28px, 5vw, 48px)'
+        marginBottom: 'clamp(28px, 5vw, 48px)',
+        textAlign: 'left',
       }}>
 
-        {/* Header du jour */}
+        {/* Header du jour — centré */}
         <div style={{
           background: jour.color,
           padding: 'clamp(20px, 4vw, 32px) clamp(20px, 5vw, 48px)',
-          display: 'flex', alignItems: 'flex-start', gap: 'clamp(14px, 3vw, 24px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 'clamp(14px, 3vw, 24px)',
           flexWrap: 'wrap',
+          textAlign: 'center',
         }}>
           <div style={{
             width: 'clamp(48px, 8vw, 60px)',
@@ -156,7 +161,7 @@ const Programme = () => {
           }}>
             {jour.icon}
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ minWidth: 0 }}>
             <div style={{
               fontSize: 'clamp(9px, 1.5vw, 12px)',
               color: 'rgba(255,255,255,0.7)', letterSpacing: 3,
@@ -180,7 +185,7 @@ const Programme = () => {
           </div>
         </div>
 
-        {/* Grille sessions — 2 col desktop, 1 col mobile */}
+        {/* Grille sessions */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
@@ -190,10 +195,10 @@ const Programme = () => {
               onClick={() => setActiveSession({ ...s, jourColor: jour.color })}
               style={{
                 padding: 'clamp(20px, 3.5vw, 28px) clamp(20px, 4vw, 36px)',
-                borderRight: 'none',
                 borderBottom: '1px solid rgba(0,115,244,0.08)',
                 cursor: 'pointer', transition: 'all 0.2s',
                 background: '#FFFFFF',
+                textAlign: 'center',
               }}
               onMouseEnter={e => {
                 e.currentTarget.style.background = 'rgba(0,115,244,0.03)'
@@ -204,41 +209,42 @@ const Programme = () => {
                 e.currentTarget.style.transform = 'scale(1)'
               }}
             >
-              <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: jour.color + '15',
-                border: '1px solid ' + jour.color + '30',
-                borderRadius: 20, padding: '4px 12px', marginBottom: 12
-              }}>
-                <span style={{ fontSize: 10 }}>⏱</span>
-                <span style={{ fontSize: 11, color: jour.color, fontWeight: 700, letterSpacing: 1 }}>
-                  {s.heure}
-                </span>
+              {/* Badge heure centré */}
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: jour.color + '15',
+                  border: '1px solid ' + jour.color + '30',
+                  borderRadius: 20, padding: '4px 12px',
+                }}>
+                  <span style={{ fontSize: 10 }}>⏱</span>
+                  <span style={{ fontSize: 11, color: jour.color, fontWeight: 700, letterSpacing: 1 }}>
+                    {s.heure}
+                  </span>
+                </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: 10,
-                  background: jour.color + '12',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 18, flexShrink: 0
-                }}>
-                  {s.icon}
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 'clamp(14px, 2vw, 16px)',
-                    fontWeight: 700, color: '#000e91', marginBottom: 6
-                  }}>
-                    {s.titre}
-                  </div>
-                  <div style={{
-                    fontSize: 'clamp(12px, 1.6vw, 13px)',
-                    color: '#777', lineHeight: 1.6
-                  }}>
-                    {s.desc}
-                  </div>
-                </div>
+              {/* Icône session centrée */}
+              <div style={{
+                width: 48, height: 48, borderRadius: 12,
+                background: jour.color + '12',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 22, margin: '0 auto 12px',
+              }}>
+                {s.icon}
+              </div>
+
+              <div style={{
+                fontSize: 'clamp(14px, 2vw, 16px)',
+                fontWeight: 700, color: '#000e91', marginBottom: 8
+              }}>
+                {s.titre}
+              </div>
+              <div style={{
+                fontSize: 'clamp(12px, 1.6vw, 13px)',
+                color: '#777', lineHeight: 1.6
+              }}>
+                {s.desc}
               </div>
 
               <div style={{ marginTop: 14, fontSize: 12, color: jour.color, fontWeight: 600 }}>
@@ -253,7 +259,7 @@ const Programme = () => {
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
-        gap: 'clamp(12px, 2.5vw, 20px)'
+        gap: 'clamp(12px, 2.5vw, 20px)',
       }}>
         {[
           { icon: '📍', label: 'Lieu', value: 'Dubaï, Émirats Arabes Unis' },
@@ -265,11 +271,14 @@ const Programme = () => {
             border: '1px solid rgba(0,115,244,0.12)',
             borderRadius: 12,
             padding: 'clamp(16px, 3vw, 22px) clamp(16px, 3.5vw, 28px)',
-            display: 'flex', alignItems: 'center', gap: 16,
-            boxShadow: '0 2px 12px rgba(0,14,145,0.04)'
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            gap: 10,
+            boxShadow: '0 2px 12px rgba(0,14,145,0.04)',
+            textAlign: 'center',
           }}>
-            <span style={{ fontSize: 'clamp(22px, 4vw, 28px)', flexShrink: 0 }}>{info.icon}</span>
-            <div style={{ minWidth: 0 }}>
+            <span style={{ fontSize: 'clamp(22px, 4vw, 28px)' }}>{info.icon}</span>
+            <div>
               <div style={{
                 fontSize: 11, color: '#0073f4',
                 fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase'
@@ -312,12 +321,12 @@ const Programme = () => {
               overflowY: 'auto',
             }}
           >
-            {/* Modal header */}
+            {/* Modal header — centré */}
             <div style={{
               background: activeSession.jourColor,
               padding: 'clamp(20px, 4vw, 28px) clamp(20px, 4vw, 32px)',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-              gap: 12,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              gap: 12, textAlign: 'center',
             }}>
               <div style={{ display: 'flex', gap: 14, alignItems: 'center', minWidth: 0 }}>
                 <div style={{
@@ -328,7 +337,7 @@ const Programme = () => {
                 }}>
                   {activeSession.icon}
                 </div>
-                <div style={{ minWidth: 0 }}>
+                <div style={{ minWidth: 0, textAlign: 'left' }}>
                   <div style={{
                     fontSize: 11, color: 'rgba(255,255,255,0.7)',
                     letterSpacing: 2, textTransform: 'uppercase'
@@ -356,8 +365,8 @@ const Programme = () => {
               >✕</button>
             </div>
 
-            {/* Modal body */}
-            <div style={{ padding: 'clamp(20px, 4vw, 32px)' }}>
+            {/* Modal body — centré */}
+            <div style={{ padding: 'clamp(20px, 4vw, 32px)', textAlign: 'center' }}>
               <div style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
                 background: activeSession.jourColor + '15',
@@ -380,7 +389,8 @@ const Programme = () => {
               <div style={{
                 background: '#f8f9ff', borderRadius: 12,
                 padding: 'clamp(16px, 3vw, 20px) clamp(16px, 3.5vw, 24px)',
-                border: '1px solid rgba(0,115,244,0.1)'
+                border: '1px solid rgba(0,115,244,0.1)',
+                textAlign: 'center',
               }}>
                 <div style={{
                   fontSize: 12, color: '#0073f4', fontWeight: 700,
@@ -393,12 +403,15 @@ const Programme = () => {
                   "Identifier les opportunités d'amélioration pour votre port",
                   'Repartir avec des outils concrets et applicables',
                 ].map((item, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 8, alignItems: 'flex-start' }}>
+                  <div key={i} style={{
+                    display: 'flex', gap: 10, marginBottom: 8,
+                    alignItems: 'flex-start', justifyContent: 'center',
+                  }}>
                     <span style={{
                       width: 6, height: 6, borderRadius: '50%',
                       background: '#0073f4', marginTop: 7, flexShrink: 0
                     }} />
-                    <span style={{ fontSize: 14, color: '#555' }}>{item}</span>
+                    <span style={{ fontSize: 14, color: '#555', textAlign: 'left' }}>{item}</span>
                   </div>
                 ))}
               </div>
