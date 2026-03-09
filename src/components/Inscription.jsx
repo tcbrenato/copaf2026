@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
 import ReactGA from 'react-ga4'
-import emailjs from '@emailjs/browser'
-
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw_ofmnS-UcXLs6fGQrIIjEePHoODn6_pppidhmCuKSjOThwGhn9rx1ZUIU7JKlkkoo/exec'
+import { generateFacture } from '../generateFacture'
 
 const Inscription = () => {
   const [form, setForm] = useState({
@@ -36,66 +34,19 @@ const Inscription = () => {
         message: form.message,
       }])
 
-    if (error) {
-      setLoading(false)
-      setErrorMsg('Une erreur est survenue : ' + error.message)
-      return
-    }
-
-    // ✅ Envoi vers Google Sheets
-    try {
-      await fetch(SHEET_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nom: form.nom,
-          prenom: form.prenom,
-          email: form.email,
-          telephone: form.telephone,
-          organisation: form.organisation,
-          poste: form.poste,
-          pays: form.pays,
-          participants: parseInt(form.participants),
-          montant: parseInt(form.participants) * 5000,
-          message: form.message,
-        })
-      })
-    } catch (err) {
-      console.log('Google Sheets:', err)
-    }
-
-    // ✅ Envoi email de confirmation
-    try {
-      await emailjs.send(
-        'service_x07g4et',
-        'template_7wrkmm1',
-        {
-          prenom: form.prenom,
-          nom: form.nom,
-          email: form.email,
-          organisation: form.organisation,
-          poste: form.poste,
-          pays: form.pays,
-          participants: form.participants,
-          montant: parseInt(form.participants) * 5000,
-        },
-        'zBZAZxCfznICTKLJK'
-      )
-    } catch (err) {
-      console.log('EmailJS:', err)
-    }
-
-    // ✅ Track Google Analytics
-    ReactGA.event({
-      category: 'Inscription',
-      action: 'form_submit',
-      label: form.pays,
-      value: parseInt(form.participants)
-    })
-
     setLoading(false)
-    setSubmitted(true)
+
+    if (error) {
+      setErrorMsg('Une erreur est survenue : ' + error.message)
+    } else {
+      ReactGA.event({
+        category: 'Inscription',
+        action: 'form_submit',
+        label: form.pays,
+        value: parseInt(form.participants)
+      })
+      setSubmitted(true)
+    }
   }
 
   const inputStyle = {
@@ -186,8 +137,7 @@ const Inscription = () => {
               <div style={{
                 background: '#f8f9ff',
                 border: '1px solid rgba(0,115,244,0.15)',
-                borderRadius: 12,
-                padding: 'clamp(16px, 3vw, 24px) clamp(16px, 4vw, 28px)',
+                borderRadius: 12, padding: 'clamp(16px, 3vw, 24px) clamp(16px, 4vw, 28px)',
                 textAlign: 'left'
               }}>
                 <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>
@@ -207,6 +157,32 @@ const Inscription = () => {
                   }}>{step}</div>
                 ))}
               </div>
+
+              {/* BOUTON FACTURE PDF */}
+              <button
+                onClick={() => generateFacture(form)}
+                style={{
+                  marginTop: 20,
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #000e91, #0073f4)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  padding: '14px',
+                  borderRadius: 10,
+                  fontFamily: 'Roboto',
+                  fontWeight: 700,
+                  fontSize: 14,
+                  letterSpacing: 2,
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 24px rgba(0,115,244,0.3)'
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              >
+                📄 Télécharger ma Facture PDF
+              </button>
+
             </div>
 
           ) : (
@@ -404,7 +380,7 @@ const Inscription = () => {
               📞 Besoin d'aide ?
             </div>
             {[
-              { icon: '📱', value: '+229 01 97 77 57 98' },
+              { icon: '📱', value: '+229 01 69 30 30 19' },
               { icon: '🇺🇸', value: '+1 (240) 978-4155' },
               { icon: '✉️', value: 'contact@crfperfection.pro' },
               { icon: '🌐', value: 'www.crfperfection.pro' },
@@ -420,6 +396,7 @@ const Inscription = () => {
               </div>
             ))}
           </div>
+
         </div>
       </div>
     </section>
