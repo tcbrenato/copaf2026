@@ -36,13 +36,13 @@ const About = () => {
 
   return (
     <section id="about" style={{
-      padding: '100px 60px',
+      padding: 'clamp(60px, 10vw, 100px) clamp(20px, 5vw, 60px)',
       background: '#f8f9ff',
       fontFamily: 'Roboto, sans-serif',
     }}>
 
       {/* ── HEADER ── */}
-      <div style={{ textAlign: 'center', marginBottom: 72 }}>
+      <div style={{ textAlign: 'center', marginBottom: 'clamp(40px, 7vw, 72px)' }}>
         <div style={{
           display: 'inline-block',
           background: 'rgba(0,115,244,0.08)',
@@ -55,14 +55,14 @@ const About = () => {
         </div>
         <h2 style={{
           fontFamily: 'Roboto, sans-serif',
-          fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 900,
+          fontSize: 'clamp(26px, 4vw, 48px)', fontWeight: 900,
           color: '#000e91', marginBottom: 16, lineHeight: 1.15
         }}>
           La Conférence Officielle<br />
           <span style={{ color: '#0073f4' }}>des Ports Africains</span>
         </h2>
         <p style={{
-          fontSize: 17, color: '#666',
+          fontSize: 'clamp(14px, 2vw, 17px)', color: '#666',
           maxWidth: 600, margin: '0 auto', lineHeight: 1.8, fontWeight: 300
         }}>
           Une plateforme d'échange stratégique réunissant décideurs portuaires,
@@ -72,16 +72,21 @@ const About = () => {
 
       {/* ── STATS ── */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-        marginBottom: 80, borderRadius: 16, overflow: 'hidden',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        marginBottom: 'clamp(48px, 8vw, 80px)',
+        borderRadius: 16,
+        overflow: 'hidden',
         boxShadow: '0 4px 40px rgba(0,14,145,0.08)',
         border: '1px solid rgba(0,115,244,0.12)',
       }}>
         {stats.map((stat, i) => (
           <div key={i} style={{
-            padding: '44px 20px', textAlign: 'center',
+            padding: 'clamp(28px, 5vw, 44px) clamp(12px, 3vw, 20px)',
+            textAlign: 'center',
             background: '#FFFFFF',
-            borderRight: i < 3 ? '1px solid rgba(0,115,244,0.1)' : 'none',
+            borderRight: (i % 2 === 0) ? '1px solid rgba(0,115,244,0.1)' : 'none',
+            borderBottom: (i < 2) ? '1px solid rgba(0,115,244,0.1)' : 'none',
             transition: 'background 0.2s'
           }}
             onMouseEnter={e => e.currentTarget.style.background = '#f0f6ff'}
@@ -89,13 +94,13 @@ const About = () => {
           >
             <div style={{
               fontFamily: 'Roboto, sans-serif',
-              fontSize: 52, fontWeight: 900,
+              fontSize: 'clamp(36px, 7vw, 52px)', fontWeight: 900,
               color: '#0073f4', lineHeight: 1
             }}>
               {stat.number}
             </div>
             <div style={{
-              fontSize: 12, color: '#999',
+              fontSize: 'clamp(10px, 1.5vw, 12px)', color: '#999',
               letterSpacing: 2, textTransform: 'uppercase', marginTop: 10, fontWeight: 500
             }}>
               {stat.label}
@@ -106,14 +111,17 @@ const About = () => {
 
       {/* ── FEATURES ── */}
       <div style={{
-        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: 24, marginBottom: 80
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+        gap: 'clamp(16px, 3vw, 24px)',
+        marginBottom: 'clamp(48px, 8vw, 80px)'
       }}>
         {features.map((f, i) => (
           <div key={i} style={{
             background: '#FFFFFF',
             border: '1px solid rgba(0,115,244,0.1)',
-            borderRadius: 16, padding: 36,
+            borderRadius: 16,
+            padding: 'clamp(24px, 4vw, 36px)',
             boxShadow: '0 2px 20px rgba(0,14,145,0.05)',
             transition: 'all 0.3s', cursor: 'default'
           }}
@@ -128,7 +136,6 @@ const About = () => {
               e.currentTarget.style.borderColor = 'rgba(0,115,244,0.1)'
             }}
           >
-            {/* Icône dans cercle */}
             <div style={{
               width: 56, height: 56, borderRadius: '50%',
               background: 'rgba(0,115,244,0.08)',
@@ -140,21 +147,20 @@ const About = () => {
 
             <h3 style={{
               fontFamily: 'Roboto, sans-serif',
-              fontSize: 19, fontWeight: 700,
+              fontSize: 'clamp(16px, 2.5vw, 19px)', fontWeight: 700,
               marginBottom: 12, color: '#000e91'
             }}>
               {f.title}
             </h3>
             <p style={{
-              fontSize: 14, color: '#777', lineHeight: 1.7, marginBottom: 20
+              fontSize: 'clamp(13px, 1.8vw, 14px)', color: '#777', lineHeight: 1.7, marginBottom: 20
             }}>
               {f.desc}
             </p>
 
-            {/* Séparateur */}
             <div style={{ height: 1, background: 'rgba(0,115,244,0.08)', marginBottom: 16 }} />
 
-            <ul style={{ listStyle: 'none' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {f.items.map((item, j) => (
                 <li key={j} style={{
                   fontSize: 13, color: '#555',
@@ -175,28 +181,34 @@ const About = () => {
       {/* ── PILLARS ── */}
       <div style={{
         background: '#000e91', borderRadius: 20,
-        padding: '60px 48px',
+        padding: 'clamp(36px, 6vw, 60px) clamp(20px, 5vw, 48px)',
         boxShadow: '0 8px 48px rgba(0,14,145,0.2)'
       }}>
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+        <div style={{ textAlign: 'center', marginBottom: 'clamp(28px, 5vw, 48px)' }}>
           <h3 style={{
             fontFamily: 'Roboto, sans-serif',
-            fontSize: 'clamp(22px, 3vw, 36px)',
+            fontSize: 'clamp(20px, 3vw, 36px)',
             fontWeight: 900, color: '#FFFFFF', marginBottom: 10
           }}>
             Les Piliers de la <span style={{ color: '#0073f4' }}>COPAF 2026</span>
           </h3>
-          <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.55)', fontWeight: 300 }}>
+          <p style={{ fontSize: 'clamp(13px, 1.8vw, 15px)', color: 'rgba(255,255,255,0.55)', fontWeight: 300 }}>
             Quatre axes stratégiques pour transformer l'écosystème portuaire africain
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
+          gap: 'clamp(12px, 2.5vw, 20px)'
+        }}>
           {pillars.map((p, i) => (
             <div key={i} style={{
               background: 'rgba(255,255,255,0.05)',
               border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 14, padding: '28px 22px', textAlign: 'center',
+              borderRadius: 14,
+              padding: 'clamp(20px, 3.5vw, 28px) clamp(16px, 3vw, 22px)',
+              textAlign: 'center',
               transition: 'all 0.3s'
             }}
               onMouseEnter={e => {
@@ -220,13 +232,14 @@ const About = () => {
               </div>
               <h4 style={{
                 fontFamily: 'Roboto, sans-serif',
-                fontSize: 15, fontWeight: 700,
+                fontSize: 'clamp(13px, 2vw, 15px)', fontWeight: 700,
                 marginBottom: 10, color: '#FFFFFF'
               }}>
                 {p.title}
               </h4>
               <p style={{
-                fontSize: 13, color: 'rgba(255,255,255,0.5)',
+                fontSize: 'clamp(12px, 1.6vw, 13px)',
+                color: 'rgba(255,255,255,0.5)',
                 lineHeight: 1.7, fontWeight: 300
               }}>
                 {p.desc}
@@ -235,6 +248,15 @@ const About = () => {
           ))}
         </div>
       </div>
+
+      {/* Responsive overrides */}
+      <style>{`
+        @media (min-width: 768px) {
+          #about .stats-grid {
+            grid-template-columns: repeat(4, 1fr) !important;
+          }
+        }
+      `}</style>
 
     </section>
   )
