@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { supabase } from '../supabase'
 
 const Inscription = () => {
   const [form, setForm] = useState({
@@ -7,15 +8,37 @@ const Inscription = () => {
   })
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
   const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value })
 
   const handleSubmit = async e => {
     e.preventDefault()
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1500))
+    setErrorMsg('')
+
+    const { error } = await supabase
+      .from('inscriptions')
+      .insert([{
+        nom: form.nom,
+        prenom: form.prenom,
+        email: form.email,
+        telephone: form.telephone,
+        organisation: form.organisation,
+        poste: form.poste,
+        pays: form.pays,
+        participants: parseInt(form.participants),
+        montant: parseInt(form.participants) * 5000,
+        message: form.message,
+      }])
+
     setLoading(false)
-    setSubmitted(true)
+
+    if (error) {
+      setErrorMsg('Une erreur est survenue : ' + error.message)
+    } else {
+      setSubmitted(true)
+    }
   }
 
   const inputStyle = {
@@ -69,13 +92,11 @@ const Inscription = () => {
         </p>
       </div>
 
-      {/* GRID : formulaire + sidebar */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
         gap: 'clamp(20px, 4vw, 40px)',
-        maxWidth: 1100,
-        margin: '0 auto',
+        maxWidth: 1100, margin: '0 auto',
         alignItems: 'start',
       }}>
 
@@ -96,9 +117,7 @@ const Inscription = () => {
                 background: 'rgba(0,115,244,0.1)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 36, margin: '0 auto 24px'
-              }}>
-                ✅
-              </div>
+              }}>✅</div>
               <h3 style={{ fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 900, color: '#000e91', marginBottom: 12 }}>
                 Inscription Reçue !
               </h3>
@@ -127,112 +146,99 @@ const Inscription = () => {
                     padding: '8px 0',
                     borderBottom: i < 3 ? '1px solid rgba(0,115,244,0.07)' : 'none',
                     fontSize: 'clamp(12px, 1.8vw, 14px)', color: '#444'
-                  }}>
-                    {step}
-                  </div>
+                  }}>{step}</div>
                 ))}
               </div>
             </div>
 
           ) : (
             <form onSubmit={handleSubmit}>
-              <h3 style={{ fontSize: 'clamp(18px, 3vw, 22px)', fontWeight: 900, color: '#000e91', marginBottom: 32 }}>
+              <h3 style={{ fontSize: 'clamp(18px, 3vw, 22px)', fontWeight: 900, color: '#000e91', marginBottom: 32, textAlign: 'center' }}>
                 Formulaire d'Inscription
               </h3>
 
-              {/* Nom & Prénom */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Nom *</label>
-                  <input name="nom" value={form.nom} onChange={handleChange} required
-                    placeholder="Votre nom" style={inputStyle}
+                  <input name="nom" value={form.nom} onChange={handleChange} required placeholder="Votre nom" style={inputStyle}
                     onFocus={e => e.target.style.borderColor = '#0073f4'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'}
-                  />
+                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'} />
                 </div>
                 <div>
                   <label style={labelStyle}>Prénom *</label>
-                  <input name="prenom" value={form.prenom} onChange={handleChange} required
-                    placeholder="Votre prénom" style={inputStyle}
+                  <input name="prenom" value={form.prenom} onChange={handleChange} required placeholder="Votre prénom" style={inputStyle}
                     onFocus={e => e.target.style.borderColor = '#0073f4'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'}
-                  />
+                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'} />
                 </div>
               </div>
 
-              {/* Email & Téléphone */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Email *</label>
-                  <input name="email" type="email" value={form.email} onChange={handleChange} required
-                    placeholder="votre@email.com" style={inputStyle}
+                  <input name="email" type="email" value={form.email} onChange={handleChange} required placeholder="votre@email.com" style={inputStyle}
                     onFocus={e => e.target.style.borderColor = '#0073f4'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'}
-                  />
+                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'} />
                 </div>
                 <div>
                   <label style={labelStyle}>Téléphone *</label>
-                  <input name="telephone" value={form.telephone} onChange={handleChange} required
-                    placeholder="+229 01 XX XX XX" style={inputStyle}
+                  <input name="telephone" value={form.telephone} onChange={handleChange} required placeholder="+229 01 XX XX XX" style={inputStyle}
                     onFocus={e => e.target.style.borderColor = '#0073f4'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'}
-                  />
+                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'} />
                 </div>
               </div>
 
-              {/* Organisation & Poste */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Organisation *</label>
-                  <input name="organisation" value={form.organisation} onChange={handleChange} required
-                    placeholder="Votre port / entreprise" style={inputStyle}
+                  <input name="organisation" value={form.organisation} onChange={handleChange} required placeholder="Votre port / entreprise" style={inputStyle}
                     onFocus={e => e.target.style.borderColor = '#0073f4'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'}
-                  />
+                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'} />
                 </div>
                 <div>
                   <label style={labelStyle}>Poste *</label>
-                  <input name="poste" value={form.poste} onChange={handleChange} required
-                    placeholder="Votre fonction" style={inputStyle}
+                  <input name="poste" value={form.poste} onChange={handleChange} required placeholder="Votre fonction" style={inputStyle}
                     onFocus={e => e.target.style.borderColor = '#0073f4'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'}
-                  />
+                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'} />
                 </div>
               </div>
 
-              {/* Pays & Participants */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Pays *</label>
-                  <input name="pays" value={form.pays} onChange={handleChange} required
-                    placeholder="Votre pays" style={inputStyle}
+                  <input name="pays" value={form.pays} onChange={handleChange} required placeholder="Votre pays" style={inputStyle}
                     onFocus={e => e.target.style.borderColor = '#0073f4'}
-                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'}
-                  />
+                    onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'} />
                 </div>
                 <div>
                   <label style={labelStyle}>Nombre de participants</label>
                   <select name="participants" value={form.participants} onChange={handleChange}
                     style={{ ...inputStyle, cursor: 'pointer' }}>
                     {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                      <option key={n} value={n}>
-                        {n} participant{n > 1 ? 's' : ''} — ${(n * 5000).toLocaleString()}
-                      </option>
+                      <option key={n} value={n}>{n} participant{n > 1 ? 's' : ''} — ${(n * 5000).toLocaleString()}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              {/* Message */}
               <div style={{ marginBottom: 24 }}>
                 <label style={labelStyle}>Message / Besoins spécifiques</label>
                 <textarea name="message" value={form.message} onChange={handleChange}
                   placeholder="Questions, besoins alimentaires, accessibilité..." rows={3}
                   style={{ ...inputStyle, resize: 'vertical' }}
                   onFocus={e => e.target.style.borderColor = '#0073f4'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'}
-                />
+                  onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'} />
               </div>
+
+              {/* Erreur */}
+              {errorMsg && (
+                <div style={{
+                  background: 'rgba(255,60,60,0.08)', border: '1px solid rgba(255,60,60,0.25)',
+                  borderRadius: 8, padding: '12px 16px', marginBottom: 20,
+                  fontSize: 13, color: '#cc3333'
+                }}>
+                  ❌ {errorMsg}
+                </div>
+              )}
 
               {/* Total */}
               <div style={{
@@ -244,9 +250,7 @@ const Inscription = () => {
                 gap: 12, flexWrap: 'wrap',
               }}>
                 <div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 2 }}>
-                    Total à régler
-                  </div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 2 }}>Total à régler</div>
                   <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 2 }}>
                     {form.participants} participant{form.participants > 1 ? 's' : ''} × $5,000
                   </div>
@@ -279,59 +283,28 @@ const Inscription = () => {
         {/* SIDEBAR */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(14px, 3vw, 20px)', minWidth: 0 }}>
 
-          {/* Prix */}
-          <div style={{
-            background: '#000e91',
-            borderRadius: 16,
-            padding: 'clamp(24px, 4vw, 32px)',
-            boxShadow: '0 8px 40px rgba(0,14,145,0.2)'
-          }}>
-            <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8 }}>
+          <div style={{ background: '#000e91', borderRadius: 16, padding: 'clamp(24px, 4vw, 32px)', boxShadow: '0 8px 40px rgba(0,14,145,0.2)' }}>
+            <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8, textAlign: 'center' }}>
               Tarif All-Inclusive
             </div>
-            <div style={{ fontSize: 'clamp(40px, 7vw, 52px)', fontWeight: 900, color: '#FFFFFF', lineHeight: 1 }}>
-              $5,000
-            </div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4, marginBottom: 24 }}>
-              par participant
-            </div>
+            <div style={{ fontSize: 'clamp(40px, 7vw, 52px)', fontWeight: 900, color: '#FFFFFF', lineHeight: 1, textAlign: 'center' }}>$5,000</div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4, marginBottom: 24, textAlign: 'center' }}>par participant</div>
             <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', marginBottom: 20 }} />
-            {[
-              'Frais de formation (3 jours)',
-              'Pauses-café',
-              'Matériels didactiques',
-              'Tablette préchargée',
-              '2 Certifications internationales',
-            ].map((item, i) => (
+            {['Frais de formation (3 jours)', 'Pauses-café', 'Matériels didactiques', 'Tablette préchargée', '2 Certifications internationales'].map((item, i) => (
               <div key={i} style={{
-                display: 'flex', gap: 10, alignItems: 'center',
-                padding: '7px 0',
+                display: 'flex', gap: 10, alignItems: 'center', padding: '7px 0',
                 borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.06)' : 'none',
                 fontSize: 'clamp(12px, 1.8vw, 13px)', color: 'rgba(255,255,255,0.8)'
               }}>
-                <span style={{
-                  width: 18, height: 18, borderRadius: '50%',
-                  background: '#0073f4',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10, flexShrink: 0
-                }}>✓</span>
+                <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#0073f4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 }}>✓</span>
                 {item}
               </div>
             ))}
           </div>
 
-          {/* Virement */}
-          <div style={{
-            background: '#FFFFFF',
-            border: '1px solid rgba(0,115,244,0.12)',
-            borderRadius: 16,
-            padding: 'clamp(20px, 3.5vw, 28px)',
-            boxShadow: '0 2px 20px rgba(0,14,145,0.05)'
-          }}>
-            <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14 }}>
-              🏦 Paiement par Virement
-            </div>
-            <p style={{ fontSize: 'clamp(12px, 1.8vw, 13px)', color: '#666', lineHeight: 1.7, marginBottom: 16 }}>
+          <div style={{ background: '#FFFFFF', border: '1px solid rgba(0,115,244,0.12)', borderRadius: 16, padding: 'clamp(20px, 3.5vw, 28px)', boxShadow: '0 2px 20px rgba(0,14,145,0.05)' }}>
+            <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14, textAlign: 'center' }}>🏦 Paiement par Virement</div>
+            <p style={{ fontSize: 'clamp(12px, 1.8vw, 13px)', color: '#666', lineHeight: 1.7, marginBottom: 16, textAlign: 'center' }}>
               Après validation, vous recevrez par email les coordonnées bancaires complètes.
             </p>
             {[
@@ -341,27 +314,17 @@ const Inscription = () => {
             ].map((row, i) => (
               <div key={i} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                gap: 8, flexWrap: 'wrap',
-                padding: '10px 0',
+                gap: 8, flexWrap: 'wrap', padding: '10px 0',
                 borderBottom: i < 2 ? '1px solid rgba(0,115,244,0.07)' : 'none'
               }}>
-                <span style={{ fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: 1, flexShrink: 0 }}>{row.label}</span>
-                <span style={{ fontSize: 'clamp(12px, 1.8vw, 13px)', fontWeight: 700, color: '#000e91', textAlign: 'right' }}>{row.value}</span>
+                <span style={{ fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: 1 }}>{row.label}</span>
+                <span style={{ fontSize: 'clamp(12px, 1.8vw, 13px)', fontWeight: 700, color: '#000e91' }}>{row.value}</span>
               </div>
             ))}
           </div>
 
-          {/* Contact */}
-          <div style={{
-            background: '#FFFFFF',
-            border: '1px solid rgba(0,115,244,0.12)',
-            borderRadius: 16,
-            padding: 'clamp(20px, 3.5vw, 28px)',
-            boxShadow: '0 2px 20px rgba(0,14,145,0.05)'
-          }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#000e91', marginBottom: 16 }}>
-              📞 Besoin d'aide ?
-            </div>
+          <div style={{ background: '#FFFFFF', border: '1px solid rgba(0,115,244,0.12)', borderRadius: 16, padding: 'clamp(20px, 3.5vw, 28px)', boxShadow: '0 2px 20px rgba(0,14,145,0.05)' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#000e91', marginBottom: 16, textAlign: 'center' }}>📞 Besoin d'aide ?</div>
             {[
               { icon: '📱', value: '+229 01 97 77 57 98' },
               { icon: '🇺🇸', value: '+1 (240) 978-4155' },
@@ -370,7 +333,7 @@ const Inscription = () => {
             ].map((c, i) => (
               <div key={i} style={{
                 fontSize: 'clamp(12px, 1.8vw, 13px)', color: '#555', padding: '7px 0',
-                display: 'flex', gap: 10, alignItems: 'center',
+                display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'center',
                 borderBottom: i < 3 ? '1px solid rgba(0,115,244,0.06)' : 'none',
                 wordBreak: 'break-word',
               }}>
@@ -379,7 +342,6 @@ const Inscription = () => {
               </div>
             ))}
           </div>
-
         </div>
       </div>
     </section>
