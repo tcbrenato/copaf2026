@@ -58,10 +58,11 @@ const Modules = () => {
       background: 'linear-gradient(180deg, #000a6e 0%, #000e91 100%)',
       color: '#FFFFFF',
       fontFamily: 'Roboto, sans-serif',
+      textAlign: 'center',
     }}>
 
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 'clamp(48px, 8vw, 80px)' }}>
+      <div style={{ marginBottom: 'clamp(48px, 8vw, 80px)' }}>
         <div style={{
           display: 'inline-block',
           background: 'rgba(255,255,255,0.1)',
@@ -96,6 +97,7 @@ const Modules = () => {
         maxWidth: 1200,
         margin: '0 auto',
         marginBottom: 'clamp(48px, 8vw, 80px)',
+        textAlign: 'center',
       }}>
         {modules.map((m, i) => (
           <div key={i} style={{
@@ -106,6 +108,7 @@ const Modules = () => {
             transition: 'all 0.4s ease',
             position: 'relative', overflow: 'hidden',
             backdropFilter: 'blur(10px)',
+            textAlign: 'center',
           }}
             onMouseEnter={e => {
               e.currentTarget.style.background = 'rgba(255,255,255,0.07)'
@@ -118,7 +121,7 @@ const Modules = () => {
               e.currentTarget.style.transform = 'translateY(0)'
             }}
           >
-            {/* Numéro de fond stylisé */}
+            {/* Numéro de fond décoratif */}
             <div style={{
               position: 'absolute', top: -15, right: 15,
               fontFamily: 'Outfit, sans-serif',
@@ -129,13 +132,16 @@ const Modules = () => {
               {m.num}
             </div>
 
+            {/* Icône centrée */}
             <div style={{ fontSize: 'clamp(32px, 6vw, 44px)', marginBottom: 20 }}>{m.icon}</div>
+
             <div style={{
               fontSize: 12, color: '#0073f4', fontWeight: 800,
               letterSpacing: 3, textTransform: 'uppercase', marginBottom: 12
             }}>
               Module {m.num}
             </div>
+
             <h3 style={{
               fontFamily: 'Cormorant Garamond, serif',
               fontSize: 'clamp(20px, 3.5vw, 28px)',
@@ -143,15 +149,20 @@ const Modules = () => {
             }}>
               {m.titre}
             </h3>
+
+            {/* Items centrés */}
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
               {m.items.map((item, j) => (
                 <li key={j} style={{
-                  display: 'flex', gap: 12, alignItems: 'flex-start',
+                  display: 'flex', gap: 12,
+                  alignItems: 'flex-start',
+                  justifyContent: 'center',
                   fontSize: 'clamp(13px, 1.8vw, 15px)',
-                  color: 'rgba(255,255,255,0.7)', lineHeight: 1.6
+                  color: 'rgba(255,255,255,0.7)', lineHeight: 1.6,
+                  textAlign: 'left',
                 }}>
                   <span style={{ color: '#0073f4', fontSize: 12, marginTop: 4, flexShrink: 0 }}>◆</span>
-                  {item}
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>
@@ -166,33 +177,34 @@ const Modules = () => {
         padding: 'clamp(32px, 6vw, 60px)',
         color: '#000e91',
         boxShadow: '0 30px 60px rgba(0,0,0,0.2)',
-        maxWidth: 1100, margin: '0 auto'
+        maxWidth: 1100, margin: '0 auto',
+        textAlign: 'center',
       }}>
         <h3 style={{
           fontFamily: 'Cormorant Garamond, serif',
           fontSize: 'clamp(24px, 4vw, 36px)',
           fontWeight: 700,
           marginBottom: 'clamp(24px, 5vw, 40px)',
-          textAlign: 'center'
         }}>
           Objectifs de la <span style={{ color: '#0073f4' }}>Formation</span>
         </h3>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-          gap: 'clamp(12px, 2.5vw, 24px)'
+          gap: 'clamp(12px, 2.5vw, 24px)',
         }}>
           {objectifs.map((o, i) => (
             <div key={i} style={{
-              display: 'flex', gap: 16, alignItems: 'flex-start',
+              display: 'flex', gap: 16, alignItems: 'center',
+              justifyContent: 'center',
               padding: 'clamp(12px, 2.5vw, 15px)',
               background: '#F8FAFC', borderRadius: 12,
-              border: '1px solid #E2E8F0'
+              border: '1px solid #E2E8F0',
+              textAlign: 'left',
             }}>
               <div style={{
                 background: '#0073f4', color: '#fff',
-                borderRadius: 8, width: 32, height: 32,
-                minWidth: 32,
+                borderRadius: 8, width: 32, height: 32, minWidth: 32,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 13, fontWeight: 800, flexShrink: 0
               }}>
@@ -227,23 +239,17 @@ const Modules = () => {
             border: '1px solid rgba(0,115,244,0.3)',
             borderRadius: 20,
             padding: 'clamp(18px, 3vw, 24px) clamp(20px, 4vw, 32px)',
-            display: 'flex', alignItems: 'center', gap: 'clamp(14px, 3vw, 20px)',
-            width: '100%',
-            maxWidth: 380,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: 'clamp(14px, 3vw, 20px)',
+            width: '100%', maxWidth: 380,
+            textAlign: 'center',
           }}>
             <span style={{ fontSize: 'clamp(28px, 6vw, 40px)', flexShrink: 0 }}>{c.icon}</span>
             <div>
-              <div style={{
-                fontWeight: 700,
-                fontSize: 'clamp(14px, 2.5vw, 17px)',
-                color: '#FFFFFF'
-              }}>
+              <div style={{ fontWeight: 700, fontSize: 'clamp(14px, 2.5vw, 17px)', color: '#FFFFFF' }}>
                 {c.titre}
               </div>
-              <div style={{
-                fontSize: 13, color: '#0073f4', fontWeight: 600,
-                textTransform: 'uppercase', letterSpacing: 1
-              }}>
+              <div style={{ fontSize: 13, color: '#0073f4', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>
                 {c.desc}
               </div>
             </div>
