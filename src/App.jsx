@@ -9,6 +9,24 @@ import Modules from './components/Modules'
 import Inscription from './components/Inscription'
 import Footer from './components/Footer'
 import AdminDashboard from './components/AdminDashboard'
+import useTracker from './useTracker'
+
+const MainSite = () => {
+  useTracker()
+  return (
+    <>
+      <Navbar />
+      <main>
+        <Hero />
+        <About />
+        <Programme />
+        <Modules />
+        <Inscription />
+        <Footer />
+      </main>
+    </>
+  )
+}
 
 function App() {
   useEffect(() => {
@@ -19,25 +37,8 @@ function App() {
   return (
     <Router>
       <Routes>
-
-        {/* Page principale */}
-        <Route path="/" element={
-          <>
-            <Navbar />
-            <main>
-              <Hero />
-              <About />
-              <Programme />
-              <Modules />
-              <Inscription />
-              <Footer />
-            </main>
-          </>
-        } />
-
-        {/* Dashboard Admin */}
+        <Route path="/" element={<MainSite />} />
         <Route path="/admin" element={<AdminDashboard />} />
-
       </Routes>
     </Router>
   )
