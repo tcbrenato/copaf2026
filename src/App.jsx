@@ -44,10 +44,3 @@ function App() {
 }
 
 export default App
-```
-
----
-
-Ensuite vérifie que le fichier **`public/_redirects`** existe avec ce contenu :
-```
-/*  /index.html  200
