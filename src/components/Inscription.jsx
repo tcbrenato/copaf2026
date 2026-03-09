@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
+import ReactGA from 'react-ga4'
 
 const Inscription = () => {
   const [form, setForm] = useState({
@@ -37,6 +38,13 @@ const Inscription = () => {
     if (error) {
       setErrorMsg('Une erreur est survenue : ' + error.message)
     } else {
+      // ✅ Track Google Analytics
+      ReactGA.event({
+        category: 'Inscription',
+        action: 'form_submit',
+        label: form.pays,
+        value: parseInt(form.participants)
+      })
       setSubmitted(true)
     }
   }
@@ -129,7 +137,8 @@ const Inscription = () => {
               <div style={{
                 background: '#f8f9ff',
                 border: '1px solid rgba(0,115,244,0.15)',
-                borderRadius: 12, padding: 'clamp(16px, 3vw, 24px) clamp(16px, 4vw, 28px)',
+                borderRadius: 12,
+                padding: 'clamp(16px, 3vw, 24px) clamp(16px, 4vw, 28px)',
                 textAlign: 'left'
               }}>
                 <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>
@@ -157,6 +166,7 @@ const Inscription = () => {
                 Formulaire d'Inscription
               </h3>
 
+              {/* Nom & Prénom */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Nom *</label>
@@ -172,6 +182,7 @@ const Inscription = () => {
                 </div>
               </div>
 
+              {/* Email & Téléphone */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Email *</label>
@@ -187,6 +198,7 @@ const Inscription = () => {
                 </div>
               </div>
 
+              {/* Organisation & Poste */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Organisation *</label>
@@ -202,6 +214,7 @@ const Inscription = () => {
                 </div>
               </div>
 
+              {/* Pays & Participants */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Pays *</label>
@@ -214,12 +227,15 @@ const Inscription = () => {
                   <select name="participants" value={form.participants} onChange={handleChange}
                     style={{ ...inputStyle, cursor: 'pointer' }}>
                     {[1,2,3,4,5,6,7,8,9,10].map(n => (
-                      <option key={n} value={n}>{n} participant{n > 1 ? 's' : ''} — ${(n * 5000).toLocaleString()}</option>
+                      <option key={n} value={n}>
+                        {n} participant{n > 1 ? 's' : ''} — ${(n * 5000).toLocaleString()}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
 
+              {/* Message */}
               <div style={{ marginBottom: 24 }}>
                 <label style={labelStyle}>Message / Besoins spécifiques</label>
                 <textarea name="message" value={form.message} onChange={handleChange}
@@ -229,10 +245,11 @@ const Inscription = () => {
                   onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'} />
               </div>
 
-              {/* Erreur */}
+              {/* Message erreur */}
               {errorMsg && (
                 <div style={{
-                  background: 'rgba(255,60,60,0.08)', border: '1px solid rgba(255,60,60,0.25)',
+                  background: 'rgba(255,60,60,0.08)',
+                  border: '1px solid rgba(255,60,60,0.25)',
                   borderRadius: 8, padding: '12px 16px', marginBottom: 20,
                   fontSize: 13, color: '#cc3333'
                 }}>
@@ -250,7 +267,9 @@ const Inscription = () => {
                 gap: 12, flexWrap: 'wrap',
               }}>
                 <div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 2 }}>Total à régler</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 2 }}>
+                    Total à régler
+                  </div>
                   <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 2 }}>
                     {form.participants} participant{form.participants > 1 ? 's' : ''} × $5,000
                   </div>
@@ -283,17 +302,31 @@ const Inscription = () => {
         {/* SIDEBAR */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(14px, 3vw, 20px)', minWidth: 0 }}>
 
+          {/* Prix */}
           <div style={{ background: '#000e91', borderRadius: 16, padding: 'clamp(24px, 4vw, 32px)', boxShadow: '0 8px 40px rgba(0,14,145,0.2)' }}>
             <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8, textAlign: 'center' }}>
               Tarif All-Inclusive
             </div>
-            <div style={{ fontSize: 'clamp(40px, 7vw, 52px)', fontWeight: 900, color: '#FFFFFF', lineHeight: 1, textAlign: 'center' }}>$5,000</div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4, marginBottom: 24, textAlign: 'center' }}>par participant</div>
+            <div style={{ fontSize: 'clamp(40px, 7vw, 52px)', fontWeight: 900, color: '#FFFFFF', lineHeight: 1, textAlign: 'center' }}>
+              $5,000
+            </div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4, marginBottom: 24, textAlign: 'center' }}>
+              par participant
+            </div>
             <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', marginBottom: 20 }} />
-            {['Frais de formation (3 jours)', 'Pauses-café', 'Matériels didactiques', 'Tablette préchargée', '2 Certifications internationales'].map((item, i) => (
+            {[
+              'Frais de formation (3 jours)',
+              'Hébergement inclus',
+              'Pauses-café & déjeuners',
+              'Matériels didactiques',
+              'Tablette préchargée',
+              '2 Certifications internationales',
+              'Transferts aéroport-hôtel',
+              'Service conciergerie VIP',
+            ].map((item, i, arr) => (
               <div key={i} style={{
                 display: 'flex', gap: 10, alignItems: 'center', padding: '7px 0',
-                borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
                 fontSize: 'clamp(12px, 1.8vw, 13px)', color: 'rgba(255,255,255,0.8)'
               }}>
                 <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#0073f4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 }}>✓</span>
@@ -302,8 +335,11 @@ const Inscription = () => {
             ))}
           </div>
 
+          {/* Virement */}
           <div style={{ background: '#FFFFFF', border: '1px solid rgba(0,115,244,0.12)', borderRadius: 16, padding: 'clamp(20px, 3.5vw, 28px)', boxShadow: '0 2px 20px rgba(0,14,145,0.05)' }}>
-            <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14, textAlign: 'center' }}>🏦 Paiement par Virement</div>
+            <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14, textAlign: 'center' }}>
+              🏦 Paiement par Virement
+            </div>
             <p style={{ fontSize: 'clamp(12px, 1.8vw, 13px)', color: '#666', lineHeight: 1.7, marginBottom: 16, textAlign: 'center' }}>
               Après validation, vous recevrez par email les coordonnées bancaires complètes.
             </p>
@@ -323,8 +359,11 @@ const Inscription = () => {
             ))}
           </div>
 
+          {/* Contact */}
           <div style={{ background: '#FFFFFF', border: '1px solid rgba(0,115,244,0.12)', borderRadius: 16, padding: 'clamp(20px, 3.5vw, 28px)', boxShadow: '0 2px 20px rgba(0,14,145,0.05)' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#000e91', marginBottom: 16, textAlign: 'center' }}>📞 Besoin d'aide ?</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#000e91', marginBottom: 16, textAlign: 'center' }}>
+              📞 Besoin d'aide ?
+            </div>
             {[
               { icon: '📱', value: '+229 01 97 77 57 98' },
               { icon: '🇺🇸', value: '+1 (240) 978-4155' },
@@ -342,6 +381,7 @@ const Inscription = () => {
               </div>
             ))}
           </div>
+
         </div>
       </div>
     </section>
