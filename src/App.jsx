@@ -11,6 +11,7 @@ import Footer from './components/Footer'
 import AdminDashboard from './components/AdminDashboard'
 import Partners from './components/Partners'
 import useTracker from './useTracker'
+import Sponsors from './pages/Sponsors'
 
 const MainSite = () => {
   useTracker()
@@ -41,6 +42,7 @@ function App() {
       <Routes>
         <Route path="/" element={<MainSite />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/sponsors" element={<Sponsors />} />
       </Routes>
     </Router>
   )
