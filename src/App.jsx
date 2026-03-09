@@ -8,7 +8,7 @@ import Programme from './components/Programme'
 import Modules from './components/Modules'
 import Inscription from './components/Inscription'
 import Footer from './components/Footer'
-import AdminDashboard from './components/Admin'
+import AdminDashboard from './components/AdminDashboard'
 
 function App() {
   useEffect(() => {
