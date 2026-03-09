@@ -19,12 +19,15 @@ const Inscription = () => {
   }
 
   const inputStyle = {
-    width: '100%', padding: '13px 16px',
+    width: '100%',
+    padding: 'clamp(10px, 2vw, 13px) 16px',
     background: '#FFFFFF',
     border: '1.5px solid rgba(0,14,145,0.15)',
     borderRadius: 8, color: '#222',
-    fontFamily: 'Roboto, sans-serif', fontSize: 14,
+    fontFamily: 'Roboto, sans-serif',
+    fontSize: 'clamp(13px, 1.8vw, 14px)',
     outline: 'none', transition: 'border-color 0.2s',
+    boxSizing: 'border-box',
   }
 
   const labelStyle = {
@@ -35,13 +38,13 @@ const Inscription = () => {
 
   return (
     <section id="inscription" style={{
-      padding: '100px 60px',
+      padding: 'clamp(60px, 10vw, 100px) clamp(20px, 5vw, 60px)',
       background: '#f8f9ff',
       fontFamily: 'Roboto, sans-serif',
     }}>
 
       {/* HEADER */}
-      <div style={{ textAlign: 'center', marginBottom: 64 }}>
+      <div style={{ textAlign: 'center', marginBottom: 'clamp(36px, 6vw, 64px)' }}>
         <div style={{
           display: 'inline-block',
           background: 'rgba(0,115,244,0.08)',
@@ -53,28 +56,41 @@ const Inscription = () => {
           </span>
         </div>
         <h2 style={{
-          fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 900,
+          fontSize: 'clamp(26px, 4vw, 48px)', fontWeight: 900,
           color: '#000e91', marginBottom: 16, lineHeight: 1.15
         }}>
           Inscription & <span style={{ color: '#0073f4' }}>Paiement</span>
         </h2>
-        <p style={{ fontSize: 17, color: '#666', maxWidth: 560, margin: '0 auto', lineHeight: 1.8, fontWeight: 300 }}>
+        <p style={{
+          fontSize: 'clamp(14px, 2vw, 17px)', color: '#666',
+          maxWidth: 560, margin: '0 auto', lineHeight: 1.8, fontWeight: 300
+        }}>
           Réservez votre place dès maintenant. Paiement sécurisé par virement bancaire.
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 400px', gap: 40, maxWidth: 1100, margin: '0 auto' }}>
+      {/* GRID : formulaire + sidebar */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+        gap: 'clamp(20px, 4vw, 40px)',
+        maxWidth: 1100,
+        margin: '0 auto',
+        alignItems: 'start',
+      }}>
 
         {/* FORMULAIRE */}
         <div style={{
           background: '#FFFFFF',
           border: '1px solid rgba(0,115,244,0.1)',
-          borderRadius: 20, padding: 48,
-          boxShadow: '0 4px 40px rgba(0,14,145,0.06)'
+          borderRadius: 20,
+          padding: 'clamp(24px, 5vw, 48px)',
+          boxShadow: '0 4px 40px rgba(0,14,145,0.06)',
+          minWidth: 0,
         }}>
 
           {submitted ? (
-            <div style={{ textAlign: 'center', padding: '48px 0' }}>
+            <div style={{ textAlign: 'center', padding: 'clamp(24px, 5vw, 48px) 0' }}>
               <div style={{
                 width: 80, height: 80, borderRadius: '50%',
                 background: 'rgba(0,115,244,0.1)',
@@ -83,10 +99,10 @@ const Inscription = () => {
               }}>
                 ✅
               </div>
-              <h3 style={{ fontSize: 28, fontWeight: 900, color: '#000e91', marginBottom: 12 }}>
+              <h3 style={{ fontSize: 'clamp(20px, 3.5vw, 28px)', fontWeight: 900, color: '#000e91', marginBottom: 12 }}>
                 Inscription Reçue !
               </h3>
-              <p style={{ fontSize: 16, color: '#666', lineHeight: 1.8, marginBottom: 28 }}>
+              <p style={{ fontSize: 'clamp(13px, 2vw, 16px)', color: '#666', lineHeight: 1.8, marginBottom: 28 }}>
                 Merci <strong style={{ color: '#000e91' }}>{form.prenom} {form.nom}</strong>.<br />
                 Vous recevrez les instructions de virement à<br />
                 <strong style={{ color: '#0073f4' }}>{form.email}</strong> dans les 24h.
@@ -94,7 +110,8 @@ const Inscription = () => {
               <div style={{
                 background: '#f8f9ff',
                 border: '1px solid rgba(0,115,244,0.15)',
-                borderRadius: 12, padding: '24px 28px', textAlign: 'left'
+                borderRadius: 12, padding: 'clamp(16px, 3vw, 24px) clamp(16px, 4vw, 28px)',
+                textAlign: 'left'
               }}>
                 <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>
                   Prochaines étapes
@@ -109,7 +126,7 @@ const Inscription = () => {
                     display: 'flex', alignItems: 'center', gap: 10,
                     padding: '8px 0',
                     borderBottom: i < 3 ? '1px solid rgba(0,115,244,0.07)' : 'none',
-                    fontSize: 14, color: '#444'
+                    fontSize: 'clamp(12px, 1.8vw, 14px)', color: '#444'
                   }}>
                     {step}
                   </div>
@@ -119,12 +136,12 @@ const Inscription = () => {
 
           ) : (
             <form onSubmit={handleSubmit}>
-              <h3 style={{ fontSize: 22, fontWeight: 900, color: '#000e91', marginBottom: 32 }}>
+              <h3 style={{ fontSize: 'clamp(18px, 3vw, 22px)', fontWeight: 900, color: '#000e91', marginBottom: 32 }}>
                 Formulaire d'Inscription
               </h3>
 
               {/* Nom & Prénom */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Nom *</label>
                   <input name="nom" value={form.nom} onChange={handleChange} required
@@ -144,7 +161,7 @@ const Inscription = () => {
               </div>
 
               {/* Email & Téléphone */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Email *</label>
                   <input name="email" type="email" value={form.email} onChange={handleChange} required
@@ -164,7 +181,7 @@ const Inscription = () => {
               </div>
 
               {/* Organisation & Poste */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Organisation *</label>
                   <input name="organisation" value={form.organisation} onChange={handleChange} required
@@ -184,7 +201,7 @@ const Inscription = () => {
               </div>
 
               {/* Pays & Participants */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Pays *</label>
                   <input name="pays" value={form.pays} onChange={handleChange} required
@@ -220,8 +237,11 @@ const Inscription = () => {
               {/* Total */}
               <div style={{
                 background: 'linear-gradient(135deg, #000e91 0%, #0073f4 100%)',
-                borderRadius: 12, padding: '18px 24px', marginBottom: 24,
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                borderRadius: 12,
+                padding: 'clamp(14px, 3vw, 18px) clamp(16px, 3.5vw, 24px)',
+                marginBottom: 24,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                gap: 12, flexWrap: 'wrap',
               }}>
                 <div>
                   <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 2 }}>
@@ -231,7 +251,7 @@ const Inscription = () => {
                     {form.participants} participant{form.participants > 1 ? 's' : ''} × $5,000
                   </div>
                 </div>
-                <div style={{ fontSize: 36, fontWeight: 900, color: '#FFFFFF' }}>
+                <div style={{ fontSize: 'clamp(28px, 5vw, 36px)', fontWeight: 900, color: '#FFFFFF' }}>
                   ${(parseInt(form.participants) * 5000).toLocaleString()}
                 </div>
               </div>
@@ -241,13 +261,14 @@ const Inscription = () => {
                 background: loading ? 'rgba(0,115,244,0.5)' : '#0073f4',
                 color: '#FFFFFF', border: 'none', padding: '16px',
                 borderRadius: 10, fontFamily: 'Roboto', fontWeight: 700,
-                fontSize: 14, letterSpacing: 2, textTransform: 'uppercase',
+                fontSize: 'clamp(12px, 1.8vw, 14px)', letterSpacing: 2,
+                textTransform: 'uppercase',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
                 boxShadow: loading ? 'none' : '0 6px 24px rgba(0,115,244,0.3)'
               }}
-                onMouseEnter={e => { if (!loading) e.target.style.background = '#005fd4' }}
-                onMouseLeave={e => { if (!loading) e.target.style.background = '#0073f4' }}
+                onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#005fd4' }}
+                onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#0073f4' }}
               >
                 {loading ? '⏳ Envoi en cours...' : '✈️ Confirmer mon Inscription'}
               </button>
@@ -256,18 +277,19 @@ const Inscription = () => {
         </div>
 
         {/* SIDEBAR */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(14px, 3vw, 20px)', minWidth: 0 }}>
 
           {/* Prix */}
           <div style={{
             background: '#000e91',
-            borderRadius: 16, padding: 32,
+            borderRadius: 16,
+            padding: 'clamp(24px, 4vw, 32px)',
             boxShadow: '0 8px 40px rgba(0,14,145,0.2)'
           }}>
             <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8 }}>
               Tarif All-Inclusive
             </div>
-            <div style={{ fontSize: 52, fontWeight: 900, color: '#FFFFFF', lineHeight: 1 }}>
+            <div style={{ fontSize: 'clamp(40px, 7vw, 52px)', fontWeight: 900, color: '#FFFFFF', lineHeight: 1 }}>
               $5,000
             </div>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4, marginBottom: 24 }}>
@@ -284,8 +306,8 @@ const Inscription = () => {
               <div key={i} style={{
                 display: 'flex', gap: 10, alignItems: 'center',
                 padding: '7px 0',
-                borderBottom: i < 7 ? '1px solid rgba(255,255,255,0.06)' : 'none',
-                fontSize: 13, color: 'rgba(255,255,255,0.8)'
+                borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                fontSize: 'clamp(12px, 1.8vw, 13px)', color: 'rgba(255,255,255,0.8)'
               }}>
                 <span style={{
                   width: 18, height: 18, borderRadius: '50%',
@@ -302,13 +324,14 @@ const Inscription = () => {
           <div style={{
             background: '#FFFFFF',
             border: '1px solid rgba(0,115,244,0.12)',
-            borderRadius: 16, padding: 28,
+            borderRadius: 16,
+            padding: 'clamp(20px, 3.5vw, 28px)',
             boxShadow: '0 2px 20px rgba(0,14,145,0.05)'
           }}>
             <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14 }}>
               🏦 Paiement par Virement
             </div>
-            <p style={{ fontSize: 13, color: '#666', lineHeight: 1.7, marginBottom: 16 }}>
+            <p style={{ fontSize: 'clamp(12px, 1.8vw, 13px)', color: '#666', lineHeight: 1.7, marginBottom: 16 }}>
               Après validation, vous recevrez par email les coordonnées bancaires complètes.
             </p>
             {[
@@ -318,11 +341,12 @@ const Inscription = () => {
             ].map((row, i) => (
               <div key={i} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                gap: 8, flexWrap: 'wrap',
                 padding: '10px 0',
                 borderBottom: i < 2 ? '1px solid rgba(0,115,244,0.07)' : 'none'
               }}>
-                <span style={{ fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: 1 }}>{row.label}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#000e91' }}>{row.value}</span>
+                <span style={{ fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: 1, flexShrink: 0 }}>{row.label}</span>
+                <span style={{ fontSize: 'clamp(12px, 1.8vw, 13px)', fontWeight: 700, color: '#000e91', textAlign: 'right' }}>{row.value}</span>
               </div>
             ))}
           </div>
@@ -331,7 +355,8 @@ const Inscription = () => {
           <div style={{
             background: '#FFFFFF',
             border: '1px solid rgba(0,115,244,0.12)',
-            borderRadius: 16, padding: 28,
+            borderRadius: 16,
+            padding: 'clamp(20px, 3.5vw, 28px)',
             boxShadow: '0 2px 20px rgba(0,14,145,0.05)'
           }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#000e91', marginBottom: 16 }}>
@@ -344,11 +369,13 @@ const Inscription = () => {
               { icon: '🌐', value: 'www.crfperfection.pro' },
             ].map((c, i) => (
               <div key={i} style={{
-                fontSize: 13, color: '#555', padding: '7px 0',
+                fontSize: 'clamp(12px, 1.8vw, 13px)', color: '#555', padding: '7px 0',
                 display: 'flex', gap: 10, alignItems: 'center',
-                borderBottom: i < 3 ? '1px solid rgba(0,115,244,0.06)' : 'none'
+                borderBottom: i < 3 ? '1px solid rgba(0,115,244,0.06)' : 'none',
+                wordBreak: 'break-word',
               }}>
-                <span>{c.icon}</span> {c.value}
+                <span style={{ flexShrink: 0 }}>{c.icon}</span>
+                {c.value}
               </div>
             ))}
           </div>
