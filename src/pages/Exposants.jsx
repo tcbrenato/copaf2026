@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
+import Navbar from '../components/Navbar'
 
 const categories = [
   {
@@ -151,6 +152,7 @@ const Exposants = () => {
 
   return (
     <div style={{ background: '#060a14', minHeight: '100vh', fontFamily: 'Roboto, sans-serif', color: '#FFFFFF' }}>
+        <Navbar />
 
       {/* HEADER */}
       <div style={{
