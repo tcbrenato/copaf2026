@@ -6,213 +6,222 @@ export const generateFacture = (form) => {
   const num = `FAC-2026-${Date.now().toString().slice(-5)}`
   const date = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
   const montant = parseInt(form.participants) * 5000
+  const montantStr = '$' + montant.toLocaleString('en-US')
+  const puStr = '$5,000'
 
-  // ── FOND HEADER ──
+  // ── HEADER FOND ──
   doc.setFillColor(0, 14, 145)
-  doc.rect(0, 0, W, 55, 'F')
-
-  // ── BANDE BLEUE CLAIRE ──
+  doc.rect(0, 0, W, 52, 'F')
   doc.setFillColor(0, 115, 244)
-  doc.rect(0, 52, W, 6, 'F')
+  doc.rect(0, 49, W, 5, 'F')
 
-  // ── TITRE COPAF ──
+  // ── TITRE ──
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(28)
-  doc.text('COPAF 2026', 20, 28)
-
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(126, 184, 255)
-  doc.text('CONFÉRENCE OFFICIELLE DES PORTS AFRICAINS', 20, 36)
-  doc.text('Dubaï · 15 – 17 Septembre 2026', 20, 43)
-
-  // ── FACTURE N° (droite) ──
-  doc.setTextColor(255, 255, 255)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(13)
-  doc.text('FACTURE', W - 20, 24, { align: 'right' })
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(126, 184, 255)
-  doc.text(num, W - 20, 31, { align: 'right' })
-  doc.text(`Date : ${date}`, W - 20, 38, { align: 'right' })
-
-  // ── INFOS ÉMETTEUR ──
-  doc.setTextColor(60, 60, 60)
+  doc.setFontSize(26)
+  doc.text('COPAF 2026', 20, 24)
   doc.setFontSize(9)
-  doc.setFont('helvetica', 'bold')
-  doc.text('ÉMETTEUR', 20, 70)
   doc.setFont('helvetica', 'normal')
+  doc.setTextColor(126, 184, 255)
+  doc.text('CONFERENCE OFFICIELLE DES PORTS AFRICAINS', 20, 32)
+  doc.text('Dubai  -  15 - 17 Septembre 2026', 20, 39)
+
+  // ── FACTURE N° ──
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(14)
+  doc.text('FACTURE', W - 20, 22, { align: 'right' })
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(126, 184, 255)
+  doc.text(num, W - 20, 30, { align: 'right' })
+  doc.text('Date : ' + date, W - 20, 37, { align: 'right' })
+
+  // ── EMETTEUR ──
   doc.setTextColor(80, 80, 80)
-  doc.text('CRF PERFECTION', 20, 77)
-  doc.text('contact@crfperfection.pro', 20, 83)
-  doc.text('www.crfperfection.pro', 20, 89)
-  doc.text('+229 01 97 77 57 98  |  +1 (240) 978-4155', 20, 95)
-
-  // ── INFOS CLIENT ──
-  doc.setTextColor(60, 60, 60)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
-  doc.text('FACTURÉ À', 120, 70)
-
-  doc.setFillColor(248, 249, 255)
-  doc.roundedRect(115, 73, 75, 35, 3, 3, 'F')
-  doc.setDrawColor(0, 115, 244)
-  doc.setLineWidth(0.3)
-  doc.roundedRect(115, 73, 75, 35, 3, 3, 'S')
-
+  doc.setFontSize(8)
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(0, 14, 145)
-  doc.setFontSize(10)
-  doc.text(`${form.prenom} ${form.nom}`, 120, 81)
+  doc.text('EMETTEUR', 20, 68)
   doc.setFont('helvetica', 'normal')
-  doc.setTextColor(80, 80, 80)
-  doc.setFontSize(9)
-  doc.text(form.organisation, 120, 88)
-  doc.text(form.poste || '', 120, 94)
-  doc.text(form.pays, 120, 100)
-  doc.text(form.email, 120, 106)
+  doc.setTextColor(60, 60, 60)
+  doc.text('CRF PERFECTION', 20, 75)
+  doc.text('contact@crfperfection.pro', 20, 81)
+  doc.text('www.crfperfection.pro', 20, 87)
+  doc.text('+229 01 97 77 57 98   |   +1 (240) 978-4155', 20, 93)
 
-  // ── SÉPARATEUR ──
-  doc.setDrawColor(0, 115, 244)
-  doc.setLineWidth(0.3)
-  doc.line(20, 115, W - 20, 115)
-
-  // ── TABLEAU PRESTATIONS ──
-  // En-tête tableau
-  doc.setFillColor(0, 14, 145)
-  doc.rect(20, 120, W - 40, 10, 'F')
-  doc.setTextColor(255, 255, 255)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
-  doc.text('DÉSIGNATION', 25, 127)
-  doc.text('QTÉ', 130, 127, { align: 'center' })
-  doc.text('P.U.', 155, 127, { align: 'center' })
-  doc.text('TOTAL', W - 25, 127, { align: 'right' })
-
-  // Ligne prestation
+  // ── CLIENT BOX ──
   doc.setFillColor(248, 249, 255)
-  doc.rect(20, 130, W - 40, 14, 'F')
-  doc.setTextColor(40, 40, 40)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
-  doc.text('Formation COPAF 2026 — Dubai', 25, 138)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
-  doc.setTextColor(100, 100, 100)
-  doc.text('3 jours · All-inclusive · Certification internationale', 25, 143)
-
-  doc.setTextColor(40, 40, 40)
-  doc.setFontSize(9)
-  doc.text(String(form.participants), 130, 138, { align: 'center' })
-  doc.text('$5,000', 155, 138, { align: 'center' })
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(0, 14, 145)
-  doc.text(`$${montant.toLocaleString()}`, W - 25, 138, { align: 'right' })
-
-  // Ligne inclusions
-  doc.setFillColor(255, 255, 255)
-  doc.rect(20, 144, W - 40, 10, 'F')
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(100, 100, 100)
-  doc.setFontSize(8)
-  doc.text('Hébergement · Transferts · Tablette · Pauses-café · Déjeuners', 25, 150)
-
-  // ── SÉPARATEUR ──
-  doc.setDrawColor(220, 220, 240)
-  doc.setLineWidth(0.3)
-  doc.line(20, 158, W - 20, 158)
-
-  // ── TOTAL ──
-  doc.setFillColor(0, 14, 145)
-  doc.roundedRect(115, 163, 75, 22, 3, 3, 'F')
-  doc.setTextColor(126, 184, 255)
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
-  doc.text('MONTANT TOTAL', 152, 171, { align: 'center' })
-  doc.setTextColor(255, 255, 255)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(16)
-  doc.text(`$${montant.toLocaleString()}`, 152, 181, { align: 'center' })
-
-  // ── NOTE FISCALE ──
-  doc.setFillColor(255, 248, 230)
-  doc.roundedRect(20, 163, 88, 22, 3, 3, 'F')
-  doc.setDrawColor(255, 180, 0)
-  doc.setLineWidth(0.3)
-  doc.roundedRect(20, 163, 88, 22, 3, 3, 'S')
-  doc.setTextColor(150, 100, 0)
-  doc.setFontSize(7.5)
-  doc.setFont('helvetica', 'bold')
-  doc.text('NB :', 25, 171)
-  doc.setFont('helvetica', 'normal')
-  const note = 'Tarif net de taxes. Selon votre juridiction fiscale,\nle mécanisme d\'auto-liquidation de la TVA\npeut s\'appliquer.'
-  doc.text(note, 33, 171)
-
-  // ── PAIEMENT ──
-  doc.setFillColor(248, 249, 255)
-  doc.roundedRect(20, 195, W - 40, 30, 3, 3, 'F')
+  doc.roundedRect(115, 60, 75, 42, 3, 3, 'F')
   doc.setDrawColor(0, 115, 244)
-  doc.setLineWidth(0.3)
-  doc.roundedRect(20, 195, W - 40, 30, 3, 3, 'S')
+  doc.setLineWidth(0.4)
+  doc.roundedRect(115, 60, 75, 42, 3, 3, 'S')
 
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(0, 115, 244)
   doc.setFontSize(8)
-  doc.text('INSTRUCTIONS DE PAIEMENT', 25, 202)
+  doc.text('FACTURE A', 120, 67)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(0, 14, 145)
+  doc.setFontSize(10)
+  doc.text(form.prenom + ' ' + form.nom, 120, 75)
 
   doc.setFont('helvetica', 'normal')
-  doc.setTextColor(80, 80, 80)
+  doc.setTextColor(60, 60, 60)
+  doc.setFontSize(8.5)
+  doc.text(form.organisation || '', 120, 82)
+  if (form.poste && form.poste !== 'ffffff') {
+    doc.text(form.poste, 120, 88)
+  }
+  doc.text(form.pays || '', 120, 94)
+  doc.text(form.email || '', 120, 100)
+
+  // ── SEPARATEUR ──
+  doc.setDrawColor(0, 115, 244)
+  doc.setLineWidth(0.3)
+  doc.line(20, 108, W - 20, 108)
+
+  // ── TABLEAU HEADER ──
+  doc.setFillColor(0, 14, 145)
+  doc.rect(20, 113, W - 40, 9, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
-  doc.text(`Bénéficiaire : CRF PERFECTION`, 25, 209)
-  doc.text(`Référence : COPAF2026 + ${form.nom}`, 25, 215)
-  doc.text(`Délai : 7 jours après inscription`, 25, 221)
-  doc.text(`Mode : Virement bancaire uniquement`, 110, 209)
-  doc.text(`Coordonnées bancaires envoyées par email`, 110, 215)
+  doc.text('DESIGNATION', 25, 119)
+  doc.text('QTE', 135, 119, { align: 'center' })
+  doc.text('P.U.', 158, 119, { align: 'center' })
+  doc.text('TOTAL', W - 25, 119, { align: 'right' })
+
+  // ── LIGNE PRESTATION ──
+  doc.setFillColor(248, 249, 255)
+  doc.rect(20, 122, W - 40, 16, 'F')
+  doc.setTextColor(30, 30, 30)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9)
+  doc.text('Formation COPAF 2026 - Dubai', 25, 129)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(7.5)
+  doc.setTextColor(100, 100, 100)
+  doc.text('3 jours - All-inclusive - Certification internationale', 25, 135)
+
+  doc.setTextColor(30, 30, 30)
+  doc.setFontSize(9)
+  doc.text(String(form.participants), 135, 131, { align: 'center' })
+  doc.text(puStr, 158, 131, { align: 'center' })
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(0, 14, 145)
+  doc.text(montantStr, W - 25, 131, { align: 'right' })
+
+  // ── LIGNE INCLUSIONS ──
+  doc.setFillColor(255, 255, 255)
+  doc.rect(20, 138, W - 40, 9, 'F')
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(120, 120, 120)
+  doc.setFontSize(7.5)
+  doc.text('Inclus : Hebergement - Transferts - Tablette - Pauses-cafe - Dejeuners', 25, 144)
+
+  // ── SEPARATEUR ──
+  doc.setDrawColor(220, 220, 240)
+  doc.setLineWidth(0.3)
+  doc.line(20, 150, W - 20, 150)
+
+  // ── TOTAL BOX ──
+  doc.setFillColor(0, 14, 145)
+  doc.roundedRect(120, 155, 70, 20, 3, 3, 'F')
+  doc.setTextColor(126, 184, 255)
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.text('MONTANT TOTAL', 155, 162, { align: 'center' })
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(15)
+  doc.text(montantStr, 155, 171, { align: 'center' })
+
+  // ── NOTE FISCALE ──
+  doc.setFillColor(255, 248, 230)
+  doc.roundedRect(20, 155, 94, 20, 3, 3, 'F')
+  doc.setDrawColor(200, 150, 0)
+  doc.setLineWidth(0.3)
+  doc.roundedRect(20, 155, 94, 20, 3, 3, 'S')
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(150, 100, 0)
+  doc.setFontSize(7.5)
+  doc.text('NB :', 25, 162)
+  doc.setFont('helvetica', 'normal')
+  doc.text('Tarif net de taxes. Selon votre juridiction', 34, 162)
+  doc.text('fiscale, le mecanisme d\'auto-liquidation de', 25, 167)
+  doc.text('la TVA peut s\'appliquer.', 25, 172)
+
+  // ── PAIEMENT BOX ──
+  doc.setFillColor(248, 249, 255)
+  doc.roundedRect(20, 182, W - 40, 28, 3, 3, 'F')
+  doc.setDrawColor(0, 115, 244)
+  doc.setLineWidth(0.3)
+  doc.roundedRect(20, 182, W - 40, 28, 3, 3, 'S')
+
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(0, 115, 244)
+  doc.setFontSize(8)
+  doc.text('INSTRUCTIONS DE PAIEMENT', 25, 189)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(60, 60, 60)
+  doc.setFontSize(8)
+  doc.text('Beneficiaire : CRF PERFECTION', 25, 196)
+  doc.text('Reference : COPAF2026 + ' + form.nom, 25, 202)
+  doc.text('Delai : 7 jours apres inscription', 25, 208)
+  doc.text('Mode : Virement bancaire uniquement', 115, 196)
+  doc.text('Coordonnees bancaires envoyees par email', 115, 202)
 
   // ── INCLUSIONS ──
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(0, 14, 145)
   doc.setFontSize(8)
-  doc.text('CE QUI EST INCLUS', 20, 238)
+  doc.text('CE QUI EST INCLUS', 20, 222)
 
   const inclusions = [
-    '✓ Frais de formation (3 jours)',
-    '✓ Hébergement',
-    '✓ Transferts aéroport-hôtel',
-    '✓ Tablette préchargée',
-    '✓ Pauses-café & déjeuners',
-    '✓ 2 Certifications internationales',
-    '✓ Matériels didactiques',
-    '✓ Service conciergerie VIP',
+    'Formation complete (3 jours)',
+    'Hebergement',
+    'Transferts aeroport-hotel',
+    'Tablette precharge',
+    'Pauses-cafe & dejeuners',
+    '2 Certifications internationales',
+    'Materiels didactiques',
+    'Service conciergerie VIP',
   ]
 
   doc.setFont('helvetica', 'normal')
-  doc.setTextColor(60, 60, 60)
+  doc.setTextColor(50, 50, 50)
   doc.setFontSize(8)
   inclusions.forEach((item, i) => {
     const col = i < 4 ? 20 : 110
-    const row = 244 + (i % 4) * 7
-    doc.text(item, col, row)
+    const row = 229 + (i % 4) * 7
+    doc.text('- ' + item, col, row)
   })
+
+  // ── SEPARATEUR FOOTER ──
+  doc.setDrawColor(0, 115, 244)
+  doc.setLineWidth(0.5)
+  doc.line(0, 258, W, 258)
 
   // ── FOOTER ──
   doc.setFillColor(0, 14, 145)
-  doc.rect(0, 272, W, 25, 'F')
-  doc.setFillColor(0, 115, 244)
-  doc.rect(0, 270, W, 3, 'F')
+  doc.rect(0, 258, W, 39, 'F')
 
   doc.setTextColor(255, 255, 255)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.text('COPAF 2026', W / 2, 280, { align: 'center' })
+  doc.setFontSize(12)
+  doc.text('COPAF 2026', W / 2, 268, { align: 'center' })
+
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(126, 184, 255)
-  doc.text('copaf-ports.com  ·  contact@crfperfection.pro  ·  +229 01 97 77 57 98', W / 2, 287, { align: 'center' })
-  doc.text(`Document généré le ${date} · Réf. ${num}`, W / 2, 293, { align: 'center' })
+  doc.text('copaf-ports.com   -   contact@crfperfection.pro   -   +229 01 97 77 57 98', W / 2, 275, { align: 'center' })
+  doc.text('Document genere le ' + date + '   -   Ref. ' + num, W / 2, 282, { align: 'center' })
+  doc.setTextColor(100, 140, 200)
+  doc.setFontSize(7)
+  doc.text('Ce document est genere automatiquement et constitue une facture officielle.', W / 2, 290, { align: 'center' })
 
-  // ── TÉLÉCHARGEMENT ──
-  doc.save(`Facture_COPAF2026_${form.nom}.pdf`)
+  doc.save('Facture_COPAF2026_' + form.nom + '.pdf')
 }
