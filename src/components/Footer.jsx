@@ -4,7 +4,10 @@ const Footer = () => {
       background: '#00072e',
       borderTop: '1px solid rgba(0,115,244,0.2)',
       padding: 'clamp(40px, 7vw, 60px) clamp(20px, 5vw, 60px) clamp(24px, 4vw, 30px)',
+      textAlign: 'center',
     }}>
+
+      {/* Grille principale */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
@@ -13,7 +16,7 @@ const Footer = () => {
       }}>
 
         {/* Logo & desc */}
-        <div style={{ gridColumn: 'span 1' }}>
+        <div>
           <div style={{
             fontFamily: 'Cormorant Garamond, serif',
             fontSize: 'clamp(22px, 4vw, 28px)',
@@ -29,7 +32,8 @@ const Footer = () => {
           </div>
           <p style={{
             fontSize: 'clamp(12px, 1.8vw, 14px)',
-            color: 'rgba(255,255,255,0.45)', lineHeight: 1.8, maxWidth: 320
+            color: 'rgba(255,255,255,0.45)', lineHeight: 1.8,
+            maxWidth: 320, margin: '0 auto',
           }}>
             La Conférence Officielle sur les Ports Africains et la Formation.
             Une plateforme stratégique pour façonner l'avenir portuaire africain.
@@ -39,7 +43,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Liens */}
+        {/* Navigation */}
         <div>
           <div style={{
             fontSize: 11, color: '#0073f4', fontWeight: 700,
@@ -74,7 +78,7 @@ const Footer = () => {
             Contact
           </div>
           {[
-            { icon: '📍', text: 'Bénin · Côte d\'Ivoire · Togo · USA' },
+            { icon: '📍', text: "Bénin · Côte d'Ivoire · Togo · USA" },
             { icon: '📱', text: '+229 01 97 77 57 98' },
             { icon: '🇺🇸', text: '+1 (240) 978-4155' },
             { icon: '✉️', text: 'contact@crfperfection.pro' },
@@ -83,7 +87,8 @@ const Footer = () => {
               display: 'flex', gap: 10, marginBottom: 10,
               fontSize: 'clamp(12px, 1.8vw, 13px)',
               color: 'rgba(255,255,255,0.5)',
-              alignItems: 'flex-start',
+              alignItems: 'center',
+              justifyContent: 'center',
               wordBreak: 'break-word',
             }}>
               <span style={{ flexShrink: 0 }}>{c.icon}</span>
@@ -98,9 +103,8 @@ const Footer = () => {
         borderTop: '1px solid rgba(255,255,255,0.06)',
         paddingTop: 24,
         display: 'flex',
-        justifyContent: 'space-between',
+        flexDirection: 'column',
         alignItems: 'center',
-        flexWrap: 'wrap',
         gap: 8,
       }}>
         <div style={{ fontSize: 'clamp(11px, 1.6vw, 13px)', color: 'rgba(255,255,255,0.3)' }}>
@@ -110,6 +114,7 @@ const Footer = () => {
           Dubaï, Émirats Arabes Unis · 15–17 Septembre 2026
         </div>
       </div>
+
     </footer>
   )
 }
