@@ -21,6 +21,9 @@ const getSource = () => {
 
 const useTracker = () => {
   useEffect(() => {
+    // Ne pas tracker la page admin
+    if (window.location.pathname.includes('/admin')) return
+
     const track = async () => {
       await supabase.from('visites').insert([{
         page: window.location.pathname,

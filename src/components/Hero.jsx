@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-scroll'
 
 const Hero = () => {
-  const fullText = "Conférence Officielle sur les Ports Africains et la Formation (COPAF 2026)"
+  const fullText = "Conférence Officielle des Ports Africains (COPAF 2026)"
   const [displayed, setDisplayed] = useState('')
   const [index, setIndex] = useState(0)
   const [showCursor, setShowCursor] = useState(true)
@@ -174,7 +174,7 @@ const Hero = () => {
             boxShadow: '0 20px 60px rgba(0,14,145,0.15)',
           }}>
             <img
-              src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&q=80"
+              src="https://i.ibb.co/B55LGMLk/1a6af360ab064cc6bd0d3763d2ceed48.jpg"
               alt="Port Africain"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
@@ -221,7 +221,7 @@ const Hero = () => {
                 fontWeight: 700, textTransform: 'uppercase',
                 letterSpacing: 1, lineHeight: 1.5, flexShrink: 0,
               }}>
-                All-Inclusive<br />$5,000
+                Inscription<br />Ouverte
               </div>
             </div>
           </div>

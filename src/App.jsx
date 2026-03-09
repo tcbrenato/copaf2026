@@ -9,6 +9,7 @@ import Modules from './components/Modules'
 import Inscription from './components/Inscription'
 import Footer from './components/Footer'
 import AdminDashboard from './components/AdminDashboard'
+import Partners from './components/Partners'
 import useTracker from './useTracker'
 
 const MainSite = () => {
@@ -18,6 +19,7 @@ const MainSite = () => {
       <Navbar />
       <main>
         <Hero />
+        <Partners />
         <About />
         <Programme />
         <Modules />

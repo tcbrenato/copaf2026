@@ -75,7 +75,7 @@ const Programme = () => {
           fontSize: 'clamp(26px, 4vw, 48px)', fontWeight: 900,
           color: '#000e91', marginBottom: 16, lineHeight: 1.15
         }}>
-          3 Jours de <span style={{ color: '#0073f4' }}>Formation Intensive</span>
+          3 Jours de <span style={{ color: '#0073f4' }}>Partages Intensifs</span>
         </h2>
         <p style={{
           fontSize: 'clamp(14px, 2vw, 17px)', color: '#666',

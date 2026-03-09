@@ -18,6 +18,8 @@ const Navbar = () => {
     { label: 'Contact', to: 'inscription' },
   ]
 
+  const logoHeight = scrolled ? 36 : 44
+
   return (
     <>
       <nav style={{
@@ -30,17 +32,39 @@ const Navbar = () => {
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
 
-        {/* Logo */}
-        <div style={{ cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, fontWeight: 700, color: '#FFFFFF', lineHeight: 1 }}>
-            COPAF<span style={{ color: '#0073f4' }}>.</span>
+        {/* GAUCHE : Logo COPAF + texte + Logo 2 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+
+          {/* Logo 1 */}
+          <img
+            src="https://i.ibb.co/WNB5fLWD/LOGO-COPAF.png"
+            alt="COPAF Logo"
+            style={{ height: logoHeight, width: 'auto', objectFit: 'contain', transition: 'height 0.4s' }}
+          />
+
+          {/* Texte COPAF */}
+          <div>
+            <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, fontWeight: 700, color: '#FFFFFF', lineHeight: 1 }}>
+              COPAF<span style={{ color: '#0073f4' }}>.</span>
+            </div>
+            <div style={{ fontSize: 9, color: '#0073f4', letterSpacing: 3, textTransform: 'uppercase', fontWeight: 700, marginTop: 2 }}>
+              Dubaï 2026
+            </div>
           </div>
-          <div style={{ fontSize: 9, color: '#0073f4', letterSpacing: 3, textTransform: 'uppercase', fontWeight: 700, marginTop: 2 }}>
-            Dubaï 2026
-          </div>
+
+          {/* Séparateur vertical */}
+          <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
+
+          {/* Logo 2 */}
+          <img
+            src="https://i.ibb.co/j90m5XS2/agpaoc-0.jpg"
+            alt="Logo partenaire"
+            style={{ height: logoHeight, width: 'auto', objectFit: 'contain', transition: 'height 0.4s' }}
+          />
         </div>
 
-        {/* Links — visible desktop uniquement */}
+        {/* CENTRE : Liens de navigation */}
         <ul className="nav-links" style={{ display: 'flex', gap: 36, listStyle: 'none', margin: 0, padding: 0 }}>
           {links.map(item => (
             <li key={item.to}>
@@ -55,7 +79,7 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* Bouton S'inscrire — visible desktop uniquement */}
+        {/* DROITE : Bouton S'inscrire */}
         <Link to="inscription" smooth={true} duration={600} offset={-80} className="nav-cta">
           <button style={{
             background: '#FFFFFF', color: '#000e91',
@@ -70,7 +94,7 @@ const Navbar = () => {
           </button>
         </Link>
 
-        {/* Burger — visible mobile uniquement */}
+        {/* Burger — mobile */}
         <button
           className="burger"
           onClick={() => setMenuOpen(!menuOpen)}
