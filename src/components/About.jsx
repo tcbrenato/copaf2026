@@ -39,10 +39,11 @@ const About = () => {
       padding: 'clamp(60px, 10vw, 100px) clamp(20px, 5vw, 60px)',
       background: '#f8f9ff',
       fontFamily: 'Roboto, sans-serif',
+      textAlign: 'center',
     }}>
 
       {/* ── HEADER ── */}
-      <div style={{ textAlign: 'center', marginBottom: 'clamp(40px, 7vw, 72px)' }}>
+      <div style={{ marginBottom: 'clamp(40px, 7vw, 72px)' }}>
         <div style={{
           display: 'inline-block',
           background: 'rgba(0,115,244,0.08)',
@@ -123,7 +124,8 @@ const About = () => {
             borderRadius: 16,
             padding: 'clamp(24px, 4vw, 36px)',
             boxShadow: '0 2px 20px rgba(0,14,145,0.05)',
-            transition: 'all 0.3s', cursor: 'default'
+            transition: 'all 0.3s', cursor: 'default',
+            textAlign: 'center',
           }}
             onMouseEnter={e => {
               e.currentTarget.style.transform = 'translateY(-4px)'
@@ -136,11 +138,13 @@ const About = () => {
               e.currentTarget.style.borderColor = 'rgba(0,115,244,0.1)'
             }}
           >
+            {/* Icône centrée */}
             <div style={{
               width: 56, height: 56, borderRadius: '50%',
               background: 'rgba(0,115,244,0.08)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 26, marginBottom: 20
+              fontSize: 26, marginBottom: 20,
+              margin: '0 auto 20px',
             }}>
               {f.icon}
             </div>
@@ -160,11 +164,13 @@ const About = () => {
 
             <div style={{ height: 1, background: 'rgba(0,115,244,0.08)', marginBottom: 16 }} />
 
+            {/* Items centrés */}
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
               {f.items.map((item, j) => (
                 <li key={j} style={{
                   fontSize: 13, color: '#555',
-                  padding: '5px 0', display: 'flex', alignItems: 'center', gap: 10
+                  padding: '5px 0',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
                 }}>
                   <span style={{
                     width: 6, height: 6, borderRadius: '50%',
@@ -182,9 +188,10 @@ const About = () => {
       <div style={{
         background: '#000e91', borderRadius: 20,
         padding: 'clamp(36px, 6vw, 60px) clamp(20px, 5vw, 48px)',
-        boxShadow: '0 8px 48px rgba(0,14,145,0.2)'
+        boxShadow: '0 8px 48px rgba(0,14,145,0.2)',
+        textAlign: 'center',
       }}>
-        <div style={{ textAlign: 'center', marginBottom: 'clamp(28px, 5vw, 48px)' }}>
+        <div style={{ marginBottom: 'clamp(28px, 5vw, 48px)' }}>
           <h3 style={{
             fontFamily: 'Roboto, sans-serif',
             fontSize: 'clamp(20px, 3vw, 36px)',
@@ -249,7 +256,6 @@ const About = () => {
         </div>
       </div>
 
-      {/* Responsive overrides */}
       <style>{`
         @media (min-width: 768px) {
           #about .stats-grid {
