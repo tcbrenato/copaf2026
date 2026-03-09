@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
 import ReactGA from 'react-ga4'
+import emailjs from '@emailjs/browser'
+
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbw_ofmnS-UcXLs6fGQrIIjEePHoODn6_pppidhmCuKSjOThwGhn9rx1ZUIU7JKlkkoo/exec'
 
 const Inscription = () => {
   const [form, setForm] = useState({
@@ -33,20 +36,66 @@ const Inscription = () => {
         message: form.message,
       }])
 
-    setLoading(false)
-
     if (error) {
+      setLoading(false)
       setErrorMsg('Une erreur est survenue : ' + error.message)
-    } else {
-      // ✅ Track Google Analytics
-      ReactGA.event({
-        category: 'Inscription',
-        action: 'form_submit',
-        label: form.pays,
-        value: parseInt(form.participants)
-      })
-      setSubmitted(true)
+      return
     }
+
+    // ✅ Envoi vers Google Sheets
+    try {
+      await fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nom: form.nom,
+          prenom: form.prenom,
+          email: form.email,
+          telephone: form.telephone,
+          organisation: form.organisation,
+          poste: form.poste,
+          pays: form.pays,
+          participants: parseInt(form.participants),
+          montant: parseInt(form.participants) * 5000,
+          message: form.message,
+        })
+      })
+    } catch (err) {
+      console.log('Google Sheets:', err)
+    }
+
+    // ✅ Envoi email de confirmation
+    try {
+      await emailjs.send(
+        'service_x07g4et',
+        'template_7wrkmm1',
+        {
+          prenom: form.prenom,
+          nom: form.nom,
+          email: form.email,
+          organisation: form.organisation,
+          poste: form.poste,
+          pays: form.pays,
+          participants: form.participants,
+          montant: parseInt(form.participants) * 5000,
+        },
+        'zBZAZxCfznICTKLJK'
+      )
+    } catch (err) {
+      console.log('EmailJS:', err)
+    }
+
+    // ✅ Track Google Analytics
+    ReactGA.event({
+      category: 'Inscription',
+      action: 'form_submit',
+      label: form.pays,
+      value: parseInt(form.participants)
+    })
+
+    setLoading(false)
+    setSubmitted(true)
   }
 
   const inputStyle = {
@@ -166,7 +215,6 @@ const Inscription = () => {
                 Formulaire d'Inscription
               </h3>
 
-              {/* Nom & Prénom */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Nom *</label>
@@ -182,7 +230,6 @@ const Inscription = () => {
                 </div>
               </div>
 
-              {/* Email & Téléphone */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Email *</label>
@@ -198,7 +245,6 @@ const Inscription = () => {
                 </div>
               </div>
 
-              {/* Organisation & Poste */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Organisation *</label>
@@ -214,7 +260,6 @@ const Inscription = () => {
                 </div>
               </div>
 
-              {/* Pays & Participants */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: 16, marginBottom: 20 }}>
                 <div>
                   <label style={labelStyle}>Pays *</label>
@@ -235,7 +280,6 @@ const Inscription = () => {
                 </div>
               </div>
 
-              {/* Message */}
               <div style={{ marginBottom: 24 }}>
                 <label style={labelStyle}>Message / Besoins spécifiques</label>
                 <textarea name="message" value={form.message} onChange={handleChange}
@@ -245,7 +289,6 @@ const Inscription = () => {
                   onBlur={e => e.target.style.borderColor = 'rgba(0,14,145,0.15)'} />
               </div>
 
-              {/* Message erreur */}
               {errorMsg && (
                 <div style={{
                   background: 'rgba(255,60,60,0.08)',
@@ -257,7 +300,6 @@ const Inscription = () => {
                 </div>
               )}
 
-              {/* Total */}
               <div style={{
                 background: 'linear-gradient(135deg, #000e91 0%, #0073f4 100%)',
                 borderRadius: 12,
@@ -302,7 +344,6 @@ const Inscription = () => {
         {/* SIDEBAR */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(14px, 3vw, 20px)', minWidth: 0 }}>
 
-          {/* Prix */}
           <div style={{ background: '#000e91', borderRadius: 16, padding: 'clamp(24px, 4vw, 32px)', boxShadow: '0 8px 40px rgba(0,14,145,0.2)' }}>
             <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8, textAlign: 'center' }}>
               Tarif All-Inclusive
@@ -335,7 +376,6 @@ const Inscription = () => {
             ))}
           </div>
 
-          {/* Virement */}
           <div style={{ background: '#FFFFFF', border: '1px solid rgba(0,115,244,0.12)', borderRadius: 16, padding: 'clamp(20px, 3.5vw, 28px)', boxShadow: '0 2px 20px rgba(0,14,145,0.05)' }}>
             <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 14, textAlign: 'center' }}>
               🏦 Paiement par Virement
@@ -359,7 +399,6 @@ const Inscription = () => {
             ))}
           </div>
 
-          {/* Contact */}
           <div style={{ background: '#FFFFFF', border: '1px solid rgba(0,115,244,0.12)', borderRadius: 16, padding: 'clamp(20px, 3.5vw, 28px)', boxShadow: '0 2px 20px rgba(0,14,145,0.05)' }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#000e91', marginBottom: 16, textAlign: 'center' }}>
               📞 Besoin d'aide ?
@@ -381,7 +420,6 @@ const Inscription = () => {
               </div>
             ))}
           </div>
-
         </div>
       </div>
     </section>

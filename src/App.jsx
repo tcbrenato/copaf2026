@@ -32,7 +32,7 @@ const MainSite = () => {
 
 function App() {
   useEffect(() => {
-    ReactGA.initialize('G-XXXXXXXXXX')
+    ReactGA.initialize('G-YV45FLXNXB')
     ReactGA.send('pageview')
   }, [])
 
