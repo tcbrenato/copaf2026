@@ -50,7 +50,7 @@ const About = () => {
     icon: '📚', 
     title: 'Formation Continue', 
     desc: 'Ateliers pratiques et certifications pour le capital humain portuaire.',
-    img: 'https://i.ibb.co/4w549y0X/50a4f17346a18177b6d5c62af467d029.jpg'
+    img: 'https://i.ibb.co/tMKdK4vv/e4012d2bf39801e869d53477cce2c9c7.jpg'
   },
 ]
 
