@@ -28,11 +28,31 @@ const About = () => {
   ]
 
   const pillars = [
-    { icon: '🌍', title: 'Rayonnement Continental', desc: 'Positionnez votre organisation au cœur de l\'écosystème portuaire africain.' },
-    { icon: '🤖', title: 'Innovation & Transformation', desc: 'Digitalisation, IA et nouvelles technologies dans les opérations portuaires.' },
-    { icon: '🏆', title: 'Excellence Opérationnelle', desc: 'Meilleures pratiques internationales et stratégies d\'optimisation.' },
-    { icon: '📚', title: 'Formation Continue', desc: 'Ateliers pratiques et certifications pour le capital humain portuaire.' },
-  ]
+  { 
+    icon: '🌍', 
+    title: 'Rayonnement Continental', 
+    desc: 'Positionnez votre organisation au cœur de l\'écosystème portuaire africain.',
+    img: 'https://i.ibb.co/4w549y0X/50a4f17346a18177b6d5c62af467d029.jpg'
+  },
+  { 
+    icon: '🤖', 
+    title: 'Innovation & Transformation', 
+    desc: 'Digitalisation, IA et nouvelles technologies dans les opérations portuaires.',
+    img: 'https://i.ibb.co/B55LGMLk/1a6af360ab064cc6bd0d3763d2ceed48.jpg'
+  },
+  { 
+    icon: '🏆', 
+    title: 'Excellence Opérationnelle', 
+    desc: 'Meilleures pratiques internationales et stratégies d\'optimisation.',
+    img: 'https://i.ibb.co/SwLyK01m/ff254cfe1758352087b3666e8fb7d1ae.jpg'
+  },
+  { 
+    icon: '📚', 
+    title: 'Formation Continue', 
+    desc: 'Ateliers pratiques et certifications pour le capital humain portuaire.',
+    img: 'https://i.ibb.co/4w549y0X/50a4f17346a18177b6d5c62af467d029.jpg'
+  },
+]
 
   return (
     <section id="about" style={{
@@ -70,6 +90,42 @@ const About = () => {
           experts en formation et leaders africains pour façonner l'avenir du secteur.
         </p>
       </div>
+
+      {/* ── IMAGES ── */}
+<div style={{
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+  gap: 'clamp(16px, 3vw, 24px)',
+  marginBottom: 'clamp(48px, 8vw, 80px)',
+}}>
+  {[
+    'https://i.ibb.co/4w549y0X/50a4f17346a18177b6d5c62af467d029.jpg',
+    'https://i.ibb.co/SwLyK01m/ff254cfe1758352087b3666e8fb7d1ae.jpg',
+  ].map((src, i) => (
+    <div key={i} style={{
+      borderRadius: 16, overflow: 'hidden',
+      boxShadow: '0 8px 40px rgba(0,14,145,0.12)',
+      border: '1px solid rgba(0,115,244,0.12)',
+      aspectRatio: '16/9',
+      transition: 'all 0.3s',
+    }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = 'translateY(-4px)'
+        e.currentTarget.style.boxShadow = '0 16px 48px rgba(0,115,244,0.18)'
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = 'translateY(0)'
+        e.currentTarget.style.boxShadow = '0 8px 40px rgba(0,14,145,0.12)'
+      }}
+    >
+      <img
+        src={src}
+        alt={`COPAF 2026 - Image ${i + 1}`}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+      />
+    </div>
+  ))}
+</div>
 
       {/* ── STATS ── */}
       <div style={{
@@ -210,49 +266,62 @@ const About = () => {
           gap: 'clamp(12px, 2.5vw, 20px)'
         }}>
           {pillars.map((p, i) => (
-            <div key={i} style={{
-              background: 'rgba(255,255,255,0.05)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 14,
-              padding: 'clamp(20px, 3.5vw, 28px) clamp(16px, 3vw, 22px)',
-              textAlign: 'center',
-              transition: 'all 0.3s'
-            }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(0,115,244,0.15)'
-                e.currentTarget.style.borderColor = 'rgba(0,115,244,0.4)'
-                e.currentTarget.style.transform = 'translateY(-4px)'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-                e.currentTarget.style.transform = 'translateY(0)'
-              }}
-            >
-              <div style={{
-                width: 52, height: 52, borderRadius: '50%',
-                background: 'rgba(0,115,244,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 24, margin: '0 auto 16px'
-              }}>
-                {p.icon}
-              </div>
-              <h4 style={{
-                fontFamily: 'Roboto, sans-serif',
-                fontSize: 'clamp(13px, 2vw, 15px)', fontWeight: 700,
-                marginBottom: 10, color: '#FFFFFF'
-              }}>
-                {p.title}
-              </h4>
-              <p style={{
-                fontSize: 'clamp(12px, 1.6vw, 13px)',
-                color: 'rgba(255,255,255,0.5)',
-                lineHeight: 1.7, fontWeight: 300
-              }}>
-                {p.desc}
-              </p>
-            </div>
-          ))}
+  <div key={i} style={{
+    background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.1)',
+    borderRadius: 14,
+    overflow: 'hidden',
+    textAlign: 'center',
+    transition: 'all 0.3s'
+  }}
+    onMouseEnter={e => {
+      e.currentTarget.style.background = 'rgba(0,115,244,0.15)'
+      e.currentTarget.style.borderColor = 'rgba(0,115,244,0.4)'
+      e.currentTarget.style.transform = 'translateY(-4px)'
+    }}
+    onMouseLeave={e => {
+      e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
+      e.currentTarget.style.transform = 'translateY(0)'
+    }}
+  >
+    {/* Image */}
+    <div style={{ width: '100%', aspectRatio: '16/9', overflow: 'hidden' }}>
+      <img
+        src={p.img}
+        alt={p.title}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s' }}
+        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+      />
+    </div>
+
+    {/* Contenu */}
+    <div style={{ padding: 'clamp(16px, 3vw, 22px)' }}>
+      <div style={{
+        width: 48, height: 48, borderRadius: '50%',
+        background: 'rgba(0,115,244,0.2)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 22, margin: '0 auto 12px'
+      }}>
+        {p.icon}
+      </div>
+      <h4 style={{
+        fontSize: 'clamp(13px, 2vw, 15px)', fontWeight: 700,
+        marginBottom: 8, color: '#FFFFFF'
+      }}>
+        {p.title}
+      </h4>
+      <p style={{
+        fontSize: 'clamp(12px, 1.6vw, 13px)',
+        color: 'rgba(255,255,255,0.5)',
+        lineHeight: 1.7, fontWeight: 300, margin: 0
+      }}>
+        {p.desc}
+      </p>
+    </div>
+  </div>
+))}
         </div>
       </div>
 

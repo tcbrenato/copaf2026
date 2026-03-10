@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../supabase'
 import ReactGA from 'react-ga4'
 import { generateFacture } from '../generateFacture'
+import emailjs from '@emailjs/browser'
 
 const Inscription = () => {
   const [form, setForm] = useState({
@@ -19,6 +20,7 @@ const Inscription = () => {
     setLoading(true)
     setErrorMsg('')
 
+    // ── SUPABASE ──
     const { error } = await supabase
       .from('inscriptions')
       .insert([{
@@ -34,19 +36,45 @@ const Inscription = () => {
         message: form.message,
       }])
 
-    setLoading(false)
-
     if (error) {
+      setLoading(false)
       setErrorMsg('Une erreur est survenue : ' + error.message)
-    } else {
-      ReactGA.event({
-        category: 'Inscription',
-        action: 'form_submit',
-        label: form.pays,
-        value: parseInt(form.participants)
-      })
-      setSubmitted(true)
+      return
     }
+
+    // ── EMAILJS ──
+    try {
+      await emailjs.send(
+        'service_x07g4et',
+        'template_7wrkmm1',
+        {
+          prenom: form.prenom,
+          nom: form.nom,
+          email: form.email,
+          telephone: form.telephone,
+          organisation: form.organisation,
+          poste: form.poste,
+          pays: form.pays,
+          participants: form.participants,
+          montant: (parseInt(form.participants) * 5000).toLocaleString(),
+          message: form.message,
+        },
+        'zBZAZxCfznICTKLJK'
+      )
+    } catch (emailError) {
+      console.error('EmailJS error:', emailError)
+    }
+
+    // ── GOOGLE ANALYTICS ──
+    ReactGA.event({
+      category: 'Inscription',
+      action: 'form_submit',
+      label: form.pays,
+      value: parseInt(form.participants)
+    })
+
+    setLoading(false)
+    setSubmitted(true)
   }
 
   const inputStyle = {
@@ -162,27 +190,18 @@ const Inscription = () => {
               <button
                 onClick={() => generateFacture(form)}
                 style={{
-                  marginTop: 20,
-                  width: '100%',
+                  marginTop: 20, width: '100%',
                   background: 'linear-gradient(135deg, #000e91, #0073f4)',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  padding: '14px',
-                  borderRadius: 10,
-                  fontFamily: 'Roboto',
-                  fontWeight: 700,
-                  fontSize: 14,
-                  letterSpacing: 2,
-                  textTransform: 'uppercase',
-                  cursor: 'pointer',
-                  boxShadow: '0 6px 24px rgba(0,115,244,0.3)'
+                  color: '#FFFFFF', border: 'none', padding: '14px',
+                  borderRadius: 10, fontFamily: 'Roboto', fontWeight: 700,
+                  fontSize: 14, letterSpacing: 2, textTransform: 'uppercase',
+                  cursor: 'pointer', boxShadow: '0 6px 24px rgba(0,115,244,0.3)'
                 }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}
               >
                 📄 Télécharger ma Facture PDF
               </button>
-
             </div>
 
           ) : (
@@ -319,27 +338,18 @@ const Inscription = () => {
 
         {/* SIDEBAR */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(14px, 3vw, 20px)', minWidth: 0 }}>
-
           <div style={{ background: '#000e91', borderRadius: 16, padding: 'clamp(24px, 4vw, 32px)', boxShadow: '0 8px 40px rgba(0,14,145,0.2)' }}>
             <div style={{ fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 8, textAlign: 'center' }}>
               Tarif All-Inclusive
             </div>
-            <div style={{ fontSize: 'clamp(40px, 7vw, 52px)', fontWeight: 900, color: '#FFFFFF', lineHeight: 1, textAlign: 'center' }}>
-              $5,000
-            </div>
-            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4, marginBottom: 24, textAlign: 'center' }}>
-              par participant
-            </div>
+            <div style={{ fontSize: 'clamp(40px, 7vw, 52px)', fontWeight: 900, color: '#FFFFFF', lineHeight: 1, textAlign: 'center' }}>$5,000</div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4, marginBottom: 24, textAlign: 'center' }}>par participant</div>
             <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', marginBottom: 20 }} />
             {[
-              'Frais de formation (3 jours)',
-              'Hébergement inclus',
-              'Pauses-café & déjeuners',
-              'Matériels didactiques',
-              'Tablette préchargée',
-              '2 Certifications internationales',
-              'Transferts aéroport-hôtel',
-              'Service conciergerie VIP',
+              'Frais de formation (3 jours)', 'Hébergement inclus',
+              'Pauses-café & déjeuners', 'Matériels didactiques',
+              'Tablette préchargée', '2 Certifications internationales',
+              'Transferts aéroport-hôtel', 'Service conciergerie VIP',
             ].map((item, i, arr) => (
               <div key={i} style={{
                 display: 'flex', gap: 10, alignItems: 'center', padding: '7px 0',
@@ -376,9 +386,7 @@ const Inscription = () => {
           </div>
 
           <div style={{ background: '#FFFFFF', border: '1px solid rgba(0,115,244,0.12)', borderRadius: 16, padding: 'clamp(20px, 3.5vw, 28px)', boxShadow: '0 2px 20px rgba(0,14,145,0.05)' }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#000e91', marginBottom: 16, textAlign: 'center' }}>
-              📞 Besoin d'aide ?
-            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#000e91', marginBottom: 16, textAlign: 'center' }}>📞 Besoin d'aide ?</div>
             {[
               { icon: '📱', value: '+229 01 69 30 30 19' },
               { icon: '🇺🇸', value: '+1 (240) 978-4155' },
@@ -396,7 +404,6 @@ const Inscription = () => {
               </div>
             ))}
           </div>
-
         </div>
       </div>
     </section>
