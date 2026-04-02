@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-scroll'
 
+const images = [
+  "https://i.ibb.co/B55LGMLk/1a6af360ab064cc6bd0d3763d2ceed48.jpg",
+  "https://images.unsplash.com/photo-1494412651409-8963ce7935a7?w=1280&q=80",
+  "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1280&q=80",
+  "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1280&q=80",
+]
+
 const Hero = () => {
-  const fullText = "Conférence Officielle des Ports Africains (COPAF 2026)"
+  const fullText = `Conférence des Ports Africains
+COPAF 2026`
   const [displayed, setDisplayed] = useState('')
   const [index, setIndex] = useState(0)
   const [showCursor, setShowCursor] = useState(true)
+  const [currentImg, setCurrentImg] = useState(0)
+  const [fade, setFade] = useState(true)
 
   useEffect(() => {
     if (index < fullText.length) {
@@ -22,6 +32,18 @@ const Hero = () => {
       setShowCursor(prev => !prev)
     }, 500)
     return () => clearInterval(cursorInterval)
+  }, [])
+
+  // Slideshow avec transition fade
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFade(false)
+      setTimeout(() => {
+        setCurrentImg(prev => (prev + 1) % images.length)
+        setFade(true)
+      }, 500)
+    }, 4000)
+    return () => clearInterval(interval)
   }, [])
 
   return (
@@ -57,13 +79,23 @@ const Hero = () => {
         }}>
           {(() => {
             const highlight = 'Ports Africains'
-            const pos = displayed.indexOf(highlight)
-            if (pos === -1) return <span>{displayed}</span>
+            const newline = displayed.indexOf('\n')
+            const visibleText = newline === -1 ? displayed : displayed.slice(0, newline)
+            const secondLine = newline === -1 ? '' : displayed.slice(newline + 1)
+            const pos = visibleText.indexOf(highlight)
+
             return (
               <>
-                <span>{displayed.slice(0, pos)}</span>
-                <span style={{ color: '#0073f4' }}>{displayed.slice(pos, pos + highlight.length)}</span>
-                <span>{displayed.slice(pos + highlight.length)}</span>
+                <span>
+                  {pos === -1 ? visibleText : (
+                    <>
+                      <span>{visibleText.slice(0, pos)}</span>
+                      <span style={{ color: '#0073f4' }}>{visibleText.slice(pos, pos + highlight.length)}</span>
+                      <span>{visibleText.slice(pos + highlight.length)}</span>
+                    </>
+                  )}
+                </span>
+                {secondLine && <><br /><span>{secondLine}</span></>}
               </>
             )
           })()}
@@ -88,7 +120,7 @@ const Hero = () => {
           marginBottom: 'clamp(28px, 5vw, 40px)',
           fontWeight: 300,
         }}>
-          3 jours de formation intensive pour les dirigeants portuaires africains.
+          3 jours d'échanges intensifs pour les dirigeants portuaires africains.
           Transformer les défis de la digitalisation en leviers de croissance.
         </p>
 
@@ -166,7 +198,7 @@ const Hero = () => {
             zIndex: 1,
           }} />
 
-          {/* Image */}
+          {/* Image avec slideshow */}
           <div style={{
             position: 'relative', zIndex: 2,
             borderRadius: 14, overflow: 'hidden',
@@ -174,10 +206,42 @@ const Hero = () => {
             boxShadow: '0 20px 60px rgba(0,14,145,0.15)',
           }}>
             <img
-              src="https://i.ibb.co/B55LGMLk/1a6af360ab064cc6bd0d3763d2ceed48.jpg"
-              alt="Port Africain"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              key={currentImg}
+              src={images[currentImg]}
+              alt={`Port Africain ${currentImg + 1}`}
+              style={{
+                width: '100%', height: '100%', objectFit: 'cover',
+                opacity: fade ? 1 : 0,
+                transition: 'opacity 0.5s ease-in-out',
+              }}
             />
+
+            {/* Points indicateurs */}
+            <div style={{
+              position: 'absolute',
+              top: 12,
+              right: 16,
+              display: 'flex',
+              gap: 6,
+              zIndex: 3,
+            }}>
+              {images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setFade(false); setTimeout(() => { setCurrentImg(i); setFade(true) }, 300) }}
+                  style={{
+                    width: i === currentImg ? 20 : 8,
+                    height: 8,
+                    borderRadius: 4,
+                    background: i === currentImg ? '#0073f4' : 'rgba(255,255,255,0.6)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    transition: 'all 0.3s ease',
+                  }}
+                />
+              ))}
+            </div>
 
             {/* Badge sur l'image */}
             <div style={{
@@ -201,7 +265,7 @@ const Hero = () => {
                   color: 'rgba(255,255,255,0.6)',
                   textTransform: 'uppercase', letterSpacing: 2,
                 }}>
-                  Dubaï · Émirats Arabes Unis
+                  Port de  Tanger Med (Maroc)
                 </div>
                 <div style={{
                   fontFamily: 'Roboto',

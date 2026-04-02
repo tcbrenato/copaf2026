@@ -39,23 +39,56 @@ const Navbar = () => {
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
       }}>
 
-        {/* GAUCHE : Logos */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
-          onClick={() => window.location.href = '/'}>
-          <img src="https://i.ibb.co/WNB5fLWD/LOGO-COPAF.png" alt="COPAF Logo"
-            style={{ height: logoHeight, width: 'auto', objectFit: 'contain', transition: 'height 0.4s' }} />
-          <div>
-            <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 24, fontWeight: 700, color: '#FFFFFF', lineHeight: 1 }}>
-              COPAF<span style={{ color: '#0073f4' }}>.</span>
-            </div>
-            <div style={{ fontSize: 9, color: '#0073f4', letterSpacing: 3, textTransform: 'uppercase', fontWeight: 700, marginTop: 2 }}>
-              Dubaï 2026
-            </div>
-          </div>
-          <div style={{ width: 1, height: 36, background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
-          <img src="https://i.ibb.co/j90m5XS2/agpaoc-0.jpg" alt="Logo partenaire"
-            style={{ height: logoHeight, width: 'auto', objectFit: 'contain', transition: 'height 0.4s' }} />
-        </div>
+        {/* GAUCHE : Bloc Logos avec fond blanc */}
+<div style={{
+  display: 'flex',
+  alignItems: 'center',
+  gap: 15,
+  padding: '8px 20px',
+  background: '#FFFFFF',
+  borderRadius: 10,
+  boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+  transition: 'all 0.3s'
+}}>
+  
+  {/* 1er Logo : CRF */}
+  <a href="https://crfperfection.pro" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', transition: 'transform 0.2s' }}
+     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+     onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+    <img src="/logocrf.png" alt="CRF Perfection"
+      style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
+  </a>
+  
+  {/* Séparateur */}
+  <div style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)' }} />
+
+  {/* 2ème Logo : COPAF (Lien vers Accueil) */}
+  <a href="https://copaf-ports.com/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', transition: 'transform 0.2s' }}
+     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+     onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+    <img src="/logocopaf.png" alt="COPAF Logo"
+      style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
+    <div>
+      <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 700, color: '#000e91', lineHeight: 1 }}>
+        COPAF<span style={{ color: '#0073f4' }}>.</span>
+      </div>
+      <div style={{ fontSize: 7, color: '#0073f4', letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, marginTop: 2 }}>
+        COPAF 2026
+      </div>
+    </div>
+  </a>
+
+  {/* Séparateur */}
+  <div style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)' }} />
+
+  {/* 3ème Logo : AGPAOC */}
+  <a href="https://agpaoc-pmawca.org/" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', transition: 'transform 0.2s' }}
+     onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+     onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+    <img src="/logoagpaoc.png" alt="AGPAOC"
+      style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
+  </a>
+</div>
 
         {/* CENTRE : Liens */}
         <ul className="nav-links" style={{ display: 'flex', gap: 28, listStyle: 'none', margin: 0, padding: 0, alignItems: 'center' }}>

@@ -80,6 +80,8 @@ const Inscription = () => {
           montant: montant.toLocaleString(),
           dossier,
           paiement_mode: paiementMode === 'maintenant' ? 'Paiement immédiat (7 jours)' : 'Réservation — paiement différé',
+          paiement_maintenant: paiementMode === 'maintenant' ? 'true' : '',
+          paiement_reserve: paiementMode === 'plus_tard' ? 'true' : '',
         },
         'zBZAZxCfznICTKLJK'
       )
@@ -326,24 +328,7 @@ const Inscription = () => {
               )}
 
               {/* TOTAL */}
-              <div style={{
-                background: 'linear-gradient(135deg, #000e91 0%, #0073f4 100%)',
-                borderRadius: 12, padding: 'clamp(14px, 3vw, 18px) clamp(16px, 3.5vw, 24px)',
-                marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                gap: 12, flexWrap: 'wrap',
-              }}>
-                <div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', letterSpacing: 2 }}>
-                    {paiementMode === 'maintenant' ? 'Total à régler' : 'Montant à réserver'}
-                  </div>
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: 2 }}>
-                    {form.participants} participant{form.participants > 1 ? 's' : ''} × $5,000
-                  </div>
-                </div>
-                <div style={{ fontSize: 'clamp(28px, 5vw, 36px)', fontWeight: 900, color: '#FFFFFF' }}>
-                  ${(parseInt(form.participants) * 5000).toLocaleString()}
-                </div>
-              </div>
+              
 
               <button type="submit" disabled={loading} style={{
                 width: '100%',
@@ -372,7 +357,7 @@ const Inscription = () => {
             <div style={{ fontSize: 'clamp(40px, 7vw, 52px)', fontWeight: 900, color: '#FFFFFF', lineHeight: 1, textAlign: 'center' }}>$5,000</div>
             <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', marginTop: 4, marginBottom: 24, textAlign: 'center' }}>par participant</div>
             <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', marginBottom: 20 }} />
-            {['Frais de formation (3 jours)', 'Hébergement inclus', 'Pauses-café & déjeuners', 'Matériels didactiques', 'Tablette préchargée', '2 Certifications internationales', 'Transferts aéroport-hôtel', 'Service conciergerie VIP'].map((item, i, arr) => (
+            {['Frais de formation (3 jours)', 'Pauses-café', 'Matériels didactiques', 'Tablette préchargée', '2 Certifications internationales', 'Transferts aéroport-hôtel',].map((item, i, arr) => (
               <div key={i} style={{
                 display: 'flex', gap: 10, alignItems: 'center', padding: '7px 0',
                 borderBottom: i < arr.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
