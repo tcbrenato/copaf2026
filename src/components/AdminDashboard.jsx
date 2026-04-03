@@ -317,6 +317,7 @@ const Dashboard = ({ onLogout }) => {
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('tous')
   const [exported, setExported] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const [selectedInscription, setSelectedInscription] = useState(null)
   const [selectedLead, setSelectedLead] = useState(null)
   const [leadType, setLeadType] = useState(null)
@@ -380,6 +381,20 @@ const Dashboard = ({ onLogout }) => {
 
   const handleExport = () => { exportCSV(filtered); setExported(true); setTimeout(() => setExported(false), 2000) }
 
+  const handleSync = async () => {
+    setSyncing(true)
+    try {
+      await fetch('https://script.google.com/macros/s/AKfycbx8aHKKGJz10iYkMJbUni74rvLrjk00E8v1gCJuYVAo9oqjA9zJXDrdhaGkwWX031iX_w/exec', { mode: 'no-cors' })
+      setTimeout(() => {
+        alert('✅ Google Sheet mis à jour !')
+        setSyncing(false)
+      }, 4000)
+    } catch {
+      alert('❌ Erreur de synchronisation')
+      setSyncing(false)
+    }
+  }
+
   const tabs = [
     { id: 'inscriptions', label: '📋 Inscriptions' },
     { id: 'exposants', label: '🏪 Exposants' },
@@ -410,6 +425,16 @@ const Dashboard = ({ onLogout }) => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>🕐 {new Date().toLocaleDateString('fr-FR')}</div>
+          <button onClick={handleSync} disabled={syncing} style={{
+            background: 'rgba(0,200,100,0.1)',
+            border: '1px solid rgba(0,200,100,0.3)',
+            color: '#00cc88', borderRadius: 8,
+            padding: '7px 16px', fontSize: 12,
+            fontWeight: 700, cursor: syncing ? 'not-allowed' : 'pointer',
+            opacity: syncing ? 0.6 : 1
+          }}>
+            {syncing ? '⏳ Sync...' : '📊 Sync Sheets'}
+          </button>
           <button onClick={onLogout} style={{ background: 'rgba(255,60,60,0.1)', border: '1px solid rgba(255,60,60,0.25)', color: '#ff6b6b', borderRadius: 8, padding: '7px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Déconnexion</button>
         </div>
       </div>
