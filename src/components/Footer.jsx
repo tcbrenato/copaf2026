@@ -79,7 +79,7 @@ const Footer = () => {
           </div>
           {[
             { icon: '📍', text: "Bénin · Côte d'Ivoire · Togo · USA" },
-            { icon: '📱', text: '+229 01 97 77 57 98' },
+            { icon: '📱', text: '+229 01 69 30 30 19' },
             { icon: '🇺🇸', text: '+1 (240) 978-4155' },
             { icon: '✉️', text: 'contact@crfperfection.pro' },
           ].map((c, i) => (
@@ -111,7 +111,8 @@ const Footer = () => {
           © 2026 COPAF — CRF Perfection. Tous droits réservés.
         </div>
         <div style={{ fontSize: 'clamp(11px, 1.6vw, 13px)', color: 'rgba(255,255,255,0.3)' }}>
-          Dubaï, Émirats Arabes Unis · 15–17 Septembre 2026
+          Tanger Med (Maroc)
+ · 15–17 Septembre 2026
         </div>
       </div>
 

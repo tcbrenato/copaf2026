@@ -5,7 +5,9 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [conferenceOpen, setConferenceOpen] = useState(false)
   const dropdownRef = useRef(null)
+  const conferenceRef = useRef(null)
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -18,6 +20,9 @@ const Navbar = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false)
       }
+      if (conferenceRef.current && !conferenceRef.current.contains(e.target)) {
+        setConferenceOpen(false)
+      }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -27,14 +32,18 @@ const Navbar = () => {
 
   const scrollLinks = [
     { label: 'À Propos', to: 'about' },
-    { label: 'Programme', to: 'programme' },
-    { label: 'Modules', to: 'modules' },
     { label: 'Contact', to: 'inscription' },
   ]
 
+  const conferenceLinks = [
+    { label: 'Programme', to: 'programme' },
+    { label: 'Modules', to: 'modules' },
+    { label: 'Intervenants', to: 'formateurs' },
+  ]
+
   const dropdownLinks = [
-    { label: 'Sponsors', href: '/sponsors' },
-    { label: 'Exposants', href: '/exposants' },
+    { label: 'Partenariats', href: '/partenariats' },
+    { label: 'Exposition Digitale', href: '/exposition-digitale' },
   ]
 
   const isDropdownActive = dropdownLinks.some(l => window.location.pathname === l.href)
@@ -51,6 +60,21 @@ const Navbar = () => {
     color: window.location.pathname === href ? '#0073f4' : '#000e91',
     transition: 'background 0.15s, color 0.15s',
     background: 'transparent',
+  })
+
+  const dropdownStyle = (isOpen) => ({
+    position: 'absolute',
+    top: 'calc(100% + 14px)',
+    left: '50%',
+    transform: isOpen ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(-6px)',
+    background: '#FFFFFF',
+    borderRadius: 8,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+    overflow: 'hidden',
+    minWidth: 180,
+    opacity: isOpen ? 1 : 0,
+    pointerEvents: isOpen ? 'auto' : 'none',
+    transition: 'opacity 0.2s, transform 0.2s',
   })
 
   return (
@@ -103,7 +127,7 @@ const Navbar = () => {
         {/* CENTRE : Liens */}
         <ul className="nav-links" style={{ display: 'flex', gap: 28, listStyle: 'none', margin: 0, padding: 0, alignItems: 'center' }}>
 
-          {isHome && scrollLinks.map(item => (
+          {isHome && scrollLinks.slice(0, 1).map(item => (
             <li key={item.to}>
               <Link to={item.to} smooth={true} duration={600} offset={-80}
                 style={{ color: '#FFFFFF', cursor: 'pointer', fontSize: 12, fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase', textDecoration: 'none', opacity: 0.85, transition: 'all 0.3s' }}
@@ -115,25 +139,83 @@ const Navbar = () => {
             </li>
           ))}
 
+          {/* Menu Conférence */}
+          {isHome && (
+            <li ref={conferenceRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setConferenceOpen(prev => !prev)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  color: '#FFFFFF', fontSize: 12, fontWeight: 600,
+                  letterSpacing: 1.5, textTransform: 'uppercase',
+                  opacity: 0.85, transition: 'all 0.3s', padding: 0,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}
+              >
+                Conférence
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
+                  style={{ transition: 'transform 0.25s', transform: conferenceOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                  <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              <div style={dropdownStyle(conferenceOpen)}>
+                {conferenceLinks.map((item, i) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    smooth={true}
+                    duration={600}
+                    offset={-80}
+                    onClick={() => setConferenceOpen(false)}
+                    style={{
+                      display: 'block',
+                      padding: '11px 20px',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      letterSpacing: 1.5,
+                      textTransform: 'uppercase',
+                      color: '#000e91',
+                      borderTop: i > 0 ? '1px solid rgba(0,14,145,0.08)' : 'none',
+                      transition: 'background 0.15s, color 0.15s',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#f0f4ff'; e.currentTarget.style.color = '#0073f4' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000e91' }}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </li>
+          )}
+
+          {/* Contact */}
+          {isHome && (
+            <li>
+              <Link to="inscription" smooth={true} duration={600} offset={-80}
+                style={{ color: '#FFFFFF', cursor: 'pointer', fontSize: 12, fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase', textDecoration: 'none', opacity: 0.85, transition: 'all 0.3s' }}
+                onMouseEnter={e => { e.target.style.color = '#0073f4'; e.target.style.opacity = '1' }}
+                onMouseLeave={e => { e.target.style.color = '#FFFFFF'; e.target.style.opacity = '0.85' }}
+              >
+                Contact
+              </Link>
+            </li>
+          )}
+
           {/* Menu déroulant Partenaires */}
           <li ref={dropdownRef} style={{ position: 'relative' }}>
             <button
               onClick={() => setDropdownOpen(prev => !prev)}
               style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
+                background: 'none', border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 5,
                 color: isDropdownActive ? '#0073f4' : '#FFFFFF',
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-                opacity: 0.85,
-                transition: 'all 0.3s',
-                padding: 0,
+                fontSize: 12, fontWeight: 600, letterSpacing: 1.5,
+                textTransform: 'uppercase', opacity: 0.85,
+                transition: 'all 0.3s', padding: 0,
               }}
               onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
               onMouseLeave={e => {
@@ -142,29 +224,13 @@ const Navbar = () => {
               }}
             >
               Partenaires
-              <svg
-                width="10" height="10" viewBox="0 0 10 10" fill="none"
-                style={{ transition: 'transform 0.25s', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-              >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
+                style={{ transition: 'transform 0.25s', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                 <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
 
-            {/* ✅ CORRIGÉ : balise <a> correctement ouverte avec key sur le bon élément */}
-            <div style={{
-              position: 'absolute',
-              top: 'calc(100% + 14px)',
-              left: '50%',
-              transform: dropdownOpen ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(-6px)',
-              background: '#FFFFFF',
-              borderRadius: 8,
-              boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
-              overflow: 'hidden',
-              minWidth: 160,
-              opacity: dropdownOpen ? 1 : 0,
-              pointerEvents: dropdownOpen ? 'auto' : 'none',
-              transition: 'opacity 0.2s, transform 0.2s',
-            }}>
+            <div style={dropdownStyle(dropdownOpen)}>
               {dropdownLinks.map((item, i) => (
                 <a
                   key={item.href}
@@ -235,14 +301,40 @@ const Navbar = () => {
         overflow: 'hidden', transition: 'all 0.35s ease', display: 'none'
       }} className="mobile-menu">
 
-        {isHome && scrollLinks.map((item) => (
-          <Link key={item.to} to={item.to} smooth={true} duration={600} offset={-80}
+        {isHome && (
+          <Link to="about" smooth={true} duration={600} offset={-80}
             onClick={() => setMenuOpen(false)}
             style={{ display: 'block', color: 'rgba(255,255,255,0.85)', fontSize: 15, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', textDecoration: 'none', padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}
           >
-            {item.label}
+            À Propos
           </Link>
-        ))}
+        )}
+
+        {/* Conférence mobile */}
+        {isHome && (
+          <div style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', padding: '14px 0 6px' }}>
+              Conférence
+            </div>
+            {conferenceLinks.map((item) => (
+              <Link key={item.to} to={item.to} smooth={true} duration={600} offset={-80}
+                onClick={() => setMenuOpen(false)}
+                style={{ display: 'block', color: 'rgba(255,255,255,0.75)', fontSize: 14, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', textDecoration: 'none', padding: '10px 0 10px 16px', cursor: 'pointer' }}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {isHome && (
+          <Link to="inscription" smooth={true} duration={600} offset={-80}
+            onClick={() => setMenuOpen(false)}
+            style={{ display: 'block', color: 'rgba(255,255,255,0.85)', fontSize: 15, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', textDecoration: 'none', padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}
+          >
+            Contact
+          </Link>
+        )}
 
         {/* Partenaires mobile */}
         <div style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
@@ -251,6 +343,7 @@ const Navbar = () => {
           </div>
           {dropdownLinks.map((item) => (
             <a key={item.href} href={item.href}
+              onClick={() => setMenuOpen(false)}
               style={{ display: 'block', color: window.location.pathname === item.href ? '#0073f4' : 'rgba(255,255,255,0.75)', fontSize: 14, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', textDecoration: 'none', padding: '10px 0 10px 16px', cursor: 'pointer' }}
             >
               {item.label}
