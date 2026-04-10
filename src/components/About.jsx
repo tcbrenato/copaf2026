@@ -1,3 +1,5 @@
+import React from 'react'
+
 const About = () => {
   const stats = [
     { number: '500+', label: 'Participants Attendus' },
@@ -8,331 +10,244 @@ const About = () => {
 
   const features = [
     {
-      icon: '🤝',
       title: 'Networking Premium',
       desc: 'Facilitation de connexions stratégiques entre décideurs, experts et leaders du secteur portuaire et logistique.',
       items: ['Rencontres B2B', 'Ateliers collaboratifs', 'Sessions networking']
     },
     {
-      icon: '🎤',
       title: 'Conférenciers de Renom',
       desc: 'Sélection rigoureuse d\'experts internationaux et autorités portuaires pour des interventions à haute valeur ajoutée.',
       items: ['Keynote speakers', 'Panels d\'experts', 'Études de cas']
     },
     {
-      icon: '⚙️',
       title: 'Organisation Clé en Main',
-      desc: 'Gestion complète de A à Z : logistique, thématiques, communication et expérience participant.',
+      desc: 'Gestion complète de A à Z : thématiques, logistique et expérience participant haut de gamme.',
       items: ['Logistique complète', 'Support multilingue', 'Coordination technique']
     },
   ]
 
   const pillars = [
-  { 
-    icon: '🌍', 
-    title: 'Rayonnement Continental', 
-    desc: 'Positionnez votre organisation au cœur de l\'écosystème portuaire africain.',
-    img: 'https://i.ibb.co/4w549y0X/50a4f17346a18177b6d5c62af467d029.jpg'
-  },
-  { 
-    icon: '🤖', 
-    title: 'Innovation & Transformation', 
-    desc: 'Digitalisation, IA et nouvelles technologies dans les opérations portuaires.',
-    img: 'https://i.ibb.co/B55LGMLk/1a6af360ab064cc6bd0d3763d2ceed48.jpg'
-  },
-  { 
-    icon: '🏆', 
-    title: 'Excellence Opérationnelle', 
-    desc: 'Meilleures pratiques internationales et stratégies d\'optimisation.',
-    img: 'https://i.ibb.co/SwLyK01m/ff254cfe1758352087b3666e8fb7d1ae.jpg'
-  },
-  { 
-    icon: '📚', 
-    title: 'Formation Continue', 
-    desc: 'Ateliers pratiques et certifications pour le capital humain portuaire.',
-    img: 'https://i.ibb.co/tMKdK4vv/e4012d2bf39801e869d53477cce2c9c7.jpg'
-  },
-]
+    { 
+      title: 'Rayonnement Continental', 
+      desc: 'Positionnez votre organisation au cœur de l\'écosystème portuaire africain.',
+      img: 'https://i.ibb.co/4w549y0X/50a4f17346a18177b6d5c62af467d029.jpg'
+    },
+    { 
+      title: 'Innovation & Transformation', 
+      desc: 'Digitalisation, IA et nouvelles technologies dans les opérations portuaires.',
+      img: 'https://i.ibb.co/B55LGMLk/1a6af360ab064cc6bd0d3763d2ceed48.jpg'
+    },
+    { 
+      title: 'Excellence Opérationnelle', 
+      desc: 'Meilleures pratiques internationales et stratégies d\'optimisation.',
+      img: 'https://i.ibb.co/SwLyK01m/ff254cfe1758352087b3666e8fb7d1ae.jpg'
+    },
+    { 
+      title: 'Formation Continue', 
+      desc: 'Ateliers pratiques et certifications pour le capital humain portuaire.',
+      img: 'https://i.ibb.co/tMKdK4vv/e4012d2bf39801e869d53477cce2c9c7.jpg'
+    },
+  ]
 
   return (
     <section id="about" style={{
-      padding: 'clamp(60px, 10vw, 100px) clamp(20px, 5vw, 60px)',
-      background: '#f8f9ff',
-      fontFamily: 'Roboto, sans-serif',
-      textAlign: 'center',
+      padding: 'clamp(60px, 10vw, 120px) 0',
+      background: '#F8F9FF',
+      fontFamily: "'Inter', sans-serif",
     }}>
-
-      {/* ── HEADER ── */}
-      <div style={{ marginBottom: 'clamp(40px, 7vw, 72px)' }}>
-        <div style={{
-          display: 'inline-block',
-          background: 'rgba(0,115,244,0.08)',
-          border: '1px solid rgba(0,115,244,0.25)',
-          borderRadius: 100, padding: '6px 22px', marginBottom: 18
-        }}>
-          <span style={{ color: '#0073f4', fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>
-            Excellence Événementielle
-          </span>
-        </div>
-        <h2 style={{
-          fontFamily: 'Roboto, sans-serif',
-          fontSize: 'clamp(26px, 4vw, 48px)', fontWeight: 900,
-          color: '#000e91', marginBottom: 16, lineHeight: 1.15
-        }}>
-          La Conférence Officielle<br />
-          <span style={{ color: '#0073f4' }}>des Ports Africains</span>
-        </h2>
-        <p style={{
-          fontSize: 'clamp(14px, 2vw, 17px)', color: '#666',
-          maxWidth: 600, margin: '0 auto', lineHeight: 1.8, fontWeight: 300
-        }}>
-          Une plateforme d'échange stratégique réunissant décideurs portuaires,
-          experts en formation et leaders africains pour façonner l'avenir du secteur.
-        </p>
-      </div>
-
-      {/* ── IMAGES ── */}
-<div style={{
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-  gap: 'clamp(16px, 3vw, 24px)',
-  marginBottom: 'clamp(48px, 8vw, 80px)',
-}}>
-  {[
-    'https://i.ibb.co/4w549y0X/50a4f17346a18177b6d5c62af467d029.jpg',
-    'https://i.ibb.co/SwLyK01m/ff254cfe1758352087b3666e8fb7d1ae.jpg',
-  ].map((src, i) => (
-    <div key={i} style={{
-      borderRadius: 16, overflow: 'hidden',
-      boxShadow: '0 8px 40px rgba(0,14,145,0.12)',
-      border: '1px solid rgba(0,115,244,0.12)',
-      aspectRatio: '16/9',
-      transition: 'all 0.3s',
-    }}
-      onMouseEnter={e => {
-        e.currentTarget.style.transform = 'translateY(-4px)'
-        e.currentTarget.style.boxShadow = '0 16px 48px rgba(0,115,244,0.18)'
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.transform = 'translateY(0)'
-        e.currentTarget.style.boxShadow = '0 8px 40px rgba(0,14,145,0.12)'
-      }}
-    >
-      <img
-        src={src}
-        alt={`COPAF 2026 - Image ${i + 1}`}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-      />
-    </div>
-  ))}
-</div>
-
-      {/* ── STATS ── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        marginBottom: 'clamp(48px, 8vw, 80px)',
-        borderRadius: 16,
-        overflow: 'hidden',
-        boxShadow: '0 4px 40px rgba(0,14,145,0.08)',
-        border: '1px solid rgba(0,115,244,0.12)',
-      }}>
-        {stats.map((stat, i) => (
-          <div key={i} style={{
-            padding: 'clamp(28px, 5vw, 44px) clamp(12px, 3vw, 20px)',
-            textAlign: 'center',
-            background: '#FFFFFF',
-            borderRight: (i % 2 === 0) ? '1px solid rgba(0,115,244,0.1)' : 'none',
-            borderBottom: (i < 2) ? '1px solid rgba(0,115,244,0.1)' : 'none',
-            transition: 'background 0.2s'
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = '#f0f6ff'}
-            onMouseLeave={e => e.currentTarget.style.background = '#FFFFFF'}
-          >
-            <div style={{
-              fontFamily: 'Roboto, sans-serif',
-              fontSize: 'clamp(36px, 7vw, 52px)', fontWeight: 900,
-              color: '#0073f4', lineHeight: 1
-            }}>
-              {stat.number}
-            </div>
-            <div style={{
-              fontSize: 'clamp(10px, 1.5vw, 12px)', color: '#999',
-              letterSpacing: 2, textTransform: 'uppercase', marginTop: 10, fontWeight: 500
-            }}>
-              {stat.label}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── FEATURES ── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-        gap: 'clamp(16px, 3vw, 24px)',
-        marginBottom: 'clamp(48px, 8vw, 80px)'
-      }}>
-        {features.map((f, i) => (
-          <div key={i} style={{
-            background: '#FFFFFF',
-            border: '1px solid rgba(0,115,244,0.1)',
-            borderRadius: 16,
-            padding: 'clamp(24px, 4vw, 36px)',
-            boxShadow: '0 2px 20px rgba(0,14,145,0.05)',
-            transition: 'all 0.3s', cursor: 'default',
-            textAlign: 'center',
-          }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-4px)'
-              e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,115,244,0.12)'
-              e.currentTarget.style.borderColor = 'rgba(0,115,244,0.3)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = '0 2px 20px rgba(0,14,145,0.05)'
-              e.currentTarget.style.borderColor = 'rgba(0,115,244,0.1)'
-            }}
-          >
-            {/* Icône centrée */}
-            <div style={{
-              width: 56, height: 56, borderRadius: '50%',
-              background: 'rgba(0,115,244,0.08)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 26, marginBottom: 20,
-              margin: '0 auto 20px',
-            }}>
-              {f.icon}
-            </div>
-
-            <h3 style={{
-              fontFamily: 'Roboto, sans-serif',
-              fontSize: 'clamp(16px, 2.5vw, 19px)', fontWeight: 700,
-              marginBottom: 12, color: '#000e91'
-            }}>
-              {f.title}
-            </h3>
-            <p style={{
-              fontSize: 'clamp(13px, 1.8vw, 14px)', color: '#777', lineHeight: 1.7, marginBottom: 20
-            }}>
-              {f.desc}
-            </p>
-
-            <div style={{ height: 1, background: 'rgba(0,115,244,0.08)', marginBottom: 16 }} />
-
-            {/* Items centrés */}
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              {f.items.map((item, j) => (
-                <li key={j} style={{
-                  fontSize: 13, color: '#555',
-                  padding: '5px 0',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
-                }}>
-                  <span style={{
-                    width: 6, height: 6, borderRadius: '50%',
-                    background: '#0073f4', flexShrink: 0, display: 'inline-block'
-                  }} />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-
-      {/* ── PILLARS ── */}
-      <div style={{
-        background: '#000e91', borderRadius: 20,
-        padding: 'clamp(36px, 6vw, 60px) clamp(20px, 5vw, 48px)',
-        boxShadow: '0 8px 48px rgba(0,14,145,0.2)',
-        textAlign: 'center',
-      }}>
-        <div style={{ marginBottom: 'clamp(28px, 5vw, 48px)' }}>
-          <h3 style={{
-            fontFamily: 'Roboto, sans-serif',
-            fontSize: 'clamp(20px, 3vw, 36px)',
-            fontWeight: 900, color: '#FFFFFF', marginBottom: 10
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
+        
+        {/* ── HEADER ── */}
+        <div style={{ textAlign: 'center', marginBottom: 'clamp(50px, 8vw, 80px)' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '10px',
+            background: 'rgba(0,115,244,0.08)',
+            border: '1px solid rgba(0,115,244,0.2)',
+            borderRadius: '100px',
+            padding: '6px 20px',
+            marginBottom: '24px'
           }}>
-            Les Piliers de la <span style={{ color: '#0073f4' }}>COPAF 2026</span>
-          </h3>
-          <p style={{ fontSize: 'clamp(13px, 1.8vw, 15px)', color: 'rgba(255,255,255,0.55)', fontWeight: 300 }}>
-            Quatre axes stratégiques pour transformer l'écosystème portuaire africain
+            <div style={{ width: 8, height: 8, background: '#0073F4', borderRadius: '50%' }} />
+            <span style={{ color: '#0073F4', fontSize: '11px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase' }}>
+              Vision Stratégique 2026
+            </span>
+          </div>
+          <h2 style={{
+            fontSize: 'clamp(28px, 5vw, 52px)',
+            fontWeight: 900,
+            color: '#000E91',
+            marginBottom: '20px',
+            lineHeight: 1.1,
+            letterSpacing: '-0.02em'
+          }}>
+            La Conférence <br />
+            <span style={{ color: '#0073F4' }}>des Ports Africains</span>
+          </h2>
+          <p style={{
+            fontSize: 'clamp(16px, 2vw, 18px)',
+            color: '#4A5568',
+            maxWidth: '700px',
+            margin: '0 auto',
+            lineHeight: 1.7,
+            fontWeight: 400
+          }}>
+            Une plateforme d'échange stratégique de haut niveau réunissant les décideurs et 
+            experts pour façonner l'avenir de la logistique maritime sur le continent.
           </p>
         </div>
 
+        {/* ── GRILLE D'IMAGES ── */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
-          gap: 'clamp(12px, 2.5vw, 20px)'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '30px',
+          marginBottom: '80px'
         }}>
-          {pillars.map((p, i) => (
-  <div key={i} style={{
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    borderRadius: 14,
-    overflow: 'hidden',
-    textAlign: 'center',
-    transition: 'all 0.3s'
-  }}
-    onMouseEnter={e => {
-      e.currentTarget.style.background = 'rgba(0,115,244,0.15)'
-      e.currentTarget.style.borderColor = 'rgba(0,115,244,0.4)'
-      e.currentTarget.style.transform = 'translateY(-4px)'
-    }}
-    onMouseLeave={e => {
-      e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
-      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-      e.currentTarget.style.transform = 'translateY(0)'
-    }}
-  >
-    {/* Image */}
-    <div style={{ width: '100%', aspectRatio: '16/9', overflow: 'hidden' }}>
-      <img
-        src={p.img}
-        alt={p.title}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.4s' }}
-        onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-        onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-      />
-    </div>
+          {[
+            'https://i.ibb.co/4w549y0X/50a4f17346a18177b6d5c62af467d029.jpg',
+            'https://i.ibb.co/SwLyK01m/ff254cfe1758352087b3666e8fb7d1ae.jpg'
+          ].map((img, idx) => (
+            <div key={idx} className="hover-img" style={{
+              borderRadius: '24px',
+              overflow: 'hidden',
+              boxShadow: '0 20px 40px rgba(0, 14, 145, 0.1)',
+              aspectRatio: '16/10'
+            }}>
+              <img src={img} alt="COPAF Event" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+          ))}
+        </div>
 
-    {/* Contenu */}
-    <div style={{ padding: 'clamp(16px, 3vw, 22px)' }}>
-      <div style={{
-        width: 48, height: 48, borderRadius: '50%',
-        background: 'rgba(0,115,244,0.2)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 22, margin: '0 auto 12px'
-      }}>
-        {p.icon}
-      </div>
-      <h4 style={{
-        fontSize: 'clamp(13px, 2vw, 15px)', fontWeight: 700,
-        marginBottom: 8, color: '#FFFFFF'
-      }}>
-        {p.title}
-      </h4>
-      <p style={{
-        fontSize: 'clamp(12px, 1.6vw, 13px)',
-        color: 'rgba(255,255,255,0.5)',
-        lineHeight: 1.7, fontWeight: 300, margin: 0
-      }}>
-        {p.desc}
-      </p>
-    </div>
-  </div>
-))}
+        {/* ── STATS ── */}
+        <div className="stats-container" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          background: '#FFFFFF',
+          borderRadius: '30px',
+          overflow: 'hidden',
+          boxShadow: '0 15px 50px rgba(0, 14, 145, 0.05)',
+          marginBottom: '100px',
+          border: '1px solid #EDF2F7'
+        }}>
+          {stats.map((stat, i) => (
+            <div key={i} className="stat-item" style={{
+              padding: '50px 30px',
+              textAlign: 'center',
+              borderRight: '1px solid #F1F5F9'
+            }}>
+              <div style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 900, color: '#0073F4', marginBottom: '8px' }}>
+                {stat.number}
+              </div>
+              <div style={{ fontSize: '11px', color: '#718096', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── FEATURES ── */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '30px',
+          marginBottom: '100px'
+        }}>
+          {features.map((f, i) => (
+            <div key={i} className="card-feature" style={{
+              background: '#FFFFFF',
+              padding: '45px 35px',
+              borderRadius: '24px',
+              border: '1px solid #EDF2F7',
+              transition: 'all 0.4s ease'
+            }}>
+              <div style={{ width: '40px', height: '4px', background: '#0073F4', marginBottom: '25px', borderRadius: '2px' }} />
+              <h3 style={{ fontSize: '22px', fontWeight: 800, color: '#000E91', marginBottom: '15px' }}>{f.title}</h3>
+              <p style={{ fontSize: '15px', color: '#4A5568', lineHeight: 1.6, marginBottom: '30px' }}>{f.desc}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {f.items.map((item, j) => (
+                  <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', color: '#2D3748', fontWeight: 500 }}>
+                    <div style={{ width: '6px', height: '6px', background: '#CBD5E0', borderRadius: '50%' }} />
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── PILLARS SECTION ── */}
+        <div style={{
+          background: '#000E91',
+          borderRadius: '40px',
+          padding: 'clamp(50px, 8vw, 90px) clamp(24px, 5vw, 60px)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Accent décoratif fond */}
+          <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '300px', height: '300px', background: 'rgba(0,115,244,0.1)', borderRadius: '50%', filter: 'blur(80px)' }} />
+          
+          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+            <h3 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 900, color: '#FFFFFF', marginBottom: '16px' }}>
+              Les Piliers de la <span style={{ color: '#0073F4' }}>COPAF 2026</span>
+            </h3>
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '16px', fontWeight: 300 }}>
+              Quatre axes fondamentaux pour la transformation portuaire.
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+            gap: '24px'
+          }}>
+            {pillars.map((p, i) => (
+              <div key={i} className="pillar-card" style={{
+                background: 'rgba(255,255,255,0.03)',
+                borderRadius: '24px',
+                border: '1px solid rgba(255,255,255,0.08)',
+                overflow: 'hidden',
+                transition: '0.3s'
+              }}>
+                <div style={{ height: '160px', overflow: 'hidden' }}>
+                  <img src={p.img} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.7 }} />
+                </div>
+                <div style={{ padding: '25px' }}>
+                  <h4 style={{ color: '#FFFFFF', fontSize: '16px', fontWeight: 700, marginBottom: '10px', letterSpacing: '0.5px' }}>
+                    {p.title}
+                  </h4>
+                  <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', lineHeight: 1.5, margin: 0 }}>
+                    {p.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       <style>{`
-        @media (min-width: 768px) {
-          #about .stats-grid {
-            grid-template-columns: repeat(4, 1fr) !important;
-          }
+        .hover-img img { transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        .hover-img:hover img { transform: scale(1.08); }
+        
+        .card-feature:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 20px 40px rgba(0, 115, 244, 0.1);
+          border-color: #0073F4;
+        }
+
+        .pillar-card:hover {
+          background: rgba(255,255,255,0.07) !important;
+          transform: translateY(-5px);
+        }
+
+        @media (max-width: 768px) {
+          .stat-item { border-right: none !important; border-bottom: 1px solid #F1F5F9; }
+          .stat-item:last-child { border-bottom: none; }
+          .stats-container { grid-template-columns: repeat(2, 1fr); }
         }
       `}</style>
-
     </section>
   )
 }

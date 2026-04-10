@@ -70,7 +70,7 @@ const SPONSORS = [
 const PARTENAIRES_STRATEGIQUES = [
   {
     id: 'pso', label: 'Partenaire Stratégique Officiel', short: 'PSO',
-    price: '25 000 €', color: '#00cc88', accent: 'rgba(0,204,136,0.12)', badge: '🌟 Niveau premium',
+    price: '30 000 €', color: '#00cc88', accent: 'rgba(0,204,136,0.12)', badge: '🌟 Niveau premium',
     desc: 'Le niveau d\'engagement le plus élevé. Vous co-portez l\'événement avec COPAF.',
     avantages: [
       'Membre officiel du comité d\'organisation COPAF 2026',
@@ -88,7 +88,7 @@ const PARTENAIRES_STRATEGIQUES = [
   },
   {
     id: 'ps', label: 'Partenaire Stratégique', short: 'PS',
-    price: '12 000 €', color: '#7ab8ff', accent: 'rgba(122,184,255,0.10)', badge: '🤝 Partenariat associé',
+    price: '20 000 €', color: '#7ab8ff', accent: 'rgba(122,184,255,0.10)', badge: '🤝 Partenariat associé',
     desc: 'S\'associer officiellement à la COPAF 2026 avec une forte visibilité.',
     avantages: [
       'Logo sur tous les supports officiels de la conférence',

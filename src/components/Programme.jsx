@@ -24,11 +24,32 @@ const icons = {
   check: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>,
 }
 
+// Palette strictement #000E91 / #0073F4 et leurs variantes
+const C = {
+  navy: '#000E91',
+  navyLight: '#0A1AAF',
+  navyDeep: '#000770',
+  blue: '#0073F4',
+  blueLight: '#3391F6',
+  bluePale: '#EBF3FF',
+  blueMid: '#C2DCFD',
+  white: '#FFFFFF',
+  offWhite: '#F5F8FF',
+  navyAlpha10: 'rgba(0,14,145,0.10)',
+  navyAlpha20: 'rgba(0,14,145,0.20)',
+  blueAlpha15: 'rgba(0,115,244,0.15)',
+  blueAlpha30: 'rgba(0,115,244,0.30)',
+}
+
+// Chaque jour a une nuance de la palette
 const jours = [
   {
     jour: 'Jour 1', date: '15 Sept.', titre: 'IA & Vision Stratégique',
     objectif: 'Comprendre le paysage technologique et identifier les opportunités',
-    icon: icons.compass, accentColor: '#0073f4',
+    icon: icons.compass,
+    accent: C.blue,
+    accentBg: C.bluePale,
+    accentBorder: C.blueMid,
     sessions: [
       { heure: '09h00 – 10h30', titre: "Conférence d'ouverture", desc: "L'IA au cœur de la révolution du Smart Port. Panorama mondial et spécificités africaines.", icon: icons.mic, points: ["Panorama mondial des ports intelligents", "Spécificités du contexte africain", "Feuille de route de la conférence"] },
       { heure: '11h00 – 12h30', titre: 'Démystification technique', desc: 'Comprendre la Data, le Machine Learning et la Vision par Ordinateur sans jargon.', icon: icons.cpu, points: ["Data & Big Data expliqués simplement", "Machine Learning sans code", "Vision par Ordinateur appliquée aux ports"] },
@@ -39,7 +60,10 @@ const jours = [
   {
     jour: 'Jour 2', date: '16 Sept.', titre: 'Excellence Opérationnelle & Sécurité',
     objectif: "Voir comment l'IA transforme le terrain (quais, terminaux, accès)",
-    icon: icons.gear, accentColor: '#7c3aed',
+    icon: icons.gear,
+    accent: C.navy,
+    accentBg: 'rgba(0,14,145,0.06)',
+    accentBorder: 'rgba(0,14,145,0.2)',
     sessions: [
       { heure: '09h00 – 10h30', titre: 'Opérations nautiques', desc: 'Prédiction des arrivées (ETA) et gestion intelligente des postes à quai.', icon: icons.anchor, points: ["Algorithmes de prédiction ETA", "Optimisation des postes à quai", "Réduction des temps d'attente"] },
       { heure: '11h00 – 12h30', titre: "Fluidité de l'Hinterland", desc: 'Algorithmes de gestion des flux de camions et réduction de la congestion urbaine.', icon: icons.truck, points: ["Gestion intelligente des flux camions", "Réduction de la congestion urbaine", "Coordination avec les douanes"] },
@@ -50,7 +74,10 @@ const jours = [
   {
     jour: 'Jour 3', date: '17 Sept.', titre: 'Gouvernance, ROI & Feuille de Route',
     objectif: "Préparer l'après-formation : financer et piloter le changement",
-    icon: icons.map, accentColor: '#059669',
+    icon: icons.map,
+    accent: C.blueLight,
+    accentBg: 'rgba(51,145,246,0.08)',
+    accentBorder: 'rgba(51,145,246,0.25)',
     sessions: [
       { heure: '09h00 – 10h30', titre: "Modèle économique de l'IA", desc: "Calculer le ROI d'un projet technologique portuaire.", icon: icons.dollar, points: ["Méthodes de calcul du ROI tech", "Modèles de financement disponibles", "Présentation aux instances dirigeantes"] },
       { heure: '11h00 – 12h30', titre: 'Gouvernance de la donnée', desc: 'Créer une culture Data-Driven et recruter les talents nécessaires.', icon: icons.users, points: ["Mise en place d'une Data Governance", "Stratégie de recrutement tech", "Conduite du changement organisationnel"] },
@@ -63,284 +90,459 @@ const jours = [
 const Programme = () => {
   const [activeJour, setActiveJour] = useState(0)
   const [activeSession, setActiveSession] = useState(null)
+  const [hoveredSession, setHoveredSession] = useState(null)
   const jour = jours[activeJour]
 
   return (
     <section id="programme" style={{
-      padding: 'clamp(60px, 10vw, 100px) clamp(20px, 5vw, 60px)',
-      background: '#FFFFFF',
-      fontFamily: 'Roboto, sans-serif',
+      padding: 'clamp(60px, 10vw, 100px) 0',
+      background: C.offWhite,
+      fontFamily: "'Outfit', 'Roboto', sans-serif",
+      position: 'relative',
+      overflow: 'hidden',
     }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap');
 
-      {/* HEADER */}
-      <div style={{ textAlign: 'center', marginBottom: 'clamp(40px, 6vw, 64px)' }}>
-        <div style={{
-          display: 'inline-block',
-          background: 'rgba(0,115,244,0.12)',
-          border: '1px solid rgba(0,115,244,0.3)',
-          borderRadius: 100, padding: '6px 22px', marginBottom: 20,
-        }}>
-          <span style={{ color: '#60a5fa', fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>
-            Chronogramme
-          </span>
-        </div>
-        <h2 style={{
-          fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 900,
-          color: '#000', marginBottom: 16, lineHeight: 1.15, margin: '0 0 16px'
-        }}>
-          3 Jours de <span style={{ color: '#0073f4' }}>Partages Intensifs</span>
-        </h2>
-        <p style={{
-          fontSize: 'clamp(14px, 2vw, 16px)', color: '#666',
-          maxWidth: 520, margin: '16px auto 0', lineHeight: 1.8, fontWeight: 300
-        }}>
-          Un programme structuré pour transformer votre approche de la gestion portuaire africaine
-        </p>
-      </div>
+        .prog-tab { transition: all 0.25s cubic-bezier(.4,0,.2,1) !important; }
+        .prog-tab:hover { transform: translateY(-2px); }
 
-      {/* ONGLETS JOURS */}
+        .prog-row { transition: all 0.18s ease !important; }
+
+        .prog-stat-card {
+          transition: all 0.2s ease !important;
+        }
+        .prog-stat-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 12px 32px rgba(0,115,244,0.18) !important;
+        }
+
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .prog-animate { animation: fadeSlideUp 0.4s ease forwards; }
+
+        @keyframes modalIn {
+          from { opacity: 0; transform: scale(0.94) translateY(16px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-animate { animation: modalIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards; }
+      `}</style>
+
+      {/* Décoration fond */}
       <div style={{
-        display: 'flex', justifyContent: 'center', gap: 12,
-        marginBottom: 40, flexWrap: 'wrap',
-      }}>
-        {jours.map((j, i) => (
-          <button key={i} onClick={() => setActiveJour(i)} style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            padding: '12px 24px',
-            borderRadius: 50,
-            border: activeJour === i ? 'none' : '1px solid rgba(255,255,255,0.1)',
-            background: activeJour === i ? j.accentColor : 'rgba(0,0,0,0.04)',
-            color: activeJour === i ? '#fff' : '#666',
-            fontFamily: 'Roboto, sans-serif', fontWeight: 700,
-            fontSize: 'clamp(12px, 1.8vw, 14px)',
-            cursor: 'pointer', transition: 'all 0.2s',
+        position: 'absolute', top: -120, right: -120,
+        width: 500, height: 500, borderRadius: '50%',
+        background: `radial-gradient(circle, ${C.blueAlpha15} 0%, transparent 70%)`,
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', bottom: -80, left: -80,
+        width: 360, height: 360, borderRadius: '50%',
+        background: `radial-gradient(circle, rgba(0,14,145,0.07) 0%, transparent 70%)`,
+        pointerEvents: 'none',
+      }} />
+
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(20px, 5vw, 60px)' }}>
+
+        {/* ── HEADER ── */}
+        <div style={{ textAlign: 'center', marginBottom: 'clamp(48px, 7vw, 72px)' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: C.navy, borderRadius: 100,
+            padding: '7px 22px', marginBottom: 24,
           }}>
-            <span style={{ color: activeJour === i ? '#fff' : j.accentColor, display: 'flex', alignItems: 'center' }}>{j.icon}</span>
-            <div style={{ textAlign: 'left', lineHeight: 1.3 }}>
-              <div style={{ fontSize: 10, opacity: 0.7, fontWeight: 400 }}>{j.date}</div>
-              <div>{j.jour}</div>
-            </div>
-          </button>
-        ))}
-      </div>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.blue }} />
+            <span style={{ color: C.white, fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>
+              Chronogramme
+            </span>
+          </div>
 
-      {/* HEADER DU JOUR */}
-      <div style={{
-        background: jour.accentColor + '18',
-        border: '1px solid ' + jour.accentColor + '40',
-        borderRadius: '16px 16px 0 0',
-        padding: 'clamp(20px, 4vw, 32px) clamp(20px, 5vw, 40px)',
-        display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap',
-      }}>
-        <div style={{
-          width: 56, height: 56, borderRadius: 14,
-          background: jour.accentColor,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', flexShrink: 0,
-        }}>
-          {jour.icon}
-        </div>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ fontSize: 11, color: jour.accentColor, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 4 }}>
-            {jour.date} 2026
-          </div>
-          <div style={{ fontSize: 'clamp(18px, 3vw, 24px)', fontWeight: 900, color: '#000', lineHeight: 1.2 }}>
-            {jour.jour} — {jour.titre}
-          </div>
-          <div style={{ fontSize: 13, color: '#666', marginTop: 6 }}>
-            {jour.objectif}
-          </div>
-        </div>
-        <div style={{
-          background: 'rgba(0,0,0,0.06)', borderRadius: 10,
-          padding: '8px 18px', textAlign: 'center', flexShrink: 0,
-        }}>
-          <div style={{ fontSize: 22, fontWeight: 900, color: '#000' }}>4</div>
-          <div style={{ fontSize: 11, color: '#999', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>Sessions</div>
-        </div>
-      </div>
-
-      {/* TIMELINE SESSIONS */}
-      <div style={{
-        border: '1px solid rgba(0,0,0,0.1)',
-        borderTop: 'none',
-        borderRadius: '0 0 16px 16px',
-        overflow: 'hidden',
-        marginBottom: 48,
-      }}>
-        {jour.sessions.map((s, k) => (
-          <div key={k} onClick={() => setActiveSession({ ...s, accentColor: jour.accentColor, jourTitre: jour.titre })}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'clamp(90px,14vw,130px) 1px 1fr',
-              background: k % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'rgba(0,0,0,0.04)',
-              borderBottom: k < jour.sessions.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none',
-              cursor: 'pointer', transition: 'background 0.15s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = jour.accentColor + '12'}
-            onMouseLeave={e => e.currentTarget.style.background = k % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'rgba(0,0,0,0.04)'}
-          >
-            {/* Colonne heure */}
-            <div style={{
-              padding: 'clamp(16px, 3vw, 24px) clamp(12px, 2vw, 20px)',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              gap: 4,
+          <h2 style={{
+            fontSize: 'clamp(30px, 5vw, 52px)', fontWeight: 900,
+            color: C.navy, lineHeight: 1.1, margin: '0 0 16px',
+            letterSpacing: '-0.02em',
+          }}>
+            3 Jours de{' '}
+            <span style={{
+              background: `linear-gradient(135deg, ${C.blue}, ${C.navyLight})`,
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             }}>
-              <div style={{ color: jour.accentColor, display: 'flex', marginBottom: 4 }}>{icons.clock}</div>
-              <div style={{ fontSize: 'clamp(10px, 1.5vw, 12px)', color: '#666', fontWeight: 700, textAlign: 'center', lineHeight: 1.4 }}>
-                {s.heure.replace('–', '\n')}
-              </div>
-            </div>
+              Partages Intensifs
+            </span>
+          </h2>
 
-            {/* Ligne séparatrice verticale */}
-            <div style={{ background: 'rgba(0,0,0,0.1)', alignSelf: 'stretch' }} />
-
-            {/* Contenu session */}
-            <div style={{ padding: 'clamp(16px, 3vw, 24px) clamp(16px, 3vw, 28px)', display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 12,
-                background: jour.accentColor + '20',
-                border: '1px solid ' + jour.accentColor + '35',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: jour.accentColor, flexShrink: 0,
-              }}>
-                {s.icon}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 'clamp(14px, 2vw, 16px)', fontWeight: 700, color: '#000', marginBottom: 4 }}>
-                  {s.titre}
-                </div>
-                <div style={{ fontSize: 'clamp(12px, 1.6vw, 13px)', color: '#666', lineHeight: 1.6 }}>
-                  {s.desc}
-                </div>
-              </div>
-              <div style={{ color: jour.accentColor, fontSize: 18, flexShrink: 0, opacity: 0.7 }}>›</div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* INFOS LOGISTIQUES */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
-        gap: 16,
-      }}>
-        {[
-          { icon: icons.pin, label: 'Lieu', value: 'Tanger Med (Maroc)' },
-          { icon: icons.cal, label: 'Dates', value: '15 – 17 Septembre 2026' },
-          { icon: icons.globe, label: 'Langues', value: 'Français & Anglais (traduction simultanée)' },
-        ].map((info, i) => (
-          <div key={i} style={{
-            background: 'rgba(0,0,0,0.03)',
-            border: '1px solid rgba(0,0,0,0.1)',
-            borderRadius: 12, padding: '18px 22px',
-            display: 'flex', alignItems: 'center', gap: 14,
+          <p style={{
+            fontSize: 'clamp(14px, 2vw, 17px)', color: C.navyLight,
+            maxWidth: 540, margin: '0 auto', lineHeight: 1.8, fontWeight: 300, opacity: 0.7,
           }}>
-            <div style={{ color: '#0073f4', display: 'flex', flexShrink: 0 }}>{info.icon}</div>
-            <div>
-              <div style={{ fontSize: 11, color: '#999', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>{info.label}</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#333', marginTop: 3 }}>{info.value}</div>
+            Un programme structuré pour transformer votre approche de la gestion portuaire africaine
+          </p>
+        </div>
+
+        {/* ── ONGLETS JOURS ── */}
+        <div style={{
+          display: 'flex', justifyContent: 'center', gap: 10,
+          marginBottom: 40, flexWrap: 'wrap',
+        }}>
+          {jours.map((j, i) => {
+            const active = activeJour === i
+            return (
+              <button key={i} className="prog-tab" onClick={() => setActiveJour(i)} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '14px 26px', borderRadius: 14,
+                border: active ? 'none' : `1.5px solid ${C.navyAlpha20}`,
+                background: active
+                  ? `linear-gradient(135deg, ${C.navy} 0%, ${C.navyLight} 100%)`
+                  : C.white,
+                color: active ? C.white : C.navy,
+                fontFamily: 'inherit', fontWeight: 700,
+                fontSize: 'clamp(12px, 1.8vw, 14px)',
+                cursor: 'pointer',
+                boxShadow: active ? `0 8px 24px ${C.navyAlpha20}` : 'none',
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 10,
+                  background: active ? 'rgba(255,255,255,0.2)' : C.bluePale,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: active ? C.white : C.blue,
+                }}>
+                  {j.icon}
+                </div>
+                <div style={{ textAlign: 'left', lineHeight: 1.3 }}>
+                  <div style={{ fontSize: 10, opacity: 0.65, fontWeight: 400, letterSpacing: 1 }}>{j.date}</div>
+                  <div>{j.jour}</div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* ── BLOC JOUR ACTIF ── */}
+        <div className="prog-animate" key={activeJour}>
+
+          {/* Header du jour */}
+          <div style={{
+            background: `linear-gradient(135deg, ${C.navy} 0%, ${C.navyLight} 60%, ${C.blue} 100%)`,
+            borderRadius: '20px 20px 0 0',
+            padding: 'clamp(24px, 4vw, 36px) clamp(24px, 5vw, 44px)',
+            display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
+            position: 'relative', overflow: 'hidden',
+          }}>
+            {/* Motif décoratif */}
+            <div style={{
+              position: 'absolute', right: -30, top: -30,
+              width: 200, height: 200, borderRadius: '50%',
+              border: '40px solid rgba(255,255,255,0.05)',
+              pointerEvents: 'none',
+            }} />
+            <div style={{
+              position: 'absolute', right: 60, bottom: -60,
+              width: 150, height: 150, borderRadius: '50%',
+              border: '30px solid rgba(255,255,255,0.04)',
+              pointerEvents: 'none',
+            }} />
+
+            <div style={{
+              width: 64, height: 64, borderRadius: 18,
+              background: 'rgba(255,255,255,0.15)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: C.white, flexShrink: 0,
+            }}>
+              {jour.icon}
+            </div>
+
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{
+                fontSize: 11, color: C.blueMid, fontWeight: 700,
+                letterSpacing: 3, textTransform: 'uppercase', marginBottom: 6,
+              }}>
+                {jour.date} 2026
+              </div>
+              <div style={{
+                fontSize: 'clamp(18px, 3vw, 26px)', fontWeight: 900,
+                color: C.white, lineHeight: 1.15, letterSpacing: '-0.01em',
+              }}>
+                {jour.jour} — {jour.titre}
+              </div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 8, lineHeight: 1.6 }}>
+                {jour.objectif}
+              </div>
+            </div>
+
+            <div style={{
+              background: 'rgba(255,255,255,0.12)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: 14, padding: '14px 24px',
+              textAlign: 'center', flexShrink: 0, backdropFilter: 'blur(8px)',
+            }}>
+              <div style={{ fontSize: 28, fontWeight: 900, color: C.white, lineHeight: 1 }}>4</div>
+              <div style={{ fontSize: 10, color: C.blueMid, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, marginTop: 4 }}>Sessions</div>
             </div>
           </div>
-        ))}
+
+          {/* Sessions */}
+          <div style={{
+            border: `1.5px solid ${C.navyAlpha10}`,
+            borderTop: 'none',
+            borderRadius: '0 0 20px 20px',
+            overflow: 'hidden',
+            background: C.white,
+            boxShadow: '0 20px 60px rgba(0,14,145,0.08)',
+          }}>
+            {jour.sessions.map((s, k) => {
+              const hovered = hoveredSession === k
+              return (
+                <div key={k}
+                  className="prog-row"
+                  onClick={() => setActiveSession({ ...s, accent: jour.accent, jourTitre: jour.titre })}
+                  onMouseEnter={() => setHoveredSession(k)}
+                  onMouseLeave={() => setHoveredSession(null)}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'clamp(100px,13vw,140px) 1px 1fr',
+                    background: hovered ? C.bluePale : (k % 2 === 0 ? C.white : C.offWhite),
+                    borderBottom: k < jour.sessions.length - 1 ? `1px solid ${C.navyAlpha10}` : 'none',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {/* Heure */}
+                  <div style={{
+                    padding: 'clamp(20px, 3vw, 28px) clamp(14px, 2vw, 22px)',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  }}>
+                    <div style={{ color: hovered ? C.blue : C.navy, display: 'flex' }}>{icons.clock}</div>
+                    <div style={{
+                      fontSize: 'clamp(10px, 1.4vw, 11px)', color: hovered ? C.blue : '#666',
+                      fontWeight: 700, textAlign: 'center', lineHeight: 1.5, letterSpacing: 0.3,
+                    }}>
+                      {s.heure.split('–').map((t, i) => (
+                        <div key={i}>{t.trim()}</div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Séparateur */}
+                  <div style={{
+                    background: hovered ? C.blueAlpha30 : C.navyAlpha10,
+                    transition: 'background 0.18s',
+                  }} />
+
+                  {/* Contenu */}
+                  <div style={{
+                    padding: 'clamp(20px, 3vw, 28px) clamp(18px, 3vw, 32px)',
+                    display: 'flex', alignItems: 'center', gap: 18,
+                  }}>
+                    <div style={{
+                      width: 48, height: 48, borderRadius: 14,
+                      background: hovered ? C.blue : C.bluePale,
+                      border: `1.5px solid ${hovered ? C.blue : C.blueMid}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: hovered ? C.white : C.blue, flexShrink: 0,
+                      transition: 'all 0.18s',
+                    }}>
+                      {s.icon}
+                    </div>
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: 'clamp(14px, 2vw, 16px)', fontWeight: 700,
+                        color: hovered ? C.navy : C.navy, marginBottom: 5, letterSpacing: '-0.01em',
+                      }}>
+                        {s.titre}
+                      </div>
+                      <div style={{
+                        fontSize: 'clamp(12px, 1.5vw, 13px)', color: '#888', lineHeight: 1.65,
+                      }}>
+                        {s.desc}
+                      </div>
+                    </div>
+
+                    <div style={{
+                      width: 32, height: 32, borderRadius: '50%',
+                      background: hovered ? C.blue : C.bluePale,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: hovered ? C.white : C.blue,
+                      fontSize: 18, flexShrink: 0,
+                      transition: 'all 0.18s',
+                    }}>
+                      ›
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* ── INFOS LOGISTIQUES ── */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
+          gap: 16, marginTop: 40,
+        }}>
+          {[
+            { icon: icons.pin, label: 'Lieu', value: 'Tanger Med (Maroc)' },
+            { icon: icons.cal, label: 'Dates', value: '15 – 17 Septembre 2026' },
+            { icon: icons.globe, label: 'Langues', value: 'Français & Anglais (traduction simultanée)' },
+          ].map((info, i) => (
+            <div key={i} className="prog-stat-card" style={{
+              background: C.white,
+              border: `1.5px solid ${C.navyAlpha10}`,
+              borderRadius: 16, padding: '20px 24px',
+              display: 'flex', alignItems: 'center', gap: 16,
+              boxShadow: '0 4px 16px rgba(0,14,145,0.05)',
+            }}>
+              <div style={{
+                width: 42, height: 42, borderRadius: 12,
+                background: C.bluePale,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: C.blue, flexShrink: 0,
+              }}>
+                {info.icon}
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: C.blue, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>
+                  {info.label}
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.navy, lineHeight: 1.4 }}>
+                  {info.value}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* MODAL */}
+      {/* ── MODAL ── */}
       {activeSession && (
         <div onClick={() => setActiveSession(null)} style={{
           position: 'fixed', inset: 0,
-          background: 'rgba(0,0,0,0.5)',
+          background: 'rgba(0,14,145,0.45)',
+          backdropFilter: 'blur(6px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           zIndex: 9999, padding: 20,
         }}>
-          <div onClick={e => e.stopPropagation()} style={{
-            background: '#FFFFFF',
-            border: '1px solid rgba(0,0,0,0.1)',
-            borderRadius: 20, maxWidth: 500, width: '100%',
+          <div className="modal-animate" onClick={e => e.stopPropagation()} style={{
+            background: C.white,
+            borderRadius: 24, maxWidth: 520, width: '100%',
             overflow: 'hidden', maxHeight: '90vh', overflowY: 'auto',
+            boxShadow: '0 40px 100px rgba(0,14,145,0.3)',
           }}>
             {/* Modal header */}
             <div style={{
-              background: activeSession.accentColor,
-              padding: '24px 28px',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12,
+              background: `linear-gradient(135deg, ${C.navy}, ${C.navyLight} 50%, ${C.blue})`,
+              padding: '28px 32px',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16,
+              position: 'relative', overflow: 'hidden',
             }}>
-              <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+              <div style={{
+                position: 'absolute', right: -20, top: -20,
+                width: 140, height: 140, borderRadius: '50%',
+                border: '28px solid rgba(255,255,255,0.06)', pointerEvents: 'none',
+              }} />
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <div style={{
-                  width: 48, height: 48, borderRadius: 12,
-                  background: 'rgba(255,255,255,0.2)',
+                  width: 52, height: 52, borderRadius: 14,
+                  background: 'rgba(255,255,255,0.18)',
+                  border: '1px solid rgba(255,255,255,0.3)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', flexShrink: 0,
+                  color: C.white, flexShrink: 0,
                 }}>
                   {activeSession.icon}
                 </div>
                 <div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.8)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>
+                  <div style={{ fontSize: 10, color: C.blueMid, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 5, fontWeight: 700 }}>
                     Session — {activeSession.jourTitre}
                   </div>
-                  <div style={{ fontSize: 'clamp(16px, 3vw, 20px)', fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>
+                  <div style={{ fontSize: 'clamp(16px, 3vw, 21px)', fontWeight: 900, color: C.white, lineHeight: 1.2, letterSpacing: '-0.01em' }}>
                     {activeSession.titre}
                   </div>
                 </div>
               </div>
               <button onClick={() => setActiveSession(null)} style={{
-                background: 'rgba(0,0,0,0.1)', border: 'none',
-                color: '#000', width: 32, height: 32, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                color: C.white, width: 36, height: 36, borderRadius: '50%',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-              }}>
+                flexShrink: 0, transition: 'background 0.15s',
+              }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+              >
                 {icons.close}
               </button>
             </div>
 
             {/* Modal body */}
-            <div style={{ padding: '28px 28px 32px' }}>
+            <div style={{ padding: '32px 32px 36px' }}>
               <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                background: activeSession.accentColor + '20',
-                border: '1px solid ' + activeSession.accentColor + '40',
-                borderRadius: 20, padding: '5px 14px', marginBottom: 20,
-                color: activeSession.accentColor, fontSize: 13, fontWeight: 700,
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: C.bluePale,
+                border: `1px solid ${C.blueMid}`,
+                borderRadius: 100, padding: '6px 16px', marginBottom: 22,
+                color: C.blue, fontSize: 13, fontWeight: 700,
               }}>
                 <span style={{ display: 'flex' }}>{icons.clock}</span>
-                <span style={{ marginLeft: 4 }}>{activeSession.heure}</span>
+                <span>{activeSession.heure}</span>
               </div>
 
-              <p style={{ fontSize: 15, color: '#666', lineHeight: 1.8, marginBottom: 28 }}>
+              <p style={{
+                fontSize: 15, color: '#555', lineHeight: 1.85,
+                marginBottom: 28, fontWeight: 300,
+              }}>
                 {activeSession.desc}
               </p>
 
               <div style={{
-                background: 'rgba(0,0,0,0.03)',
-                border: '1px solid rgba(0,0,0,0.1)',
-                borderRadius: 12, padding: '20px 22px',
+                background: C.offWhite,
+                border: `1.5px solid ${C.navyAlpha10}`,
+                borderRadius: 16, padding: '22px 24px',
               }}>
-                <div style={{ fontSize: 11, color: activeSession.accentColor, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16 }}>
+                <div style={{
+                  fontSize: 10, color: C.blue, fontWeight: 700,
+                  letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 18,
+                }}>
                   Points clés abordés
                 </div>
                 {activeSession.points.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: i < activeSession.points.length - 1 ? 12 : 0 }}>
-                    <div style={{ color: activeSession.accentColor, marginTop: 2, flexShrink: 0 }}>{icons.check}</div>
-                    <span style={{ fontSize: 14, color: '#333', lineHeight: 1.6 }}>{p}</span>
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'flex-start', gap: 12,
+                    marginBottom: i < activeSession.points.length - 1 ? 14 : 0,
+                  }}>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: 6,
+                      background: C.bluePale, border: `1px solid ${C.blueMid}`,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: C.blue, flexShrink: 0, marginTop: 1,
+                    }}>
+                      {icons.check}
+                    </div>
+                    <span style={{ fontSize: 14, color: C.navy, lineHeight: 1.65, fontWeight: 400 }}>{p}</span>
                   </div>
                 ))}
               </div>
 
               <button onClick={() => setActiveSession(null)} style={{
-                marginTop: 24, width: '100%',
-                background: activeSession.accentColor, color: '#fff',
-                border: 'none', padding: '14px', borderRadius: 10,
-                fontFamily: 'Roboto', fontWeight: 700, fontSize: 14,
+                marginTop: 28, width: '100%',
+                background: `linear-gradient(135deg, ${C.navy}, ${C.blue})`,
+                color: C.white,
+                border: 'none', padding: '15px', borderRadius: 12,
+                fontFamily: 'inherit', fontWeight: 700, fontSize: 14,
                 letterSpacing: 1.5, textTransform: 'uppercase', cursor: 'pointer',
-              }}>
+                transition: 'opacity 0.2s',
+              }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              >
                 Fermer
               </button>
             </div>
           </div>
         </div>
       )}
-
     </section>
   )
 }

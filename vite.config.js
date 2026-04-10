@@ -7,4 +7,5 @@ export default defineConfig({
     react(),
     sitemap({ hostname: 'https://copaf-ports.com' })
   ],
+  base: './',   // ← ajoute cette ligne
 })

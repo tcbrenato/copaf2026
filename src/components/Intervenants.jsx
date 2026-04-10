@@ -14,7 +14,7 @@ const intervenants = [
     nom: 'Intervenant 2',
     titre: 'Titre du poste',
     organisation: 'Organisation',
-    categorie: 'Scientifique',
+    categorie: 'Panelistes',
     bio: 'Courte biographie de l\'intervenant.',
   },
   {
@@ -46,18 +46,18 @@ const intervenants = [
     nom: 'Intervenant 6',
     titre: 'Titre du poste',
     organisation: 'Organisation',
-    categorie: 'Scientifique',
+    categorie: 'Panelistes',
     bio: 'Courte biographie de l\'intervenant.',
   },
 ]
 
 const categorieStyle = {
   Conférencier: { bg: '#e8ecff', color: '#000e91' },
-  Scientifique:  { bg: '#e8f6ff', color: '#005fa3' },
+  Panelistes:  { bg: '#e8f6ff', color: '#005fa3' },
   Expert:        { bg: '#fff4e8', color: '#a35f00' },
 }
 
-const filtres = ['Tous', 'Conférencier', 'Scientifique', 'Expert']
+const filtres = ['Tous', 'Conférencier', 'Panelistes', 'Expert']
 
 const Intervenants = () => {
   const [actif, setActif] = useState('Tous')
@@ -97,7 +97,7 @@ const Intervenants = () => {
             fontSize: 16, color: '#555',
             maxWidth: 560, margin: '0 auto', lineHeight: 1.7,
           }}>
-            Experts, conférenciers et scientifiques réunis pour partager leurs connaissances
+            Experts, conférenciers et Panelistes réunis pour partager leurs connaissances
             sur les enjeux portuaires en Afrique.
           </p>
         </div>

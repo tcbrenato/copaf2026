@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-scroll'
 
+// Images locales situées dans le dossier public
 const images = [
-  "https://i.ibb.co/B55LGMLk/1a6af360ab064cc6bd0d3763d2ceed48.jpg",
-  "https://images.unsplash.com/photo-1494412651409-8963ce7935a7?w=1280&q=80",
-  "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1280&q=80",
-  "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1280&q=80",
+  "/hero1.png",
+  "/hero2.png",
+  "/hero3.png",
+  "/hero4.png",
+  "/hero5.png", 
+  "/hero6.png",
 ]
 
 const Hero = () => {
-  const fullText = `Conférence des Ports Africains
-COPAF 2026`
+  const fullText = `Conférence des Ports Africains\nCOPAF 2026`
   const [displayed, setDisplayed] = useState('')
   const [index, setIndex] = useState(0)
   const [showCursor, setShowCursor] = useState(true)
@@ -34,7 +36,6 @@ COPAF 2026`
     return () => clearInterval(cursorInterval)
   }, [])
 
-  // Slideshow avec transition fade
   useEffect(() => {
     const interval = setInterval(() => {
       setFade(false)
@@ -42,7 +43,7 @@ COPAF 2026`
         setCurrentImg(prev => (prev + 1) % images.length)
         setFade(true)
       }, 500)
-    }, 4000)
+    }, 5000)
     return () => clearInterval(interval)
   }, [])
 
@@ -53,257 +54,270 @@ COPAF 2026`
       alignItems: 'center',
       position: 'relative',
       overflow: 'hidden',
-      padding: 'clamp(100px, 12vw, 120px) clamp(20px, 5vw, 60px) clamp(60px, 8vw, 80px)',
-      background: '#FFFFFF',
+      padding: 'clamp(100px, 12vw, 120px) 5% 80px',
+      backgroundImage: 'url(/bg3.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
     }}>
-
+      
+      {/* Overlay pour la lisibilité */}
       <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'rgba(255, 255, 255, 0.85)',
+        zIndex: 1
+      }} />
+
+      <div className="hero-content" style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
         width: '100%',
-        maxWidth: 900,
+        maxWidth: 1000,
         margin: '0 auto',
+        zIndex: 2 
       }}>
 
-        {/* Titre typewriter */}
+        {/* Badge de bienvenue */}
+        <div style={{
+          background: 'rgba(0, 115, 244, 0.1)',
+          color: '#0073F4',
+          padding: '8px 16px',
+          borderRadius: '50px',
+          fontSize: '13px',
+          fontWeight: 600,
+          letterSpacing: '1px',
+          textTransform: 'uppercase',
+          marginBottom: '24px',
+          display: 'inline-block'
+        }}>
+          Évènement Maritime Majeur
+        </div>
+
+        {/* Titre dynamique */}
         <h1 style={{
-          fontFamily: 'Roboto, sans-serif',
-          fontSize: 'clamp(22px, 4vw, 48px)',
-          fontWeight: 900,
-          lineHeight: 1.3,
-          marginBottom: 'clamp(16px, 3vw, 24px)',
-          color: '#000e91',
-          minHeight: 'clamp(100px, 18vw, 150px)',
+          fontFamily: "'Inter', 'Roboto', sans-serif",
+          fontSize: 'clamp(28px, 5vw, 56px)',
+          fontWeight: 800,
+          lineHeight: 1.1,
+          marginBottom: '24px',
+          color: '#000E91',
+          minHeight: '140px',
+          width: '100%'
         }}>
           {(() => {
             const highlight = 'Ports Africains'
-            const newline = displayed.indexOf('\n')
-            const visibleText = newline === -1 ? displayed : displayed.slice(0, newline)
-            const secondLine = newline === -1 ? '' : displayed.slice(newline + 1)
-            const pos = visibleText.indexOf(highlight)
+            const parts = displayed.split('\n')
+            const line1 = parts[0] || ''
+            const line2 = parts[1] || ''
+            
+            const pos = line1.indexOf(highlight)
 
             return (
               <>
-                <span>
-                  {pos === -1 ? visibleText : (
+                <span style={{ display: 'block' }}>
+                  {pos === -1 ? line1 : (
                     <>
-                      <span>{visibleText.slice(0, pos)}</span>
-                      <span style={{ color: '#0073f4' }}>{visibleText.slice(pos, pos + highlight.length)}</span>
-                      <span>{visibleText.slice(pos + highlight.length)}</span>
+                      {line1.slice(0, pos)}
+                      <span style={{ color: '#0073F4' }}>{line1.slice(pos, pos + highlight.length)}</span>
+                      {line1.slice(pos + highlight.length)}
                     </>
                   )}
                 </span>
-                {secondLine && <><br /><span>{secondLine}</span></>}
+                {line2 && <div style={{ marginTop: '10px', color: '#000E91', opacity: 0.9 }}>{line2}</div>}
               </>
             )
           })()}
           <span style={{
             display: 'inline-block',
-            width: 3, height: '1em',
-            background: '#0073f4',
-            marginLeft: 2,
-            verticalAlign: 'middle',
+            width: '3px', height: '0.8em',
+            background: '#0073F4',
+            marginLeft: '5px',
             opacity: showCursor ? 1 : 0,
-            transition: 'opacity 0.1s',
+            verticalAlign: 'middle'
           }} />
         </h1>
 
-        {/* Sous-titre */}
         <p style={{
-          fontFamily: 'Roboto, sans-serif',
-          fontSize: 'clamp(14px, 2vw, 17px)',
-          color: '#555',
-          maxWidth: 560,
-          lineHeight: 1.8,
-          marginBottom: 'clamp(28px, 5vw, 40px)',
-          fontWeight: 300,
+          fontSize: 'clamp(16px, 1.8vw, 19px)',
+          color: '#4A5568',
+          maxWidth: '650px',
+          lineHeight: 1.6,
+          marginBottom: '40px',
+          marginRight: 'auto',
+          marginLeft: 'auto'
         }}>
-          3 jours d'échanges intensifs pour les dirigeants portuaires africains.
-          Transformer les défis de la digitalisation en leviers de croissance.
+          Rejoignez l'élite portuaire pour définir le futur de la logistique en Afrique. 
+          <span style={{ fontWeight: 600, color: '#000E91' }}> Innovation, Réseautage & Stratégie.</span>
         </p>
 
         {/* Boutons */}
-        <div style={{
+        <div className="hero-buttons" style={{
           display: 'flex',
           justifyContent: 'center',
-          gap: 'clamp(10px, 2vw, 16px)',
+          gap: '20px',
           flexWrap: 'wrap',
-          marginBottom: 'clamp(40px, 7vw, 64px)',
+          marginBottom: '60px',
+          width: '100%'
         }}>
           <Link to="inscription" smooth={true} duration={600} offset={-80}>
-            <button style={{
-              background: '#0073f4', color: '#FFFFFF',
+            <button className="btn-primary" style={{
+              background: 'linear-gradient(135deg, #0073F4 0%, #000E91 100%)',
+              color: '#FFFFFF',
               border: 'none',
-              padding: 'clamp(12px, 2vw, 16px) clamp(20px, 4vw, 36px)',
-              borderRadius: 6,
-              fontFamily: 'Roboto, sans-serif', fontWeight: 700,
-              fontSize: 'clamp(12px, 1.5vw, 14px)',
-              letterSpacing: 1.5, textTransform: 'uppercase',
-              cursor: 'pointer', transition: 'all 0.2s',
-              boxShadow: '0 4px 20px rgba(0,115,244,0.3)',
-              whiteSpace: 'nowrap',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#005fd4'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#0073f4'; e.currentTarget.style.transform = 'translateY(0)' }}
-            >
+              padding: '18px 40px',
+              borderRadius: '8px',
+              fontWeight: 700,
+              fontSize: '14px',
+              letterSpacing: '1px',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              boxShadow: '0 10px 25px rgba(0, 115, 244, 0.35)',
+              transition: 'all 0.3s ease',
+            }}>
               S'inscrire Maintenant
             </button>
           </Link>
 
           <Link to="programme" smooth={true} duration={600} offset={-80}>
             <button style={{
-              background: '#000e91', color: '#FFFFFF',
-              border: 'none',
-              padding: 'clamp(12px, 2vw, 16px) clamp(20px, 4vw, 36px)',
-              borderRadius: 6,
-              fontFamily: 'Roboto, sans-serif', fontWeight: 700,
-              fontSize: 'clamp(12px, 1.5vw, 14px)',
-              letterSpacing: 1.5, textTransform: 'uppercase',
-              cursor: 'pointer', transition: 'all 0.2s',
-              boxShadow: '0 4px 20px rgba(0,14,145,0.25)',
-              whiteSpace: 'nowrap',
+              background: 'transparent',
+              color: '#000E91',
+              border: '2px solid #000E91',
+              padding: '16px 40px',
+              borderRadius: '8px',
+              fontWeight: 700,
+              fontSize: '14px',
+              letterSpacing: '1px',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
             }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#000b7a'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#000e91'; e.currentTarget.style.transform = 'translateY(0)' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#000E91'; e.currentTarget.style.color = '#fff' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000E91' }}
             >
               Voir le Programme
             </button>
           </Link>
         </div>
 
-        {/* Image avec bordure animée */}
+        {/* Cadre Image */}
         <div style={{
           position: 'relative',
-          padding: 8,
           width: '100%',
-          maxWidth: 720,
+          maxWidth: '850px',
+          padding: '10px',
+          background: '#fff',
+          borderRadius: '24px',
+          boxShadow: '0 30px 60px rgba(0, 14, 145, 0.12)',
         }}>
-          {/* Contour animé */}
           <div style={{
-            position: 'absolute', inset: 0,
-            borderRadius: 20,
-            background: 'linear-gradient(270deg, #0073f4, #000e91, #0073f4)',
-            backgroundSize: '400% 400%',
-            animation: 'borderSpin 3s ease infinite',
-            zIndex: 0,
-          }} />
-
-          {/* Masque blanc intérieur */}
-          <div style={{
-            position: 'absolute', inset: 3,
-            borderRadius: 18,
-            background: '#FFFFFF',
-            zIndex: 1,
-          }} />
-
-          {/* Image avec slideshow */}
-          <div style={{
-            position: 'relative', zIndex: 2,
-            borderRadius: 14, overflow: 'hidden',
-            width: '100%', aspectRatio: '16/9',
-            boxShadow: '0 20px 60px rgba(0,14,145,0.15)',
+            position: 'relative',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            aspectRatio: '16/9',
           }}>
             <img
               key={currentImg}
               src={images[currentImg]}
-              alt={`Port Africain ${currentImg + 1}`}
+              alt="Découvrez la COPAF 2026"
               style={{
                 width: '100%', height: '100%', objectFit: 'cover',
                 opacity: fade ? 1 : 0,
-                transition: 'opacity 0.5s ease-in-out',
+                transform: fade ? 'scale(1)' : 'scale(1.05)',
+                transition: 'all 0.8s ease-in-out',
               }}
             />
 
-            {/* Points indicateurs */}
             <div style={{
-              position: 'absolute',
-              top: 12,
-              right: 16,
-              display: 'flex',
-              gap: 6,
-              zIndex: 3,
-            }}>
-              {images.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => { setFade(false); setTimeout(() => { setCurrentImg(i); setFade(true) }, 300) }}
-                  style={{
-                    width: i === currentImg ? 20 : 8,
-                    height: 8,
-                    borderRadius: 4,
-                    background: i === currentImg ? '#0073f4' : 'rgba(255,255,255,0.6)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                    transition: 'all 0.3s ease',
-                  }}
-                />
-              ))}
-            </div>
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(to top, rgba(0,14,145,0.4) 0%, transparent 40%)'
+            }} />
 
-            {/* Badge sur l'image */}
-            <div style={{
+            <div className="glass-badge" style={{
               position: 'absolute',
-              bottom: 'clamp(10px, 3vw, 20px)',
-              left: 'clamp(10px, 3vw, 20px)',
-              right: 'clamp(10px, 3vw, 20px)',
-              background: 'rgba(0,14,145,0.88)',
+              bottom: '20px',
+              left: '20px',
+              right: '20px',
+              background: 'rgba(255, 255, 255, 0.9)',
               backdropFilter: 'blur(10px)',
-              borderRadius: 10,
-              padding: 'clamp(10px, 2vw, 14px) clamp(12px, 3vw, 20px)',
+              borderRadius: '12px',
+              padding: '15px 25px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              gap: 8,
+              border: '1px solid rgba(255,255,255,0.3)',
             }}>
               <div style={{ textAlign: 'left' }}>
-                <div style={{
-                  fontFamily: 'Roboto',
-                  fontSize: 'clamp(9px, 1.5vw, 11px)',
-                  color: 'rgba(255,255,255,0.6)',
-                  textTransform: 'uppercase', letterSpacing: 2,
-                }}>
-                  Port de  Tanger Med (Maroc)
-                </div>
-                <div style={{
-                  fontFamily: 'Roboto',
-                  fontSize: 'clamp(13px, 2vw, 16px)',
-                  fontWeight: 700, color: '#FFFFFF',
-                }}>
-                  15 – 17 Septembre 2026
-                </div>
+                <p style={{ margin: 0, fontSize: '11px', color: '#0073F4', fontWeight: 700, textTransform: 'uppercase' }}>Localisation</p>
+                <p style={{ margin: 0, fontSize: '16px', color: '#000E91', fontWeight: 800 }}>Tanger Med, Maroc</p>
               </div>
-              <div style={{
-                background: '#0073f4', color: '#fff',
-                borderRadius: 8,
-                padding: 'clamp(6px, 1.5vw, 8px) clamp(10px, 2vw, 14px)',
-                textAlign: 'center',
-                fontFamily: 'Roboto',
-                fontSize: 'clamp(10px, 1.5vw, 12px)',
-                fontWeight: 700, textTransform: 'uppercase',
-                letterSpacing: 1, lineHeight: 1.5, flexShrink: 0,
-              }}>
-                Inscription<br />Ouverte
+              <div className="badge-sep" style={{ height: '30px', width: '1px', background: '#ddd' }} />
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ margin: 0, fontSize: '11px', color: '#0073F4', fontWeight: 700, textTransform: 'uppercase' }}>Dates</p>
+                <p style={{ margin: 0, fontSize: '16px', color: '#000E91', fontWeight: 800 }}>15 – 17 Sept. 2026</p>
               </div>
             </div>
+          </div>
+          
+          <div style={{
+            position: 'absolute',
+            top: '-15px',
+            right: '30px',
+            display: 'flex',
+            gap: '8px'
+          }}>
+            {images.map((_, i) => (
+              <div key={i} style={{
+                width: i === currentImg ? '30px' : '10px',
+                height: '6px',
+                background: i === currentImg ? '#0073F4' : '#CBD5E0',
+                borderRadius: '10px',
+                transition: 'all 0.3s ease'
+              }} />
+            ))}
           </div>
         </div>
       </div>
 
       <style>{`
-        @keyframes borderSpin {
-          0%   { background-position: 0% 50%; }
-          50%  { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
+        .btn-primary:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 15px 30px rgba(0, 115, 244, 0.45) !important;
         }
         @media (max-width: 640px) {
-          #hero { padding-top: 100px !important; }
-        }
-        @media (max-width: 400px) {
-          #hero a { width: 100%; }
-          #hero a button { width: 100%; text-align: center; }
+          #hero { 
+            padding-top: 80px; 
+            padding-bottom: 40px;
+            display: flex;
+            align-items: flex-start; /* Évite d'être trop bas sur petit écran */
+          }
+          .hero-content {
+            text-align: center !important;
+          }
+          .hero-buttons {
+            flex-direction: column;
+            align-items: center;
+          }
+          .hero-buttons a {
+            width: 100%;
+            max-width: 300px;
+          }
+          .hero-buttons button {
+            width: 100%;
+          }
+          .glass-badge { 
+            flex-direction: column !important; 
+            gap: 10px; 
+            padding: 12px !important;
+            bottom: 10px !important;
+            left: 10px !important;
+            right: 10px !important;
+          }
+          .glass-badge div { text-align: center !important; }
+          .badge-sep { display: none; }
         }
       `}</style>
     </section>
