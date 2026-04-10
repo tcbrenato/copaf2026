@@ -104,7 +104,7 @@ const TYPES_INSCRIPTION = [
     tag: 'digital · site + tablettes',
     cta: 'Voir les formules exposant',
     redirect: true,
-    redirectTo: '/exposants',
+    redirectTo: '/exposition-digitale',
   },
 ]
 

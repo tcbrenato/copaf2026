@@ -1,274 +1,225 @@
-import Navbar from '../components/Navbar'
+import React, { useState, useEffect } from 'react';
+import Navbar from '../components/Navbar';
+
+const advantages = [
+  "Impact Carbone Zéro : Pas de transport de matériel physique.",
+  "Visibilité 365j : Votre stand reste en ligne un an après Tanger Med.",
+  "Data Précise : Rapport détaillé des vues et clics inclus.",
+  "Lead Gen Direct : Les décideurs vous contactent en un clic.",
+  "Zéro Logistique : Concentrez-vous sur vos pitchs."
+];
 
 const steps = [
   {
-    num: '01',
-    title: 'Votre fiche sur le site COPAF',
-    color: '#0073f4',
-    desc: 'Dès validation de votre demande, une page dédiée est créée sur le site officiel COPAF avec votre logo, description, liens et contacts.',
-    details: ['Logo + nom de l\'entreprise', 'Description de vos produits/services', 'Lien vers votre site web', 'Coordonnées de contact', 'QR code dédié'],
+    id: '01',
+    title: 'Vitrine Web Exclusive',
+    color: '#0073F4',
+    short: 'Votre hub digital permanent sur le portail COPAF.',
+    fullDesc: "Dès votre inscription, nous créons une page dédiée hautement optimisée pour le SEO. Elle inclut votre présentation stratégique, vos liens officiels et un formulaire de captation de leads direct.",
+    features: ['Indexation Google garantie', 'Formulaire de contact direct', 'Statistiques en temps réel']
   },
   {
-    num: '02',
-    title: 'Contenu sur les tablettes',
-    color: '#FFD700',
-    desc: 'Les participants reçoivent des tablettes préchargées avec vos contenus. Chaque participant aura accès à votre espace exposant directement depuis la tablette.',
-    details: ['PDF / brochures de vos produits', 'Vidéo de présentation (formules Avancée & Premium)', 'Feuilles de route et ressources', 'Accès à votre fiche exposant', 'QR code vers votre site web'],
+    id: '02',
+    title: 'Immersion Tablettes',
+    color: '#19269C',
+    short: 'Vos solutions préchargées sur les outils des décideurs.',
+    fullDesc: "À Tanger Med, chaque délégué reçoit une tablette tactile haut de gamme. Vos brochures et vidéos y sont intégrées nativement pour une consultation fluide, même sans connexion internet.",
+    features: ['Accès 100% Offline', 'Lecture vidéo fluide', 'Expérience tactile premium']
   },
   {
-    num: '03',
-    title: 'Session pitch / démo',
-    color: '#00cc88',
-    desc: 'Les formules Avancée et Premium incluent une session de présentation en direct pendant la conférence devant tous les participants.',
-    details: ['10 à 15 minutes de présentation', 'Démonstration de vos solutions', 'Session questions/réponses', 'Visible par tous les participants', 'Enregistrement disponible (formule Premium)'],
+    id: '03',
+    title: 'Session Pitch & Démo',
+    color: '#0073F4',
+    short: 'Une prise de parole magistrale en auditorium.',
+    fullDesc: "Bénéficiez d'un créneau stratégique dans le programme officiel pour présenter vos innovations devant l'ensemble des délégations et autorités portuaires présentes au Maroc.",
+    features: ['Auditorium de 500+ décideurs', 'Captation vidéo HD offerte', 'QR Code interactif sur écran']
   },
   {
-    num: '04',
-    title: 'Visibilité post-conférence',
-    color: '#ff6b9d',
-    desc: 'Votre présence ne s\'arrête pas à la conférence. Votre fiche reste en ligne sur le site COPAF et vos contenus restent accessibles.',
-    details: ['Fiche maintenue 12 mois sur le site', 'Accès aux actes de la conférence', 'Réseau des participants conservé', 'Données de consultation disponibles', 'Possibilité de renouvellement'],
-  },
-]
+    id: '04',
+    title: 'Héritage Post-Event',
+    color: '#19269C',
+    short: 'Une visibilité qui dure 12 mois après Tanger Med.',
+    fullDesc: "L'exposition ne s'arrête pas à la clôture. Votre vitrine reste active pendant un an sur le site COPAF, servant de référence pour les futurs appels d'offres du secteur.",
+    features: ['Référencement annuel', 'Inclusion dans les Actes officiels', 'Réseautage continu']
+  }
+];
 
-const comparaison = [
-  { feature: 'Fiche sur le site COPAF', essentielle: true, avancee: true, premium: true },
-  { feature: 'Logo + description + lien', essentielle: true, avancee: true, premium: true },
-  { feature: 'QR code programme numérique', essentielle: true, avancee: true, premium: true },
-  { feature: '1 PDF/brochure sur tablettes', essentielle: true, avancee: true, premium: true },
-  { feature: 'Vidéo de présentation (5 min)', essentielle: false, avancee: true, premium: true },
-  { feature: 'Session pitch 10–15 min', essentielle: false, avancee: true, premium: true },
-  { feature: 'Badge participant inclus', essentielle: false, avancee: '1', premium: '2' },
-  { feature: 'Page dédiée sur le site', essentielle: false, avancee: true, premium: true },
-  { feature: 'Démonstration produit 15 min', essentielle: false, avancee: false, premium: true },
-  { feature: 'Contenu prioritaire tablettes', essentielle: false, avancee: false, premium: true },
-  { feature: 'Mise en avant page d\'accueil', essentielle: false, avancee: false, premium: true },
-]
-
-const CheckIcon = ({ ok, val }) => {
-  if (val && typeof val === 'string') return <span style={{ fontSize: 13, fontWeight: 700, color: '#00cc88' }}>{val}</span>
-  if (ok) return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="10" fill="rgba(0,204,136,0.15)" />
-      <polyline points="5 10 8 13 15 7" stroke="#00cc88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="10" fill="rgba(255,255,255,0.04)" />
-      <line x1="7" y1="7" x2="13" y2="13" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="13" y1="7" x2="7" y2="13" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  )
-}
+const plans = [
+  { name: "ESSENTIELLE", price: "500", color: "#64748B", features: ["Fiche portail officiel", "Logo + Description", "QR Code numérique", "1 Brochure PDF"] },
+  { name: "AVANCÉE", price: "1500", color: "#0073F4", features: ["Tout Pack Essentielle", "3 Brochures PDF", "Vidéo de présentation HD", "1 Badge VIP inclus", "Session Pitch (10 min)"] },
+  { name: "PREMIUM", price: "3000", color: "#19269C", features: ["Tout Pack Avancée", "Brochures Illimitées", "Pitch (15 min) + Q&A", "2 Badges VIP inclus", "Démonstration Live", "Captation Vidéo"] }
+];
 
 const ExpositionDigitale = () => {
+  const [activeModal, setActiveModal] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+  const [currentAdvantage, setCurrentAdvantage] = useState(0);
+  const [selectedPlan, setSelectedPlan] = useState("");
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setShowToast(true);
+      setCurrentAdvantage((prev) => (prev + 1) % advantages.length);
+      setTimeout(() => setShowToast(false), 5000);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div style={{
-      background: '#060a14', minHeight: '100vh',
-      fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif", color: '#FFFFFF',
-    }}>
+    <div className="page-container">
       <Navbar />
 
-      {/* HERO */}
-      <div style={{
-        background: 'linear-gradient(160deg, #060a14 0%, #000e91 70%, #0073f4 100%)',
-        padding: 'clamp(90px, 14vw, 150px) clamp(20px, 5vw, 60px) clamp(60px, 8vw, 100px)',
-        textAlign: 'center', position: 'relative', overflow: 'hidden',
-      }}>
-        <div style={{ position: 'absolute', top: -80, right: -80, width: 320, height: 320, borderRadius: '50%', background: 'rgba(0,115,244,0.07)', pointerEvents: 'none' }} />
-
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)',
-          borderRadius: 100, padding: '7px 22px', marginBottom: 24,
-        }}>
-          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>
-            💻 Exposition Digitale COPAF 2026
-          </span>
-        </div>
-
-        <h1 style={{ fontSize: 'clamp(28px, 5vw, 54px)', fontWeight: 900, marginBottom: 18, lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-          Comment fonctionne<br />
-          <span style={{ color: '#0073f4' }}>l'exposition digitale ?</span>
-        </h1>
-        <p style={{ fontSize: 'clamp(14px, 2vw, 17px)', color: 'rgba(255,255,255,0.6)', maxWidth: 560, margin: '0 auto 36px', lineHeight: 1.8 }}>
-          Pas de stand physique — une présence digitale puissante sur le site COPAF et sur les tablettes distribuées aux 500+ participants.
-        </p>
-        <a href="/partenariats" style={{
-          display: 'inline-block',
-          background: 'linear-gradient(135deg, #000e91, #0073f4)',
-          color: '#FFFFFF', textDecoration: 'none',
-          padding: '14px 32px', borderRadius: 12,
-          fontWeight: 800, fontSize: 14, letterSpacing: 1,
-          boxShadow: '0 8px 28px rgba(0,115,244,0.35)',
-        }}>
-          Devenir Exposant →
-        </a>
+      {/* POPUP CYCLIQUE */}
+      <div className={`toast ${showToast ? 'show' : ''}`}>
+        <div className="toast-label">AVANTAGE COPAF</div>
+        <div className="toast-text">{advantages[currentAdvantage]}</div>
       </div>
 
-      <div style={{ padding: 'clamp(50px, 8vw, 90px) clamp(20px, 5vw, 60px)' }}>
+      {/* HERO SECTION */}
+      <section className="hero">
+        <div className="badge">TANGER MED 2026</div>
+        <h1>L'Exposition <span>100% Digitale</span></h1>
+        <p>Une présence puissante sans les contraintes de stand physique. Votre technologie directement dans les mains des décideurs portuaires.</p>
+        <button className="main-cta" onClick={() => document.getElementById('pricing').scrollIntoView({behavior:'smooth'})}>Voir les formules</button>
+      </section>
 
-        {/* ÉTAPES */}
-        <div style={{ maxWidth: 900, margin: '0 auto 80px' }}>
-          <h2 style={{ textAlign: 'center', fontSize: 'clamp(20px, 3vw, 34px)', fontWeight: 900, marginBottom: 12 }}>
-            Votre visibilité en <span style={{ color: '#0073f4' }}>4 étapes</span>
-          </h2>
-          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 52 }}>
-            De la validation de votre dossier jusqu'après la conférence
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {steps.map((step, idx) => (
-              <div key={idx} style={{
-                display: 'grid',
-                gridTemplateColumns: 'auto 1fr',
-                gap: 24, alignItems: 'start',
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                borderRadius: 18, padding: 'clamp(20px, 4vw, 32px)',
-              }}>
-                {/* Numéro */}
-                <div style={{
-                  width: 52, height: 52, borderRadius: 14,
-                  background: `rgba(${step.color === '#0073f4' ? '0,115,244' : step.color === '#FFD700' ? '255,215,0' : step.color === '#00cc88' ? '0,204,136' : '255,107,157'},0.15)`,
-                  border: `1.5px solid ${step.color}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                }}>
-                  <span style={{ fontSize: 16, fontWeight: 900, color: step.color }}>{step.num}</span>
-                </div>
-
-                {/* Contenu */}
-                <div>
-                  <h3 style={{ fontSize: 17, fontWeight: 800, color: step.color, marginBottom: 8 }}>{step.title}</h3>
-                  <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, marginBottom: 16 }}>{step.desc}</p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {step.details.map((d, i) => (
-                      <span key={i} style={{
-                        background: `rgba(${step.color === '#0073f4' ? '0,115,244' : step.color === '#FFD700' ? '255,215,0' : step.color === '#00cc88' ? '0,204,136' : '255,107,157'},0.08)`,
-                        border: `1px solid rgba(${step.color === '#0073f4' ? '0,115,244' : step.color === '#FFD700' ? '255,215,0' : step.color === '#00cc88' ? '0,204,136' : '255,107,157'},0.2)`,
-                        borderRadius: 100, padding: '5px 14px',
-                        fontSize: 12, color: step.color, fontWeight: 600,
-                      }}>{d}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* PARTIE EXPLICATION (GRILLE) */}
+      <section className="explanation-section">
+        <div className="section-header">
+          <h2>Comment ça fonctionne ?</h2>
+          <p>Cliquez sur chaque étape pour découvrir les détails du dispositif.</p>
         </div>
-
-        {/* TABLETTES — focus visuel */}
-        <div style={{ maxWidth: 800, margin: '0 auto 80px' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #000e91 0%, #0073f4 100%)',
-            borderRadius: 24, padding: 'clamp(32px, 5vw, 52px)',
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
-            gap: 32, alignItems: 'center',
-          }}>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', marginBottom: 12 }}>
-                Les tablettes COPAF
-              </div>
-              <h3 style={{ fontSize: 'clamp(20px, 3vw, 28px)', fontWeight: 900, marginBottom: 16, lineHeight: 1.2 }}>
-                500+ tablettes préchargées distribuées aux participants
-              </h3>
-              <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, lineHeight: 1.8 }}>
-                Chaque participant reçoit une tablette contenant les ressources de la conférence, le programme, les actes et les fiches exposants. Votre contenu est accessible à tout moment.
-              </p>
+        <div className="grid-container">
+          {steps.map((step) => (
+            <div key={step.id} className="expl-card" onClick={() => setActiveModal(step)}>
+              <div className="step-number" style={{ color: step.color }}>{step.id}</div>
+              <h3>{step.title}</h3>
+              <p>{step.short}</p>
+              <span className="more-link" style={{ color: step.color }}>En savoir plus →</span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {[
-                { icon: '📄', label: 'PDF & Brochures', desc: 'Vos documents directement accessibles' },
-                { icon: '🎥', label: 'Vidéos', desc: 'Présentation et démonstrations' },
-                { icon: '🌐', label: 'Site COPAF', desc: 'Accès à votre fiche exposant en ligne' },
-                { icon: '📱', label: 'QR Codes', desc: 'Redirection vers vos ressources' },
-              ].map((item, i) => (
-                <div key={i} style={{
-                  display: 'flex', gap: 12, alignItems: 'center',
-                  background: 'rgba(255,255,255,0.1)', borderRadius: 12, padding: '12px 16px',
-                }}>
-                  <span style={{ fontSize: 22 }}>{item.icon}</span>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700 }}>{item.label}</div>
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>{item.desc}</div>
-                  </div>
-                </div>
+          ))}
+        </div>
+      </section>
+
+      {/* SECTION TARIFS */}
+      <section id="pricing" className="pricing-section">
+        <div className="section-header">
+          <h2>Nos Formules</h2>
+          <p>Choisissez le niveau d'impact adapté à votre stratégie.</p>
+        </div>
+        <div className="pricing-grid">
+          {plans.map((plan, i) => (
+            <div key={i} className="price-card" style={{ borderTop: `6px solid ${plan.color}` }}>
+              <h3 style={{ color: plan.color }}>{plan.name}</h3>
+              <div className="amount">{plan.price}€</div>
+              <ul className="feat-list">
+                {plan.features.map((f, idx) => <li key={idx}>{f}</li>)}
+              </ul>
+              <button className="select-btn" style={{ background: plan.color }} onClick={() => {
+                setSelectedPlan(plan.name);
+                document.getElementById('form').scrollIntoView({behavior:'smooth'});
+              }}>Choisir {plan.name}</button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FORMULAIRE */}
+      <section id="form" className="form-section">
+        <div className="form-box">
+          <h2>Inscription</h2>
+          <p>Soumettez votre demande d'exposition pour Tanger Med 2026.</p>
+          <form onSubmit={(e) => e.preventDefault()}>
+            <select value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value)} required>
+              <option value="">Sélectionnez votre formule</option>
+              <option value="ESSENTIELLE">ESSENTIELLE - 500€</option>
+              <option value="AVANCÉE">AVANCÉE - 1500€</option>
+              <option value="PREMIUM">PREMIUM - 3000€</option>
+            </select>
+            <input type="text" placeholder="Entreprise" required />
+            <input type="email" placeholder="Email contact" required />
+            <textarea placeholder="Vos objectifs pour cette conférence..." rows="3"></textarea>
+            <button type="submit">Envoyer ma demande</button>
+          </form>
+        </div>
+      </section>
+
+      {/* MODALE EXPLICATION */}
+      {activeModal && (
+        <div className="modal-overlay" onClick={() => setActiveModal(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button className="close-x" onClick={() => setActiveModal(null)}>✕</button>
+            <h2 style={{ color: activeModal.color }}>{activeModal.title}</h2>
+            <p className="full-desc">{activeModal.fullDesc}</p>
+            <div className="feat-chips">
+              {activeModal.features.map((f, i) => (
+                <div key={i} className="chip"><span style={{ background: activeModal.color }}></span>{f}</div>
               ))}
             </div>
           </div>
         </div>
+      )}
 
-        {/* TABLEAU COMPARATIF */}
-        <div style={{ maxWidth: 860, margin: '0 auto 80px' }}>
-          <h2 style={{ textAlign: 'center', fontSize: 'clamp(20px, 3vw, 32px)', fontWeight: 900, marginBottom: 12 }}>
-            Comparatif des <span style={{ color: '#0073f4' }}>formules</span>
-          </h2>
-          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 40 }}>
-            Choisissez la formule adaptée à vos objectifs
-          </p>
+      <footer className="footer">© 2026 COPAF — TANGER MED. Exposition 100% Digitale.</footer>
 
-          <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 20, overflow: 'hidden' }}>
-            {/* Header */}
-            <div style={{
-              display: 'grid', gridTemplateColumns: '1fr repeat(3, 120px)',
-              background: 'rgba(0,115,244,0.1)', borderBottom: '1px solid rgba(255,255,255,0.07)',
-              padding: '16px 24px', gap: 8, alignItems: 'center',
-            }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>Fonctionnalité</div>
-              {[
-                { label: 'Essentielle', price: '500 €', color: '#0073f4' },
-                { label: 'Avancée', price: '1 200 €', color: '#FFD700' },
-                { label: 'Premium', price: '2 500 €', color: '#00cc88' },
-              ].map((h, i) => (
-                <div key={i} style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: h.color }}>{h.label}</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{h.price}</div>
-                </div>
-              ))}
-            </div>
+      <style jsx>{`
+        .page-container { background: #FFFFFF; font-family: 'Inter', sans-serif; color: #1A1A1A; overflow-x: hidden; }
+        .hero { padding: 120px 20px 80px; text-align: center; background: #F8FAFC; }
+        .badge { display: inline-block; padding: 6px 16px; border-radius: 50px; background: #0073F415; color: #0073F4; font-weight: 800; font-size: 11px; margin-bottom: 20px; }
+        h1 { font-size: clamp(30px, 8vw, 50px); color: #19269C; font-weight: 900; margin-bottom: 20px; line-height: 1.1; }
+        h1 span { color: #0073F4; }
+        .hero p { max-width: 600px; margin: 0 auto 30px; color: #64748B; font-size: 17px; }
+        .main-cta { background: #19269C; color: white; border: none; padding: 16px 35px; border-radius: 12px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(25,38,156,0.2); }
 
-            {/* Lignes */}
-            {comparaison.map((row, i) => (
-              <div key={i} style={{
-                display: 'grid', gridTemplateColumns: '1fr repeat(3, 120px)',
-                padding: '14px 24px', gap: 8, alignItems: 'center',
-                borderBottom: i < comparaison.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-                background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)',
-              }}>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>{row.feature}</div>
-                <div style={{ display: 'flex', justifyContent: 'center' }}><CheckIcon ok={row.essentielle} val={typeof row.essentielle === 'string' ? row.essentielle : null} /></div>
-                <div style={{ display: 'flex', justifyContent: 'center' }}><CheckIcon ok={row.avancee} val={typeof row.avancee === 'string' ? row.avancee : null} /></div>
-                <div style={{ display: 'flex', justifyContent: 'center' }}><CheckIcon ok={row.premium} val={typeof row.premium === 'string' ? row.premium : null} /></div>
-              </div>
-            ))}
-          </div>
-        </div>
+        .section-header { text-align: center; margin-bottom: 50px; padding: 0 20px; }
+        h2 { font-size: 32px; font-weight: 900; color: #19269C; margin-bottom: 10px; }
+        .section-header p { color: #64748B; font-size: 15px; }
 
-        {/* CTA */}
-        <div style={{ textAlign: 'center' }}>
-          <h3 style={{ fontSize: 'clamp(20px, 3vw, 30px)', fontWeight: 900, marginBottom: 12 }}>
-            Prêt à exposer vos solutions ?
-          </h3>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 15, marginBottom: 28 }}>
-            Soumettez votre demande — notre équipe vous répond sous 48h.
-          </p>
-          <a href="/partenariats" style={{
-            display: 'inline-block',
-            background: 'linear-gradient(135deg, #000e91, #0073f4)',
-            color: '#FFFFFF', textDecoration: 'none',
-            padding: '16px 40px', borderRadius: 12,
-            fontWeight: 800, fontSize: 15, letterSpacing: 1,
-            boxShadow: '0 8px 28px rgba(0,115,244,0.35)',
-          }}>
-            Choisir ma formule exposant →
-          </a>
-        </div>
+        .explanation-section { padding: 80px 20px; }
+        .grid-container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; }
+        .expl-card { background: white; padding: 40px 30px; border-radius: 20px; border: 1px solid #E2E8F0; text-align: center; cursor: pointer; transition: 0.3s; }
+        .expl-card:hover { border-color: #0073F4; transform: translateY(-5px); }
+        .step-number { font-size: 14px; font-weight: 900; margin-bottom: 15px; }
+        .more-link { display: block; margin-top: 20px; font-size: 13px; font-weight: 700; }
 
-      </div>
+        .pricing-section { padding: 80px 20px; background: #F8FAFC; }
+        .pricing-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .price-card { background: white; padding: 50px 30px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .amount { font-size: 50px; font-weight: 900; margin: 25px 0; }
+        .feat-list { list-style: none; padding: 0; margin-bottom: 35px; text-align: left; display: inline-block; }
+        .feat-list li { font-size: 14px; color: #64748B; margin-bottom: 12px; padding-left: 20px; position: relative; }
+        .feat-list li::before { content: '✓'; position: absolute; left: 0; color: #0073F4; font-weight: bold; }
+        .select-btn { width: 100%; padding: 15px; border: none; border-radius: 10px; color: white; font-weight: 800; cursor: pointer; }
+
+        .form-section { padding: 80px 20px; }
+        .form-box { max-width: 600px; margin: 0 auto; text-align: center; }
+        form { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
+        input, select, textarea { padding: 15px; border: 1px solid #E2E8F0; border-radius: 10px; font-family: inherit; }
+        form button { background: #19269C; color: white; padding: 18px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; }
+
+        .toast { position: fixed; bottom: 20px; left: 15px; right: 15px; background: #19269C; color: white; padding: 18px; border-radius: 12px; z-index: 5000; transform: translateY(150%); transition: 0.5s ease; border-left: 6px solid #0073F4; max-width: 350px; }
+        .toast.show { transform: translateY(0); }
+        .toast-label { font-size: 10px; font-weight: 800; opacity: 0.7; margin-bottom: 4px; }
+        .toast-text { font-size: 13px; font-weight: 500; line-height: 1.4; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(25, 38, 156, 0.2); backdrop-filter: blur(8px); z-index: 6000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: white; padding: 40px; border-radius: 25px; max-width: 500px; width: 100%; text-align: center; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .close-x { position: absolute; top: 20px; right: 20px; border: none; background: none; font-size: 20px; cursor: pointer; color: #64748B; }
+        .full-desc { font-size: 15px; line-height: 1.6; color: #475569; margin-bottom: 25px; }
+        .feat-chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .chip { display: flex; align-items: center; font-size: 12px; font-weight: 700; background: #F1F5F9; padding: 6px 12px; border-radius: 50px; }
+        .chip span { width: 6px; height: 6px; border-radius: 50%; margin-right: 8px; }
+
+        @media (max-width: 768px) {
+          .toast { margin: 0 auto; text-align: center; }
+          .pricing-grid { grid-template-columns: 1fr; }
+          .expl-card { padding: 30px 20px; }
+          .feat-list { display: block; }
+        }
+        .footer { padding: 40px; text-align: center; font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; }
+      `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default ExpositionDigitale
+export default ExpositionDigitale;
