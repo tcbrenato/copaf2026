@@ -49,6 +49,18 @@ const Navbar = () => {
   const isDropdownActive = dropdownLinks.some(l => window.location.pathname === l.href)
   const logoHeight = scrolled ? 36 : 44
 
+  const navLinkStyle = (active = false) => ({
+    color: active ? '#0073f4' : '#FFFFFF',
+    cursor: 'pointer',
+    fontSize: 12,
+    fontWeight: 600,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    textDecoration: 'none',
+    opacity: 0.85,
+    transition: 'all 0.3s',
+  })
+
   const dropdownItemStyle = (href) => ({
     display: 'block',
     padding: '11px 20px',
@@ -127,10 +139,24 @@ const Navbar = () => {
         {/* CENTRE : Liens */}
         <ul className="nav-links" style={{ display: 'flex', gap: 28, listStyle: 'none', margin: 0, padding: 0, alignItems: 'center' }}>
 
+          {/* ✅ LIEN ACCUEIL — visible uniquement hors page d'accueil */}
+          {!isHome && (
+            <li>
+              <a
+                href="/"
+                style={navLinkStyle()}
+                onMouseEnter={e => { e.target.style.color = '#0073f4'; e.target.style.opacity = '1' }}
+                onMouseLeave={e => { e.target.style.color = '#FFFFFF'; e.target.style.opacity = '0.85' }}
+              >
+                Accueil
+              </a>
+            </li>
+          )}
+
           {isHome && scrollLinks.slice(0, 1).map(item => (
             <li key={item.to}>
               <Link to={item.to} smooth={true} duration={600} offset={-80}
-                style={{ color: '#FFFFFF', cursor: 'pointer', fontSize: 12, fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase', textDecoration: 'none', opacity: 0.85, transition: 'all 0.3s' }}
+                style={navLinkStyle()}
                 onMouseEnter={e => { e.target.style.color = '#0073f4'; e.target.style.opacity = '1' }}
                 onMouseLeave={e => { e.target.style.color = '#FFFFFF'; e.target.style.opacity = '0.85' }}
               >
@@ -196,7 +222,7 @@ const Navbar = () => {
           {isHome && (
             <li>
               <Link to="inscription" smooth={true} duration={600} offset={-80}
-                style={{ color: '#FFFFFF', cursor: 'pointer', fontSize: 12, fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase', textDecoration: 'none', opacity: 0.85, transition: 'all 0.3s' }}
+                style={navLinkStyle()}
                 onMouseEnter={e => { e.target.style.color = '#0073f4'; e.target.style.opacity = '1' }}
                 onMouseLeave={e => { e.target.style.color = '#FFFFFF'; e.target.style.opacity = '0.85' }}
               >
@@ -300,6 +326,17 @@ const Navbar = () => {
         maxHeight: menuOpen ? '500px' : '0',
         overflow: 'hidden', transition: 'all 0.35s ease', display: 'none'
       }} className="mobile-menu">
+
+        {/* ✅ ACCUEIL mobile — visible uniquement hors page d'accueil */}
+        {!isHome && (
+          <a
+            href="/"
+            onClick={() => setMenuOpen(false)}
+            style={{ display: 'block', color: 'rgba(255,255,255,0.85)', fontSize: 15, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', textDecoration: 'none', padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer' }}
+          >
+            ← Accueil
+          </a>
+        )}
 
         {isHome && (
           <Link to="about" smooth={true} duration={600} offset={-80}
