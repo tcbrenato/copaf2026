@@ -1,1005 +1,1018 @@
-import { useState, useEffect, useMemo } from 'react'
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabase } from '../supabase'
-import emailjs from '@emailjs/browser'
+
+// ============================================================
+// REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
+// Extensions > Apps Script > Déployer > Nouvelle application web
+// ============================================================
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyUGginuWT4Um8Z_Ipvmy1zfHHjtn_ceP2idR65J4a2ZfOdrR4qIW2-Rxm6XOdtrv9KKg/exec'
+
+// ─── ICÔNES SVG ──────────────────────────────────────────────────────────────
+const Icon = ({ name, size = 18, color = 'currentColor' }) => {
+  const s = { width: size, height: size, display: 'block', flexShrink: 0 }
+  const paths = {
+    users: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    diamond: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M2 9h20"/><path d="M12 22V9"/><path d="M6 3l6 6 6-6"/></svg>,
+    building: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
+    monitor: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>,
+    chart: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+    euro: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7 7 0 1 0 0 12"/></svg>,
+    check: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+    clock: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+    search: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+    download: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+    refresh: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>,
+    sheet: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
+    trash: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
+    mail: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+    close: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    filter: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
+    save: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+    globe: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+    menu: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+    copaf: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 2 17 12 22 22 17 22 7 12 2"/><polyline points="2 7 12 12 22 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>,
+  }
+  return paths[name] || null
+}
+
+// ─── STATUTS ─────────────────────────────────────────────────────────────────
+const STATUS_CONFIG = {
+  nouveau:    { label: 'Nouveau',     bg: '#ede9fe', color: '#5b21b6', dot: '#7c3aed' },
+  en_attente: { label: 'En attente',  bg: '#fef3c7', color: '#92400e', dot: '#d97706' },
+  reserve:    { label: 'Réservé',     bg: '#dbeafe', color: '#1e40af', dot: '#2563eb' },
+  confirme:   { label: 'Confirmé',    bg: '#d1fae5', color: '#065f46', dot: '#10b981' },
+  annule:     { label: 'Annulé',      bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
+}
+
+// ─── MODULES (onglets sidebar) ────────────────────────────────────────────────
+const MODULES = [
+  { id: 'dashboard',   label: 'Tableau de bord', icon: 'chart',    table: null },
+  { id: 'participants',label: 'Participants',     icon: 'users',    table: 'inscriptions',  statusField: 'paiement_status' },
+  { id: 'sponsors',    label: 'Sponsors',         icon: 'diamond',  table: 'sponsorships',  statusField: 'statut', filter: { type: 'sponsor' } },
+  { id: 'partenaires', label: 'Partenaires',      icon: 'building', table: 'sponsorships',  statusField: 'statut', filter: { type: 'partenaire_strategique' } },
+  { id: 'exposants',   label: 'Exposants',        icon: 'monitor',  table: 'exposants',     statusField: 'statut' },
+]
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
+const fmt     = n  => (n || 0).toLocaleString('fr-FR')
+const fmtEur  = n  => `${fmt(n)} €`
+const fmtDate = d  => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+const fmtTime = d  => d ? new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
 
-const groupByWeek = (rows) => {
-  const map = {}
-  rows.forEach(r => {
-    const d = new Date(r.created_at)
-    const week = `${d.getDate().toString().padStart(2,'0')} ${d.toLocaleString('fr-FR',{month:'short'})}`
-    if (!map[week]) map[week] = { jour: week, visites: 0, uniques: new Set() }
-    map[week].visites++
-    map[week].uniques.add(r.ip || r.id)
+function exportCSV(rows, cols, filename) {
+  const header = cols.map(c => `"${c.label}"`).join(',')
+  const body   = rows.map(r => cols.map(c => `"${String(r[c.key] || '').replace(/"/g, '""')}"`).join(',')).join('\n')
+  const blob   = new Blob(['\uFEFF' + header + '\n' + body], { type: 'text/csv;charset=utf-8;' })
+  const a      = document.createElement('a')
+  a.href       = URL.createObjectURL(blob)
+  a.download   = filename
+  a.click()
+}
+
+// ─── SYNC GOOGLE SHEETS ──────────────────────────────────────────────────────
+async function syncToSheets(action, payload) {
+  if (!SHEET_URL || SHEET_URL.includes('COLLEZ_ICI')) {
+    throw new Error("Configurez d'abord SHEET_URL dans AdminPage.jsx")
+  }
+
+  // Google Apps Script n'accepte pas application/json en cross-origin
+  // On encode les donnees en parametre URL (GET) pour contourner CORS
+  const body    = JSON.stringify({ action, ...payload })
+  const encoded = encodeURIComponent(body)
+  const url     = `${SHEET_URL}?data=${encoded}`
+
+  await fetch(url, {
+    method: 'GET',
+    mode: 'no-cors', // no-cors suffit pour GET — le script recoit bien les donnees
   })
-  return Object.values(map).map(w => ({ jour: w.jour, visites: w.visites, uniques: w.uniques.size })).slice(-10)
+
+  return true
 }
 
-const groupByField = (rows, field) => {
-  const map = {}
-  rows.forEach(r => {
-    const key = r[field] || 'Inconnu'
-    map[key] = (map[key] || 0) + 1
-  })
-  return Object.entries(map).sort((a,b) => b[1]-a[1]).map(([k,v]) => ({ name: k, value: v }))
-}
-
-const COLORS = ['#0073f4','#000e91','#4da6ff','#99ccff','#cce5ff','#0055bb','#0044aa','#003399']
-const FLAGS = { 'Bénin':'🇧🇯','Côte d\'Ivoire':'🇨🇮','Sénégal':'🇸🇳','Maroc':'🇲🇦','Nigeria':'🇳🇬','Ghana':'🇬🇭','France':'🇫🇷','Cameroun':'🇨🇲','Togo':'🇹🇬','USA':'🇺🇸','Guinée':'🇬🇳','Mali':'🇲🇱','Burkina Faso':'🇧🇫' }
-
-const STATUS_CONFIG = {
-  nouveau:     { label: 'Nouveau',     color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.3)' },
-  en_attente:  { label: 'En attente',  color: '#ffaa00', bg: 'rgba(255,170,0,0.12)',   border: 'rgba(255,170,0,0.3)'  },
-  reserve:     { label: 'Réservé',     color: '#4da6ff', bg: 'rgba(77,166,255,0.12)',  border: 'rgba(77,166,255,0.3)' },
-  confirme:    { label: 'Confirmé ✓',  color: '#00cc88', bg: 'rgba(0,204,136,0.12)',   border: 'rgba(0,204,136,0.3)'  },
-  annule:      { label: 'Annulé',      color: '#ff4444', bg: 'rgba(255,68,68,0.12)',   border: 'rgba(255,68,68,0.3)'  },
-}
-
-const TYPE_CONFIG = {
-  sponsor:    { label: 'Sponsor',     color: '#FFD700', emoji: '💎' },
-  partenaire: { label: 'Partenaire',  color: '#00cc88', emoji: '🏛️' },
-  exposant:   { label: 'Exposant',    color: '#0073f4', emoji: '💻' },
-}
-
-// ─── COMPOSANTS UTILITAIRES ───────────────────────────────────────────────────
-
-const StatCard = ({ icon, label, value, sub, color = '#0073f4' }) => (
-  <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '24px 28px', position: 'relative', overflow: 'hidden' }}>
-    <div style={{ position: 'absolute', top: -20, right: -10, fontSize: 80, opacity: 0.04, lineHeight: 1, userSelect: 'none' }}>{icon}</div>
-    <div style={{ fontSize: 28, marginBottom: 6 }}>{icon}</div>
-    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
-    <div style={{ fontSize: 36, fontWeight: 900, color, lineHeight: 1, fontFamily: 'monospace' }}>{value}</div>
-    {sub && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 6 }}>{sub}</div>}
-  </div>
-)
-
-const SectionTitle = ({ children }) => (
-  <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-    {children}
-  </div>
-)
-
-const StatusBadge = ({ status }) => {
-  const s = STATUS_CONFIG[status] || STATUS_CONFIG['nouveau']
+// ─── BADGE STATUT ────────────────────────────────────────────────────────────
+function StatusBadge({ status }) {
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.nouveau
   return (
-    <span style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: 20, padding: '3px 10px', fontSize: 11, color: s.color, fontWeight: 700, whiteSpace: 'nowrap' }}>
-      {s.label}
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      background: cfg.bg, color: cfg.color,
+      borderRadius: 20, padding: '4px 12px',
+      fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+    }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
+      {cfg.label}
     </span>
   )
 }
 
-const TypeBadge = ({ type }) => {
-  const t = TYPE_CONFIG[type] || { label: type, color: '#aaa', emoji: '•' }
+// ─── CARTE KPI ───────────────────────────────────────────────────────────────
+function KpiCard({ icon, label, value, sub, color, trend }) {
   return (
-    <span style={{ background: `rgba(${type === 'sponsor' ? '255,215,0' : type === 'partenaire' ? '0,204,136' : '0,115,244'},0.1)`, border: `1px solid rgba(${type === 'sponsor' ? '255,215,0' : type === 'partenaire' ? '0,204,136' : '0,115,244'},0.3)`, borderRadius: 20, padding: '3px 10px', fontSize: 11, color: t.color, fontWeight: 700, whiteSpace: 'nowrap' }}>
-      {t.emoji} {t.label}
-    </span>
+    <div style={{
+      background: '#fff', border: '1px solid #e8edf5',
+      borderRadius: 16, padding: '22px 20px',
+      borderLeft: `4px solid ${color}`,
+      boxShadow: '0 1px 4px rgba(0,14,145,.04)',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name={icon} size={20} color={color} />
+        </div>
+        {trend !== undefined && (
+          <span style={{ fontSize: 11, fontWeight: 700, color: trend >= 0 ? '#10b981' : '#ef4444', background: trend >= 0 ? '#d1fae5' : '#fee2e2', padding: '2px 8px', borderRadius: 8 }}>
+            {trend >= 0 ? '+' : ''}{trend}%
+          </span>
+        )}
+      </div>
+      <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 12, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1, marginTop: 6, fontWeight: 600 }}>{label}</div>
+      {sub && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>{sub}</div>}
+    </div>
   )
 }
 
-const exportCSV = (data) => {
-  const headers = ['Dossier','Nom','Prénom','Email','Téléphone','Organisation','Poste','Pays','Nb Participants','Montant ($)','Statut','Date','Message']
-  const rows = data.map(r => [
-    r.dossier, r.nom, r.prenom, r.email, r.telephone,
-    r.organisation, r.poste, r.pays, r.participants,
-    r.montant, r.paiement_status, new Date(r.created_at).toLocaleDateString('fr-FR'), r.message
-  ].map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(','))
-  const csv = [headers.join(','), ...rows].join('\n')
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a'); a.href = url
-  a.download = `COPAF2026_inscriptions_${new Date().toISOString().slice(0,10)}.csv`
-  a.click(); URL.revokeObjectURL(url)
-}
-
-const exportPartenariatsCSV = (data) => {
-  const headers = ['Type','Option','Secteur','Organisation','Contact','Email','Téléphone','Pays','Message','Statut','Date']
-  const rows = data.map(r => [
-    r.type, r.option, r.secteur, r.organisation, r.contact,
-    r.email, r.telephone, r.pays, r.message, r.statut || 'nouveau',
-    new Date(r.created_at).toLocaleDateString('fr-FR')
-  ].map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(','))
-  const csv = [headers.join(','), ...rows].join('\n')
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a'); a.href = url
-  a.download = `COPAF2026_partenariats_${new Date().toISOString().slice(0,10)}.csv`
-  a.click(); URL.revokeObjectURL(url)
-}
-
-// ─── MODAL INSCRIPTION ───────────────────────────────────────────────────────
-
-const ModalDossier = ({ inscription, onClose, onUpdate }) => {
-  const [status, setStatus] = useState(inscription.paiement_status || 'en_attente')
-  const [saving, setSaving] = useState(false)
-  const [sending, setSending] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
-  const [toast, setToast] = useState('')
-
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
-
-  const handleSaveStatus = async () => {
-    setSaving(true)
-    const { error } = await supabase.from('inscriptions').update({ paiement_status: status }).eq('id', inscription.id)
-    setSaving(false)
-    if (!error) { onUpdate({ ...inscription, paiement_status: status }); showToast('✅ Statut mis à jour') }
-    else showToast('❌ Erreur : ' + error.message)
-  }
-
-  const handleRelance = async () => {
-    setSending(true)
-    try {
-      await emailjs.send('service_x07g4et', 'template_7wrkmm1', {
-        prenom: inscription.prenom, nom: inscription.nom, email: inscription.email,
-        organisation: inscription.organisation, poste: inscription.poste, pays: inscription.pays,
-        participants: inscription.participants, montant: (inscription.montant || 0).toLocaleString(),
-        dossier: inscription.dossier || '—', paiement_mode: '⚠️ RELANCE — Paiement en attente',
-      }, 'zBZAZxCfznICTKLJK')
-      showToast('📧 Relance envoyée !')
-    } catch { showToast('❌ Erreur envoi email') }
-    setSending(false)
-  }
-
-  const handleDelete = async () => {
-    if (!confirmDelete) { setConfirmDelete(true); return }
-    setDeleting(true)
-    const { error } = await supabase.from('inscriptions').delete().eq('id', inscription.id)
-    setDeleting(false)
-    if (!error) { onUpdate(null); onClose() }
-    else showToast('❌ Erreur suppression')
-  }
-
+// ─── BARRE HORIZONTALE ───────────────────────────────────────────────────────
+function BarRow({ label, value, max, color }) {
+  const pct = max > 0 ? Math.max(3, Math.round((value / max) * 100)) : 0
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
-      <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: 'clamp(24px,4vw,40px)', width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', position: 'relative' }} onClick={e => e.stopPropagation()}>
-        {toast && <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', background: '#1a2030', border: '1px solid rgba(0,115,244,0.3)', borderRadius: 10, padding: '10px 20px', fontSize: 13, color: '#fff', whiteSpace: 'nowrap', zIndex: 10 }}>{toast}</div>}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28 }}>
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#FFFFFF' }}>{inscription.prenom} {inscription.nom}</div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 4, fontFamily: 'monospace' }}>{inscription.dossier || '—'}</div>
-          </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.5)', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 16 }}>✕</button>
-        </div>
-        <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 20, marginBottom: 24 }}>
-          {[
-            { label: 'Organisation', value: inscription.organisation },
-            { label: 'Poste', value: inscription.poste },
-            { label: 'Pays', value: inscription.pays },
-            { label: 'Email', value: inscription.email },
-            { label: 'Téléphone', value: inscription.telephone },
-            { label: 'Participants', value: `${inscription.participants} personne(s)` },
-            { label: 'Montant', value: `$${(inscription.montant||0).toLocaleString()}` },
-            { label: 'Date', value: new Date(inscription.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' }) },
-          ].map((row, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '8px 0', borderBottom: i < 7 ? '1px solid rgba(255,255,255,0.04)' : 'none', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: 1 }}>{row.label}</span>
-              <span style={{ fontSize: 13, color: '#FFFFFF', fontWeight: 600, textAlign: 'right' }}>{row.value}</span>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Statut du paiement</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
-            {Object.entries(STATUS_CONFIG).map(([key, s]) => (
-              <div key={key} onClick={() => setStatus(key)} style={{ border: `2px solid ${status === key ? s.color : 'rgba(255,255,255,0.08)'}`, borderRadius: 10, padding: '10px 14px', cursor: 'pointer', background: status === key ? s.bg : 'transparent', transition: 'all 0.2s', textAlign: 'center' }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: status === key ? s.color : 'rgba(255,255,255,0.4)' }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-          <button onClick={handleSaveStatus} disabled={saving} style={{ marginTop: 12, width: '100%', padding: '12px', background: 'linear-gradient(135deg,#0073f4,#000e91)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, letterSpacing: 1, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-            {saving ? '⏳ Sauvegarde...' : '💾 Enregistrer le statut'}
-          </button>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <button onClick={handleRelance} disabled={sending} style={{ padding: '12px', background: 'rgba(0,115,244,0.1)', border: '1px solid rgba(0,115,244,0.3)', color: '#4da6ff', borderRadius: 10, fontWeight: 700, fontSize: 12, cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.6 : 1 }}>
-            {sending ? '⏳ Envoi...' : '📧 Envoyer relance'}
-          </button>
-          <button onClick={handleDelete} disabled={deleting} style={{ padding: '12px', background: confirmDelete ? 'rgba(255,68,68,0.2)' : 'rgba(255,68,68,0.08)', border: `1px solid ${confirmDelete ? 'rgba(255,68,68,0.6)' : 'rgba(255,68,68,0.25)'}`, color: '#ff6b6b', borderRadius: 10, fontWeight: 700, fontSize: 12, cursor: deleting ? 'not-allowed' : 'pointer' }}>
-            {deleting ? '⏳...' : confirmDelete ? '⚠️ Confirmer' : '🗑️ Supprimer'}
-          </button>
-        </div>
-        {confirmDelete && <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(255,100,100,0.7)', textAlign: 'center' }}>Cliquez à nouveau pour confirmer la suppression définitive.</div>}
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#334155', marginBottom: 6, gap: 8 }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>{label}</span>
+        <span style={{ fontWeight: 700, color: '#0f172a', flexShrink: 0 }}>{value}</span>
+      </div>
+      <div style={{ background: '#f1f5f9', borderRadius: 4, height: 6, overflow: 'hidden' }}>
+        <div style={{ width: `${pct}%`, background: color, borderRadius: 4, height: '100%', transition: 'width .8s ease' }} />
       </div>
     </div>
   )
 }
 
-// ─── MODAL LEAD ───────────────────────────────────────────────────────────────
+// ─── MODAL GÉNÉRIQUE ─────────────────────────────────────────────────────────
+function Modal({ title, subtitle, accentColor, fields, status, statusField, onStatusChange, onSave, onDelete, onClose, saving, deleting, confirmDel, setConfirmDel, toast }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+      onClick={onClose}>
+      <div style={{ background: '#fff', borderRadius: 24, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,.15)', animation: 'modalIn .2s ease' }}
+        onClick={e => e.stopPropagation()}>
 
-const ModalLead = ({ lead, type, onClose, onUpdate }) => {
-  const [statut, setStatut] = useState(lead.statut || 'nouveau')
-  const [saving, setSaving] = useState(false)
-  const [toast, setToast] = useState('')
+        {/* Header */}
+        <div style={{ padding: '28px 28px 0', borderBottom: '1px solid #f1f5f9', marginBottom: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: 20 }}>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>{title}</div>
+              {subtitle && <div style={{ fontSize: 13, color: accentColor, fontWeight: 600 }}>{subtitle}</div>}
+            </div>
+            <button onClick={onClose} style={{ background: '#f8fafc', border: 'none', width: 34, height: 34, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="close" size={16} color="#64748b" />
+            </button>
+          </div>
+        </div>
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
+        {/* Toast */}
+        {toast && (
+          <div style={{ margin: '14px 28px 0', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#065f46', fontWeight: 500 }}>
+            {toast}
+          </div>
+        )}
 
-  const handleSave = async () => {
+        {/* Champs */}
+        <div style={{ padding: '20px 28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 24px' }}>
+          {fields.filter(f => f.value).map((f, i) => (
+            <div key={i} style={{ gridColumn: f.full ? '1 / -1' : 'auto' }}>
+              <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 5 }}>{f.label}</div>
+              <div style={{ fontSize: 14, color: '#334155', fontWeight: 500, lineHeight: 1.5, wordBreak: 'break-word' }}>{f.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Modifier statut */}
+        <div style={{ padding: '0 28px 20px' }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 10 }}>Modifier le statut</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+            {Object.entries(STATUS_CONFIG).map(([k, s]) => (
+              <button key={k} onClick={() => onStatusChange(k)} style={{
+                background: status === k ? s.bg : '#fff',
+                border: `1.5px solid ${status === k ? s.dot : '#e2e8f0'}`,
+                color: status === k ? s.color : '#64748b',
+                borderRadius: 20, padding: '7px 14px', fontSize: 12, fontWeight: 700,
+                cursor: 'pointer', transition: 'all .15s', fontFamily: 'inherit',
+              }}>{s.label}</button>
+            ))}
+          </div>
+
+          <button onClick={onSave} disabled={saving} style={{
+            width: '100%', padding: '13px', background: saving ? '#e2e8f0' : '#0f172a',
+            border: 'none', borderRadius: 12, color: saving ? '#94a3b8' : '#fff',
+            fontWeight: 700, fontSize: 14, cursor: saving ? 'not-allowed' : 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit',
+          }}>
+            <Icon name="save" size={16} color={saving ? '#94a3b8' : '#fff'} />
+            {saving ? 'Enregistrement...' : 'Enregistrer'}
+          </button>
+        </div>
+
+        {/* Suppression */}
+        {onDelete && (
+          <div style={{ padding: '0 28px 28px' }}>
+            <button onClick={onDelete} disabled={deleting} style={{
+              width: '100%', padding: '12px',
+              background: confirmDel ? '#fef2f2' : '#fff',
+              border: `1.5px solid ${confirmDel ? '#ef4444' : '#fee2e2'}`,
+              color: '#ef4444', borderRadius: 12, fontWeight: 600, fontSize: 13,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit',
+              transition: 'all .15s',
+            }}>
+              <Icon name="trash" size={15} color="#ef4444" />
+              {deleting ? 'Suppression...' : confirmDel ? 'Confirmer la suppression ?' : 'Supprimer ce dossier'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── MODAL PARTICIPANT ────────────────────────────────────────────────────────
+function ModalParticipant({ row, onClose, onUpdate }) {
+  const [status,     setStatus]     = useState(row.paiement_status || 'en_attente')
+  const [saving,     setSaving]     = useState(false)
+  const [deleting,   setDeleting]   = useState(false)
+  const [confirmDel, setConfirmDel] = useState(false)
+  const [toast,      setToast]      = useState('')
+
+  const t = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
+
+  const save = async () => {
     setSaving(true)
-    const table = type === 'sponsor' ? 'sponsors' : 'exposants'
-    const { error } = await supabase.from(table).update({ statut }).eq('id', lead.id)
+    const { error } = await supabase.from('inscriptions').update({ paiement_status: status }).eq('id', row.id)
     setSaving(false)
-    if (!error) { onUpdate({ ...lead, statut }); showToast('✅ Statut mis à jour') }
-    else showToast('❌ Erreur : ' + error.message)
+    if (!error) { onUpdate({ ...row, paiement_status: status }); t('Statut mis a jour avec succes') }
+    else t('Erreur : ' + error.message)
   }
 
-  const infos = type === 'sponsor' ? [
-    { label: 'Organisation', value: lead.organisation },
-    { label: 'Package', value: lead.package },
-    { label: 'Contact', value: lead.contact },
-    { label: 'Email', value: lead.email },
-    { label: 'Téléphone', value: lead.telephone },
-    { label: 'Pays', value: lead.pays },
-    { label: 'Message', value: lead.message },
-    { label: 'Date', value: new Date(lead.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' }) },
-  ] : [
-    { label: 'Entreprise', value: lead.entreprise },
-    { label: 'Forfait', value: lead.forfait },
-    { label: 'Catégorie', value: lead.categorie },
-    { label: 'Contact', value: lead.contact },
-    { label: 'Email', value: lead.email },
-    { label: 'Téléphone', value: lead.telephone },
-    { label: 'Pays', value: lead.pays },
-    { label: 'Site', value: lead.site },
-    { label: 'Description', value: lead.description },
-    { label: 'Message', value: lead.message },
-    { label: 'Date', value: new Date(lead.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' }) },
+  const del = async () => {
+    if (!confirmDel) { setConfirmDel(true); return }
+    setDeleting(true)
+    const { error } = await supabase.from('inscriptions').delete().eq('id', row.id)
+    setDeleting(false)
+    if (!error) { onUpdate(null); onClose() }
+    else t('Erreur suppression')
+  }
+
+  return (
+    <Modal
+      title={`${row.prenom || ''} ${row.nom || ''}`}
+      subtitle={`${row.dossier || '—'} · ${row.organisation || ''}`}
+      accentColor="#6366f1"
+      fields={[
+        { label: 'Email',        value: row.email },
+        { label: 'Telephone',    value: row.telephone },
+        { label: 'Poste',        value: row.poste },
+        { label: 'Pays',         value: row.pays },
+        { label: 'Participants', value: `${row.participants || 1} personne(s)` },
+        { label: 'Montant',      value: fmtEur(row.montant) },
+        { label: 'Mode paiement',value: row.paiement_mode === 'maintenant' ? 'Paiement immediat' : 'Reservation differee' },
+        { label: 'Date',         value: `${fmtDate(row.created_at)} ${fmtTime(row.created_at)}` },
+        { label: 'Message',      value: row.message, full: true },
+      ]}
+      status={status} onStatusChange={setStatus}
+      onSave={save} saving={saving}
+      onDelete={del} deleting={deleting}
+      confirmDel={confirmDel} setConfirmDel={setConfirmDel}
+      onClose={onClose} toast={toast}
+    />
+  )
+}
+
+// ─── MODAL SPONSORSHIP (sponsor + partenaire) ─────────────────────────────────
+function ModalSponsorship({ row, onClose, onUpdate, type }) {
+  const [status,  setStatus]  = useState(row.statut || 'nouveau')
+  const [saving,  setSaving]  = useState(false)
+  const [toast,   setToast]   = useState('')
+  const t = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
+
+  const save = async () => {
+    setSaving(true)
+    const { error } = await supabase.from('sponsorships').update({ statut: status }).eq('id', row.id)
+    setSaving(false)
+    if (!error) { onUpdate({ ...row, statut: status }); t('Statut mis a jour') }
+    else t('Erreur : ' + error.message)
+  }
+
+  const isStrat = type === 'partenaires'
+  const accentColor = isStrat ? '#000E91' : '#d97706'
+
+  return (
+    <Modal
+      title={row.organisation || row['contacts']?.organisation || '—'}
+      subtitle={`${isStrat ? 'Partenaire' : 'Sponsor'} ${row.niveau || ''}${row.montant ? ' · ' + fmtEur(row.montant) : ''}`}
+      accentColor={accentColor}
+      fields={[
+        { label: 'Contact',          value: row['contacts']?.nom || row.contact },
+        { label: 'Email',            value: row['contacts']?.email || row.email },
+        { label: 'Telephone',        value: row['contacts']?.telephone || row.telephone },
+        { label: 'Pays',             value: row['contacts']?.pays || row.pays },
+        { label: 'Niveau',           value: row.niveau },
+        { label: 'Montant',          value: row.montant ? fmtEur(row.montant) : '—' },
+        ...(isStrat ? [{ label: 'Type institution', value: row.type_institution }] : []),
+        { label: 'Date',             value: fmtDate(row.created_at) },
+        { label: 'Message',          value: row.message, full: true },
+      ]}
+      status={status} onStatusChange={setStatus}
+      onSave={save} saving={saving}
+      onClose={onClose} toast={toast}
+    />
+  )
+}
+
+// ─── MODAL EXPOSANT ───────────────────────────────────────────────────────────
+function ModalExposant({ row, onClose, onUpdate }) {
+  const [status, setStatus] = useState(row.statut || 'nouveau')
+  const [saving, setSaving] = useState(false)
+  const [toast,  setToast]  = useState('')
+  const t = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
+
+  const save = async () => {
+    setSaving(true)
+    const { error } = await supabase.from('exposants').update({ statut: status }).eq('id', row.id)
+    setSaving(false)
+    if (!error) { onUpdate({ ...row, statut: status }); t('Statut mis a jour') }
+    else t('Erreur : ' + error.message)
+  }
+
+  return (
+    <Modal
+      title={row.entreprise || '—'}
+      subtitle={`Exposition ${row.forfait || ''}`}
+      accentColor="#0891b2"
+      fields={[
+        { label: 'Contact',  value: row['contacts']?.nom },
+        { label: 'Email',    value: row['contacts']?.email },
+        { label: 'Telephone',value: row['contacts']?.telephone },
+        { label: 'Secteur',  value: row.secteur },
+        { label: 'Forfait',  value: row.forfait },
+        { label: 'Date',     value: fmtDate(row.created_at) },
+        { label: 'Objectifs',value: row.goals, full: true },
+      ]}
+      status={status} onStatusChange={setStatus}
+      onSave={save} saving={saving}
+      onClose={onClose} toast={toast}
+    />
+  )
+}
+
+// ─── TABLE GÉNÉRIQUE ──────────────────────────────────────────────────────────
+function DataTable({ cols, rows, onRow }) {
+  if (rows.length === 0) return (
+    <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: 60, textAlign: 'center' }}>
+      <Icon name="filter" size={32} color="#cbd5e1" />
+      <div style={{ color: '#94a3b8', fontSize: 14, marginTop: 12 }}>Aucun enregistrement trouvé</div>
+    </div>
+  )
+
+  return (
+    <div style={{ overflowX: 'auto', borderRadius: 16, border: '1px solid #e8edf5', background: '#fff', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 600 }}>
+        <thead>
+          <tr style={{ borderBottom: '1.5px solid #f1f5f9', background: '#f8fafc' }}>
+            {cols.map((c, i) => (
+              <th key={i} style={{ padding: '14px 18px', textAlign: 'left', fontSize: 10, color: '#64748b', letterSpacing: 1, textTransform: 'uppercase', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                {c.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr
+              key={r.id || i}
+              onClick={() => onRow(r)}
+              style={{ borderBottom: '1px solid #f8fafc', cursor: 'pointer', transition: 'background .15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f8faff'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              {cols.map((c, j) => (
+                <td key={j} style={{ padding: '14px 18px', color: c.muted ? '#94a3b8' : '#334155', whiteSpace: c.wrap ? 'normal' : 'nowrap', maxWidth: c.maxW || 'none', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {c.render ? c.render(r[c.key], r) : (r[c.key] || '—')}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ─── BARRE D'OUTILS ──────────────────────────────────────────────────────────
+function Toolbar({ search, setSearch, filterStatus, setFilterStatus, onExport, onSync, syncing, syncOk, placeholder }) {
+  return (
+    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20, alignItems: 'center' }}>
+      {/* Recherche */}
+      <div style={{ flex: 1, minWidth: 240, position: 'relative' }}>
+        <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+          <Icon name="search" size={16} color="#94a3b8" />
+        </div>
+        <input
+          value={search} onChange={e => setSearch(e.target.value)}
+          placeholder={placeholder || 'Rechercher...'}
+          style={{
+            width: '100%', padding: '11px 14px 11px 40px',
+            background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12,
+            fontSize: 13, outline: 'none', fontFamily: 'inherit', color: '#0f172a', boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      {/* Filtre statut */}
+      <select
+        value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+        style={{ padding: '11px 14px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12, fontSize: 13, outline: 'none', cursor: 'pointer', color: '#475569', fontFamily: 'inherit' }}
+      >
+        <option value="tous">Tous les statuts</option>
+        {Object.entries(STATUS_CONFIG).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
+      </select>
+
+      {/* Export CSV */}
+      <button onClick={onExport} style={{ padding: '11px 16px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, color: '#475569', fontFamily: 'inherit', transition: 'all .15s' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#0073F4'; e.currentTarget.style.color = '#0073F4' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#475569' }}>
+        <Icon name="download" size={15} color="currentColor" />
+        Exporter CSV
+      </button>
+
+      {/* Sync Google Sheets */}
+      <button onClick={onSync} disabled={syncing} style={{
+        padding: '11px 16px',
+        background: syncOk ? '#d1fae5' : '#000E91',
+        border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700,
+        cursor: syncing ? 'not-allowed' : 'pointer',
+        display: 'flex', alignItems: 'center', gap: 7,
+        color: syncOk ? '#065f46' : '#fff',
+        fontFamily: 'inherit', transition: 'all .2s', opacity: syncing ? .7 : 1,
+      }}>
+        <Icon name={syncOk ? 'check' : 'sheet'} size={15} color={syncOk ? '#065f46' : '#fff'} />
+        {syncing ? 'Synchronisation...' : syncOk ? 'Google Sheets OK' : 'Sync Google Sheets'}
+      </button>
+    </div>
+  )
+}
+
+// ─── SECTION PARTICIPANTS ─────────────────────────────────────────────────────
+function SectionParticipants({ data, setData }) {
+  const [search,        setSearch]        = useState('')
+  const [filterStatus,  setFilterStatus]  = useState('tous')
+  const [selected,      setSelected]      = useState(null)
+  const [syncing,       setSyncing]       = useState(false)
+  const [syncOk,        setSyncOk]        = useState(false)
+
+  const total       = data.length
+  const totalParts  = data.reduce((s, r) => s + (r.participants || 0), 0)
+  const totalMontant= data.reduce((s, r) => s + (r.montant || 0), 0)
+  const confirmes   = data.filter(r => r.paiement_status === 'confirme').length
+  const enAttente   = data.filter(r => ['en_attente', 'reserve'].includes(r.paiement_status)).length
+
+  const filtered = useMemo(() => data.filter(r => {
+    const s   = search.toLowerCase()
+    const ok  = [r.nom, r.prenom, r.email, r.organisation, r.pays, r.dossier].some(v => (v || '').toLowerCase().includes(s))
+    const st  = filterStatus === 'tous' || r.paiement_status === filterStatus
+    return ok && st
+  }), [data, search, filterStatus])
+
+  const CSV_COLS = [
+    { label: 'Dossier',         key: 'dossier' },
+    { label: 'Nom',             key: 'nom' },
+    { label: 'Prenom',          key: 'prenom' },
+    { label: 'Email',           key: 'email' },
+    { label: 'Telephone',       key: 'telephone' },
+    { label: 'Organisation',    key: 'organisation' },
+    { label: 'Poste',           key: 'poste' },
+    { label: 'Pays',            key: 'pays' },
+    { label: 'Participants',    key: 'participants' },
+    { label: 'Montant',         key: 'montant' },
+    { label: 'Statut',          key: 'paiement_status' },
+    { label: 'Mode paiement',   key: 'paiement_mode' },
+    { label: 'Date',            key: 'created_at' },
+    { label: 'Message',         key: 'message' },
+  ]
+
+  const doSync = async () => {
+    setSyncing(true)
+    try {
+      const rows = filtered.map(r => [
+        r.dossier, r.prenom, r.nom, r.email, r.telephone,
+        r.organisation, r.poste, r.pays, r.participants,
+        r.montant, r.paiement_status, r.paiement_mode,
+        r.message, fmtDate(r.created_at),
+      ])
+      await syncToSheets('sync_inscriptions', { rows })
+      setSyncOk(true)
+      setTimeout(() => setSyncOk(false), 4000)
+    } catch (err) { alert(err.message) }
+    setSyncing(false)
+  }
+
+  const TABLE_COLS = [
+    { key: 'dossier',         label: 'Dossier',       render: v => <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#6366f1', fontWeight: 600, background: '#eef2ff', padding: '2px 8px', borderRadius: 6 }}>{v || '—'}</span> },
+    { key: 'nom',             label: 'Nom & Prenom',  render: (v, r) => <div><div style={{ fontWeight: 700, color: '#0f172a' }}>{r.prenom} {r.nom}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{r.poste || '—'}</div></div> },
+    { key: 'organisation',    label: 'Organisation',  muted: true, maxW: 180 },
+    { key: 'pays',            label: 'Pays',          render: v => <span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 6, padding: '3px 8px', fontSize: 11 }}>{v || '—'}</span> },
+    { key: 'participants',    label: 'Pers.',         render: v => <span style={{ fontWeight: 700 }}>{v}</span> },
+    { key: 'montant',         label: 'Montant',       render: v => <span style={{ fontWeight: 800, color: '#d97706' }}>{fmtEur(v)}</span> },
+    { key: 'paiement_status', label: 'Statut',        render: v => <StatusBadge status={v} /> },
+    { key: 'created_at',      label: 'Date',          render: v => <span style={{ color: '#94a3b8', fontSize: 11 }}>{fmtDate(v)}</span> },
   ]
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
-      <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: 'clamp(24px,4vw,40px)', width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', position: 'relative' }} onClick={e => e.stopPropagation()}>
-        {toast && <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', background: '#1a2030', border: '1px solid rgba(0,115,244,0.3)', borderRadius: 10, padding: '10px 20px', fontSize: 13, color: '#fff', whiteSpace: 'nowrap', zIndex: 10 }}>{toast}</div>}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#FFFFFF' }}>{lead.entreprise || lead.organisation}</div>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginTop: 4, color: type === 'sponsor' ? '#FFD700' : '#0073f4' }}>
-              {type === 'sponsor' ? `💎 Sponsor — ${lead.package}` : `🏪 Exposant — ${lead.forfait}`}
-            </div>
-          </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.5)', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 16 }}>✕</button>
-        </div>
-        <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 20, marginBottom: 24 }}>
-          {infos.filter(r => r.value).map((row, i, arr) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '8px 0', borderBottom: i < arr.length-1 ? '1px solid rgba(255,255,255,0.04)' : 'none', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: 1, flexShrink: 0 }}>{row.label}</span>
-              <span style={{ fontSize: 13, color: '#FFFFFF', fontWeight: 600, textAlign: 'right', maxWidth: 300, wordBreak: 'break-word' }}>{row.value}</span>
-            </div>
-          ))}
-        </div>
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Statut</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
-            {Object.entries(STATUS_CONFIG).map(([key, s]) => (
-              <div key={key} onClick={() => setStatut(key)} style={{ border: `2px solid ${statut === key ? s.color : 'rgba(255,255,255,0.08)'}`, borderRadius: 10, padding: '10px 14px', cursor: 'pointer', background: statut === key ? s.bg : 'transparent', transition: 'all 0.2s', textAlign: 'center' }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: statut === key ? s.color : 'rgba(255,255,255,0.4)' }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-          <button onClick={handleSave} disabled={saving} style={{ marginTop: 12, width: '100%', padding: '12px', background: 'linear-gradient(135deg,#0073f4,#000e91)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-            {saving ? '⏳ Sauvegarde...' : '💾 Enregistrer le statut'}
-          </button>
-        </div>
-        <a href={`mailto:${lead.email}`} style={{ display: 'block', textAlign: 'center', padding: '13px', background: 'rgba(0,115,244,0.1)', border: '1px solid rgba(0,115,244,0.3)', color: '#4da6ff', borderRadius: 10, fontWeight: 700, fontSize: 13, textDecoration: 'none', letterSpacing: 1 }}>
-          📧 Contacter — {lead.email}
-        </a>
+    <div>
+      {/* KPIs */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
+        <KpiCard icon="users"  label="Dossiers"    value={total}           color="#6366f1" />
+        <KpiCard icon="chart"  label="Participants" value={totalParts}      color="#8b5cf6" />
+        <KpiCard icon="euro"   label="Revenus"      value={fmtEur(totalMontant)} color="#d97706" />
+        <KpiCard icon="check"  label="Confirmes"    value={confirmes}       color="#10b981" sub={`${Math.round((confirmes/total||0)*100)}% de conversion`} />
+        <KpiCard icon="clock"  label="En attente"   value={enAttente}       color="#2563eb" />
       </div>
+
+      <Toolbar
+        search={search} setSearch={setSearch}
+        filterStatus={filterStatus} setFilterStatus={setFilterStatus}
+        onExport={() => exportCSV(filtered, CSV_COLS, `COPAF_participants_${new Date().toISOString().slice(0,10)}.csv`)}
+        onSync={doSync} syncing={syncing} syncOk={syncOk}
+        placeholder="Rechercher par nom, email, dossier, pays..."
+      />
+
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>
+        {filtered.length} enregistrement{filtered.length > 1 ? 's' : ''} affiches
+      </div>
+
+      <DataTable cols={TABLE_COLS} rows={filtered} onRow={setSelected} />
+
+      {selected && (
+        <ModalParticipant
+          row={selected}
+          onClose={() => setSelected(null)}
+          onUpdate={updated => {
+            if (!updated) setData(prev => prev.filter(r => r.id !== selected.id))
+            else { setData(prev => prev.map(r => r.id === updated.id ? updated : r)); setSelected(updated) }
+          }}
+        />
+      )}
     </div>
   )
 }
 
-// ─── MODAL PARTENARIAT ────────────────────────────────────────────────────────
-
-const ModalPartenariat = ({ lead, onClose, onUpdate }) => {
-  const [statut, setStatut] = useState(lead.statut || 'nouveau')
-  const [saving, setSaving] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [confirmDelete, setConfirmDelete] = useState(false)
-  const [toast, setToast] = useState('')
-
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000) }
-
-  const handleSave = async () => {
-    setSaving(true)
-    const { error } = await supabase.from('partenariats').update({ statut }).eq('id', lead.id)
-    setSaving(false)
-    if (!error) { onUpdate({ ...lead, statut }); showToast('✅ Statut mis à jour') }
-    else showToast('❌ Erreur : ' + error.message)
-  }
-
-  const handleDelete = async () => {
-    if (!confirmDelete) { setConfirmDelete(true); return }
-    setDeleting(true)
-    const { error } = await supabase.from('partenariats').delete().eq('id', lead.id)
-    setDeleting(false)
-    if (!error) { onUpdate(null); onClose() }
-    else showToast('❌ Erreur suppression')
-  }
-
-  const t = TYPE_CONFIG[lead.type] || { label: lead.type, color: '#aaa', emoji: '•' }
-
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
-      <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: 'clamp(24px,4vw,40px)', width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', position: 'relative' }} onClick={e => e.stopPropagation()}>
-        {toast && <div style={{ position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)', background: '#1a2030', border: '1px solid rgba(0,115,244,0.3)', borderRadius: 10, padding: '10px 20px', fontSize: 13, color: '#fff', whiteSpace: 'nowrap', zIndex: 10 }}>{toast}</div>}
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#FFFFFF' }}>{lead.organisation}</div>
-            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginTop: 4, color: t.color }}>
-              {t.emoji} {t.label} — {lead.option}
-            </div>
-          </div>
-          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.5)', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 16 }}>✕</button>
-        </div>
-
-        <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 12, padding: 20, marginBottom: 24 }}>
-          {[
-            { label: 'Type', value: `${t.emoji} ${t.label}` },
-            { label: 'Option', value: lead.option },
-            { label: 'Secteur', value: lead.secteur },
-            { label: 'Contact', value: lead.contact },
-            { label: 'Email', value: lead.email },
-            { label: 'Téléphone', value: lead.telephone },
-            { label: 'Pays', value: lead.pays },
-            { label: 'Message', value: lead.message },
-            { label: 'Date', value: new Date(lead.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' }) },
-          ].filter(r => r.value).map((row, i, arr) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '8px 0', borderBottom: i < arr.length-1 ? '1px solid rgba(255,255,255,0.04)' : 'none', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: 1, flexShrink: 0 }}>{row.label}</span>
-              <span style={{ fontSize: 13, color: '#FFFFFF', fontWeight: 600, textAlign: 'right', maxWidth: 300, wordBreak: 'break-word' }}>{row.value}</span>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ marginBottom: 20 }}>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 }}>Statut</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
-            {Object.entries(STATUS_CONFIG).map(([key, s]) => (
-              <div key={key} onClick={() => setStatut(key)} style={{ border: `2px solid ${statut === key ? s.color : 'rgba(255,255,255,0.08)'}`, borderRadius: 10, padding: '10px 14px', cursor: 'pointer', background: statut === key ? s.bg : 'transparent', transition: 'all 0.2s', textAlign: 'center' }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: statut === key ? s.color : 'rgba(255,255,255,0.4)' }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-          <button onClick={handleSave} disabled={saving} style={{ marginTop: 12, width: '100%', padding: '12px', background: 'linear-gradient(135deg,#0073f4,#000e91)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
-            {saving ? '⏳ Sauvegarde...' : '💾 Enregistrer le statut'}
-          </button>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <a href={`mailto:${lead.email}`} style={{ display: 'block', textAlign: 'center', padding: '13px', background: 'rgba(0,115,244,0.1)', border: '1px solid rgba(0,115,244,0.3)', color: '#4da6ff', borderRadius: 10, fontWeight: 700, fontSize: 13, textDecoration: 'none' }}>
-            📧 Contacter
-          </a>
-          <button onClick={handleDelete} disabled={deleting} style={{ padding: '13px', background: confirmDelete ? 'rgba(255,68,68,0.2)' : 'rgba(255,68,68,0.08)', border: `1px solid ${confirmDelete ? 'rgba(255,68,68,0.6)' : 'rgba(255,68,68,0.25)'}`, color: '#ff6b6b', borderRadius: 10, fontWeight: 700, fontSize: 13, cursor: deleting ? 'not-allowed' : 'pointer' }}>
-            {deleting ? '⏳...' : confirmDelete ? '⚠️ Confirmer' : '🗑️ Supprimer'}
-          </button>
-        </div>
-        {confirmDelete && <div style={{ marginTop: 8, fontSize: 11, color: 'rgba(255,100,100,0.7)', textAlign: 'center' }}>Cliquez à nouveau pour confirmer la suppression définitive.</div>}
-      </div>
-    </div>
-  )
-}
-
-// ─── LOGIN ───────────────────────────────────────────────────────────────────
-
-const Login = ({ onLogin }) => {
-  const [pw, setPw] = useState('')
-  const [error, setError] = useState(false)
-  const [shake, setShake] = useState(false)
-
-  const handleSubmit = () => {
-    if (pw === 'AdminCOPAF2026') { onLogin() }
-    else { setError(true); setShake(true); setTimeout(() => setShake(false), 500) }
-  }
-
-  return (
-    <div style={{ minHeight: '100vh', background: '#060a14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans','Segoe UI',sans-serif", padding: 20 }}>
-      <style>{`
-        @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-8px)} 40%,80%{transform:translateX(8px)} }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-      `}</style>
-      <div style={{ width: '100%', maxWidth: 420, animation: shake ? 'shake 0.4s ease' : 'fadeIn 0.5s ease' }}>
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{ fontFamily: 'Georgia,serif', fontSize: 32, fontWeight: 700, letterSpacing: 5, color: '#FFFFFF', marginBottom: 4 }}>COPAF <span style={{ color: '#0073f4' }}>2026</span></div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', letterSpacing: 3, textTransform: 'uppercase' }}>Administration</div>
-        </div>
-        <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '40px 36px', boxShadow: '0 40px 80px rgba(0,0,0,0.5)' }}>
-          <div style={{ fontSize: 18, fontWeight: 700, color: '#FFFFFF', marginBottom: 8, textAlign: 'center' }}>Accès Sécurisé</div>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', marginBottom: 32, textAlign: 'center' }}>Entrez votre mot de passe administrateur</div>
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 10 }}>Mot de passe</div>
-            <input type="password" value={pw}
-              onChange={e => { setPw(e.target.value); setError(false) }}
-              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-              placeholder="••••••••••••••"
-              style={{ width: '100%', padding: '14px 16px', background: error ? 'rgba(255,60,60,0.08)' : 'rgba(255,255,255,0.04)', border: `1.5px solid ${error ? 'rgba(255,60,60,0.4)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 10, color: '#FFFFFF', fontFamily: 'monospace', fontSize: 16, outline: 'none', boxSizing: 'border-box' }}
-            />
-            {error && <div style={{ fontSize: 12, color: '#ff4444', marginTop: 8 }}>❌ Mot de passe incorrect</div>}
-          </div>
-          <button onClick={handleSubmit} style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg,#0073f4,#000e91)', color: '#FFFFFF', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 14, letterSpacing: 2, textTransform: 'uppercase', cursor: 'pointer', boxShadow: '0 8px 24px rgba(0,115,244,0.3)' }}>
-            🔐 Connexion
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── DASHBOARD ────────────────────────────────────────────────────────────────
-
-const Dashboard = ({ onLogout }) => {
-  const [tab, setTab] = useState('inscriptions')
-  const [inscriptions, setInscriptions] = useState([])
-  const [exposants, setExposants] = useState([])
-  const [sponsors, setSponsors] = useState([])
-  const [partenariats, setPartenariats] = useState([])
-  const [visites, setVisites] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+// ─── SECTION GÉNÉRIQUE (Sponsors, Partenaires, Exposants) ────────────────────
+function SectionGeneric({ data, setData, moduleId, accentColor }) {
+  const [search,       setSearch]       = useState('')
   const [filterStatus, setFilterStatus] = useState('tous')
-  const [filterType, setFilterType] = useState('tous')
-  const [exported, setExported] = useState(false)
-  const [syncing, setSyncing] = useState(false)
-  const [selectedInscription, setSelectedInscription] = useState(null)
-  const [selectedLead, setSelectedLead] = useState(null)
-  const [leadType, setLeadType] = useState(null)
-  const [selectedPartenariat, setSelectedPartenariat] = useState(null)
+  const [selected,     setSelected]     = useState(null)
+  const [syncing,      setSyncing]      = useState(false)
+  const [syncOk,       setSyncOk]       = useState(false)
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true)
-      const [{ data: ins }, { data: vis }, { data: exp }, { data: spo }, { data: par }] = await Promise.all([
-        supabase.from('inscriptions').select('*').order('created_at', { ascending: false }),
-        supabase.from('visites').select('*').order('created_at', { ascending: true }),
-        supabase.from('exposants').select('*').order('created_at', { ascending: false }),
-        supabase.from('sponsors').select('*').order('created_at', { ascending: false }),
-        supabase.from('partenariats').select('*').order('created_at', { ascending: false }),
+  const filtered = useMemo(() => data.filter(r => {
+    const s  = search.toLowerCase()
+    const ok = [r.organisation, r.contact, r.email, r.pays, r.niveau, r.forfait, r.entreprise,
+                r['contacts']?.nom, r['contacts']?.email, r['contacts']?.organisation]
+               .some(v => (v || '').toLowerCase().includes(s))
+    const sf = r.statut || 'nouveau'
+    const st = filterStatus === 'tous' || sf === filterStatus
+    return ok && st
+  }), [data, search, filterStatus])
+
+  // Colonnes selon le module
+  const getCols = () => {
+    if (moduleId === 'sponsors' || moduleId === 'partenaires') return [
+      { key: 'organisation', label: 'Organisation', render: (v, r) => <span style={{ fontWeight: 700, color: '#0f172a' }}>{r['contacts']?.organisation || v || '—'}</span> },
+      { key: 'niveau',       label: 'Niveau',       render: v => <span style={{ color: accentColor, fontWeight: 700, textTransform: 'uppercase', fontSize: 11 }}>{v || '—'}</span> },
+      { key: 'contact',      label: 'Contact',      render: (v, r) => r['contacts']?.nom || v || '—', muted: true },
+      { key: 'email',        label: 'Email',        render: (v, r) => <span style={{ fontSize: 12, color: '#64748b' }}>{r['contacts']?.email || v || '—'}</span> },
+      { key: 'montant',      label: 'Montant',      render: v => v ? <span style={{ fontWeight: 800, color: '#d97706' }}>{fmtEur(v)}</span> : '—' },
+      { key: 'statut',       label: 'Statut',       render: v => <StatusBadge status={v || 'nouveau'} /> },
+      { key: 'created_at',   label: 'Date',         render: v => <span style={{ color: '#94a3b8', fontSize: 11 }}>{fmtDate(v)}</span> },
+    ]
+    // Exposants
+    return [
+      { key: 'entreprise', label: 'Entreprise',  render: v => <span style={{ fontWeight: 700, color: '#0f172a' }}>{v || '—'}</span> },
+      { key: 'forfait',    label: 'Forfait',     render: v => <span style={{ color: accentColor, fontWeight: 700, textTransform: 'uppercase', fontSize: 11 }}>{v || '—'}</span> },
+      { key: 'secteur',    label: 'Secteur',     muted: true },
+      { key: 'contact',    label: 'Contact',     render: (v, r) => r['contacts']?.nom || v || '—', muted: true },
+      { key: 'email',      label: 'Email',       render: (v, r) => <span style={{ fontSize: 12, color: '#64748b' }}>{r['contacts']?.email || v || '—'}</span> },
+      { key: 'statut',     label: 'Statut',      render: v => <StatusBadge status={v || 'nouveau'} /> },
+      { key: 'created_at', label: 'Date',        render: v => <span style={{ color: '#94a3b8', fontSize: 11 }}>{fmtDate(v)}</span> },
+    ]
+  }
+
+  const getSheetAction = () => {
+    if (moduleId === 'sponsors')    return 'sync_sponsors'
+    if (moduleId === 'partenaires') return 'sync_partenaires'
+    return 'sync_exposants'
+  }
+
+  const buildSheetRows = () => {
+    if (moduleId === 'sponsors' || moduleId === 'partenaires') {
+      return filtered.map(r => [
+        r.id, r['contacts']?.organisation || r.organisation,
+        r['contacts']?.nom, r['contacts']?.email, r['contacts']?.telephone,
+        r['contacts']?.pays, r.niveau, r.montant,
+        r.statut || 'nouveau', r.message, fmtDate(r.created_at),
       ])
-      setInscriptions(ins || [])
-      setVisites(vis || [])
-      setExposants(exp || [])
-      setSponsors(spo || [])
-      setPartenariats(par || [])
-      setLoading(false)
     }
-    load()
-
-    const channel = supabase
-      .channel('all-changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inscriptions' }, payload => setInscriptions(prev => [payload.new, ...prev]))
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'exposants' }, payload => setExposants(prev => [payload.new, ...prev]))
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'sponsors' }, payload => setSponsors(prev => [payload.new, ...prev]))
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'partenariats' }, payload => setPartenariats(prev => [payload.new, ...prev]))
-      .subscribe()
-
-    return () => supabase.removeChannel(channel)
-  }, [])
-
-  const totalParticipants = inscriptions.reduce((s, r) => s + (r.participants || 0), 0)
-  const totalRevenu = inscriptions.reduce((s, r) => s + (r.montant || 0), 0)
-  const paysUniques = new Set(inscriptions.map(r => r.pays)).size
-  const confirmes = inscriptions.filter(r => r.paiement_status === 'confirme').length
-  const enAttente = inscriptions.filter(r => r.paiement_status === 'en_attente' || r.paiement_status === 'reserve').length
-
-  const visitesParSemaine = useMemo(() => groupByWeek(visites), [visites])
-  const visitesParPays = useMemo(() => groupByField(visites, 'pays').slice(0,10), [visites])
-  const visitesParDevice = useMemo(() => groupByField(visites, 'device'), [visites])
-  const visitesParSource = useMemo(() => groupByField(visites, 'source'), [visites])
-  const tauxConversion = visites.length > 0 ? ((inscriptions.length / visites.length) * 100).toFixed(1) : '0.0'
-
-  const filtered = useMemo(() =>
-    inscriptions.filter(r => {
-      const matchSearch = [r.nom, r.prenom, r.email, r.organisation, r.pays, r.dossier].some(v => (v||'').toLowerCase().includes(search.toLowerCase()))
-      const matchStatus = filterStatus === 'tous' || r.paiement_status === filterStatus
-      return matchSearch && matchStatus
-    }), [inscriptions, search, filterStatus])
-
-  const filteredPartenariats = useMemo(() =>
-    partenariats.filter(r => {
-      const matchSearch = [r.organisation, r.contact, r.email, r.pays, r.option].some(v => (v||'').toLowerCase().includes(search.toLowerCase()))
-      const matchType = filterType === 'tous' || r.type === filterType
-      const matchStatus = filterStatus === 'tous' || (r.statut || 'nouveau') === filterStatus
-      return matchSearch && matchType && matchStatus
-    }), [partenariats, search, filterType, filterStatus])
-
-  const handleUpdateInscription = (updated) => {
-    if (updated === null) setInscriptions(prev => prev.filter(r => r.id !== selectedInscription?.id))
-    else setInscriptions(prev => prev.map(r => r.id === updated.id ? updated : r))
+    return filtered.map(r => [
+      r.id, r.entreprise, r.secteur,
+      r['contacts']?.nom, r['contacts']?.email, r['contacts']?.telephone,
+      r.forfait, r.statut || 'nouveau', r.goals, fmtDate(r.created_at),
+    ])
   }
 
-  const handleUpdateLead = (updated) => {
-    if (leadType === 'sponsor') setSponsors(prev => prev.map(r => r.id === updated.id ? updated : r))
-    else setExposants(prev => prev.map(r => r.id === updated.id ? updated : r))
-    setSelectedLead(updated)
-  }
-
-  const handleUpdatePartenariat = (updated) => {
-    if (updated === null) setPartenariats(prev => prev.filter(r => r.id !== selectedPartenariat?.id))
-    else setPartenariats(prev => prev.map(r => r.id === updated.id ? updated : r))
-    if (updated) setSelectedPartenariat(updated)
-  }
-
-  const handleExport = () => { exportCSV(filtered); setExported(true); setTimeout(() => setExported(false), 2000) }
-
-  const handleSync = async () => {
+  const doSync = async () => {
     setSyncing(true)
     try {
-      await fetch('https://script.google.com/macros/s/AKfycbx8aHKKGJz10iYkMJbUni74rvLrjk00E8v1gCJuYVAo9oqjA9zJXDrdhaGkwWX031iX_w/exec', { mode: 'no-cors' })
-      setTimeout(() => {
-        alert('✅ Google Sheet mis à jour !')
-        setSyncing(false)
-      }, 4000)
-    } catch {
-      alert('❌ Erreur de synchronisation')
-      setSyncing(false)
-    }
+      await syncToSheets(getSheetAction(), { rows: buildSheetRows() })
+      setSyncOk(true)
+      setTimeout(() => setSyncOk(false), 4000)
+    } catch (err) { alert(err.message) }
+    setSyncing(false)
   }
 
-  // Sync Partenariats vers Google Sheets
-  const handleSyncPartenariats = async () => {
-    setSyncing(true)
-    try {
-      const rows = partenariats.map(r => [
-        r.type, r.option, r.secteur || '', r.organisation, r.contact,
-        r.email, r.telephone || '', r.pays, r.message || '',
-        r.statut || 'nouveau', new Date(r.created_at).toLocaleDateString('fr-FR')
-      ])
-      await fetch('https://script.google.com/macros/s/AKfycbx8aHKKGJz10iYkMJbUni74rvLrjk00E8v1gCJuYVAo9oqjA9zJXDrdhaGkwWX031iX_w/exec', {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sheet: 'Partenariats', rows })
-      })
-      setTimeout(() => {
-        alert('✅ Partenariats synchronisés avec Google Sheets !')
-        setSyncing(false)
-      }, 4000)
-    } catch {
-      alert('❌ Erreur de synchronisation')
-      setSyncing(false)
-    }
+  const kpis = {
+    sponsors:    [
+      { icon: 'diamond',  label: 'Total Sponsors',  value: data.length,                                        color: '#d97706' },
+      { icon: 'check',    label: 'Confirmes',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981' },
+      { icon: 'clock',    label: 'Nouveaux',         value: data.filter(r => !r.statut || r.statut === 'nouveau').length, color: '#6366f1' },
+      { icon: 'euro',     label: 'Valeur estimee',   value: fmtEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
+    ],
+    partenaires: [
+      { icon: 'building', label: 'Partenaires',      value: data.length,                                        color: '#000E91' },
+      { icon: 'check',    label: 'Confirmes',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981' },
+      { icon: 'clock',    label: 'En attente',       value: data.filter(r => r.statut === 'en_attente').length, color: '#d97706' },
+      { icon: 'euro',     label: 'Valeur estimee',   value: fmtEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
+    ],
+    exposants:   [
+      { icon: 'monitor',  label: 'Total Exposants',  value: data.length,                                        color: '#0891b2' },
+      { icon: 'check',    label: 'Confirmes',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981' },
+      { icon: 'clock',    label: 'Nouveaux',         value: data.filter(r => !r.statut || r.statut === 'nouveau').length, color: '#6366f1' },
+    ],
   }
 
-  const tabs = [
-    { id: 'inscriptions', label: '📋 Inscriptions' },
-    { id: 'partenariats', label: '🤝 Partenariats' },
-    { id: 'exposants', label: '🏪 Exposants' },
-    { id: 'sponsors', label: '💎 Sponsors' },
-    { id: 'analytics', label: '📊 Analytics' },
-  ]
-
-  const tableRowStyle = (i) => ({ borderBottom: '1px solid rgba(255,255,255,0.04)', background: i%2===0 ? 'transparent' : 'rgba(255,255,255,0.015)', transition: 'background 0.15s', cursor: 'pointer' })
+  const renderModal = r => {
+    if (moduleId === 'exposants') return (
+      <ModalExposant row={r} onClose={() => setSelected(null)}
+        onUpdate={u => { setData(prev => prev.map(x => x.id === u.id ? u : x)); setSelected(u) }} />
+    )
+    return (
+      <ModalSponsorship row={r} type={moduleId} onClose={() => setSelected(null)}
+        onUpdate={u => { setData(prev => prev.map(x => x.id === u.id ? u : x)); setSelected(u) }} />
+    )
+  }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#060a14', fontFamily: "'DM Sans','Segoe UI',sans-serif", color: '#FFFFFF' }}>
-      <style>{`
-        *{box-sizing:border-box}
-        ::-webkit-scrollbar{width:6px} ::-webkit-scrollbar-track{background:#0d1117} ::-webkit-scrollbar-thumb{background:rgba(0,115,244,0.4);border-radius:3px}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-        .fadeUp{animation:fadeUp 0.35s ease forwards}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-        tr.row:hover td{background:rgba(0,115,244,0.06)!important}
-      `}</style>
-
-      {/* TOPBAR */}
-      <div style={{ background: '#0d1117', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: 'clamp(12px,2vw,16px) clamp(16px,4vw,40px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <div style={{ fontFamily: 'Georgia,serif', fontSize: 'clamp(16px,3vw,22px)', fontWeight: 700, letterSpacing: 3 }}>COPAF <span style={{ color: '#0073f4' }}>2026</span></div>
-          <div style={{ background: 'rgba(0,115,244,0.15)', border: '1px solid rgba(0,115,244,0.3)', borderRadius: 20, padding: '3px 12px', fontSize: 11, color: '#0073f4', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>Admin</div>
-          {loading && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', animation: 'pulse 1.5s infinite' }}>● Chargement...</div>}
-          {!loading && <div style={{ fontSize: 11, color: '#00cc88' }}>● En direct</div>}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>🕐 {new Date().toLocaleDateString('fr-FR')}</div>
-          <button onClick={handleSync} disabled={syncing} style={{ background: 'rgba(0,200,100,0.1)', border: '1px solid rgba(0,200,100,0.3)', color: '#00cc88', borderRadius: 8, padding: '7px 16px', fontSize: 12, fontWeight: 700, cursor: syncing ? 'not-allowed' : 'pointer', opacity: syncing ? 0.6 : 1 }}>
-            {syncing ? '⏳ Sync...' : '📊 Sync Sheets'}
-          </button>
-          <button onClick={onLogout} style={{ background: 'rgba(255,60,60,0.1)', border: '1px solid rgba(255,60,60,0.25)', color: '#ff6b6b', borderRadius: 8, padding: '7px 16px', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Déconnexion</button>
-        </div>
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
+        {(kpis[moduleId] || []).map((k, i) => <KpiCard key={i} {...k} />)}
       </div>
 
-      {/* TABS */}
-      <div style={{ background: '#0d1117', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 clamp(16px,4vw,40px)', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-        {tabs.map(t => (
-          <button key={t.id} onClick={() => { setTab(t.id); setSearch(''); setFilterStatus('tous'); setFilterType('tous') }} style={{ background: 'none', border: 'none', color: tab === t.id ? '#0073f4' : 'rgba(255,255,255,0.35)', fontWeight: 700, fontSize: 13, padding: '16px 20px', cursor: 'pointer', borderBottom: tab === t.id ? '2px solid #0073f4' : '2px solid transparent', transition: 'all 0.2s', whiteSpace: 'nowrap' }}>
-            {t.label}
-            {t.id === 'partenariats' && partenariats.filter(e => !e.statut || e.statut === 'nouveau').length > 0 && (
-              <span style={{ marginLeft: 6, background: '#00cc88', borderRadius: 10, padding: '2px 7px', fontSize: 10, color: '#000' }}>{partenariats.filter(e => !e.statut || e.statut === 'nouveau').length}</span>
-            )}
-            {t.id === 'exposants' && exposants.filter(e => e.statut === 'nouveau').length > 0 && (
-              <span style={{ marginLeft: 6, background: '#0073f4', borderRadius: 10, padding: '2px 7px', fontSize: 10, color: '#fff' }}>{exposants.filter(e => e.statut === 'nouveau').length}</span>
-            )}
-            {t.id === 'sponsors' && sponsors.filter(s => s.statut === 'nouveau').length > 0 && (
-              <span style={{ marginLeft: 6, background: '#FFD700', borderRadius: 10, padding: '2px 7px', fontSize: 10, color: '#000' }}>{sponsors.filter(s => s.statut === 'nouveau').length}</span>
-            )}
-          </button>
-        ))}
+      <Toolbar
+        search={search} setSearch={setSearch}
+        filterStatus={filterStatus} setFilterStatus={setFilterStatus}
+        onExport={() => exportCSV(filtered, getCols().map(c => ({ label: c.label, key: c.key })), `COPAF_${moduleId}_${new Date().toISOString().slice(0,10)}.csv`)}
+        onSync={doSync} syncing={syncing} syncOk={syncOk}
+        placeholder={`Rechercher dans ${moduleId}...`}
+      />
+
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>
+        {filtered.length} enregistrement{filtered.length > 1 ? 's' : ''} affiches
       </div>
 
-      <div style={{ padding: 'clamp(20px,4vw,40px)' }}>
-
-        {/* ── INSCRIPTIONS ── */}
-        {tab === 'inscriptions' && (
-          <div className="fadeUp">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,150px),1fr))', gap: 12, marginBottom: 28 }}>
-              {[
-                { label: 'Total dossiers', value: inscriptions.length, color: '#0073f4' },
-                { label: 'Confirmés', value: confirmes, color: '#00cc88' },
-                { label: 'En attente', value: enAttente, color: '#ffaa00' },
-                { label: 'Participants', value: totalParticipants, color: '#4da6ff' },
-                { label: 'Revenus', value: `$${totalRevenu.toLocaleString()}`, color: '#ff6b9d' },
-                { label: 'Pays', value: paysUniques, color: '#a78bfa' },
-              ].map((s, i) => (
-                <div key={i} style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '14px 18px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: s.color, fontFamily: 'monospace' }}>{s.value}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', letterSpacing: 2, textTransform: 'uppercase', marginTop: 4 }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍  Nom, email, dossier, pays..."
-                style={{ flex: 1, minWidth: 200, padding: '11px 16px', background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#FFFFFF', fontSize: 13, outline: 'none' }} />
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                style={{ padding: '11px 16px', background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#FFFFFF', fontSize: 13, outline: 'none', cursor: 'pointer' }}>
-                <option value="tous">Tous les statuts</option>
-                {Object.entries(STATUS_CONFIG).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
-              </select>
-              <button onClick={handleExport} style={{ background: exported ? 'rgba(0,204,136,0.15)' : 'linear-gradient(135deg,#0073f4,#000e91)', border: exported ? '1px solid rgba(0,204,136,0.4)' : 'none', color: exported ? '#00cc88' : '#FFFFFF', borderRadius: 10, padding: '11px 20px', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                {exported ? '✅ Exporté !' : '⬇️ CSV'}
-              </button>
-            </div>
-            {inscriptions.length === 0 ? (
-              <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 48, textAlign: 'center' }}>
-                <div style={{ fontSize: 40, marginBottom: 16 }}>📋</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>Aucune inscription pour l'instant.</div>
-              </div>
-            ) : (
-              <>
-                <div style={{ overflowX: 'auto', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                    <thead>
-                      <tr style={{ background: 'rgba(0,115,244,0.08)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                        {['Dossier','Nom & Prénom','Organisation','Pays','Part.','Montant','Statut','Date',''].map((h, i) => (
-                          <th key={i} style={{ padding: '14px 16px', textAlign: 'left', fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.map((r, i) => (
-                        <tr key={r.id} className="row" style={tableRowStyle(i)} onClick={() => setSelectedInscription(r)}>
-                          <td style={{ padding: '13px 16px', fontFamily: 'monospace', fontSize: 11, color: '#4da6ff', whiteSpace: 'nowrap' }}>{r.dossier || '—'}</td>
-                          <td style={{ padding: '13px 16px', whiteSpace: 'nowrap' }}>
-                            <div style={{ fontWeight: 700, color: '#FFFFFF' }}>{r.prenom} {r.nom}</div>
-                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{r.poste}</div>
-                          </td>
-                          <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.65)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.organisation}</td>
-                          <td style={{ padding: '13px 16px', whiteSpace: 'nowrap' }}><span style={{ background: 'rgba(0,115,244,0.1)', border: '1px solid rgba(0,115,244,0.2)', borderRadius: 20, padding: '3px 10px', fontSize: 11, color: '#4da6ff' }}>{FLAGS[r.pays] || ''} {r.pays}</span></td>
-                          <td style={{ padding: '13px 16px', textAlign: 'center' }}><span style={{ background: 'rgba(0,204,136,0.1)', border: '1px solid rgba(0,204,136,0.2)', borderRadius: 20, padding: '3px 10px', fontSize: 12, color: '#00cc88', fontWeight: 700 }}>{r.participants}</span></td>
-                          <td style={{ padding: '13px 16px', fontWeight: 700, color: '#ffaa00', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>${(r.montant||0).toLocaleString()}</td>
-                          <td style={{ padding: '13px 16px' }}><StatusBadge status={r.paiement_status} /></td>
-                          <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', fontSize: 12 }}>{new Date(r.created_at).toLocaleDateString('fr-FR')}</td>
-                          <td style={{ padding: '13px 16px' }}>
-                            <button onClick={e => { e.stopPropagation(); setSelectedInscription(r) }} style={{ background: 'rgba(0,115,244,0.15)', border: '1px solid rgba(0,115,244,0.3)', color: '#4da6ff', borderRadius: 8, padding: '6px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>Gérer →</button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div style={{ marginTop: 12, fontSize: 12, color: 'rgba(255,255,255,0.25)', textAlign: 'right' }}>
-                  {filtered.length} résultat{filtered.length>1?'s':''} · {filtered.reduce((s,r)=>s+(r.participants||0),0)} participants · ${filtered.reduce((s,r)=>s+(r.montant||0),0).toLocaleString()}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* ── PARTENARIATS ── */}
-        {tab === 'partenariats' && (
-          <div className="fadeUp">
-            {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,150px),1fr))', gap: 12, marginBottom: 28 }}>
-              {[
-                { label: 'Total demandes', value: partenariats.length, color: '#00cc88' },
-                { label: 'Sponsors', value: partenariats.filter(p => p.type === 'sponsor').length, color: '#FFD700' },
-                { label: 'Partenaires', value: partenariats.filter(p => p.type === 'partenaire').length, color: '#00cc88' },
-                { label: 'Exposants', value: partenariats.filter(p => p.type === 'exposant').length, color: '#0073f4' },
-                { label: 'Nouveaux', value: partenariats.filter(p => !p.statut || p.statut === 'nouveau').length, color: '#a78bfa' },
-                { label: 'Confirmés', value: partenariats.filter(p => p.statut === 'confirme').length, color: '#00cc88' },
-              ].map((s, i) => (
-                <div key={i} style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '14px 18px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: s.color, fontFamily: 'monospace' }}>{s.value}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', letterSpacing: 2, textTransform: 'uppercase', marginTop: 4 }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Filtres */}
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍  Organisation, email, pays..."
-                style={{ flex: 1, minWidth: 200, padding: '11px 16px', background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#FFFFFF', fontSize: 13, outline: 'none' }} />
-              <select value={filterType} onChange={e => setFilterType(e.target.value)}
-                style={{ padding: '11px 16px', background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#FFFFFF', fontSize: 13, outline: 'none', cursor: 'pointer' }}>
-                <option value="tous">Tous les types</option>
-                <option value="sponsor">💎 Sponsor</option>
-                <option value="partenaire">🏛️ Partenaire</option>
-                <option value="exposant">💻 Exposant</option>
-              </select>
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                style={{ padding: '11px 16px', background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#FFFFFF', fontSize: 13, outline: 'none', cursor: 'pointer' }}>
-                <option value="tous">Tous les statuts</option>
-                {Object.entries(STATUS_CONFIG).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
-              </select>
-              <button onClick={() => { exportPartenariatsCSV(filteredPartenariats) }} style={{ background: 'rgba(0,204,136,0.1)', border: '1px solid rgba(0,204,136,0.3)', color: '#00cc88', borderRadius: 10, padding: '11px 16px', fontWeight: 700, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                ⬇️ CSV
-              </button>
-              <button onClick={handleSyncPartenariats} disabled={syncing} style={{ background: 'rgba(0,115,244,0.1)', border: '1px solid rgba(0,115,244,0.3)', color: '#4da6ff', borderRadius: 10, padding: '11px 16px', fontWeight: 700, fontSize: 13, cursor: syncing ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', opacity: syncing ? 0.6 : 1 }}>
-                {syncing ? '⏳ Sync...' : '📊 Sync Sheets'}
-              </button>
-            </div>
-
-            {partenariats.length === 0 ? (
-              <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 48, textAlign: 'center' }}>
-                <div style={{ fontSize: 40, marginBottom: 16 }}>🤝</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>Aucune demande de partenariat pour l'instant.</div>
-              </div>
-            ) : (
-              <>
-                <div style={{ overflowX: 'auto', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                    <thead>
-                      <tr style={{ background: 'rgba(0,204,136,0.06)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                        {['Type','Organisation','Contact','Email','Pays','Option','Secteur','Statut','Date'].map((h, i) => (
-                          <th key={i} style={{ padding: '14px 16px', textAlign: 'left', fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredPartenariats.map((r, i) => (
-                        <tr key={r.id} className="row" style={tableRowStyle(i)} onClick={() => setSelectedPartenariat(r)}>
-                          <td style={{ padding: '13px 16px' }}><TypeBadge type={r.type} /></td>
-                          <td style={{ padding: '13px 16px', fontWeight: 700, color: '#FFFFFF', whiteSpace: 'nowrap' }}>{r.organisation}</td>
-                          <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap' }}>{r.contact}</td>
-                          <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace', fontSize: 12 }}>{r.email}</td>
-                          <td style={{ padding: '13px 16px' }}><span style={{ background: 'rgba(0,115,244,0.1)', border: '1px solid rgba(0,115,244,0.2)', borderRadius: 20, padding: '3px 10px', fontSize: 11, color: '#4da6ff' }}>{FLAGS[r.pays] || ''} {r.pays}</span></td>
-                          <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap' }}>{r.option}</td>
-                          <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{r.secteur || '—'}</td>
-                          <td style={{ padding: '13px 16px' }}><StatusBadge status={r.statut || 'nouveau'} /></td>
-                          <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', fontSize: 12 }}>{new Date(r.created_at).toLocaleDateString('fr-FR')}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div style={{ marginTop: 12, fontSize: 12, color: 'rgba(255,255,255,0.25)', textAlign: 'right' }}>
-                  {filteredPartenariats.length} résultat{filteredPartenariats.length > 1 ? 's' : ''}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* ── EXPOSANTS ── */}
-        {tab === 'exposants' && (
-          <div className="fadeUp">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,160px),1fr))', gap: 12, marginBottom: 28 }}>
-              {[
-                { label: 'Total demandes', value: exposants.length, color: '#0073f4' },
-                { label: 'Nouveaux', value: exposants.filter(e => e.statut === 'nouveau').length, color: '#a78bfa' },
-                { label: 'Confirmés', value: exposants.filter(e => e.statut === 'confirme').length, color: '#00cc88' },
-                { label: 'Annulés', value: exposants.filter(e => e.statut === 'annule').length, color: '#ff4444' },
-              ].map((s, i) => (
-                <div key={i} style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '14px 18px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: s.color, fontFamily: 'monospace' }}>{s.value}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', letterSpacing: 2, textTransform: 'uppercase', marginTop: 4 }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-            {exposants.length === 0 ? (
-              <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 48, textAlign: 'center' }}>
-                <div style={{ fontSize: 40, marginBottom: 16 }}>🏪</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>Aucune demande exposant pour l'instant.</div>
-              </div>
-            ) : (
-              <div style={{ overflowX: 'auto', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead>
-                    <tr style={{ background: 'rgba(0,115,244,0.08)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                      {['Entreprise','Contact','Email','Pays','Catégorie','Forfait','Statut','Date'].map((h, i) => (
-                        <th key={i} style={{ padding: '14px 16px', textAlign: 'left', fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {exposants.map((r, i) => (
-                      <tr key={r.id} className="row" style={tableRowStyle(i)} onClick={() => { setSelectedLead(r); setLeadType('exposant') }}>
-                        <td style={{ padding: '13px 16px', fontWeight: 700, color: '#FFFFFF', whiteSpace: 'nowrap' }}>{r.entreprise}</td>
-                        <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap' }}>{r.contact}</td>
-                        <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace', fontSize: 12 }}>{r.email}</td>
-                        <td style={{ padding: '13px 16px' }}><span style={{ background: 'rgba(0,115,244,0.1)', border: '1px solid rgba(0,115,244,0.2)', borderRadius: 20, padding: '3px 10px', fontSize: 11, color: '#4da6ff' }}>{r.pays}</span></td>
-                        <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>{r.categorie}</td>
-                        <td style={{ padding: '13px 16px', color: '#0073f4', fontWeight: 700 }}>{r.forfait}</td>
-                        <td style={{ padding: '13px 16px' }}><StatusBadge status={r.statut || 'nouveau'} /></td>
-                        <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', fontSize: 12 }}>{new Date(r.created_at).toLocaleDateString('fr-FR')}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── SPONSORS ── */}
-        {tab === 'sponsors' && (
-          <div className="fadeUp">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,160px),1fr))', gap: 12, marginBottom: 28 }}>
-              {[
-                { label: 'Total demandes', value: sponsors.length, color: '#FFD700' },
-                { label: 'Nouveaux', value: sponsors.filter(s => s.statut === 'nouveau').length, color: '#a78bfa' },
-                { label: 'Confirmés', value: sponsors.filter(s => s.statut === 'confirme').length, color: '#00cc88' },
-                { label: 'Annulés', value: sponsors.filter(s => s.statut === 'annule').length, color: '#ff4444' },
-              ].map((s, i) => (
-                <div key={i} style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '14px 18px', textAlign: 'center' }}>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: s.color, fontFamily: 'monospace' }}>{s.value}</div>
-                  <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', letterSpacing: 2, textTransform: 'uppercase', marginTop: 4 }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-            {sponsors.length === 0 ? (
-              <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 48, textAlign: 'center' }}>
-                <div style={{ fontSize: 40, marginBottom: 16 }}>💎</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>Aucune demande sponsor pour l'instant.</div>
-              </div>
-            ) : (
-              <div style={{ overflowX: 'auto', borderRadius: 16, border: '1px solid rgba(255,255,255,0.07)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead>
-                    <tr style={{ background: 'rgba(255,215,0,0.06)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                      {['Organisation','Contact','Email','Pays','Package','Statut','Date'].map((h, i) => (
-                        <th key={i} style={{ padding: '14px 16px', textAlign: 'left', fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sponsors.map((r, i) => (
-                      <tr key={r.id} className="row" style={tableRowStyle(i)} onClick={() => { setSelectedLead(r); setLeadType('sponsor') }}>
-                        <td style={{ padding: '13px 16px', fontWeight: 700, color: '#FFFFFF', whiteSpace: 'nowrap' }}>{r.organisation}</td>
-                        <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap' }}>{r.contact}</td>
-                        <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace', fontSize: 12 }}>{r.email}</td>
-                        <td style={{ padding: '13px 16px' }}><span style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.2)', borderRadius: 20, padding: '3px 10px', fontSize: 11, color: '#FFD700' }}>{r.pays}</span></td>
-                        <td style={{ padding: '13px 16px', color: '#FFD700', fontWeight: 700 }}>{r.package}</td>
-                        <td style={{ padding: '13px 16px' }}><StatusBadge status={r.statut || 'nouveau'} /></td>
-                        <td style={{ padding: '13px 16px', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', fontSize: 12 }}>{new Date(r.created_at).toLocaleDateString('fr-FR')}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── ANALYTICS ── */}
-        {tab === 'analytics' && (
-          <div className="fadeUp">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,200px),1fr))', gap: 16, marginBottom: 32 }}>
-              <StatCard icon="👁️" label="Total Visites" value={visites.length.toLocaleString()} sub="Enregistrées" color="#0073f4" />
-              <StatCard icon="👤" label="Inscrits" value={inscriptions.length} sub={`${totalParticipants} participants`} color="#00cc88" />
-              <StatCard icon="🤝" label="Partenariats" value={partenariats.length} sub="Demandes reçues" color="#00cc88" />
-              <StatCard icon="🏪" label="Exposants" value={exposants.length} sub="Demandes reçues" color="#4da6ff" />
-              <StatCard icon="💎" label="Sponsors" value={sponsors.length} sub="Demandes reçues" color="#FFD700" />
-              <StatCard icon="📈" label="Conversion" value={`${tauxConversion}%`} sub="Visites → Inscrits" color="#ff6b9d" />
-            </div>
-            {visites.length === 0 ? (
-              <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 48, textAlign: 'center' }}>
-                <div style={{ fontSize: 40, marginBottom: 16 }}>📊</div>
-                <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: 14 }}>Aucune visite enregistrée.</div>
-              </div>
-            ) : (
-              <>
-                <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 'clamp(20px,3vw,28px)', marginBottom: 24 }}>
-                  <SectionTitle>Évolution des Visites</SectionTitle>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <LineChart data={visitesParSemaine}>
-                      <XAxis dataKey="jour" stroke="rgba(255,255,255,0.2)" tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 11 }} />
-                      <YAxis stroke="rgba(255,255,255,0.2)" tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 11 }} />
-                      <Tooltip contentStyle={{ background: '#1a2030', border: '1px solid rgba(0,115,244,0.3)', borderRadius: 8, color: '#fff' }} />
-                      <Line type="monotone" dataKey="visites" stroke="#0073f4" strokeWidth={2.5} dot={{ fill: '#0073f4', r: 4 }} name="Visites" />
-                      <Line type="monotone" dataKey="uniques" stroke="#4da6ff" strokeWidth={2} strokeDasharray="4 2" dot={false} name="Uniques" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,280px),1fr))', gap: 20 }}>
-                  <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 'clamp(16px,3vw,24px)' }}>
-                    <SectionTitle>Top Pays</SectionTitle>
-                    {visitesParPays.map((p, i) => (
-                      <div key={i} style={{ marginBottom: 12 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{FLAGS[p.name] || '🌐'} {p.name}</span>
-                          <span style={{ fontSize: 12, color: '#0073f4', fontWeight: 700, fontFamily: 'monospace' }}>{p.value}</span>
-                        </div>
-                        <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 4, height: 4 }}>
-                          <div style={{ height: 4, borderRadius: 4, background: 'linear-gradient(90deg,#0073f4,#000e91)', width: `${(p.value / visitesParPays[0]?.value) * 100}%` }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 'clamp(16px,3vw,24px)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <SectionTitle>Appareils</SectionTitle>
-                    <ResponsiveContainer width="100%" height={160}>
-                      <PieChart>
-                        <Pie data={visitesParDevice} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" paddingAngle={3}>
-                          {visitesParDevice.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                        </Pie>
-                        <Tooltip contentStyle={{ background: '#1a2030', border: '1px solid rgba(0,115,244,0.3)', borderRadius: 8, color: '#fff' }} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-                      {visitesParDevice.map((d, i) => (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
-                          <div style={{ width: 10, height: 10, borderRadius: '50%', background: COLORS[i % COLORS.length] }} />
-                          <span style={{ color: 'rgba(255,255,255,0.6)' }}>{d.name}</span>
-                          <span style={{ color: '#0073f4', fontWeight: 700 }}>{d.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: 'clamp(16px,3vw,24px)' }}>
-                    <SectionTitle>Sources de Trafic</SectionTitle>
-                    <ResponsiveContainer width="100%" height={160}>
-                      <BarChart data={visitesParSource} layout="vertical">
-                        <XAxis type="number" hide />
-                        <YAxis type="category" dataKey="name" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} width={70} />
-                        <Tooltip contentStyle={{ background: '#1a2030', border: '1px solid rgba(0,115,244,0.3)', borderRadius: 8, color: '#fff' }} />
-                        <Bar dataKey="value" radius={[0,6,6,0]}>
-                          {visitesParSource.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* MODALS */}
-      {selectedInscription && (
-        <ModalDossier
-          inscription={selectedInscription}
-          onClose={() => setSelectedInscription(null)}
-          onUpdate={(updated) => { handleUpdateInscription(updated); if (updated) setSelectedInscription(updated) }}
-        />
-      )}
-      {selectedLead && (
-        <ModalLead
-          lead={selectedLead}
-          type={leadType}
-          onClose={() => { setSelectedLead(null); setLeadType(null) }}
-          onUpdate={handleUpdateLead}
-        />
-      )}
-      {selectedPartenariat && (
-        <ModalPartenariat
-          lead={selectedPartenariat}
-          onClose={() => setSelectedPartenariat(null)}
-          onUpdate={handleUpdatePartenariat}
-        />
-      )}
+      <DataTable cols={getCols()} rows={filtered} onRow={setSelected} />
+      {selected && renderModal(selected)}
     </div>
   )
 }
 
-// ─── ROOT ─────────────────────────────────────────────────────────────────────
+// ─── SECTION TABLEAU DE BORD ──────────────────────────────────────────────────
+function SectionDashboard({ allData }) {
+  const { inscriptions = [], sponsors = [], partenaires = [], exposants = [] } = allData
 
-const AdminDashboard = () => {
-  const [loggedIn, setLoggedIn] = useState(false)
-  if (!loggedIn) return <Login onLogin={() => setLoggedIn(true)} />
-  return <Dashboard onLogout={() => setLoggedIn(false)} />
+  const totalRevenu  = inscriptions.reduce((s, r) => s + (r.montant || 0), 0)
+    + sponsors.reduce((s, r) => s + (r.montant || 0), 0)
+    + partenaires.reduce((s, r) => s + (r.montant || 0), 0)
+  const confirmes    = inscriptions.filter(r => r.paiement_status === 'confirme').length
+
+  // Top pays
+  const paysMap = {}
+  inscriptions.forEach(r => { if (r.pays) paysMap[r.pays] = (paysMap[r.pays] || 0) + 1 })
+  const topPays = Object.entries(paysMap).sort((a, b) => b[1] - a[1]).slice(0, 6)
+  const maxPays = topPays[0]?.[1] || 1
+
+  // Inscriptions 14 derniers jours
+  const dayMap = {}
+  inscriptions.forEach(r => {
+    const d = fmtDate(r.created_at)
+    dayMap[d] = (dayMap[d] || 0) + 1
+  })
+  const dailyEntries = Object.entries(dayMap).slice(-14)
+  const maxDaily     = Math.max(...dailyEntries.map(d => d[1]), 1)
+
+  // Statuts inscriptions
+  const statutsInsc = Object.entries(STATUS_CONFIG).map(([k, s]) => ({
+    label: s.label, color: s.dot,
+    value: inscriptions.filter(r => r.paiement_status === k).length,
+  }))
+
+  return (
+    <div>
+      {/* KPIs globaux */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 32 }}>
+        <KpiCard icon="users"    label="Participants" value={inscriptions.reduce((s, r) => s + (r.participants || 0), 0)} color="#6366f1" sub={`${inscriptions.length} dossiers`} />
+        <KpiCard icon="euro"     label="Revenus totaux" value={fmtEur(totalRevenu)} color="#10b981" />
+        <KpiCard icon="check"    label="Confirmes"    value={confirmes} color="#10b981" sub={`${Math.round((confirmes / (inscriptions.length || 1)) * 100)}% conv.`} />
+        <KpiCard icon="diamond"  label="Sponsors"     value={sponsors.length} color="#d97706" />
+        <KpiCard icon="building" label="Partenaires"  value={partenaires.length} color="#000E91" />
+        <KpiCard icon="monitor"  label="Exposants"    value={exposants.length} color="#0891b2" />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
+        {/* Inscriptions par jour */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Inscriptions par jour</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>14 derniers jours</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80 }}>
+            {dailyEntries.length === 0 ? (
+              <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 12 }}>Aucune donnee</div>
+            ) : dailyEntries.map(([label, val], i) => (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div title={`${label}: ${val}`} style={{ width: '100%', borderRadius: '3px 3px 0 0', height: `${Math.max(4, Math.round((val / maxDaily) * 70))}px`, background: '#6366f1', opacity: .8 }} />
+                <span style={{ fontSize: 8, color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top pays */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Top pays</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Par nombre de dossiers</div>
+          {topPays.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnee</div>
+            : topPays.map(([pays, nb], i) => <BarRow key={i} label={pays} value={nb} max={maxPays} color={['#6366f1','#0073F4','#000E91','#10b981','#d97706','#0891b2'][i % 6]} />)
+          }
+        </div>
+      </div>
+
+      {/* Statuts inscriptions */}
+      <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Repartition des statuts — Inscriptions</div>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          {statutsInsc.map((s, i) => (
+            <div key={i} style={{ background: '#f8fafc', border: '1px solid #e8edf5', borderRadius: 14, padding: '16px 20px', minWidth: 110, textAlign: 'center', flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 8 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.color }} />
+                <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{s.label}</span>
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px' }}>{s.value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
-export default AdminDashboard
+// ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────────────────
+export default function AdminPage() {
+  const [activeModule,   setActiveModule]   = useState('dashboard')
+  const [sidebarOpen,    setSidebarOpen]    = useState(true)
+  const [allData,        setAllData]        = useState({ inscriptions: [], sponsors: [], partenaires: [], exposants: [] })
+  const [sectionData,    setSectionData]    = useState([])
+  const [loading,        setLoading]        = useState(true)
+  const [lastSync,       setLastSync]       = useState(null)
+  const [globalSyncing,  setGlobalSyncing]  = useState(false)
+  const [globalSyncOk,   setGlobalSyncOk]   = useState(false)
+
+  // Chargement initial : toutes les tables pour le dashboard
+  const loadAll = useCallback(async () => {
+    setLoading(true)
+    const [
+      { data: insc },
+      { data: spons },
+      { data: part },
+      { data: expo },
+    ] = await Promise.all([
+      supabase.from('inscriptions').select('*, contacts(nom,prenom,email,telephone,organisation,pays,poste)').order('created_at', { ascending: false }),
+      supabase.from('sponsorships').select('*, contacts(nom,email,telephone,organisation,pays)').eq('type', 'sponsor').order('created_at', { ascending: false }),
+      supabase.from('sponsorships').select('*, contacts(nom,email,telephone,organisation,pays)').eq('type', 'partenaire_strategique').order('created_at', { ascending: false }),
+      supabase.from('exposants').select('*, contacts(nom,email,telephone,organisation)').order('created_at', { ascending: false }),
+    ])
+    const d = {
+      inscriptions: insc  || [],
+      sponsors:     spons || [],
+      partenaires:  part  || [],
+      exposants:    expo  || [],
+    }
+    setAllData(d)
+    setSectionData(d[activeModule] || [])
+    setLastSync(new Date())
+    setLoading(false)
+  }, [activeModule])
+
+  useEffect(() => { loadAll() }, [])
+
+  // Changement d'onglet
+  useEffect(() => {
+    if (activeModule === 'dashboard') return
+    setSectionData(allData[activeModule] || [])
+  }, [activeModule, allData])
+
+  // Sync globale vers Google Sheets
+  const syncAll = async () => {
+    setGlobalSyncing(true)
+    try {
+      const rows = {
+        inscriptions: allData.inscriptions.map(r => [
+          r.dossier, r.prenom, r.nom, r.email, r.telephone,
+          r.organisation, r.poste, r.pays, r.participants,
+          r.montant, r.paiement_status, r.paiement_mode, r.message, fmtDate(r.created_at),
+        ]),
+        sponsors: allData.sponsors.map(r => [
+          r.id, r['contacts']?.organisation, r['contacts']?.nom, r['contacts']?.email,
+          r['contacts']?.telephone, r['contacts']?.pays, r.niveau, r.montant, r.statut, r.message, fmtDate(r.created_at),
+        ]),
+        partenaires: allData.partenaires.map(r => [
+          r.id, r['contacts']?.organisation, r.type_institution, r['contacts']?.pays,
+          r['contacts']?.nom, r['contacts']?.email, r['contacts']?.telephone,
+          r.niveau, r.montant, r.statut, r.message, fmtDate(r.created_at),
+        ]),
+        exposants: allData.exposants.map(r => [
+          r.id, r.entreprise, r.secteur,
+          r['contacts']?.nom, r['contacts']?.email, r['contacts']?.telephone,
+          r.forfait, r.statut, r.goals, fmtDate(r.created_at),
+        ]),
+      }
+      await syncToSheets('sync_all', rows)
+      setGlobalSyncOk(true)
+      setTimeout(() => setGlobalSyncOk(false), 5000)
+    } catch (err) { alert(err.message) }
+    setGlobalSyncing(false)
+  }
+
+  const activeM = MODULES.find(m => m.id === activeModule)
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f4f6fb', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif" }}>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; }
+        @keyframes modalIn { from { opacity:0; transform:scale(.96); } to { opacity:1; transform:scale(1); } }
+        @keyframes spin    { to { transform:rotate(360deg); } }
+        .spinner { width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite; }
+        .nav-item { display:flex;align-items:center;gap:12px;padding:11px 16px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;color:#64748b;transition:all .18s;width:100%;text-align:left; }
+        .nav-item:hover { background:#f1f5f9;color:#0f172a; }
+        .nav-item.active { background:#EBF3FF;color:#000E91; }
+        ::-webkit-scrollbar { width:5px;height:5px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:#e2e8f0;border-radius:10px; }
+      `}</style>
+
+      {/* ══════════ SIDEBAR ══════════ */}
+      <aside style={{
+        width: sidebarOpen ? 260 : 0,
+        minWidth: sidebarOpen ? 260 : 0,
+        background: '#fff',
+        borderRight: '1px solid #e8edf5',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        transition: 'width .25s ease, min-width .25s ease',
+        flexShrink: 0,
+      }}>
+        {/* Logo */}
+        <div style={{ padding: '28px 20px 20px', borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#000E91,#0073F4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon name="copaf" size={18} color="#fff" />
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.3px' }}>COPAF 2026</div>
+              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase' }}>Administration</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav style={{ padding: '16px 12px', flex: 1, overflowY: 'auto' }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', padding: '0 8px 10px' }}>Menu principal</div>
+          {MODULES.map(m => (
+            <button
+              key={m.id}
+              className={`nav-item${activeModule === m.id ? ' active' : ''}`}
+              onClick={() => setActiveModule(m.id)}
+            >
+              <Icon name={m.icon} size={18} color={activeModule === m.id ? '#000E91' : '#64748b'} />
+              <span style={{ whiteSpace: 'nowrap' }}>{m.label}</span>
+              {m.table && allData[m.id]?.length > 0 && (
+                <span style={{ marginLeft: 'auto', background: activeModule === m.id ? '#000E91' : '#f1f5f9', color: activeModule === m.id ? '#fff' : '#64748b', borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                  {allData[m.id]?.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        {/* Derniere sync */}
+        {lastSync && (
+          <div style={{ padding: '14px 20px', borderTop: '1px solid #f1f5f9', fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>
+            <div style={{ fontWeight: 600, color: '#64748b', marginBottom: 2 }}>Derniere actualisation</div>
+            {lastSync.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          </div>
+        )}
+      </aside>
+
+      {/* ══════════ MAIN ══════════ */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+        {/* Topbar */}
+        <header style={{ background: '#fff', borderBottom: '1px solid #e8edf5', padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button
+              onClick={() => setSidebarOpen(o => !o)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, display: 'flex', color: '#64748b', transition: 'background .15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            >
+              <Icon name="menu" size={20} color="#64748b" />
+            </button>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>{activeM?.label}</div>
+              <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                {allData[activeModule]?.length > 0 ? `${allData[activeModule].length} enregistrements` : 'Tableau de bord general'}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* Sync tout vers Sheets */}
+            <button
+              onClick={syncAll}
+              disabled={globalSyncing}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '9px 16px',
+                background: globalSyncOk ? '#d1fae5' : '#fff',
+                border: `1.5px solid ${globalSyncOk ? '#10b981' : '#e2e8f0'}`,
+                borderRadius: 12, fontSize: 13, fontWeight: 700,
+                color: globalSyncOk ? '#065f46' : '#0f172a',
+                cursor: globalSyncing ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit', transition: 'all .2s',
+                opacity: globalSyncing ? .7 : 1,
+              }}
+            >
+              {globalSyncing ? <div className="spinner" style={{ borderTopColor: '#0f172a', borderColor: '#e2e8f0' }} /> : <Icon name="sheet" size={16} color={globalSyncOk ? '#065f46' : '#0f172a'} />}
+              {globalSyncing ? 'Sync en cours...' : globalSyncOk ? 'Google Sheets a jour' : 'Tout synchroniser'}
+            </button>
+
+            {/* Actualiser */}
+            <button
+              onClick={loadAll}
+              disabled={loading}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', background: '#000E91', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading ? .7 : 1 }}
+            >
+              {loading ? <div className="spinner" /> : <Icon name="refresh" size={16} color="#fff" />}
+              Actualiser
+            </button>
+          </div>
+        </header>
+
+        {/* Contenu */}
+        <main style={{ flex: 1, overflowY: 'auto', padding: '28px 28px 40px' }}>
+          {loading ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', flexDirection: 'column', gap: 16 }}>
+              <div style={{ width: 36, height: 36, border: '3px solid #e2e8f0', borderTopColor: '#000E91', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+              <div style={{ color: '#64748b', fontSize: 14, fontWeight: 500 }}>Chargement des donnees...</div>
+            </div>
+          ) : (
+            <>
+              {activeModule === 'dashboard' && <SectionDashboard allData={allData} />}
+              {activeModule === 'participants' && (
+                <SectionParticipants
+                  data={allData.inscriptions}
+                  setData={d => setAllData(prev => ({ ...prev, inscriptions: typeof d === 'function' ? d(prev.inscriptions) : d }))}
+                />
+              )}
+              {(activeModule === 'sponsors' || activeModule === 'partenaires' || activeModule === 'exposants') && (
+                <SectionGeneric
+                  data={allData[activeModule]}
+                  setData={d => setAllData(prev => ({ ...prev, [activeModule]: typeof d === 'function' ? d(prev[activeModule]) : d }))}
+                  moduleId={activeModule}
+                  accentColor={activeModule === 'sponsors' ? '#d97706' : activeModule === 'partenaires' ? '#000E91' : '#0891b2'}
+                />
+              )}
+            </>
+          )}
+        </main>
+      </div>
+    </div>
+  )
+}

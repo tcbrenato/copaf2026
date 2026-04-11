@@ -1,985 +1,863 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import { supabase } from '../supabase'
 import Navbar from '../components/Navbar'
 
-// ─── DONNÉES ───────────────────────────────────────────────────────────────
-
-const SECTIONS = [
-  { id: 'sponsor', label: 'Sponsors Catalogue', emoji: '💎', desc: 'Offre standardisée, tarifs fixes' },
-  { id: 'strategique', label: 'Partenaires Stratégiques', emoji: '🏛️', desc: 'Ports & institutions, tarifs fixes' },
-]
+// ─── DONNÉES ─────────────────────────────────────────────────────────────────
 
 const SPONSORS = [
   {
-    id: 'platine', label: 'Platine', price: '20 000 €', color: '#7c5cbf', accent: 'rgba(124,92,191,0.07)', badge: '👑 Niveau supérieur',
+    id: 'platine',
+    label: 'Platine',
+    emoji: '👑',
+    price: '20 000 €',
+    montant: 20000,
+    badge: 'Niveau supérieur',
+    color: '#7c3aed',
+    light: '#f5f3ff',
+    border: '#ddd6fe',
     avantages: [
-      'Être membre de COPAF et bénéficier des conférences COPAF à travers le monde',
-      'Logo du partenaire officiel sur le site de la conférence',
-      'Certificat de partenariat décerné à la fin de la conférence',
-      'Quatre (04) tickets de participation inclus',
-      'Possibilité de mettre son branding sur les supports',
-      'Une page de parution dans le magazine de Recap COPAF',
-      'Deux publicités digitales dans la newsletter COPAF',
-      "Une assistance ultérieure dans le domaine de l'intelligence artificielle",
-      'Un exposé de 15 minutes pendant la conférence',
-      'Distribution de prospectus',
+      'Membre COPAF — accès conférences mondiales',
+      'Logo officiel sur tous les supports',
+      'Certificat de partenariat officiel',
+      '4 tickets de participation inclus',
+      'Branding sur tous les supports visuels',
+      '1 page dans le magazine Recap COPAF',
+      '2 publicités dans la newsletter COPAF',
+      'Assistance en intelligence artificielle',
+      'Exposé de 15 minutes pendant la conférence',
+      'Distribution de prospectus sur site',
     ],
   },
   {
-    id: 'or', label: 'Or', price: '16 000 €', color: '#c49a00', accent: 'rgba(196,154,0,0.07)', badge: '⭐ Très populaire',
+    id: 'or',
+    label: 'Or',
+    emoji: '⭐',
+    price: '16 000 €',
+    montant: 16000,
+    badge: 'Très populaire',
+    color: '#b45309',
+    light: '#fffbeb',
+    border: '#fcd34d',
     avantages: [
-      'Être membre de COPAF et bénéficier des conférences COPAF à travers le monde',
-      'Logo du sponsor sur le site de la conférence',
-      'Certificat de partenariat décerné à la fin de la conférence',
-      'Trois (03) tickets de participation inclus',
-      'Possibilité de mettre son branding sur les supports',
-      'Une demi-page de parution dans le magazine de Recap COPAF',
-      'Une publicité digitale dans la newsletter COPAF',
-      'Un exposé de 10 minutes pendant la conférence',
-      'Distribution de prospectus',
+      'Membre COPAF — accès conférences mondiales',
+      'Logo sur le site de la conférence',
+      'Certificat de partenariat',
+      '3 tickets de participation inclus',
+      'Branding sur les supports visuels',
+      '½ page dans le magazine Recap COPAF',
+      '1 publicité dans la newsletter COPAF',
+      'Exposé de 10 minutes pendant la conférence',
+      'Distribution de prospectus sur site',
     ],
   },
   {
-    id: 'argent', label: 'Argent', price: '10 000 €', color: '#6b7c99', accent: 'rgba(107,124,153,0.07)',
+    id: 'argent',
+    label: 'Argent',
+    emoji: '🥈',
+    price: '10 000 €',
+    montant: 10000,
+    badge: null,
+    color: '#475569',
+    light: '#f8fafc',
+    border: '#cbd5e1',
     avantages: [
-      'Être membre de COPAF et bénéficier des conférences COPAF à travers le monde',
-      'Logo du sponsor sur le site de la conférence',
-      'Certificat de partenariat décerné à la fin de la conférence',
-      'Deux (02) tickets de participation inclus',
-      'Possibilité de mettre son branding sur les supports',
-      'Un quart de page de parution dans le magazine de Recap COPAF',
-      'Logo & nom de la société cités dans la newsletter COPAF',
-      'Un exposé de 5 minutes pendant la conférence',
+      'Membre COPAF — accès conférences mondiales',
+      'Logo sur le site de la conférence',
+      'Certificat de partenariat',
+      '2 tickets de participation inclus',
+      'Branding sur les supports visuels',
+      '¼ page dans le magazine Recap COPAF',
+      'Logo cité dans la newsletter COPAF',
+      'Exposé de 5 minutes pendant la conférence',
     ],
   },
   {
-    id: 'bronze', label: 'Bronze', price: '8 000 €', color: '#b06020', accent: 'rgba(176,96,32,0.07)',
+    id: 'bronze',
+    label: 'Bronze',
+    emoji: '🥉',
+    price: '8 000 €',
+    montant: 8000,
+    badge: null,
+    color: '#92400e',
+    light: '#fff7ed',
+    border: '#fed7aa',
     avantages: [
-      'Être membre de COPAF et bénéficier des conférences COPAF à travers le monde',
-      "Logo de l'entreprise sur le site de la conférence",
-      'Certificat de partenariat décerné à la fin de la conférence',
-      'Un (01) ticket de participation inclus',
-      'Possibilité de mettre son branding sur les supports',
-      'Parution de logo dans le magazine de Recap COPAF',
-      'Logo de la société dans la newsletter COPAF',
+      'Membre COPAF — accès conférences mondiales',
+      'Logo sur le site de la conférence',
+      'Certificat de partenariat',
+      '1 ticket de participation inclus',
+      'Branding sur les supports visuels',
+      'Logo dans le magazine Recap COPAF',
+      'Logo dans la newsletter COPAF',
     ],
   },
 ]
 
-const PARTENAIRES_STRATEGIQUES = [
+const PARTENAIRES = [
   {
-    id: 'pso', label: 'Partenaire Stratégique Officiel', short: 'PSO',
-    price: '30 000 €', color: '#000E91', accent: 'rgba(0,14,145,0.07)', badge: '🌟 Niveau premium',
+    id: 'pso',
+    label: 'Partenaire Stratégique Officiel',
+    short: 'PSO',
+    emoji: '🌟',
+    price: '30 000 €',
+    montant: 30000,
+    badge: 'Niveau premium',
+    color: '#000E91',
+    light: '#eff6ff',
+    border: '#bfdbfe',
     desc: "Le niveau d'engagement le plus élevé. Vous co-portez l'événement avec COPAF.",
     avantages: [
       "Membre officiel du comité d'organisation COPAF 2026",
-      'Logo en position #1 — premium sur tous les supports officiels',
-      'Co-branding "COPAF × Votre organisation" sur tous les visuels',
-      'Tribune officielle — prise de parole plénière de 20 minutes',
-      'Six (06) badges participants inclus',
+      'Logo #1 premium sur tous les supports officiels',
+      'Co-branding « COPAF × Votre organisation »',
+      'Tribune officielle — prise de parole 20 minutes',
+      '6 badges participants inclus',
       'Page dédiée premium sur le site COPAF',
-      'Contenu prioritaire sur les tablettes distribuées aux participants',
+      'Contenus prioritaires sur les tablettes',
       'Certificat de Partenariat Stratégique Officiel',
-      'Mention "Partenaire Stratégique Officiel" sur tous les supports',
-      'Accès complet aux données et résultats de la conférence',
-      'Partenariat reconductible pour les éditions futures COPAF',
+      'Accès complet aux données et résultats',
+      'Partenariat reconductible pour éditions futures',
     ],
   },
   {
-    id: 'ps', label: 'Partenaire Stratégique', short: 'PS',
-    price: '20 000 €', color: '#0073F4', accent: 'rgba(0,115,244,0.07)', badge: '🤝 Partenariat associé',
+    id: 'ps',
+    label: 'Partenaire Stratégique',
+    short: 'PS',
+    emoji: '🤝',
+    price: '20 000 €',
+    montant: 20000,
+    badge: 'Partenariat associé',
+    color: '#0073F4',
+    light: '#eff6ff',
+    border: '#93c5fd',
     desc: "S'associer officiellement à la COPAF 2026 avec une forte visibilité.",
     avantages: [
-      'Logo sur tous les supports officiels de la conférence',
-      'Mention "Partenaire Stratégique" sur tous les supports',
+      'Logo sur tous les supports officiels',
+      'Mention « Partenaire Stratégique » partout',
       'Prise de parole officielle — 10 minutes',
-      'Trois (03) badges participants inclus',
+      '3 badges participants inclus',
       'Fiche dédiée sur le site COPAF',
-      'Contenu sur les tablettes distribuées aux participants',
+      'Contenus sur les tablettes participants',
       'Certificat de Partenariat Stratégique',
       'Accès aux actes officiels de la conférence',
     ],
   },
 ]
 
-// ─── SOUS-COMPOSANTS ────────────────────────────────────────────────────────
+const TYPES_INSTITUTION = [
+  'Port / Autorité portuaire',
+  'Ministère / Gouvernement',
+  'Organisation régionale (AGPAOC, UA…)',
+  'Organisme de financement',
+  'Autre institution',
+]
 
-const CheckIcon = ({ color }) => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}>
-    <circle cx="7" cy="7" r="7" fill={color} fillOpacity="0.15" />
-    <polyline points="3.5 7 5.5 9.5 10.5 4.5" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
+// ─── HELPERS BDD ─────────────────────────────────────────────────────────────
 
-const ErrorBlock = ({ msg }) => (
-  <div style={{
-    background: 'rgba(220,38,38,0.06)', border: '1px solid rgba(220,38,38,0.2)',
-    borderRadius: 10, padding: '12px 16px', marginBottom: 18,
-    fontSize: 13, color: '#cc2222',
-    wordBreak: 'break-word', overflowWrap: 'break-word',
-  }}>
-    ✕ {msg}
-  </div>
-)
+async function upsertContact({ email, nom, telephone, organisation, pays, source }) {
+  const { data, error } = await supabase
+    .from('contacts')
+    .upsert(
+      { email, nom, telephone, organisation, pays, source },
+      { onConflict: 'email' }
+    )
+    .select('id')
+    .single()
+  if (error) throw new Error(error.message)
+  return data.id
+}
 
-const SubmitButton = ({ loading, label, colorA = '#000E91', colorB = '#0073F4' }) => (
-  <button
-    type="submit"
-    disabled={loading}
-    style={{
-      width: '100%',
-      padding: '16px',
-      background: loading ? '#e5e7eb' : `linear-gradient(135deg, ${colorA} 0%, ${colorB} 100%)`,
-      color: loading ? '#9ca3af' : '#FFFFFF',
-      border: 'none', borderRadius: 12, fontFamily: 'inherit',
-      fontWeight: 800, fontSize: 14, letterSpacing: 1.5, textTransform: 'uppercase',
-      cursor: loading ? 'not-allowed' : 'pointer',
-      boxShadow: loading ? 'none' : `0 8px 28px rgba(0,115,244,0.28)`,
-      transition: 'all 0.2s',
-      boxSizing: 'border-box',
-      /* Zone de tap suffisante sur mobile */
-      minHeight: 52,
-      /* Empêche le texte long de déborder */
-      overflow: 'hidden',
-      wordBreak: 'break-word',
-    }}
-  >
-    {loading ? '⏳ Envoi en cours…' : label}
-  </button>
-)
+async function createSponsorship({ contactId, type, niveau, montant, typeInstitution, message }) {
+  const { error } = await supabase.from('sponsorships').insert([{
+    contact_id:       contactId,
+    type,
+    niveau,
+    montant,
+    type_institution: typeInstitution || null,
+    statut:           'nouveau',
+    message,
+  }])
+  if (error) throw new Error(error.message)
+}
 
-const SuccessBlock = ({ contact }) => (
-  <div style={{ textAlign: 'center', padding: '32px 0' }}>
+// ─── HOOK RESPONSIVE ─────────────────────────────────────────────────────────
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false
+  )
+  useEffect(() => {
+    const fn = () => setIsMobile(window.innerWidth < 640)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
+  }, [])
+  return isMobile
+}
+
+// ─── SOUS-COMPOSANTS ─────────────────────────────────────────────────────────
+
+const CheckItem = ({ text, color }) => (
+  <div style={{ display:'flex', gap:10, alignItems:'flex-start', marginBottom:10 }}>
     <div style={{
-      width: 72, height: 72, borderRadius: '50%',
-      background: 'linear-gradient(135deg, #000E91, #0073F4)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      margin: '0 auto 20px', fontSize: 32, color: '#fff',
-      flexShrink: 0,
-    }}>✓</div>
-    <h3 style={{
-      fontSize: 'clamp(18px, 3vw, 26px)', fontWeight: 900,
-      color: '#000E91', marginBottom: 10,
-      wordBreak: 'break-word',
+      width:20, height:20, borderRadius:'50%',
+      background: color + '18', border: `1.5px solid ${color}40`,
+      display:'flex', alignItems:'center', justifyContent:'center',
+      flexShrink:0, marginTop:1,
     }}>
-      Demande enregistrée !
-    </h3>
-    <p style={{
-      color: '#6b7280', fontSize: 14, lineHeight: 1.8, marginBottom: 28,
-      wordBreak: 'break-word', overflowWrap: 'break-word',
-    }}>
-      Merci <strong style={{ color: '#111827' }}>{contact}</strong>.<br />
-      Notre équipe vous contactera dans les <strong style={{ color: '#0073F4' }}>48h</strong> pour finaliser votre partenariat.
-    </p>
-    <div style={{
-      background: 'rgba(0,115,244,0.05)',
-      border: '1px solid rgba(0,115,244,0.15)',
-      borderRadius: 12, padding: '20px 24px', textAlign: 'left',
-    }}>
-      {[
-        '📧 Email de confirmation envoyé',
-        '📞 Appel de présentation planifié',
-        '📄 Dossier de partenariat envoyé',
-        '✍️ Contrat préparé selon votre choix',
-      ].map((s, i) => (
-        <div key={i} style={{
-          padding: '8px 0', fontSize: 13.5, color: '#374151',
-          borderBottom: i < 3 ? '1px solid rgba(0,0,0,0.06)' : 'none',
-          wordBreak: 'break-word',
-        }}>
-          {s}
-        </div>
-      ))}
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+        <polyline points="1.5 5 3.5 7.5 8.5 2.5" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
     </div>
+    <span style={{ fontSize:13.5, color:'#334155', lineHeight:1.6 }}>{text}</span>
   </div>
 )
 
-// ─── PAGE PRINCIPALE ────────────────────────────────────────────────────────
+// Carte option (sponsor ou partenaire)
+function OptionCard({ item, selected, onSelect, isMobile }) {
+  const [open, setOpen] = useState(false)
+  const isSelected = selected === item.id
 
-const Partenariats = () => {
-  const location = useLocation()
-
-  const getInitialSection = () => {
-    const params = new URLSearchParams(location.search)
-    const type = params.get('type')
-    return type === 'strategique' ? 'strategique' : 'sponsor'
+  const handleClick = () => {
+    onSelect(item.id)
+    if (isMobile) setOpen(o => !o)
   }
 
-  const [activeSection, setActiveSection] = useState(getInitialSection)
-  const [selectedOption, setSelectedOption] = useState(null)
+  return (
+    <div
+      onClick={handleClick}
+      style={{
+        background: isSelected ? item.light : '#fff',
+        border: `2px solid ${isSelected ? item.color : '#e2e8f0'}`,
+        borderRadius: 18,
+        padding: isMobile ? '16px 14px' : '24px',
+        cursor: 'pointer',
+        transition: 'all .25s cubic-bezier(.34,1.56,.64,1)',
+        transform: isSelected && !isMobile ? 'translateY(-4px)' : 'none',
+        boxShadow: isSelected ? `0 12px 36px ${item.color}20` : '0 1px 4px rgba(0,0,0,.05)',
+        position: 'relative',
+        WebkitTapHighlightColor: 'transparent',
+      }}
+      onMouseEnter={e => { if (!isMobile && !isSelected) e.currentTarget.style.boxShadow = `0 8px 24px ${item.color}18` }}
+      onMouseLeave={e => { if (!isMobile && !isSelected) e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,.05)' }}
+    >
+      {/* Barre colorée top */}
+      <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:item.color, borderRadius:'16px 16px 0 0', opacity: isSelected ? 1 : 0.3 }} />
 
-  const [formSponsor, setFormSponsor] = useState({ organisation: '', contact: '', email: '', telephone: '', pays: '', message: '' })
-  const [submittedSponsor, setSubmittedSponsor] = useState(false)
-  const [loadingSponsor, setLoadingSponsor] = useState(false)
-  const [errorSponsor, setErrorSponsor] = useState('')
+      {/* Check sélection desktop */}
+      {isSelected && !isMobile && (
+        <div style={{
+          position:'absolute', top:14, right:14,
+          width:24, height:24, borderRadius:'50%',
+          background:item.color, display:'flex', alignItems:'center', justifyContent:'center',
+        }}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <polyline points="2 6 5 9 10 3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      )}
 
-  const [formStrat, setFormStrat] = useState({ organisation: '', type_institution: '', pays: '', contact: '', email: '', telephone: '', message: '' })
-  const [submittedStrat, setSubmittedStrat] = useState(false)
-  const [loadingStrat, setLoadingStrat] = useState(false)
-  const [errorStrat, setErrorStrat] = useState('')
+      {/* Header */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:10, marginTop:8 }}>
+        <div style={{ flex:1 }}>
+          {item.badge && (
+            <div style={{
+              display:'inline-block',
+              background: item.color + '15',
+              border: `1px solid ${item.color}30`,
+              borderRadius:100, padding:'2px 10px',
+              fontSize:10, color:item.color, fontWeight:700,
+              letterSpacing:.5, marginBottom:8,
+            }}>
+              {item.emoji} {item.badge}
+            </div>
+          )}
+          <div style={{ fontSize:11, fontWeight:800, color:item.color, letterSpacing:2, textTransform:'uppercase', marginBottom:4 }}>
+            {item.short || item.label}
+          </div>
+          <div style={{ fontSize: isMobile ? 20 : 26, fontWeight:900, color:'#0f172a', letterSpacing:'-0.02em' }}>
+            {item.price}
+          </div>
+          <div style={{ fontSize:11, color:'#94a3b8', marginTop:2 }}>participation unique</div>
+        </div>
+
+        {/* Flèche mobile */}
+        {isMobile && (
+          <div style={{
+            width:32, height:32, borderRadius:'50%',
+            background: isSelected ? item.color : '#f1f5f9',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontSize:12, color: isSelected ? '#fff' : '#64748b',
+            flexShrink:0,
+            transition:'transform .25s',
+            transform: open ? 'rotate(180deg)' : 'none',
+          }}>
+            ▼
+          </div>
+        )}
+      </div>
+
+      {/* Détails */}
+      {(!isMobile || open) && (
+        <div style={{ marginTop:16 }}>
+          {item.desc && (
+            <p style={{ fontSize:13, color:'#64748b', marginBottom:14, lineHeight:1.65 }}>
+              {item.desc}
+            </p>
+          )}
+          <div style={{ height:1, background:'#f1f5f9', marginBottom:14 }} />
+          {item.avantages.map((a, i) => (
+            <CheckItem key={i} text={a} color={item.color} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Champ de formulaire
+function Field({ label, children }) {
+  return (
+    <div style={{ marginBottom:14 }}>
+      <label style={{ display:'block', fontSize:11, fontWeight:700, letterSpacing:1.2, textTransform:'uppercase', color:'#64748b', marginBottom:7 }}>
+        {label}
+      </label>
+      {children}
+    </div>
+  )
+}
+
+// ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────────────────
+
+export default function Partenariats() {
+  const location = useLocation()
+  const isMobile = useIsMobile()
+
+  const getInitialSection = () => {
+    const p = new URLSearchParams(location.search)
+    return p.get('type') === 'strategique' ? 'strategique' : 'sponsor'
+  }
+
+  const [activeSection,   setActiveSection]   = useState(getInitialSection)
+  const [selectedOption,  setSelectedOption]  = useState(null)
+  const [focused,         setFocused]         = useState('')
+
+  // Sponsor form
+  const [formSponsor,     setFormSponsor]     = useState({ organisation:'', contact:'', email:'', telephone:'', pays:'', message:'' })
+  const [loadingSponsor,  setLoadingSponsor]  = useState(false)
+  const [doneSponsor,     setDoneSponsor]     = useState(false)
+  const [errorSponsor,    setErrorSponsor]    = useState('')
+
+  // Partenaire form
+  const [formStrat,       setFormStrat]       = useState({ organisation:'', type_institution:'', pays:'', contact:'', email:'', telephone:'', message:'' })
+  const [loadingStrat,    setLoadingStrat]    = useState(false)
+  const [doneStrat,       setDoneStrat]       = useState(false)
+  const [errorStrat,      setErrorStrat]      = useState('')
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search)
-    const type = params.get('type')
-    if (type === 'strategique' || type === 'sponsor') {
-      setActiveSection(type)
+    const p = new URLSearchParams(location.search)
+    const t = p.get('type')
+    if (t === 'strategique' || t === 'sponsor') {
+      setActiveSection(t)
       setSelectedOption(null)
     }
   }, [location.search])
 
-  const handleSectionChange = (id) => {
+  const handleSectionChange = id => {
     setActiveSection(id)
     setSelectedOption(null)
     setErrorSponsor('')
     setErrorStrat('')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleChangeSponsor = e => setFormSponsor({ ...formSponsor, [e.target.name]: e.target.value })
-  const handleChangeStrat = e => setFormStrat({ ...formStrat, [e.target.name]: e.target.value })
+  // Styles partagés
+  const inputStyle = name => ({
+    width:'100%', padding:'13px 16px',
+    fontSize: isMobile ? 16 : 14,
+    fontFamily:'inherit', color:'#0f172a',
+    background: focused === name ? '#fff' : '#f8fafc',
+    border: `1.5px solid ${focused === name ? '#0073F4' : '#e2e8f0'}`,
+    borderRadius:12, outline:'none',
+    transition:'all .2s',
+    boxSizing:'border-box',
+    boxShadow: focused === name ? '0 0 0 3px rgba(0,115,244,.12)' : 'none',
+    WebkitAppearance:'none', appearance:'none',
+  })
 
+  const foc = name => ({ onFocus:() => setFocused(name), onBlur:() => setFocused('') })
+
+  // Submit sponsor
   const handleSubmitSponsor = async e => {
     e.preventDefault()
-    if (!selectedOption) { setErrorSponsor('Veuillez sélectionner un niveau de sponsoring ci-dessus.'); return }
+    if (!selectedOption) { setErrorSponsor('Veuillez sélectionner un niveau de sponsoring.'); return }
     setLoadingSponsor(true); setErrorSponsor('')
-    const { error } = await supabase.from('sponsors').insert([{ type: 'sponsor', option: selectedOption, ...formSponsor }])
+    try {
+      const plan = SPONSORS.find(s => s.id === selectedOption)
+      const contactId = await upsertContact({
+        email:        formSponsor.email,
+        nom:          formSponsor.contact,
+        telephone:    formSponsor.telephone,
+        organisation: formSponsor.organisation,
+        pays:         formSponsor.pays,
+        source:       'sponsor',
+      })
+      await createSponsorship({
+        contactId,
+        type:    'sponsor',
+        niveau:  selectedOption,
+        montant: plan?.montant || null,
+        message: formSponsor.message,
+      })
+      setDoneSponsor(true)
+    } catch (err) { setErrorSponsor('Erreur : ' + err.message) }
     setLoadingSponsor(false)
-    if (error) setErrorSponsor('Erreur : ' + error.message)
-    else setSubmittedSponsor(true)
   }
 
+  // Submit partenaire
   const handleSubmitStrat = async e => {
     e.preventDefault()
-    if (!selectedOption) { setErrorStrat('Veuillez sélectionner un niveau de partenariat ci-dessus.'); return }
+    if (!selectedOption) { setErrorStrat('Veuillez sélectionner un niveau de partenariat.'); return }
     setLoadingStrat(true); setErrorStrat('')
-    const { error } = await supabase.from('partenaires_strategiques').insert([{ niveau: selectedOption, statut: 'en_attente', ...formStrat }])
+    try {
+      const plan = PARTENAIRES.find(p => p.id === selectedOption)
+      const contactId = await upsertContact({
+        email:        formStrat.email,
+        nom:          formStrat.contact,
+        telephone:    formStrat.telephone,
+        organisation: formStrat.organisation,
+        pays:         formStrat.pays,
+        source:       'partenaire',
+      })
+      await createSponsorship({
+        contactId,
+        type:            'partenaire_strategique',
+        niveau:          selectedOption,
+        montant:         plan?.montant || null,
+        typeInstitution: formStrat.type_institution,
+        message:         formStrat.message,
+      })
+      setDoneStrat(true)
+    } catch (err) { setErrorStrat('Erreur : ' + err.message) }
     setLoadingStrat(false)
-    if (error) setErrorStrat('Erreur : ' + error.message)
-    else setSubmittedStrat(true)
   }
 
-  const inputStyle = {
-    width: '100%', padding: '12px 16px',
-    background: '#f9fafb',
-    border: '1.5px solid #e5e7eb',
-    borderRadius: 10, color: '#111827',
-    fontFamily: 'inherit',
-    /* 16px minimum sur mobile pour éviter le zoom automatique iOS */
-    fontSize: 16,
-    outline: 'none', transition: 'border-color 0.2s, background 0.2s',
-    boxSizing: 'border-box',
-    /* Empêche les inputs de déborder leur conteneur */
-    maxWidth: '100%',
-    minWidth: 0,
-  }
+  const selectedSponsor   = SPONSORS.find(s => s.id === selectedOption)
+  const selectedPartenaire = PARTENAIRES.find(p => p.id === selectedOption)
 
-  const labelStyle = {
-    display: 'block', fontSize: 11, fontWeight: 700,
-    letterSpacing: 1.5, textTransform: 'uppercase',
-    color: '#6b7280', marginBottom: 8,
-  }
-
-  const focusIn = e => {
-    e.target.style.borderColor = '#0073F4'
-    e.target.style.background = 'rgba(0,115,244,0.04)'
-  }
-  const focusOut = e => {
-    e.target.style.borderColor = '#e5e7eb'
-    e.target.style.background = '#f9fafb'
-  }
-
-  const selectedSponsor = SPONSORS.find(s => s.id === selectedOption)
-  const selectedStrat = PARTENAIRES_STRATEGIQUES.find(p => p.id === selectedOption)
-
-  /* ── RENDU DES CARTES D'OFFRES ── */
-  const renderCards = (items) => items.map(item => (
-    <div
-      key={item.id}
-      onClick={() => setSelectedOption(item.id)}
-      style={{
-        background: selectedOption === item.id ? item.accent : '#ffffff',
-        border: `2px solid ${selectedOption === item.id ? item.color : '#e5e7eb'}`,
-        borderRadius: 20,
-        padding: 'clamp(18px, 4vw, 28px)',
-        cursor: 'pointer',
-        transition: 'all 0.25s',
-        transform: selectedOption === item.id ? 'translateY(-6px)' : 'none',
-        position: 'relative',
-        boxShadow: selectedOption === item.id
-          ? `0 16px 40px ${item.color}20`
-          : '0 1px 4px rgba(0,0,0,0.06)',
-        /* Empêche la carte de déborder sa cellule grid */
-        minWidth: 0,
-        width: '100%',
-        boxSizing: 'border-box',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Barre couleur en haut */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, height: 3,
-        background: item.color, borderRadius: '20px 20px 0 0',
-        opacity: selectedOption === item.id ? 1 : 0.35,
-      }} />
-
-      {/* Coche de sélection */}
-      {selectedOption === item.id && (
-        <div style={{
-          position: 'absolute', top: 14, right: 14,
-          background: item.color, borderRadius: '50%',
-          width: 24, height: 24, display: 'flex',
-          alignItems: 'center', justifyContent: 'center',
-          fontSize: 12, color: '#fff', fontWeight: 900,
-          flexShrink: 0,
-        }}>✓</div>
-      )}
-
-      {/* Badge */}
-      {item.badge && (
-        <div style={{
-          display: 'inline-block', background: `${item.color}15`,
-          border: `1px solid ${item.color}30`, borderRadius: 100,
-          padding: '3px 12px', fontSize: 10, color: item.color,
-          fontWeight: 700, letterSpacing: 0.5, marginBottom: 12,
-          /* Empêche le badge de déborder sur mobile */
-          maxWidth: '100%',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
-          {item.badge}
-        </div>
-      )}
-
-      {/* Niveau */}
-      <div style={{
-        fontSize: 12, fontWeight: 800, color: item.color,
-        letterSpacing: 2, textTransform: 'uppercase',
-        marginBottom: 6, marginTop: item.badge ? 0 : 12,
-        wordBreak: 'break-word',
-      }}>
-        {item.label}
-      </div>
-
-      {/* Prix */}
-      <div style={{
-        fontSize: 'clamp(20px, 4vw, 28px)', fontWeight: 900,
-        color: '#111827', marginBottom: 4, letterSpacing: '-0.02em',
-        wordBreak: 'break-word',
-      }}>
-        {item.price}
-      </div>
-
-      <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: item.desc ? 8 : 20 }}>
-        participation unique
-      </div>
-
-      {/* Description (partenaires stratégiques) */}
-      {item.desc && (
-        <div style={{
-          fontSize: 13, color: '#6b7280', marginBottom: 20,
-          lineHeight: 1.6, wordBreak: 'break-word',
-        }}>
-          {item.desc}
-        </div>
-      )}
-
-      {/* Séparateur */}
-      <div style={{ height: 1, background: '#f3f4f6', marginBottom: 16 }} />
-
-      {/* Liste des avantages */}
-      {item.avantages.map((a, i) => (
-        <div key={i} style={{
-          display: 'flex', gap: 9, alignItems: 'flex-start',
-          marginBottom: 9, fontSize: 12.5, color: '#374151', lineHeight: 1.5,
-          /* Empêche le texte long de déborder */
-          wordBreak: 'break-word', overflowWrap: 'break-word',
-          minWidth: 0,
-        }}>
-          <span style={{ flexShrink: 0, marginTop: 2 }}>
-            <CheckIcon color={item.color} />
-          </span>
-          <span>{a}</span>
-        </div>
-      ))}
-    </div>
-  ))
+  const SECTIONS = [
+    { id:'sponsor',     emoji:'💎', label:'Sponsors',              desc:'Tarifs fixes, offres standardisées' },
+    { id:'strategique', emoji:'🏛️', label:'Partenaires Stratégiques', desc:'Ports & institutions publiques' },
+  ]
 
   return (
-    <>
+    <div style={{ background:'#f8faff', minHeight:'100vh', fontFamily:"'Plus Jakarta Sans', 'Helvetica Neue', sans-serif", color:'#0f172a' }}>
+      <Navbar />
+
       <style>{`
-        /*
-          FIX OVERFLOW MOBILE
-          overflow-x: clip coupe les éléments positionnés en absolu
-          qui déborderaient (décors hero), sans créer de scrollbar.
-          Plus efficace que overflow: hidden sur ce cas précis.
-        */
-        html {
-          overflow-x: clip;
-        }
-        body {
-          overflow-x: clip;
-          max-width: 100%;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+        *, *::before, *::after { box-sizing: border-box; }
 
-        /* Empêche le zoom iOS au focus sur les inputs */
-        @media (max-width: 768px) {
-          input, select, textarea {
-            font-size: 16px !important;
-          }
-        }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes spin   { to   { transform:rotate(360deg); } }
 
-        /* ── GRID CARTES SPONSORS (4 colonnes → 2 → 1) ── */
-        .part-sponsors-grid {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 16px;
-          width: 100%;
-          min-width: 0;
-        }
-        @media (max-width: 1000px) {
-          .part-sponsors-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-        }
-        @media (max-width: 560px) {
-          .part-sponsors-grid {
-            grid-template-columns: minmax(0, 1fr);
-          }
-        }
+        .fade-up { animation: fadeUp .5s ease both; }
+        .spinner { width:18px; height:18px; border:2.5px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
 
-        /* ── GRID CARTES PARTENAIRES STRAT (2 colonnes → 1) ── */
-        .part-strat-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 20px;
-          width: 100%;
-          min-width: 0;
-        }
-        @media (max-width: 720px) {
-          .part-strat-grid {
-            grid-template-columns: minmax(0, 1fr);
-          }
-        }
+        /* Grid cartes options */
+        .options-grid-4 { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+        .options-grid-2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+        @media (max-width:1000px) { .options-grid-4 { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+        @media (max-width:640px)  { .options-grid-4, .options-grid-2 { grid-template-columns:minmax(0,1fr); gap:10px; } }
 
-        /* ── GRID CHAMPS FORMULAIRE (2 col → 1) ── */
-        .part-form-row {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 14px;
-          margin-bottom: 14px;
-          min-width: 0;
-          width: 100%;
-        }
-        @media (max-width: 520px) {
-          .part-form-row {
-            grid-template-columns: minmax(0, 1fr);
-          }
-        }
+        /* Grid formulaire 2 colonnes */
+        .form-row-2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; }
+        @media (max-width:540px) { .form-row-2 { grid-template-columns:minmax(0,1fr); } }
 
-        /* ── SÉLECTEUR DE SECTION (2 col → 1) ── */
-        .part-section-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-          background: #fff;
-          border: 1.5px solid #e5e7eb;
-          border-radius: 16px;
-          padding: 8px;
-          min-width: 0;
-        }
-        @media (max-width: 420px) {
-          .part-section-grid {
-            grid-template-columns: minmax(0, 1fr);
-          }
-        }
+        /* Tab buttons */
+        .tab-btn { border:none; cursor:pointer; font-family:inherit; transition:all .25s; WebkitTapHighlightColor:transparent; }
 
-        /* ── PILLS DE SÉLECTION RAPIDE ── */
-        .part-pills {
-          display: flex;
-          justify-content: center;
-          gap: 10px;
-          flex-wrap: wrap;
-          margin-bottom: 36px;
-          padding: 0 4px;
-          min-width: 0;
+        /* Submit button */
+        .submit-btn {
+          width:100%; padding:15px; border:none; border-radius:14px;
+          color:#fff; font-family:inherit; font-weight:800; font-size:14px;
+          cursor:pointer; transition:all .2s; letter-spacing:.3px;
+          display:flex; align-items:center; justify-content:center; gap:10px;
         }
-        .part-pill {
-          border-radius: 100px;
-          padding: 6px 16px;
-          cursor: pointer;
-          font-size: 12px;
-          font-weight: 700;
-          transition: all 0.2s;
-          white-space: nowrap;
-          /* Sur très petit écran, autorise le retour à la ligne */
-          flex-shrink: 1;
-          min-width: 0;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
+        .submit-btn:hover:not(:disabled) { opacity:.9; transform:translateY(-1px); }
+        .submit-btn:active:not(:disabled) { transform:translateY(0); }
+        .submit-btn:disabled { opacity:.5; cursor:not-allowed; }
 
-        /* ── STATS HERO ── */
-        .part-hero-stats {
-          display: flex;
-          gap: 10px;
-          justify-content: center;
-          flex-wrap: wrap;
-          margin-top: 36px;
-          padding: 0 4px;
-        }
-
-        /* ── BOUTONS SECTION ── */
-        .part-section-btn {
-          background: transparent;
-          border: none;
-          border-radius: 10px;
-          padding: 18px 14px;
-          cursor: pointer;
-          transition: all 0.25s;
-          font-family: inherit;
-          min-width: 0;
-          width: 100%;
-          box-sizing: border-box;
-        }
-        .part-section-btn:active {
-          transform: scale(0.97);
-        }
-
-        /* ── CARTES : désactive le hover translateY sur mobile (touch) ── */
-        @media (max-width: 520px) {
-          .part-card-hover {
-            transform: none !important;
-          }
-        }
-
-        /* ── FORMULAIRE WRAPPER ── */
-        .part-form-wrapper {
-          background: #fff;
-          border-radius: 24px;
-          padding: clamp(22px, 5vw, 48px);
-          min-width: 0;
-          width: 100%;
-          box-sizing: border-box;
-          overflow: hidden;
-        }
-
-        /* ── CHAMP INDIVIDUEL ── */
-        .part-field {
-          min-width: 0;
-        }
-        .part-field input,
-        .part-field select,
-        .part-field textarea {
-          display: block;
-          width: 100%;
-          max-width: 100%;
-          box-sizing: border-box;
-        }
+        @media (max-width:768px) { input, select, textarea { font-size:16px !important; } }
       `}</style>
 
+      {/* ── HERO ── */}
       <div style={{
-        background: '#ffffff',
-        minHeight: '100vh',
-        fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
-        color: '#111827',
-        /* Empêche tout contenu de forcer un scroll horizontal */
-        overflowX: 'hidden',
-        width: '100%',
-        boxSizing: 'border-box',
+        background:'linear-gradient(150deg,#000E91 0%,#0073F4 100%)',
+        padding: isMobile ? '80px 20px 52px' : 'clamp(100px,14vw,160px) clamp(24px,5vw,64px) clamp(64px,8vw,110px)',
+        textAlign:'center', position:'relative', overflow:'hidden',
       }}>
-        <Navbar />
+        {/* Décors */}
+        <div style={{ position:'absolute', top:-80, right:-80, width:260, height:260, borderRadius:'50%', background:'rgba(255,255,255,.06)', pointerEvents:'none' }} />
+        <div style={{ position:'absolute', bottom:-60, left:-40, width:180, height:180, borderRadius:'50%', background:'rgba(0,0,0,.1)', pointerEvents:'none' }} />
 
-        {/* ── HERO ── */}
-        <div style={{
-          background: 'linear-gradient(160deg, #000E91 0%, #0073F4 100%)',
-          padding: 'clamp(90px, 14vw, 150px) clamp(20px, 5vw, 60px) clamp(60px, 8vw, 100px)',
-          textAlign: 'center',
-          position: 'relative',
-          /* overflow:hidden coupe les décors absolus DANS le hero */
-          overflow: 'hidden',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}>
-          {/* Décors — tailles réduites pour rester dans le hero */}
+        <div className="fade-up" style={{ position:'relative' }}>
           <div style={{
-            position: 'absolute', top: -40, right: -40,
-            width: 200, height: 200, borderRadius: '50%',
-            background: 'rgba(255,255,255,0.05)', pointerEvents: 'none',
-          }} />
-          <div style={{
-            position: 'absolute', bottom: -50, left: -30,
-            width: 180, height: 180, borderRadius: '50%',
-            background: 'rgba(0,0,0,0.10)', pointerEvents: 'none',
-          }} />
-
-          {/* Pill label */}
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: 'rgba(255,255,255,0.15)',
-            border: '1px solid rgba(255,255,255,0.25)',
-            borderRadius: 100, padding: '7px 22px', marginBottom: 24,
-            /* Sur très petit écran, le pill passe à la ligne correctement */
-            maxWidth: '100%',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
+            display:'inline-flex', alignItems:'center', gap:8,
+            background:'rgba(255,255,255,.15)', border:'1px solid rgba(255,255,255,.25)',
+            borderRadius:100, padding:'7px 18px', marginBottom:20,
           }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff', flexShrink: 0 }} />
-            <span style={{
-              fontSize: 11, fontWeight: 700, letterSpacing: 3,
-              textTransform: 'uppercase', color: '#fff',
-            }}>
-              COPAF 2026 · Maroc
-            </span>
+            <div style={{ width:6, height:6, borderRadius:'50%', background:'#fff', flexShrink:0 }} />
+            <span style={{ fontSize:10, fontWeight:700, letterSpacing:2.5, textTransform:'uppercase', color:'#fff' }}>COPAF 2026 · Maroc</span>
           </div>
 
-          <h1 style={{
-            fontSize: 'clamp(26px, 5vw, 58px)', fontWeight: 900,
-            marginBottom: 18, lineHeight: 1.1, letterSpacing: '-0.02em',
-            color: '#fff',
-            wordBreak: 'break-word', overflowWrap: 'break-word',
-          }}>
-            Sponsors &amp; <span style={{ color: 'rgba(255,255,255,0.75)' }}>Partenaires</span>
+          <h1 style={{ fontSize:'clamp(26px,7vw,58px)', fontWeight:900, color:'#fff', marginBottom:14, lineHeight:1.08, letterSpacing:'-0.03em' }}>
+            Sponsors &{' '}
+            <span style={{ color:'rgba(255,255,255,.7)' }}>Partenaires</span>
           </h1>
-
-          <p style={{
-            fontSize: 'clamp(14px, 2vw, 18px)',
-            color: 'rgba(255,255,255,0.8)',
-            maxWidth: 580, margin: '0 auto', lineHeight: 1.8,
-            wordBreak: 'break-word',
-          }}>
+          <p style={{ fontSize:'clamp(13px,3vw,17px)', color:'rgba(255,255,255,.8)', maxWidth:540, margin:'0 auto 28px', lineHeight:1.8 }}>
             Associez votre organisation à la première conférence africaine sur les ports et la logistique maritime.
           </p>
 
-          <div className="part-hero-stats">
+          {/* Stats pills */}
+          <div style={{ display:'flex', gap:8, justifyContent:'center', flexWrap:'wrap' }}>
             {['500+ Participants', '25+ Pays', '3 Jours', 'Maroc 2026'].map((s, i) => (
               <div key={i} style={{
-                background: 'rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: 100, padding: '8px 18px',
-                fontSize: 13, fontWeight: 600, color: '#fff',
-                whiteSpace: 'nowrap',
-              }}>
-                {s}
-              </div>
+                background:'rgba(255,255,255,.15)', border:'1px solid rgba(255,255,255,.25)',
+                borderRadius:100, padding:'6px 14px', fontSize:11, fontWeight:600, color:'#fff',
+              }}>{s}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── CORPS ── */}
+      <div style={{ padding: isMobile ? '36px 16px 60px' : 'clamp(40px,6vw,80px) clamp(20px,5vw,60px)', maxWidth:1200, margin:'0 auto' }}>
+
+        {/* ── TABS ── */}
+        <div style={{ maxWidth:520, margin:'0 auto 48px', textAlign:'center' }}>
+          <p style={{ fontSize:11, fontWeight:700, letterSpacing:3, textTransform:'uppercase', color:'#94a3b8', marginBottom:14 }}>
+            Choisissez votre type de partenariat
+          </p>
+          <div style={{
+            display:'grid', gridTemplateColumns:'1fr 1fr', gap:6,
+            background:'#fff', border:'1.5px solid #e2e8f0', borderRadius:16, padding:6,
+            boxShadow:'0 2px 12px rgba(0,14,145,.06)',
+          }}>
+            {SECTIONS.map(s => (
+              <button
+                key={s.id}
+                className="tab-btn"
+                onClick={() => handleSectionChange(s.id)}
+                style={{
+                  background: activeSection === s.id ? 'linear-gradient(135deg,#000E91,#0073F4)' : 'transparent',
+                  borderRadius:10, padding: isMobile ? '12px 8px' : '16px 12px',
+                  color: activeSection === s.id ? '#fff' : '#475569',
+                }}
+              >
+                <div style={{ fontSize: isMobile ? 22 : 26, marginBottom:4 }}>{s.emoji}</div>
+                <div style={{ fontSize: isMobile ? 12 : 13, fontWeight:800, lineHeight:1.3 }}>{s.label}</div>
+                <div style={{ fontSize:10, color: activeSection === s.id ? 'rgba(255,255,255,.7)' : '#94a3b8', marginTop:3 }}>{s.desc}</div>
+              </button>
             ))}
           </div>
         </div>
 
-        {/* ── CONTENU PRINCIPAL ── */}
-        <div style={{
-          padding: 'clamp(50px, 8vw, 90px) clamp(16px, 5vw, 60px)',
-          background: '#f8f9ff',
-          width: '100%',
-          boxSizing: 'border-box',
-          minWidth: 0,
-        }}>
+        {/* ════════════════════════════════════
+            SECTION SPONSORS
+        ════════════════════════════════════ */}
+        {activeSection === 'sponsor' && (
+          <div className="fade-up">
+            <div style={{ textAlign:'center', marginBottom: isMobile ? 20 : 32 }}>
+              <h2 style={{ fontSize:'clamp(20px,4vw,34px)', fontWeight:900, color:'#0f172a', marginBottom:8 }}>
+                Choisissez votre{' '}
+                <span style={{ background:'linear-gradient(135deg,#0073F4,#000E91)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+                  niveau de sponsoring
+                </span>
+              </h2>
+              <p style={{ color:'#64748b', fontSize:14, maxWidth:480, margin:'0 auto' }}>
+                {isMobile ? 'Touchez une carte pour sélectionner et voir les avantages.' : 'Cliquez sur un niveau pour le sélectionner, puis remplissez le formulaire.'}
+              </p>
+            </div>
 
-          {/* ── SÉLECTEUR DE SECTION ── */}
-          <div style={{
-            maxWidth: 600, margin: '0 auto 60px',
-            textAlign: 'center',
-            minWidth: 0,
-          }}>
-            <p style={{
-              color: '#9ca3af', fontSize: 12, fontWeight: 700,
-              letterSpacing: 3, textTransform: 'uppercase', marginBottom: 20,
-            }}>
-              Choisissez votre type de partenariat
-            </p>
-            <div className="part-section-grid">
-              {SECTIONS.map(s => (
-                <button
-                  key={s.id}
-                  className="part-section-btn"
-                  onClick={() => handleSectionChange(s.id)}
-                  style={{
-                    background: activeSection === s.id
-                      ? 'linear-gradient(135deg, #000E91, #0073F4)'
-                      : 'transparent',
-                    color: activeSection === s.id ? '#fff' : '#374151',
-                  }}
-                >
-                  <div style={{ fontSize: 28, marginBottom: 6 }}>{s.emoji}</div>
-                  <div style={{
-                    fontSize: 'clamp(12px, 2vw, 14px)', fontWeight: 800,
-                    wordBreak: 'break-word',
-                  }}>
-                    {s.label}
-                  </div>
-                  <div style={{
-                    fontSize: 11, marginTop: 4, lineHeight: 1.4,
-                    color: activeSection === s.id ? 'rgba(255,255,255,0.75)' : '#9ca3af',
-                    wordBreak: 'break-word',
-                  }}>
-                    {s.desc}
-                  </div>
-                </button>
+            {/* Pills raccourcis desktop */}
+            {!isMobile && (
+              <div style={{ display:'flex', justifyContent:'center', gap:8, flexWrap:'wrap', marginBottom:24 }}>
+                {SPONSORS.map(s => (
+                  <button
+                    key={s.id}
+                    onClick={() => setSelectedOption(s.id)}
+                    style={{
+                      background: selectedOption === s.id ? s.light : '#fff',
+                      border: `1.5px solid ${selectedOption === s.id ? s.color : '#e2e8f0'}`,
+                      borderRadius:100, padding:'6px 16px', cursor:'pointer',
+                      fontSize:12, fontWeight:700,
+                      color: selectedOption === s.id ? s.color : '#64748b',
+                      transition:'all .2s', fontFamily:'inherit',
+                    }}
+                  >
+                    {s.emoji} {s.label} — {s.price}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Grille cartes */}
+            <div className="options-grid-4" style={{ marginBottom:40 }}>
+              {SPONSORS.map(item => (
+                <OptionCard key={item.id} item={item} selected={selectedOption} onSelect={setSelectedOption} isMobile={isMobile} />
               ))}
             </div>
+
+            {/* Formulaire */}
+            <div style={{ maxWidth:640, margin:'0 auto' }}>
+              <div style={{
+                background:'#fff', border:'1.5px solid #e2e8f0', borderRadius:24,
+                padding: isMobile ? '24px 18px' : '44px',
+                boxShadow:'0 8px 40px rgba(0,14,145,.08)',
+              }}>
+                {doneSponsor ? (
+                  <SuccessBlock contact={formSponsor.contact} />
+                ) : (
+                  <>
+                    <h3 style={{ fontSize: isMobile ? 17 : 20, fontWeight:900, color:'#0f172a', textAlign:'center', marginBottom:6 }}>
+                      Formulaire de demande Sponsor
+                    </h3>
+                    <p style={{ color:'#94a3b8', fontSize:13, textAlign:'center', marginBottom:24, lineHeight:1.5 }}>
+                      {selectedOption
+                        ? <><span style={{ color:'#64748b' }}>Niveau : </span><strong style={{ color: selectedSponsor?.color }}>Sponsor {selectedSponsor?.label} — {selectedSponsor?.price}</strong></>
+                        : <span style={{ color:'#ef4444' }}>⚠️ Sélectionnez un niveau ci-dessus</span>
+                      }
+                    </p>
+
+                    <form onSubmit={handleSubmitSponsor} noValidate>
+                      <div className="form-row-2">
+                        <Field label="Organisation *">
+                          <input name="organisation" required value={formSponsor.organisation}
+                            onChange={e => setFormSponsor(f => ({ ...f, organisation:e.target.value }))}
+                            placeholder="Votre organisation" style={inputStyle('org')} {...foc('org')} autoComplete="organization" />
+                        </Field>
+                        <Field label="Nom du contact *">
+                          <input name="contact" required value={formSponsor.contact}
+                            onChange={e => setFormSponsor(f => ({ ...f, contact:e.target.value }))}
+                            placeholder="Prénom Nom" style={inputStyle('contact')} {...foc('contact')} autoComplete="name" />
+                        </Field>
+                      </div>
+                      <div className="form-row-2">
+                        <Field label="Email *">
+                          <input type="email" required value={formSponsor.email}
+                            onChange={e => setFormSponsor(f => ({ ...f, email:e.target.value }))}
+                            placeholder="votre@email.com" style={inputStyle('email')} {...foc('email')} autoComplete="email" />
+                        </Field>
+                        <Field label="Téléphone">
+                          <input type="tel" value={formSponsor.telephone}
+                            onChange={e => setFormSponsor(f => ({ ...f, telephone:e.target.value }))}
+                            placeholder="+212 6XX XXX XXX" style={inputStyle('tel')} {...foc('tel')} autoComplete="tel" />
+                        </Field>
+                      </div>
+                      <Field label="Pays *">
+                        <input required value={formSponsor.pays}
+                          onChange={e => setFormSponsor(f => ({ ...f, pays:e.target.value }))}
+                          placeholder="Votre pays" style={inputStyle('pays')} {...foc('pays')} autoComplete="country-name" />
+                      </Field>
+                      <Field label="Message / Attentes">
+                        <textarea rows={4} value={formSponsor.message}
+                          onChange={e => setFormSponsor(f => ({ ...f, message:e.target.value }))}
+                          placeholder="Vos objectifs, attentes ou questions..."
+                          style={{ ...inputStyle('msg'), resize:'vertical', minHeight:90 }} {...foc('msg')} />
+                      </Field>
+
+                      {errorSponsor && <ErrorBox msg={errorSponsor} />}
+
+                      <button type="submit" className="submit-btn" disabled={loadingSponsor}
+                        style={{ background:'linear-gradient(135deg,#b45309,#7c3aed)', boxShadow:'0 8px 24px rgba(124,58,237,.25)' }}>
+                        {loadingSponsor ? <><div className="spinner"/>Envoi…</> : <>💎 Envoyer ma demande Sponsor</>}
+                      </button>
+                      <p style={{ textAlign:'center', fontSize:11.5, color:'#94a3b8', marginTop:12 }}>
+                        Notre équipe vous répondra sous 48h ouvrées.
+                      </p>
+                    </form>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
+        )}
 
-          {/* ══════════════════════════════════════════════════
-              SECTION SPONSORS
-          ══════════════════════════════════════════════════ */}
-          {activeSection === 'sponsor' && (
-            <>
-              <div style={{ maxWidth: 1200, margin: '0 auto 70px', minWidth: 0 }}>
-                <h2 style={{
-                  textAlign: 'center',
-                  fontSize: 'clamp(18px, 3vw, 32px)',
-                  fontWeight: 900, marginBottom: 10, color: '#111827',
-                  wordBreak: 'break-word',
-                }}>
-                  Choisissez votre <span style={{ color: '#0073F4' }}>niveau de sponsoring</span>
-                </h2>
-                <p style={{
-                  textAlign: 'center', color: '#6b7280', fontSize: 14, marginBottom: 36,
-                }}>
-                  Cliquez sur un niveau pour le sélectionner, puis remplissez le formulaire ci-dessous
-                </p>
+        {/* ════════════════════════════════════
+            SECTION PARTENAIRES STRATÉGIQUES
+        ════════════════════════════════════ */}
+        {activeSection === 'strategique' && (
+          <div className="fade-up">
+            <div style={{ textAlign:'center', marginBottom: isMobile ? 20 : 32 }}>
+              <h2 style={{ fontSize:'clamp(20px,4vw,34px)', fontWeight:900, color:'#0f172a', marginBottom:8 }}>
+                Choisissez votre{' '}
+                <span style={{ background:'linear-gradient(135deg,#000E91,#0073F4)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+                  niveau de partenariat
+                </span>
+              </h2>
+              <p style={{ color:'#64748b', fontSize:14, maxWidth:480, margin:'0 auto' }}>
+                {isMobile ? 'Touchez une carte pour sélectionner et voir les avantages.' : 'Cliquez sur un niveau pour le sélectionner, puis remplissez le formulaire.'}
+              </p>
+            </div>
 
-                {/* Pills de sélection rapide */}
-                <div className="part-pills">
-                  {SPONSORS.map(s => (
-                    <div
-                      key={s.id}
-                      className="part-pill"
-                      onClick={() => setSelectedOption(s.id)}
-                      style={{
-                        background: selectedOption === s.id ? s.accent : '#fff',
-                        border: `1.5px solid ${selectedOption === s.id ? s.color : '#e5e7eb'}`,
-                        color: selectedOption === s.id ? s.color : '#6b7280',
-                      }}
-                    >
-                      {s.label} — {s.price}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Grille des 4 offres */}
-                <div className="part-sponsors-grid">
-                  {renderCards(SPONSORS)}
-                </div>
+            {!isMobile && (
+              <div style={{ display:'flex', justifyContent:'center', gap:10, marginBottom:24, flexWrap:'wrap' }}>
+                {PARTENAIRES.map(p => (
+                  <button key={p.id} onClick={() => setSelectedOption(p.id)} style={{
+                    background: selectedOption === p.id ? p.light : '#fff',
+                    border: `1.5px solid ${selectedOption === p.id ? p.color : '#e2e8f0'}`,
+                    borderRadius:100, padding:'6px 16px', cursor:'pointer',
+                    fontSize:12, fontWeight:700, color: selectedOption === p.id ? p.color : '#64748b',
+                    transition:'all .2s', fontFamily:'inherit',
+                  }}>
+                    {p.emoji} {p.short} — {p.price}
+                  </button>
+                ))}
               </div>
+            )}
 
-              {/* Formulaire sponsor */}
-              <div style={{ maxWidth: 680, margin: '0 auto', minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
-                <div
-                  className="part-form-wrapper"
-                  style={{ border: '1.5px solid #e5e7eb', boxShadow: '0 8px 40px rgba(0,14,145,0.08)' }}
-                >
-                  {submittedSponsor ? (
-                    <SuccessBlock contact={formSponsor.contact} />
-                  ) : (
-                    <>
-                      <h3 style={{
-                        fontSize: 20, fontWeight: 900, marginBottom: 6,
-                        textAlign: 'center', color: '#111827',
-                      }}>
-                        Formulaire de demande Sponsor
-                      </h3>
-                      <p style={{
-                        color: '#9ca3af', fontSize: 13, textAlign: 'center', marginBottom: 32,
-                        wordBreak: 'break-word',
-                      }}>
-                        {selectedOption
-                          ? <><span style={{ color: '#6b7280' }}>Niveau sélectionné : </span><strong style={{ color: '#0073F4' }}>Sponsor {selectedSponsor?.label} — {selectedSponsor?.price}</strong></>
-                          : <span style={{ color: '#ef4444' }}>⚠️ Sélectionnez un niveau ci-dessus</span>}
+            <div className="options-grid-2" style={{ maxWidth:900, margin:'0 auto 40px' }}>
+              {PARTENAIRES.map(item => (
+                <OptionCard key={item.id} item={item} selected={selectedOption} onSelect={setSelectedOption} isMobile={isMobile} />
+              ))}
+            </div>
+
+            {/* Formulaire partenaire */}
+            <div style={{ maxWidth:640, margin:'0 auto' }}>
+              <div style={{
+                background:'#fff', border:'1.5px solid rgba(0,14,145,.12)', borderRadius:24,
+                padding: isMobile ? '24px 18px' : '44px',
+                boxShadow:'0 8px 40px rgba(0,14,145,.10)',
+              }}>
+                {doneStrat ? (
+                  <SuccessBlock contact={formStrat.contact} />
+                ) : (
+                  <>
+                    <h3 style={{ fontSize: isMobile ? 17 : 20, fontWeight:900, color:'#0f172a', textAlign:'center', marginBottom:6 }}>
+                      Formulaire de demande Partenariat
+                    </h3>
+                    <p style={{ color:'#94a3b8', fontSize:13, textAlign:'center', marginBottom:24, lineHeight:1.5 }}>
+                      {selectedOption
+                        ? <><span style={{ color:'#64748b' }}>Niveau : </span><strong style={{ color: selectedPartenaire?.color }}>{selectedPartenaire?.label} — {selectedPartenaire?.price}</strong></>
+                        : <span style={{ color:'#ef4444' }}>⚠️ Sélectionnez un niveau ci-dessus</span>
+                      }
+                    </p>
+
+                    <form onSubmit={handleSubmitStrat} noValidate>
+                      <div className="form-row-2">
+                        <Field label="Organisation / Port *">
+                          <input required value={formStrat.organisation}
+                            onChange={e => setFormStrat(f => ({ ...f, organisation:e.target.value }))}
+                            placeholder="Ex : Port de Lomé" style={inputStyle('sorg')} {...foc('sorg')} autoComplete="organization" />
+                        </Field>
+                        <Field label="Type d'institution *">
+                          <select required value={formStrat.type_institution}
+                            onChange={e => setFormStrat(f => ({ ...f, type_institution:e.target.value }))}
+                            style={{ ...inputStyle('type'), cursor:'pointer', color: formStrat.type_institution ? '#0f172a' : '#94a3b8' }}
+                            {...foc('type')}>
+                            <option value="" disabled>Sélectionner…</option>
+                            {TYPES_INSTITUTION.map(t => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        </Field>
+                      </div>
+                      <Field label="Pays *">
+                        <input required value={formStrat.pays}
+                          onChange={e => setFormStrat(f => ({ ...f, pays:e.target.value }))}
+                          placeholder="Votre pays" style={inputStyle('spays')} {...foc('spays')} autoComplete="country-name" />
+                      </Field>
+                      <div className="form-row-2">
+                        <Field label="Nom du contact *">
+                          <input required value={formStrat.contact}
+                            onChange={e => setFormStrat(f => ({ ...f, contact:e.target.value }))}
+                            placeholder="Prénom Nom" style={inputStyle('scontact')} {...foc('scontact')} autoComplete="name" />
+                        </Field>
+                        <Field label="Email *">
+                          <input type="email" required value={formStrat.email}
+                            onChange={e => setFormStrat(f => ({ ...f, email:e.target.value }))}
+                            placeholder="votre@institution.org" style={inputStyle('semail')} {...foc('semail')} autoComplete="email" />
+                        </Field>
+                      </div>
+                      <Field label="Téléphone">
+                        <input type="tel" value={formStrat.telephone}
+                          onChange={e => setFormStrat(f => ({ ...f, telephone:e.target.value }))}
+                          placeholder="+212 6XX XXX XXX" style={inputStyle('stel')} {...foc('stel')} autoComplete="tel" />
+                      </Field>
+                      <Field label="Message / Attentes">
+                        <textarea rows={4} value={formStrat.message}
+                          onChange={e => setFormStrat(f => ({ ...f, message:e.target.value }))}
+                          placeholder="Décrivez vos attentes, vos objectifs…"
+                          style={{ ...inputStyle('smsg'), resize:'vertical', minHeight:90 }} {...foc('smsg')} />
+                      </Field>
+
+                      {errorStrat && <ErrorBox msg={errorStrat} />}
+
+                      <button type="submit" className="submit-btn" disabled={loadingStrat}
+                        style={{ background:'linear-gradient(135deg,#000E91,#0073F4)', boxShadow:'0 8px 24px rgba(0,14,145,.25)' }}>
+                        {loadingStrat ? <><div className="spinner"/>Envoi…</> : <>🏛️ Envoyer ma demande Partenariat</>}
+                      </button>
+                      <p style={{ textAlign:'center', fontSize:11.5, color:'#94a3b8', marginTop:12 }}>
+                        Notre équipe vous répondra sous 48h ouvrées.
                       </p>
-                      <form onSubmit={handleSubmitSponsor} style={{ minWidth: 0, width: '100%' }}>
-                        <div className="part-form-row">
-                          <div className="part-field">
-                            <label style={labelStyle}>Organisation *</label>
-                            <input name="organisation" value={formSponsor.organisation} onChange={handleChangeSponsor} required placeholder="Votre organisation" style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
-                          </div>
-                          <div className="part-field">
-                            <label style={labelStyle}>Nom du contact *</label>
-                            <input name="contact" value={formSponsor.contact} onChange={handleChangeSponsor} required placeholder="Prénom Nom" style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
-                          </div>
-                        </div>
-                        <div className="part-form-row">
-                          <div className="part-field">
-                            <label style={labelStyle}>Email *</label>
-                            <input name="email" type="email" value={formSponsor.email} onChange={handleChangeSponsor} required placeholder="votre@email.com" style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
-                          </div>
-                          <div className="part-field">
-                            <label style={labelStyle}>Téléphone</label>
-                            <input name="telephone" type="tel" value={formSponsor.telephone} onChange={handleChangeSponsor} placeholder="+212 6XX XXX XXX" style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
-                          </div>
-                        </div>
-                        <div style={{ marginBottom: 14 }}>
-                          <label style={labelStyle}>Pays *</label>
-                          <input name="pays" value={formSponsor.pays} onChange={handleChangeSponsor} required placeholder="Votre pays" style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
-                        </div>
-                        <div style={{ marginBottom: 24 }}>
-                          <label style={labelStyle}>Message / Attentes</label>
-                          <textarea name="message" value={formSponsor.message} onChange={handleChangeSponsor} placeholder="Vos objectifs, attentes ou questions..." rows={4} style={{ ...inputStyle, resize: 'vertical' }} onFocus={focusIn} onBlur={focusOut} />
-                        </div>
-                        {errorSponsor && <ErrorBlock msg={errorSponsor} />}
-                        <SubmitButton loading={loadingSponsor} label="Envoyer ma demande Sponsor 💎" />
-                        <p style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 16 }}>
-                          Notre équipe vous répondra sous 48h ouvrées.
-                        </p>
-                      </form>
-                    </>
-                  )}
-                </div>
+                    </form>
+                  </>
+                )}
               </div>
-            </>
-          )}
-
-          {/* ══════════════════════════════════════════════════
-              SECTION PARTENAIRES STRATÉGIQUES
-          ══════════════════════════════════════════════════ */}
-          {activeSection === 'strategique' && (
-            <>
-              <div style={{ maxWidth: 900, margin: '0 auto 70px', minWidth: 0 }}>
-                <h2 style={{
-                  textAlign: 'center',
-                  fontSize: 'clamp(18px, 3vw, 32px)',
-                  fontWeight: 900, marginBottom: 10, color: '#111827',
-                  wordBreak: 'break-word',
-                }}>
-                  Choisissez votre <span style={{ color: '#000E91' }}>niveau de partenariat</span>
-                </h2>
-                <p style={{
-                  textAlign: 'center', color: '#6b7280', fontSize: 14, marginBottom: 36,
-                }}>
-                  Cliquez sur un niveau pour le sélectionner, puis remplissez le formulaire ci-dessous
-                </p>
-
-                {/* Pills de sélection rapide */}
-                <div className="part-pills">
-                  {PARTENAIRES_STRATEGIQUES.map(p => (
-                    <div
-                      key={p.id}
-                      className="part-pill"
-                      onClick={() => setSelectedOption(p.id)}
-                      style={{
-                        background: selectedOption === p.id ? p.accent : '#fff',
-                        border: `1.5px solid ${selectedOption === p.id ? p.color : '#e5e7eb'}`,
-                        color: selectedOption === p.id ? p.color : '#6b7280',
-                      }}
-                    >
-                      {p.short} — {p.price}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Grille des 2 offres */}
-                <div className="part-strat-grid">
-                  {renderCards(PARTENAIRES_STRATEGIQUES)}
-                </div>
-              </div>
-
-              {/* Formulaire partenaire stratégique */}
-              <div style={{ maxWidth: 680, margin: '0 auto', minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
-                <div
-                  className="part-form-wrapper"
-                  style={{ border: '1.5px solid rgba(0,14,145,0.12)', boxShadow: '0 8px 40px rgba(0,14,145,0.10)' }}
-                >
-                  {submittedStrat ? (
-                    <SuccessBlock contact={formStrat.contact} />
-                  ) : (
-                    <>
-                      <h3 style={{
-                        fontSize: 20, fontWeight: 900, marginBottom: 6,
-                        textAlign: 'center', color: '#111827',
-                      }}>
-                        Formulaire de demande Partenariat
-                      </h3>
-                      <p style={{
-                        color: '#9ca3af', fontSize: 13, textAlign: 'center', marginBottom: 32,
-                        wordBreak: 'break-word',
-                      }}>
-                        {selectedOption
-                          ? <><span style={{ color: '#6b7280' }}>Niveau sélectionné : </span><strong style={{ color: '#000E91' }}>{selectedStrat?.label} — {selectedStrat?.price}</strong></>
-                          : <span style={{ color: '#ef4444' }}>⚠️ Sélectionnez un niveau ci-dessus</span>}
-                      </p>
-                      <form onSubmit={handleSubmitStrat} style={{ minWidth: 0, width: '100%' }}>
-                        <div className="part-form-row">
-                          <div className="part-field">
-                            <label style={labelStyle}>Organisation / Port *</label>
-                            <input name="organisation" value={formStrat.organisation} onChange={handleChangeStrat} required placeholder="Ex : Port de Lomé" style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
-                          </div>
-                          <div className="part-field">
-                            <label style={labelStyle}>Type d'institution *</label>
-                            <select
-                              name="type_institution"
-                              value={formStrat.type_institution}
-                              onChange={handleChangeStrat}
-                              required
-                              style={{
-                                ...inputStyle,
-                                cursor: 'pointer',
-                                color: formStrat.type_institution ? '#111827' : '#9ca3af',
-                                /* iOS peut déborder — on force */
-                                maxWidth: '100%',
-                              }}
-                              onFocus={focusIn}
-                              onBlur={focusOut}
-                            >
-                              <option value="" disabled>Sélectionner...</option>
-                              {[
-                                'Port / Autorité portuaire',
-                                'Ministère / Gouvernement',
-                                'Organisation régionale (AGPAOC, UA...)',
-                                'Organisme de financement',
-                                'Autre institution',
-                              ].map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                        <div style={{ marginBottom: 14 }}>
-                          <label style={labelStyle}>Pays *</label>
-                          <input name="pays" value={formStrat.pays} onChange={handleChangeStrat} required placeholder="Votre pays" style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
-                        </div>
-                        <div className="part-form-row">
-                          <div className="part-field">
-                            <label style={labelStyle}>Nom du contact *</label>
-                            <input name="contact" value={formStrat.contact} onChange={handleChangeStrat} required placeholder="Prénom Nom" style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
-                          </div>
-                          <div className="part-field">
-                            <label style={labelStyle}>Email *</label>
-                            <input name="email" type="email" value={formStrat.email} onChange={handleChangeStrat} required placeholder="votre@institution.org" style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
-                          </div>
-                        </div>
-                        <div style={{ marginBottom: 14 }}>
-                          <label style={labelStyle}>Téléphone</label>
-                          <input name="telephone" type="tel" value={formStrat.telephone} onChange={handleChangeStrat} placeholder="+212 6XX XXX XXX" style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
-                        </div>
-                        <div style={{ marginBottom: 24 }}>
-                          <label style={labelStyle}>Message / Attentes</label>
-                          <textarea
-                            name="message"
-                            value={formStrat.message}
-                            onChange={handleChangeStrat}
-                            placeholder="Décrivez vos attentes, vos objectifs..."
-                            rows={4}
-                            style={{ ...inputStyle, resize: 'vertical' }}
-                            onFocus={focusIn}
-                            onBlur={focusOut}
-                          />
-                        </div>
-                        {errorStrat && <ErrorBlock msg={errorStrat} />}
-                        <SubmitButton loading={loadingStrat} label="Envoyer ma demande 🏛️" colorA="#000E91" colorB="#0073F4" />
-                        <p style={{ textAlign: 'center', fontSize: 12, color: '#9ca3af', marginTop: 16 }}>
-                          Notre équipe vous répondra sous 48h ouvrées.
-                        </p>
-                      </form>
-                    </>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   )
 }
 
-export default Partenariats
+// ─── BLOCS RÉUTILISABLES ─────────────────────────────────────────────────────
+
+function SuccessBlock({ contact }) {
+  return (
+    <div style={{ textAlign:'center', padding:'24px 0' }}>
+      <div style={{
+        width:72, height:72, borderRadius:'50%',
+        background:'linear-gradient(135deg,#000E91,#0073F4)',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        margin:'0 auto 20px',
+        boxShadow:'0 12px 32px rgba(0,14,145,.3)',
+      }}>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h3 style={{ fontSize:'clamp(18px,4vw,24px)', fontWeight:900, color:'#0f172a', marginBottom:10 }}>
+        Demande enregistrée !
+      </h3>
+      <p style={{ color:'#64748b', fontSize:14, lineHeight:1.8, marginBottom:24 }}>
+        Merci <strong style={{ color:'#0f172a' }}>{contact}</strong>.<br/>
+        Notre équipe vous contactera dans les <strong style={{ color:'#0073F4' }}>48h</strong> pour finaliser votre partenariat.
+      </p>
+      <div style={{ background:'#f0f9ff', border:'1px solid #bae6fd', borderRadius:14, padding:'16px 20px', textAlign:'left' }}>
+        {[
+          '📧 Email de confirmation envoyé',
+          '📞 Appel de présentation planifié',
+          '📄 Dossier de partenariat envoyé',
+          '✍️ Contrat préparé selon votre choix',
+        ].map((s, i, arr) => (
+          <div key={i} style={{ padding:'8px 0', fontSize:13, color:'#0369a1', borderBottom: i < arr.length - 1 ? '1px solid #e0f2fe' : 'none' }}>
+            {s}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ErrorBox({ msg }) {
+  return (
+    <div style={{
+      background:'#fef2f2', border:'1.5px solid #fca5a5',
+      borderRadius:12, padding:'12px 16px', marginBottom:16,
+      fontSize:13, color:'#dc2626', lineHeight:1.5,
+    }}>
+      ⚠️ {msg}
+    </div>
+  )
+}
