@@ -55,7 +55,6 @@ const Navbar = () => {
     setMobilePartenairesOpen(false)
   }
 
-  // ─── Scroll natif avec retry automatique ─────────────────────────────────
   const scrollTo = (id, attempts = 0) => {
     const el = document.getElementById(id)
     if (el) {
@@ -138,18 +137,18 @@ const Navbar = () => {
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
       }}>
 
-        {/* LOGOS */}
+        {/* LOGOS - LIENS SUPPRIMÉS POUR CRF ET AGPAOC */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 15,
           padding: '8px 20px', background: '#FFFFFF', borderRadius: 10,
           boxShadow: '0 4px 15px rgba(0,0,0,0.1)', flexShrink: 0,
         }}>
-          <a href="https://crfperfection.pro" target="_blank" rel="noopener noreferrer" style={{ display: 'flex' }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+          <div style={{ display: 'flex' }}>
             <img src="/logocrf.png" alt="CRF" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
-          </a>
+          </div>
+          
           <div style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)' }} />
+          
           <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
@@ -163,17 +162,15 @@ const Navbar = () => {
               </div>
             </div>
           </a>
+          
           <div style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)' }} />
-          <a href="https://agpaoc-pmawca.org/" target="_blank" rel="noopener noreferrer" style={{ display: 'flex' }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+          
+          <div style={{ display: 'flex' }}>
             <img src="/logoagpaoc.png" alt="AGPAOC" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
-          </a>
+          </div>
         </div>
 
-        {/* LIENS DESKTOP */}
         <ul className="nav-links" style={{ display: 'flex', gap: 28, listStyle: 'none', margin: 0, padding: 0, alignItems: 'center' }}>
-
           {!isHome && (
             <li><a href="/" style={{ ...btnBase, textDecoration: 'none' }}
               onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
@@ -259,7 +256,6 @@ const Navbar = () => {
           </li>
         </ul>
 
-        {/* BOUTON S'INSCRIRE */}
         <div className="nav-cta">
           <button onClick={handleInscription} style={{
             background: '#FFFFFF', color: '#000e91', border: 'none',
@@ -273,7 +269,6 @@ const Navbar = () => {
           </button>
         </div>
 
-        {/* BURGER */}
         <button className="burger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu"
           style={{ background: 'none', border: 'none', cursor: 'pointer', flexDirection: 'column', gap: 5, padding: 4 }}>
           <span style={{ width: 25, height: 2.5, background: '#FFFFFF', display: 'block', transition: 'all 0.3s', transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none' }} />
@@ -282,7 +277,6 @@ const Navbar = () => {
         </button>
       </nav>
 
-      {/* MENU MOBILE */}
       <div className="mobile-menu" style={{
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
         background: '#000e91',
@@ -297,7 +291,6 @@ const Navbar = () => {
         }}>✕</button>
 
         <div style={{ padding: '0 24px' }}>
-
           {!isHome && (
             <a href="/" style={mobileItemStyle()}>← Accueil</a>
           )}
@@ -408,4 +401,4 @@ const mobileSubItemStyle = (active = false) => ({
   borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer',
 })
 
-export default Navbar
+export default Navbar;
