@@ -10,37 +10,47 @@ import Inscription from './components/Inscription'
 import Footer from './components/Footer'
 import AdminDashboard from './components/AdminDashboard'
 import Partners from './components/Partners'
-import useTracker from './useTracker' // Votre hook personnalisé
+import { useAnalytics } from './useAnalytics'
 import Partenariats from './pages/Partenariats'
 import ExpositionDigitale from './pages/ExpositionDigitale'
 
-// Composant de tracking automatique
+// ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
-  useTracker() // Active le tracking sur chaque changement d'URL
-  return null // Ce composant n'affiche rien visuellement
+  useAnalytics()
+  return null
 }
 
-const MainSite = () => {
-  return (
-    <>
-      <Navbar />
-      <main>
-        <Hero />
-        <Partners />
-        <About />
-        <Programme />
-        <Modules />
-        <Intervenants />
-        <Inscription />
-        <Footer />
-      </main>
-    </>
-  )
-}
+// ─── Page d'accueil principale ────────────────────────────────────────────────
+const MainSite = () => (
+  <>
+    <Navbar />
+    <main>
+      <Hero />
+      <Partners />
+      <About />
+      <Programme />
+      <Modules />
+      <Intervenants />
+      <Inscription />
+      <Footer />
+    </main>
+  </>
+)
 
+// ─── Page Inscription seule ───────────────────────────────────────────────────
+const InscriptionPage = () => (
+  <>
+    <Navbar />
+    <div style={{ paddingTop: 80 }}>
+      <Inscription />
+    </div>
+    <Footer />
+  </>
+)
+
+// ─── Application principale ───────────────────────────────────────────────────
 function App() {
   useEffect(() => {
-    // Initialisation globale de Google Analytics
     import('react-ga4').then(({ default: ReactGA }) => {
       ReactGA.initialize('G-YV45FLXNXB')
     })
@@ -48,14 +58,13 @@ function App() {
 
   return (
     <Router>
-      {/* On place le tracker ici : il a accès au contexte du Router */}
       <AnalyticsTracker />
-      
       <Routes>
-        <Route path="/" element={<MainSite />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/partenariats" element={<Partenariats />} />
+        <Route path="/"                    element={<MainSite />} />
+        <Route path="/inscription"         element={<InscriptionPage />} />
+        <Route path="/partenariats"        element={<Partenariats />} />
         <Route path="/exposition-digitale" element={<ExpositionDigitale />} />
+        <Route path="/admin"               element={<AdminDashboard />} />
       </Routes>
     </Router>
   )
