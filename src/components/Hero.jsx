@@ -1,23 +1,31 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-scroll'
+import { useNavigate } from 'react-router-dom'
 
-// Images locales situées dans le dossier public
 const images = [
   "/hero1.png",
   "/hero2.png",
   "/hero3.png",
   "/hero4.png",
-  "/hero5.png", 
+  "/hero5.png",
   "/hero6.png",
 ]
 
+// ─── Fonction scroll natif fiable ────────────────────────────────────────────
+const scrollToSection = (id) => {
+  const el = document.getElementById(id)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
 const Hero = () => {
-  const fullText = `Conférence des Ports Africains\nCOPAF 2026`
+  const navigate    = useNavigate()
+  const fullText    = `Conférence des Ports Africains\nCOPAF 2026`
   const [displayed, setDisplayed] = useState('')
-  const [index, setIndex] = useState(0)
-  const [showCursor, setShowCursor] = useState(true)
-  const [currentImg, setCurrentImg] = useState(0)
-  const [fade, setFade] = useState(true)
+  const [index,     setIndex]     = useState(0)
+  const [showCursor,setShowCursor]= useState(true)
+  const [currentImg,setCurrentImg]= useState(0)
+  const [fade,      setFade]      = useState(true)
 
   useEffect(() => {
     if (index < fullText.length) {
@@ -30,22 +38,32 @@ const Hero = () => {
   }, [index, fullText])
 
   useEffect(() => {
-    const cursorInterval = setInterval(() => {
-      setShowCursor(prev => !prev)
-    }, 500)
-    return () => clearInterval(cursorInterval)
+    const interval = setInterval(() => setShowCursor(prev => !prev), 500)
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {
       setFade(false)
-      setTimeout(() => {
-        setCurrentImg(prev => (prev + 1) % images.length)
-        setFade(true)
-      }, 500)
+      setTimeout(() => { setCurrentImg(prev => (prev + 1) % images.length); setFade(true) }, 500)
     }, 5000)
     return () => clearInterval(interval)
   }, [])
+
+  // ─── Bouton S'inscrire ────────────────────────────────────────────────────
+  const handleInscription = () => {
+    const el = document.getElementById('inscription')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else {
+      navigate('/inscription')
+    }
+  }
+
+  // ─── Bouton Programme ─────────────────────────────────────────────────────
+  const handleProgramme = () => {
+    scrollToSection('programme')
+  }
 
   return (
     <section id="hero" style={{
@@ -60,38 +78,22 @@ const Hero = () => {
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
     }}>
-      
-      {/* Overlay pour la lisibilité */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        background: 'rgba(255, 255, 255, 0.85)',
-        zIndex: 1
-      }} />
+
+      {/* Overlay */}
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.85)', zIndex: 1 }} />
 
       <div className="hero-content" style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        width: '100%',
-        maxWidth: 1000,
-        margin: '0 auto',
-        zIndex: 2 
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        textAlign: 'center', width: '100%', maxWidth: 1000,
+        margin: '0 auto', zIndex: 2,
       }}>
 
-        {/* Badge de bienvenue */}
+        {/* Badge */}
         <div style={{
-          background: 'rgba(0, 115, 244, 0.1)',
-          color: '#0073F4',
-          padding: '8px 16px',
-          borderRadius: '50px',
-          fontSize: '13px',
-          fontWeight: 600,
-          letterSpacing: '1px',
-          textTransform: 'uppercase',
-          marginBottom: '24px',
-          display: 'inline-block'
+          background: 'rgba(0,115,244,0.1)', color: '#0073F4',
+          padding: '8px 16px', borderRadius: '50px',
+          fontSize: '13px', fontWeight: 600, letterSpacing: '1px',
+          textTransform: 'uppercase', marginBottom: '24px', display: 'inline-block',
         }}>
           Évènement Maritime Majeur
         </div>
@@ -100,21 +102,16 @@ const Hero = () => {
         <h1 style={{
           fontFamily: "'Inter', 'Roboto', sans-serif",
           fontSize: 'clamp(28px, 5vw, 56px)',
-          fontWeight: 800,
-          lineHeight: 1.1,
-          marginBottom: '24px',
-          color: '#000E91',
-          minHeight: '140px',
-          width: '100%'
+          fontWeight: 800, lineHeight: 1.1,
+          marginBottom: '24px', color: '#000E91',
+          minHeight: '140px', width: '100%',
         }}>
           {(() => {
             const highlight = 'Ports Africains'
             const parts = displayed.split('\n')
             const line1 = parts[0] || ''
             const line2 = parts[1] || ''
-            
-            const pos = line1.indexOf(highlight)
-
+            const pos   = line1.indexOf(highlight)
             return (
               <>
                 <span style={{ display: 'block' }}>
@@ -126,99 +123,81 @@ const Hero = () => {
                     </>
                   )}
                 </span>
-                {line2 && <div style={{ marginTop: '10px', color: '#000E91', opacity: 0.9 }}>{line2}</div>}
+                {line2 && (
+                  <div style={{ marginTop: '10px', color: '#000E91', opacity: 0.9 }}>{line2}</div>
+                )}
               </>
             )
           })()}
           <span style={{
-            display: 'inline-block',
-            width: '3px', height: '0.8em',
-            background: '#0073F4',
-            marginLeft: '5px',
-            opacity: showCursor ? 1 : 0,
-            verticalAlign: 'middle'
+            display: 'inline-block', width: '3px', height: '0.8em',
+            background: '#0073F4', marginLeft: '5px',
+            opacity: showCursor ? 1 : 0, verticalAlign: 'middle',
           }} />
         </h1>
 
+        {/* Sous-titre */}
         <p style={{
-          fontSize: 'clamp(16px, 1.8vw, 19px)',
-          color: '#4A5568',
-          maxWidth: '650px',
-          lineHeight: 1.6,
-          marginBottom: '40px',
-          marginRight: 'auto',
-          marginLeft: 'auto'
+          fontSize: 'clamp(16px, 1.8vw, 19px)', color: '#4A5568',
+          maxWidth: '650px', lineHeight: 1.6,
+          marginBottom: '40px', marginRight: 'auto', marginLeft: 'auto',
         }}>
-          Rejoignez l'élite portuaire pour définir le futur de la logistique en Afrique. 
-          <span style={{ fontWeight: 600, color: '#000E91' }}> Innovation, Réseautage & Stratégie.</span>
+          Rejoignez l'élite portuaire pour définir le futur de la logistique en Afrique.{' '}
+          <span style={{ fontWeight: 600, color: '#000E91' }}>Innovation, Réseautage & Stratégie.</span>
         </p>
 
-        {/* Boutons */}
+        {/* ── BOUTONS ── */}
         <div className="hero-buttons" style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '20px',
-          flexWrap: 'wrap',
-          marginBottom: '60px',
-          width: '100%'
+          display: 'flex', justifyContent: 'center',
+          gap: '20px', flexWrap: 'wrap',
+          marginBottom: '60px', width: '100%',
         }}>
-          <Link to="inscription" smooth={true} duration={600} offset={-80}>
-            <button className="btn-primary" style={{
+          {/* S'inscrire */}
+          <button
+            onClick={handleInscription}
+            className="btn-primary"
+            style={{
               background: 'linear-gradient(135deg, #0073F4 0%, #000E91 100%)',
-              color: '#FFFFFF',
-              border: 'none',
-              padding: '18px 40px',
-              borderRadius: '8px',
-              fontWeight: 700,
-              fontSize: '14px',
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
+              color: '#FFFFFF', border: 'none',
+              padding: '18px 40px', borderRadius: '8px',
+              fontWeight: 700, fontSize: '14px',
+              letterSpacing: '1px', textTransform: 'uppercase',
               cursor: 'pointer',
-              boxShadow: '0 10px 25px rgba(0, 115, 244, 0.35)',
+              boxShadow: '0 10px 25px rgba(0,115,244,0.35)',
               transition: 'all 0.3s ease',
-            }}>
-              S'inscrire Maintenant
-            </button>
-          </Link>
+              fontFamily: 'inherit',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 15px 30px rgba(0,115,244,0.45)' }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 10px 25px rgba(0,115,244,0.35)' }}
+          >
+            S'inscrire Maintenant
+          </button>
 
-          <Link to="programme" smooth={true} duration={600} offset={-80}>
-            <button style={{
-              background: 'transparent',
-              color: '#000E91',
-              border: '2px solid #000E91',
-              padding: '16px 40px',
-              borderRadius: '8px',
-              fontWeight: 700,
-              fontSize: '14px',
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
+          {/* Voir le Programme */}
+          <button
+            onClick={handleProgramme}
+            style={{
+              background: 'transparent', color: '#000E91',
+              border: '2px solid #000E91', padding: '16px 40px',
+              borderRadius: '8px', fontWeight: 700, fontSize: '14px',
+              letterSpacing: '1px', textTransform: 'uppercase',
+              cursor: 'pointer', transition: 'all 0.3s ease',
+              fontFamily: 'inherit',
             }}
             onMouseEnter={e => { e.currentTarget.style.background = '#000E91'; e.currentTarget.style.color = '#fff' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000E91' }}
-            >
-              Voir le Programme
-            </button>
-          </Link>
+          >
+            Voir le Programme
+          </button>
         </div>
 
-        {/* Cadre Image */}
+        {/* Cadre image */}
         <div style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '850px',
-          padding: '10px',
-          background: '#fff',
-          borderRadius: '24px',
-          boxShadow: '0 30px 60px rgba(0, 14, 145, 0.12)',
+          position: 'relative', width: '100%', maxWidth: '850px',
+          padding: '10px', background: '#fff', borderRadius: '24px',
+          boxShadow: '0 30px 60px rgba(0,14,145,0.12)',
         }}>
-          <div style={{
-            position: 'relative',
-            borderRadius: '16px',
-            overflow: 'hidden',
-            aspectRatio: '16/9',
-          }}>
+          <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', aspectRatio: '16/9' }}>
             <img
               key={currentImg}
               src={images[currentImg]}
@@ -230,24 +209,12 @@ const Hero = () => {
                 transition: 'all 0.8s ease-in-out',
               }}
             />
-
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: 'linear-gradient(to top, rgba(0,14,145,0.4) 0%, transparent 40%)'
-            }} />
-
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,14,145,0.4) 0%, transparent 40%)' }} />
             <div className="glass-badge" style={{
-              position: 'absolute',
-              bottom: '20px',
-              left: '20px',
-              right: '20px',
-              background: 'rgba(255, 255, 255, 0.9)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '12px',
-              padding: '15px 25px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
+              position: 'absolute', bottom: '20px', left: '20px', right: '20px',
+              background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)',
+              borderRadius: '12px', padding: '15px 25px',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               border: '1px solid rgba(255,255,255,0.3)',
             }}>
               <div style={{ textAlign: 'left' }}>
@@ -261,21 +228,14 @@ const Hero = () => {
               </div>
             </div>
           </div>
-          
-          <div style={{
-            position: 'absolute',
-            top: '-15px',
-            right: '30px',
-            display: 'flex',
-            gap: '8px'
-          }}>
+
+          {/* Indicateurs */}
+          <div style={{ position: 'absolute', top: '-15px', right: '30px', display: 'flex', gap: '8px' }}>
             {images.map((_, i) => (
               <div key={i} style={{
-                width: i === currentImg ? '30px' : '10px',
-                height: '6px',
+                width: i === currentImg ? '30px' : '10px', height: '6px',
                 background: i === currentImg ? '#0073F4' : '#CBD5E0',
-                borderRadius: '10px',
-                transition: 'all 0.3s ease'
+                borderRadius: '10px', transition: 'all 0.3s ease',
               }} />
             ))}
           </div>
@@ -283,38 +243,19 @@ const Hero = () => {
       </div>
 
       <style>{`
-        .btn-primary:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 15px 30px rgba(0, 115, 244, 0.45) !important;
-        }
         @media (max-width: 640px) {
-          #hero { 
-            padding-top: 80px; 
+          #hero {
+            padding-top: 80px;
             padding-bottom: 40px;
-            display: flex;
-            align-items: flex-start; /* Évite d'être trop bas sur petit écran */
+            align-items: flex-start;
           }
-          .hero-content {
-            text-align: center !important;
-          }
-          .hero-buttons {
-            flex-direction: column;
-            align-items: center;
-          }
-          .hero-buttons a {
-            width: 100%;
-            max-width: 300px;
-          }
-          .hero-buttons button {
-            width: 100%;
-          }
-          .glass-badge { 
-            flex-direction: column !important; 
-            gap: 10px; 
-            padding: 12px !important;
-            bottom: 10px !important;
-            left: 10px !important;
-            right: 10px !important;
+          .hero-content { text-align: center !important; }
+          .hero-buttons { flex-direction: column; align-items: center; }
+          .hero-buttons button { width: 100%; max-width: 300px; }
+          .glass-badge {
+            flex-direction: column !important;
+            gap: 10px; padding: 12px !important;
+            bottom: 10px !important; left: 10px !important; right: 10px !important;
           }
           .glass-badge div { text-align: center !important; }
           .badge-sep { display: none; }

@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-scroll'
 import { useNavigate } from 'react-router-dom'
 
 const Navbar = () => {
@@ -10,45 +9,41 @@ const Navbar = () => {
   const [mobileConferenceOpen,  setMobileConferenceOpen]  = useState(false)
   const [mobilePartenairesOpen, setMobilePartenairesOpen] = useState(false)
 
-  const dropdownRef   = useRef(null)
-  const conferenceRef = useRef(null)
-  const dropdownTimer = useRef(null)
+  const dropdownRef     = useRef(null)
+  const conferenceRef   = useRef(null)
+  const dropdownTimer   = useRef(null)
   const conferenceTimer = useRef(null)
 
-  const navigate  = useNavigate()
-  const isHome    = window.location.pathname === '/'
+  const navigate = useNavigate()
+  const isHome   = window.location.pathname === '/'
 
-  // ─── Scroll ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
+    const fn = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', fn)
+    return () => window.removeEventListener('scroll', fn)
   }, [])
 
-  // ─── Clic extérieur ──────────────────────────────────────────────────────
   useEffect(() => {
-    const handleClickOutside = e => {
+    const fn = e => {
       if (dropdownRef.current   && !dropdownRef.current.contains(e.target))   setDropdownOpen(false)
       if (conferenceRef.current && !conferenceRef.current.contains(e.target)) setConferenceOpen(false)
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', fn)
+    return () => document.removeEventListener('mousedown', fn)
   }, [])
 
-  // ─── Resize ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    const handleResize = () => {
+    const fn = () => {
       if (window.innerWidth > 768) {
         setMenuOpen(false)
         setMobileConferenceOpen(false)
         setMobilePartenairesOpen(false)
       }
     }
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    window.addEventListener('resize', fn)
+    return () => window.removeEventListener('resize', fn)
   }, [])
 
-  // ─── Helpers dropdown avec délai ─────────────────────────────────────────
   const openConference  = () => { clearTimeout(conferenceTimer.current); setConferenceOpen(true) }
   const closeConference = () => { conferenceTimer.current = setTimeout(() => setConferenceOpen(false), 120) }
   const openDropdown    = () => { clearTimeout(dropdownTimer.current);   setDropdownOpen(true) }
@@ -60,48 +55,74 @@ const Navbar = () => {
     setMobilePartenairesOpen(false)
   }
 
-  // ─── Bouton S'inscrire : scroll si on est sur l'accueil, sinon navigate ──
+  // ─── Scroll natif avec retry automatique ─────────────────────────────────
+  const scrollTo = (id, attempts = 0) => {
+    const el = document.getElementById(id)
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    } else if (attempts < 15) {
+      setTimeout(() => scrollTo(id, attempts + 1), 100)
+    }
+  }
+
   const handleInscription = () => {
+    closeMobileMenu()
     if (isHome) {
-      const el = document.getElementById('inscription')
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      scrollTo('inscription')
     } else {
       navigate('/inscription')
     }
-    closeMobileMenu()
   }
 
-  // ─── Données ─────────────────────────────────────────────────────────────
+  const handleContact = () => {
+    closeMobileMenu()
+    if (isHome) {
+      scrollTo('inscription')
+    } else {
+      window.location.href = '/#inscription'
+    }
+  }
+
+  const handleSection = (id) => {
+    closeMobileMenu()
+    setConferenceOpen(false)
+    if (isHome) {
+      scrollTo(id)
+    } else {
+      window.location.href = `/#${id}`
+    }
+  }
+
   const conferenceLinks = [
-    { label: 'Programme',    to: 'programme' },
-    { label: 'Modules',      to: 'modules' },
-    { label: 'Intervenants', to: 'formateurs' },
+    { label: 'Programme',    id: 'programme' },
+    { label: 'Modules',      id: 'modules' },
+    { label: 'Intervenants', id: 'formateurs' },
   ]
 
   const dropdownLinks = [
-    { label: 'Partenariats',       href: '/partenariats' },
+    { label: 'Partenariats',        href: '/partenariats' },
     { label: 'Exposition Digitale', href: '/exposition-digitale' },
   ]
 
   const isDropdownActive = dropdownLinks.some(l => window.location.pathname === l.href)
   const logoHeight       = scrolled ? 36 : 44
 
-  // ─── Styles ──────────────────────────────────────────────────────────────
-  const navLinkStyle = (active = false) => ({
-    color: active ? '#0073f4' : '#FFFFFF',
-    cursor: 'pointer', fontSize: 12, fontWeight: 600,
+  const btnBase = {
+    background: 'none', border: 'none', cursor: 'pointer',
+    color: '#FFFFFF', fontSize: 12, fontWeight: 600,
     letterSpacing: 1.5, textTransform: 'uppercase',
-    textDecoration: 'none', opacity: 0.85, transition: 'all 0.3s',
-  })
+    opacity: 0.85, transition: 'all 0.3s', padding: 0,
+    fontFamily: 'inherit',
+  }
 
-  const dropdownStyle = isOpen => ({
+  const dropdownPanelStyle = open => ({
     position: 'absolute', top: 'calc(100% + 4px)', left: '50%',
-    transform: isOpen ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(-6px)',
+    transform: open ? 'translateX(-50%) translateY(0)' : 'translateX(-50%) translateY(-6px)',
     background: '#FFFFFF', borderRadius: 8,
     boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
     overflow: 'hidden', minWidth: 200,
-    opacity: isOpen ? 1 : 0,
-    pointerEvents: isOpen ? 'auto' : 'none',
+    opacity: open ? 1 : 0,
+    pointerEvents: open ? 'auto' : 'none',
     transition: 'opacity 0.2s, transform 0.2s', zIndex: 1100,
   })
 
@@ -117,23 +138,22 @@ const Navbar = () => {
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
       }}>
 
-        {/* ── LOGOS ── */}
+        {/* LOGOS */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 15,
           padding: '8px 20px', background: '#FFFFFF', borderRadius: 10,
-          boxShadow: '0 4px 15px rgba(0,0,0,0.1)', transition: 'all 0.3s', flexShrink: 0,
+          boxShadow: '0 4px 15px rgba(0,0,0,0.1)', flexShrink: 0,
         }}>
-          <a href="https://crfperfection.pro" target="_blank" rel="noopener noreferrer"
-            style={{ display: 'flex', transition: 'transform 0.2s' }}
+          <a href="https://crfperfection.pro" target="_blank" rel="noopener noreferrer" style={{ display: 'flex' }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-            <img src="/logocrf.png" alt="CRF Perfection" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
+            <img src="/logocrf.png" alt="CRF" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
           </a>
           <div style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)' }} />
-          <a href="https://copaf-ports.com/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', transition: 'transform 0.2s' }}
+          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-            <img src="/logocopaf.png" alt="COPAF Logo" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
+            <img src="/logocopaf.png" alt="COPAF" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
             <div>
               <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 700, color: '#000e91', lineHeight: 1 }}>
                 COPAF<span style={{ color: '#0073f4' }}>.</span>
@@ -144,48 +164,36 @@ const Navbar = () => {
             </div>
           </a>
           <div style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)' }} />
-          <a href="https://agpaoc-pmawca.org/" target="_blank" rel="noopener noreferrer"
-            style={{ display: 'flex', transition: 'transform 0.2s' }}
+          <a href="https://agpaoc-pmawca.org/" target="_blank" rel="noopener noreferrer" style={{ display: 'flex' }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
             <img src="/logoagpaoc.png" alt="AGPAOC" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
           </a>
         </div>
 
-        {/* ── LIENS DESKTOP ── */}
+        {/* LIENS DESKTOP */}
         <ul className="nav-links" style={{ display: 'flex', gap: 28, listStyle: 'none', margin: 0, padding: 0, alignItems: 'center' }}>
 
           {!isHome && (
-            <li>
-              <a href="/" style={navLinkStyle()}
-                onMouseEnter={e => { e.target.style.color = '#0073f4'; e.target.style.opacity = '1' }}
-                onMouseLeave={e => { e.target.style.color = '#FFFFFF'; e.target.style.opacity = '0.85' }}>
-                Accueil
-              </a>
-            </li>
+            <li><a href="/" style={{ ...btnBase, textDecoration: 'none' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
+              Accueil
+            </a></li>
           )}
 
           {isHome && (
-            <li>
-              <Link to="about" smooth duration={600} offset={-80} style={navLinkStyle()}
-                onMouseEnter={e => { e.target.style.color = '#0073f4'; e.target.style.opacity = '1' }}
-                onMouseLeave={e => { e.target.style.color = '#FFFFFF'; e.target.style.opacity = '0.85' }}>
-                À Propos
-              </Link>
-            </li>
+            <li><button style={btnBase} onClick={() => handleSection('about')}
+              onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
+              À Propos
+            </button></li>
           )}
 
-          {/* Menu Conférence */}
           {isHome && (
             <li ref={conferenceRef} style={{ position: 'relative' }}
               onMouseEnter={openConference} onMouseLeave={closeConference}>
-              <button style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', gap: 5,
-                color: '#FFFFFF', fontSize: 12, fontWeight: 600,
-                letterSpacing: 1.5, textTransform: 'uppercase',
-                opacity: 0.85, transition: 'all 0.3s', padding: 0,
-              }}
+              <button style={{ ...btnBase, display: 'flex', alignItems: 'center', gap: 5 }}
                 onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
                 onMouseLeave={e => { e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
                 Conférence
@@ -194,45 +202,36 @@ const Navbar = () => {
                   <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
-              <div style={dropdownStyle(conferenceOpen)} onMouseEnter={openConference} onMouseLeave={closeConference}>
+              <div style={dropdownPanelStyle(conferenceOpen)} onMouseEnter={openConference} onMouseLeave={closeConference}>
                 {conferenceLinks.map((item, i) => (
-                  <Link key={item.to} to={item.to} smooth duration={600} offset={-80}
-                    onClick={() => setConferenceOpen(false)}
-                    style={{
-                      display: 'block', padding: '11px 20px', fontSize: 12,
-                      fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase',
-                      color: '#000e91', borderTop: i > 0 ? '1px solid rgba(0,14,145,0.08)' : 'none',
-                      transition: 'background 0.15s, color 0.15s', cursor: 'pointer',
-                    }}
+                  <button key={item.id} onClick={() => handleSection(item.id)} style={{
+                    display: 'block', width: '100%', textAlign: 'left',
+                    padding: '11px 20px', fontSize: 12, fontWeight: 600,
+                    letterSpacing: 1.5, textTransform: 'uppercase',
+                    color: '#000e91', background: 'none', border: 'none',
+                    borderTop: i > 0 ? '1px solid rgba(0,14,145,0.08)' : 'none',
+                    cursor: 'pointer', fontFamily: 'inherit', transition: 'background 0.15s, color 0.15s',
+                  }}
                     onMouseEnter={e => { e.currentTarget.style.background = '#f0f4ff'; e.currentTarget.style.color = '#0073f4' }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000e91' }}>
                     {item.label}
-                  </Link>
+                  </button>
                 ))}
               </div>
             </li>
           )}
 
           {isHome && (
-            <li>
-              <Link to="inscription" smooth duration={600} offset={-80} style={navLinkStyle()}
-                onMouseEnter={e => { e.target.style.color = '#0073f4'; e.target.style.opacity = '1' }}
-                onMouseLeave={e => { e.target.style.color = '#FFFFFF'; e.target.style.opacity = '0.85' }}>
-                Contact
-              </Link>
-            </li>
+            <li><button style={btnBase} onClick={handleContact}
+              onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
+              Contact
+            </button></li>
           )}
 
-          {/* Menu Partenaires */}
           <li ref={dropdownRef} style={{ position: 'relative' }}
             onMouseEnter={openDropdown} onMouseLeave={closeDropdown}>
-            <button style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 5,
-              color: isDropdownActive ? '#0073f4' : '#FFFFFF',
-              fontSize: 12, fontWeight: 600, letterSpacing: 1.5,
-              textTransform: 'uppercase', opacity: 0.85, transition: 'all 0.3s', padding: 0,
-            }}
+            <button style={{ ...btnBase, display: 'flex', alignItems: 'center', gap: 5, color: isDropdownActive ? '#0073f4' : '#FFFFFF' }}
               onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
               onMouseLeave={e => { e.currentTarget.style.color = isDropdownActive ? '#0073f4' : '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
               Partenaires
@@ -241,17 +240,16 @@ const Navbar = () => {
                 <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-            <div style={dropdownStyle(dropdownOpen)} onMouseEnter={openDropdown} onMouseLeave={closeDropdown}>
+            <div style={dropdownPanelStyle(dropdownOpen)} onMouseEnter={openDropdown} onMouseLeave={closeDropdown}>
               {dropdownLinks.map((item, i) => (
-                <a key={item.href} href={item.href} onClick={() => setDropdownOpen(false)}
-                  style={{
-                    display: 'block', padding: '11px 20px', fontSize: 12,
-                    fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase',
-                    textDecoration: 'none',
-                    color: window.location.pathname === item.href ? '#0073f4' : '#000e91',
-                    borderTop: i > 0 ? '1px solid rgba(0,14,145,0.08)' : 'none',
-                    transition: 'background 0.15s, color 0.15s',
-                  }}
+                <a key={item.href} href={item.href} onClick={() => setDropdownOpen(false)} style={{
+                  display: 'block', padding: '11px 20px', fontSize: 12,
+                  fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase',
+                  textDecoration: 'none',
+                  color: window.location.pathname === item.href ? '#0073f4' : '#000e91',
+                  borderTop: i > 0 ? '1px solid rgba(0,14,145,0.08)' : 'none',
+                  transition: 'background 0.15s, color 0.15s',
+                }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#f0f4ff'; e.currentTarget.style.color = '#0073f4' }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = window.location.pathname === item.href ? '#0073f4' : '#000e91' }}>
                   {item.label}
@@ -261,23 +259,21 @@ const Navbar = () => {
           </li>
         </ul>
 
-        {/* ── BOUTON S'INSCRIRE ── */}
+        {/* BOUTON S'INSCRIRE */}
         <div className="nav-cta">
-          <button
-            onClick={handleInscription}
-            style={{
-              background: '#FFFFFF', color: '#000e91',
-              border: 'none', padding: '11px 22px', borderRadius: 6,
-              fontFamily: 'Roboto, sans-serif', fontWeight: 700, fontSize: 12,
-              letterSpacing: 1.5, textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.3s',
-            }}
+          <button onClick={handleInscription} style={{
+            background: '#FFFFFF', color: '#000e91', border: 'none',
+            padding: '11px 22px', borderRadius: 6, fontFamily: 'Roboto, sans-serif',
+            fontWeight: 700, fontSize: 12, letterSpacing: 1.5,
+            textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.3s',
+          }}
             onMouseEnter={e => { e.currentTarget.style.background = '#0073f4'; e.currentTarget.style.color = '#FFFFFF' }}
             onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#000e91' }}>
             S'inscrire
           </button>
         </div>
 
-        {/* ── BURGER MOBILE ── */}
+        {/* BURGER */}
         <button className="burger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu"
           style={{ background: 'none', border: 'none', cursor: 'pointer', flexDirection: 'column', gap: 5, padding: 4 }}>
           <span style={{ width: 25, height: 2.5, background: '#FFFFFF', display: 'block', transition: 'all 0.3s', transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none' }} />
@@ -286,7 +282,7 @@ const Navbar = () => {
         </button>
       </nav>
 
-      {/* ══════════ MENU MOBILE ══════════ */}
+      {/* MENU MOBILE */}
       <div className="mobile-menu" style={{
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
         background: '#000e91',
@@ -303,22 +299,22 @@ const Navbar = () => {
         <div style={{ padding: '0 24px' }}>
 
           {!isHome && (
-            <a href="/" onClick={closeMobileMenu} style={mobileItemStyle()}>← Accueil</a>
+            <a href="/" style={mobileItemStyle()}>← Accueil</a>
           )}
 
           {isHome && (
-            <Link to="about" smooth duration={600} offset={-80} onClick={closeMobileMenu} style={mobileItemStyle()}>
+            <button onClick={() => handleSection('about')} style={{ ...mobileItemStyle(), background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
               À Propos
-            </Link>
+            </button>
           )}
 
           {isHome && (
             <div>
-              <button onClick={() => setMobileConferenceOpen(prev => !prev)} style={{
+              <button onClick={() => setMobileConferenceOpen(p => !p)} style={{
                 ...mobileItemStyle(), display: 'flex', alignItems: 'center',
                 justifyContent: 'space-between', width: '100%',
                 background: 'none', border: 'none', padding: 0,
-                borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
+                borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'inherit',
               }}>
                 <span>Conférence</span>
                 <svg width="12" height="12" viewBox="0 0 10 10" fill="none"
@@ -328,27 +324,29 @@ const Navbar = () => {
               </button>
               <div style={{ maxHeight: mobileConferenceOpen ? '300px' : '0', overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
                 {conferenceLinks.map(item => (
-                  <Link key={item.to} to={item.to} smooth duration={600} offset={-80}
-                    onClick={closeMobileMenu} style={mobileSubItemStyle()}>
+                  <button key={item.id} onClick={() => handleSection(item.id)} style={{
+                    ...mobileSubItemStyle(), background: 'none', border: 'none',
+                    width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit',
+                  }}>
                     {item.label}
-                  </Link>
+                  </button>
                 ))}
               </div>
             </div>
           )}
 
           {isHome && (
-            <Link to="inscription" smooth duration={600} offset={-80} onClick={closeMobileMenu} style={mobileItemStyle()}>
+            <button onClick={handleContact} style={{ ...mobileItemStyle(), background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
               Contact
-            </Link>
+            </button>
           )}
 
           <div>
-            <button onClick={() => setMobilePartenairesOpen(prev => !prev)} style={{
+            <button onClick={() => setMobilePartenairesOpen(p => !p)} style={{
               ...mobileItemStyle(), display: 'flex', alignItems: 'center',
               justifyContent: 'space-between', width: '100%',
               background: 'none', border: 'none', padding: 0,
-              borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer',
+              borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'inherit',
             }}>
               <span>Partenaires</span>
               <svg width="12" height="12" viewBox="0 0 10 10" fill="none"
@@ -366,16 +364,13 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Bouton S'inscrire mobile */}
-          <button
-            onClick={handleInscription}
-            style={{
-              display: 'block', width: '100%', marginTop: 24,
-              background: '#0073f4', color: '#FFFFFF', border: 'none',
-              padding: '16px', borderRadius: 8, fontFamily: 'Roboto',
-              fontWeight: 700, fontSize: 14, letterSpacing: 2,
-              textTransform: 'uppercase', cursor: 'pointer',
-            }}>
+          <button onClick={handleInscription} style={{
+            display: 'block', width: '100%', marginTop: 24,
+            background: '#0073f4', color: '#FFFFFF', border: 'none',
+            padding: '16px', borderRadius: 8, fontFamily: 'Roboto',
+            fontWeight: 700, fontSize: 14, letterSpacing: 2,
+            textTransform: 'uppercase', cursor: 'pointer',
+          }}>
             S'inscrire Maintenant
           </button>
         </div>
@@ -397,7 +392,6 @@ const Navbar = () => {
   )
 }
 
-// ─── Styles mobile réutilisables ─────────────────────────────────────────────
 const mobileItemStyle = () => ({
   display: 'block', color: 'rgba(255,255,255,0.9)',
   fontSize: 16, fontWeight: 600, letterSpacing: 1.2,
