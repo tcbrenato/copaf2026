@@ -13,6 +13,7 @@ import Partners from './components/Partners'
 import { useAnalytics } from './useAnalytics'
 import Partenariats from './pages/Partenariats'
 import ExpositionDigitale from './pages/ExpositionDigitale'
+import VisiterExposition from './pages/VisiterExposition'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -65,6 +66,7 @@ function App() {
         <Route path="/partenariats"        element={<Partenariats />} />
         <Route path="/exposition-digitale" element={<ExpositionDigitale />} />
         <Route path="/admin"               element={<AdminDashboard />} />
+        <Route path="/visiter" element={<VisiterExposition />} />
       </Routes>
     </Router>
   )

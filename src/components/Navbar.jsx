@@ -101,7 +101,9 @@ const Navbar = () => {
   const dropdownLinks = [
     { label: 'Partenariats',        href: '/partenariats' },
     { label: 'Exposition Digitale', href: '/exposition-digitale' },
-  ]
+  { label: 'Visiter',             href: '/visiter' },  // ← ajouter
+]
+
 
   const isDropdownActive = dropdownLinks.some(l => window.location.pathname === l.href)
   const logoHeight       = scrolled ? 36 : 44
