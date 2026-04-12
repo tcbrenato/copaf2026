@@ -17,18 +17,27 @@ function getUtmParams() {
 async function getOrCreateSession() {
   const existing = sessionStorage.getItem(SESSION_KEY)
   if (existing) return existing
+
+  // api.country.is est compatible CORS — remplace ipapi.co
   let country = null
   try {
-    const r = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(2000) })
+    const r = await fetch('https://api.country.is/', { signal: AbortSignal.timeout(2000) })
     const d = await r.json()
-    country = d.country_name || null
+    country = d.country || null
   } catch {}
+
   const contactId = localStorage.getItem(CONTACT_KEY) || null
   const { data, error } = await supabase
     .from('sessions')
-    .insert([{ contact_id: contactId, user_agent: navigator.userAgent.slice(0, 200), country, page_count: 0 }])
+    .insert([{
+      contact_id: contactId,
+      user_agent: navigator.userAgent.slice(0, 200),
+      country,
+      page_count: 0,
+    }])
     .select('id')
     .single()
+
   if (error || !data) return null
   sessionStorage.setItem(SESSION_KEY, data.id)
   return data.id
@@ -36,7 +45,10 @@ async function getOrCreateSession() {
 
 async function pingSession(sessionId) {
   if (!sessionId) return
-  await supabase.from('sessions').update({ ended_at: new Date().toISOString() }).eq('id', sessionId)
+  await supabase
+    .from('sessions')
+    .update({ ended_at: new Date().toISOString() })
+    .eq('id', sessionId)
 }
 
 export function useAnalytics() {
@@ -55,10 +67,10 @@ export function useAnalytics() {
       if (!sessionId) return
       const contactId = localStorage.getItem(CONTACT_KEY) || null
       await supabase.from('page_views').insert([{
-        session_id: sessionId,
-        contact_id: contactId,
-        path: location.pathname,
-        referrer: document.referrer || null,
+        session_id:  sessionId,
+        contact_id:  contactId,
+        path:        location.pathname,
+        referrer:    document.referrer || null,
         time_on_page: 0,
         ...getUtmParams(),
       }])
@@ -71,19 +83,47 @@ export function useAnalytics() {
   const trackEvent = useCallback(async (category, action, label = null, value = null, metadata = {}) => {
     const sessionId = sessionRef.current
     const contactId = localStorage.getItem(CONTACT_KEY) || null
-    await supabase.from('events').insert([{ session_id: sessionId, contact_id: contactId, category, action, label, value, metadata }])
+    await supabase.from('events').insert([{
+      session_id: sessionId,
+      contact_id: contactId,
+      category,
+      action,
+      label,
+      value,
+      metadata,
+    }])
   }, [])
 
   const identifyContact = useCallback(async (contactId) => {
     if (!contactId) return
     localStorage.setItem(CONTACT_KEY, contactId)
     const sessionId = sessionRef.current
-    if (sessionId) await supabase.from('sessions').update({ contact_id: contactId }).eq('id', sessionId)
+    if (sessionId) {
+      await supabase
+        .from('sessions')
+        .update({ contact_id: contactId })
+        .eq('id', sessionId)
+    }
   }, [])
 
-  const trackFormStart  = useCallback((formName) => trackEvent('inscription', 'form_start', formName), [trackEvent])
-  const trackConversion = useCallback(async (type, label = null, value = null) => await trackEvent('conversion', 'form_submit', label || type, value), [trackEvent])
-  const trackClick      = useCallback((label, metadata = {}) => trackEvent('engagement', 'click', label, null, metadata), [trackEvent])
+  const trackFormStart  = useCallback((formName) =>
+    trackEvent('inscription', 'form_start', formName),
+  [trackEvent])
 
-  return { trackEvent, trackConversion, trackFormStart, trackClick, identifyContact, sessionId: sessionRef.current }
+  const trackConversion = useCallback(async (type, label = null, value = null) =>
+    await trackEvent('conversion', 'form_submit', label || type, value),
+  [trackEvent])
+
+  const trackClick = useCallback((label, metadata = {}) =>
+    trackEvent('engagement', 'click', label, null, metadata),
+  [trackEvent])
+
+  return {
+    trackEvent,
+    trackConversion,
+    trackFormStart,
+    trackClick,
+    identifyContact,
+    sessionId: sessionRef.current,
+  }
 }
