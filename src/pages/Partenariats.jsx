@@ -3,6 +3,9 @@ import { useLocation } from 'react-router-dom'
 import { supabase } from '../supabase'
 import Navbar from '../components/Navbar'
 
+// ─── SHEET URL ────────────────────────────────────────────────────────────────
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
+
 // ─── ICONES SVG ──────────────────────────────────────────────────────────────
 const Ico = ({ name, size = 18, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
@@ -31,10 +34,6 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
   }
   return icons[name] || null
 }
-
-// ─── COULEURS CHARTE COPAF ────────────────────────────────────────────────────
-// Uniquement : #000E91 (bleu foncé), #0073F4 (bleu vif)
-// Variantes claires : rgba(0,14,145,X) et rgba(0,115,244,X)
 
 const SPONSORS = [
   {
@@ -197,20 +196,14 @@ function OptionCard({ item, selected, onSelect, isMobile }) {
       onMouseEnter={e => { if (!isMobile && !isSelected) e.currentTarget.style.boxShadow = `0 8px 24px ${item.color}18` }}
       onMouseLeave={e => { if (!isMobile && !isSelected) e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,.05)' }}
     >
-      {/* Barre top */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: item.color, borderRadius: '16px 16px 0 0', opacity: isSelected ? 1 : 0.3 }} />
-
-      {/* Check desktop */}
       {isSelected && !isMobile && (
         <div style={{ position: 'absolute', top: 14, right: 14, width: 24, height: 24, borderRadius: '50%', background: item.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Ico name="check" size={12} color="#fff" />
         </div>
       )}
-
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginTop: 8 }}>
         <div style={{ flex: 1 }}>
-          {/* Icone + badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: item.color + '15', border: `1.5px solid ${item.color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <Ico name={item.icon} size={18} color={item.color} />
@@ -221,21 +214,16 @@ function OptionCard({ item, selected, onSelect, isMobile }) {
               </div>
             )}
           </div>
-
           <div style={{ fontSize: 11, fontWeight: 800, color: item.color, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>{item.short || item.label}</div>
           <div style={{ fontSize: isMobile ? 20 : 26, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>{item.price}</div>
           <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>participation unique</div>
         </div>
-
-        {/* Fleche mobile */}
         {isMobile && (
           <div style={{ width: 32, height: 32, borderRadius: '50%', background: isSelected ? item.color : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'transform .25s', transform: open ? 'rotate(180deg)' : 'none' }}>
             <Ico name="chevDown" size={16} color={isSelected ? '#fff' : '#64748b'} />
           </div>
         )}
       </div>
-
-      {/* Detail */}
       {(!isMobile || open) && (
         <div style={{ marginTop: 16 }}>
           {item.desc && <p style={{ fontSize: 13, color: '#64748b', marginBottom: 14, lineHeight: 1.65 }}>{item.desc}</p>}
@@ -307,6 +295,28 @@ export default function Partenariats() {
       const plan = SPONSORS.find(s => s.id === selectedOption)
       const contactId = await upsertContact({ email: formSponsor.email, nom: formSponsor.contact, telephone: formSponsor.telephone, organisation: formSponsor.organisation, pays: formSponsor.pays, source: 'sponsor' })
       await createSponsorship({ contactId, type: 'sponsor', niveau: selectedOption, montant: plan?.montant || null, message: formSponsor.message })
+
+      // ─── Envoi Google Sheets ───────────────────────────────────────────────
+      fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type:         'sponsor',
+          prenom:       formSponsor.contact,
+          nom:          '',
+          email:        formSponsor.email,
+          telephone:    formSponsor.telephone,
+          organisation: formSponsor.organisation,
+          poste:        '',
+          pays:         formSponsor.pays,
+          participants: 1,
+          montant:      plan?.price || selectedOption,
+          dossier:      'SPONSOR-' + Date.now(),
+          paiement:     selectedOption
+        })
+      }).catch(() => {})
+
       setDoneSponsor(true)
     } catch (err) { setErrorSponsor('Erreur : ' + err.message) }
     setLoadingSponsor(false)
@@ -320,6 +330,28 @@ export default function Partenariats() {
       const plan = PARTENAIRES.find(p => p.id === selectedOption)
       const contactId = await upsertContact({ email: formStrat.email, nom: formStrat.contact, telephone: formStrat.telephone, organisation: formStrat.organisation, pays: formStrat.pays, source: 'partenaire' })
       await createSponsorship({ contactId, type: 'partenaire_strategique', niveau: selectedOption, montant: plan?.montant || null, typeInstitution: formStrat.type_institution, message: formStrat.message })
+
+      // ─── Envoi Google Sheets ───────────────────────────────────────────────
+      fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type:         'partenaire_strategique',
+          prenom:       formStrat.contact,
+          nom:          '',
+          email:        formStrat.email,
+          telephone:    formStrat.telephone,
+          organisation: formStrat.organisation,
+          poste:        formStrat.type_institution,
+          pays:         formStrat.pays,
+          participants: 1,
+          montant:      plan?.price || selectedOption,
+          dossier:      'PART-' + Date.now(),
+          paiement:     selectedOption
+        })
+      }).catch(() => {})
+
       setDoneStrat(true)
     } catch (err) { setErrorStrat('Erreur : ' + err.message) }
     setLoadingStrat(false)
@@ -336,7 +368,6 @@ export default function Partenariats() {
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#0f172a', backgroundImage: 'url(/bg2.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', position: 'relative' }}>
 
-      {/* Overlay global bg2 */}
       <div style={{ position: 'fixed', inset: 0, background: 'rgba(248,250,255,0.93)', zIndex: 0, pointerEvents: 'none' }} />
 
       <div style={{ position: 'relative', zIndex: 1 }}>
@@ -364,7 +395,6 @@ export default function Partenariats() {
           @media(max-width:768px){ input,select,textarea { font-size:16px !important; } }
         `}</style>
 
-        {/* ── HERO ── */}
         <div style={{ backgroundImage: 'url(/bg2.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', position: 'relative', overflow: 'hidden', padding: isMobile ? '80px 20px 52px' : 'clamp(100px,14vw,160px) clamp(24px,5vw,64px) clamp(64px,8vw,110px)', textAlign: 'center' }}>
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,14,145,0.88)' }} />
           <div style={{ position: 'absolute', top: -80, right: -80, width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,.05)', pointerEvents: 'none' }} />
@@ -375,7 +405,6 @@ export default function Partenariats() {
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0073F4', flexShrink: 0 }} />
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', color: '#fff' }}>COPAF 2026 &middot; Maroc</span>
             </div>
-
             <h1 style={{ fontSize: 'clamp(26px,7vw,58px)', fontWeight: 900, color: '#fff', marginBottom: 14, lineHeight: 1.08, letterSpacing: '-0.03em' }}>
               Sponsors &amp;{' '}
               <span style={{ color: 'rgba(255,255,255,.65)' }}>Partenaires</span>
@@ -383,7 +412,6 @@ export default function Partenariats() {
             <p style={{ fontSize: 'clamp(13px,3vw,17px)', color: 'rgba(255,255,255,.8)', maxWidth: 540, margin: '0 auto 28px', lineHeight: 1.8 }}>
               Associez votre organisation a la premiere conference africaine sur les ports et la logistique maritime.
             </p>
-
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
               {['500+ Participants', '25+ Pays', '3 Jours', 'Maroc 2026'].map((s, i) => (
                 <div key={i} style={{ background: 'rgba(255,255,255,.12)', border: '1px solid rgba(255,255,255,.2)', borderRadius: 100, padding: '6px 14px', fontSize: 11, fontWeight: 600, color: '#fff' }}>{s}</div>
@@ -392,10 +420,8 @@ export default function Partenariats() {
           </div>
         </div>
 
-        {/* ── CORPS ── */}
         <div style={{ padding: isMobile ? '36px 16px 60px' : 'clamp(40px,6vw,80px) clamp(20px,5vw,60px)', maxWidth: 1200, margin: '0 auto' }}>
 
-          {/* TABS */}
           <div style={{ maxWidth: 520, margin: '0 auto 48px', textAlign: 'center' }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', color: '#94a3b8', marginBottom: 14 }}>
               Choisissez votre type de partenariat
@@ -413,7 +439,6 @@ export default function Partenariats() {
             </div>
           </div>
 
-          {/* ── SPONSORS ── */}
           {activeSection === 'sponsor' && (
             <div className="fade-up">
               <div style={{ textAlign: 'center', marginBottom: isMobile ? 20 : 32 }}>
@@ -425,8 +450,6 @@ export default function Partenariats() {
                   {isMobile ? 'Touchez une carte pour selectionner et voir les avantages.' : 'Cliquez sur un niveau pour le selectionner, puis remplissez le formulaire.'}
                 </p>
               </div>
-
-              {/* Pills desktop */}
               {!isMobile && (
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
                   {SPONSORS.map(s => (
@@ -437,12 +460,9 @@ export default function Partenariats() {
                   ))}
                 </div>
               )}
-
               <div className="options-grid-4" style={{ marginBottom: 40 }}>
                 {SPONSORS.map(item => <OptionCard key={item.id} item={item} selected={selectedOption} onSelect={setSelectedOption} isMobile={isMobile} />)}
               </div>
-
-              {/* Formulaire sponsor */}
               <div style={{ maxWidth: 640, margin: '0 auto' }}>
                 <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 24, padding: isMobile ? '24px 18px' : '44px', boxShadow: '0 8px 40px rgba(0,14,145,.08)' }}>
                   {doneSponsor ? <SuccessBlock contact={formSponsor.contact} /> : (
@@ -478,7 +498,6 @@ export default function Partenariats() {
             </div>
           )}
 
-          {/* ── PARTENAIRES STRATEGIQUES ── */}
           {activeSection === 'strategique' && (
             <div className="fade-up">
               <div style={{ textAlign: 'center', marginBottom: isMobile ? 20 : 32 }}>
@@ -490,7 +509,6 @@ export default function Partenariats() {
                   {isMobile ? 'Touchez une carte pour selectionner et voir les avantages.' : 'Cliquez sur un niveau pour le selectionner, puis remplissez le formulaire.'}
                 </p>
               </div>
-
               {!isMobile && (
                 <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 24, flexWrap: 'wrap' }}>
                   {PARTENAIRES.map(p => (
@@ -501,12 +519,9 @@ export default function Partenariats() {
                   ))}
                 </div>
               )}
-
               <div className="options-grid-2" style={{ maxWidth: 900, margin: '0 auto 40px' }}>
                 {PARTENAIRES.map(item => <OptionCard key={item.id} item={item} selected={selectedOption} onSelect={setSelectedOption} isMobile={isMobile} />)}
               </div>
-
-              {/* Formulaire partenaire */}
               <div style={{ maxWidth: 640, margin: '0 auto' }}>
                 <div style={{ background: '#fff', border: '1.5px solid rgba(0,14,145,.12)', borderRadius: 24, padding: isMobile ? '24px 18px' : '44px', boxShadow: '0 8px 40px rgba(0,14,145,.10)' }}>
                   {doneStrat ? <SuccessBlock contact={formStrat.contact} /> : (

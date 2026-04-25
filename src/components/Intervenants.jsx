@@ -53,8 +53,8 @@ const intervenants = [
 
 const categorieStyle = {
   Conférencier: { bg: '#e8ecff', color: '#000e91' },
-  Panelistes:  { bg: '#e8f6ff', color: '#005fa3' },
-  Expert:        { bg: '#fff4e8', color: '#a35f00' },
+  Panelistes:   { bg: '#e8f6ff', color: '#005fa3' },
+  Expert:       { bg: '#fff4e8', color: '#a35f00' },
 }
 
 const filtres = ['Tous', 'Conférencier', 'Panelistes', 'Expert']
@@ -69,10 +69,23 @@ const Intervenants = () => {
   return (
     <section id="formateurs" style={{
       padding: 'clamp(80px, 10vw, 130px) clamp(20px, 5vw, 80px)',
-      background: '#f8f9ff',
       fontFamily: "'Roboto', 'Helvetica Neue', sans-serif",
+      position: 'relative',
+      overflow: 'hidden',
+      backgroundImage: 'url(/bg2.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
     }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+
+      {/* Overlay */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'rgba(248,249,255,0.90)',
+        zIndex: 0,
+      }} />
+
+      <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
         {/* En-tête */}
         <div style={{ textAlign: 'center', marginBottom: 56 }}>
@@ -84,12 +97,12 @@ const Intervenants = () => {
             COPAF 2026
           </div>
           <h2 style={{
-            fontFamily: "'Cormorant Garamond', Georgia, serif",
             fontSize: 'clamp(32px, 4vw, 52px)',
-            fontWeight: 700,
+            fontWeight: 900,
             color: '#000e91',
             margin: '0 0 18px',
             lineHeight: 1.1,
+            letterSpacing: '-0.02em',
           }}>
             Intervenants
           </h2>
@@ -115,12 +128,13 @@ const Intervenants = () => {
                 padding: '8px 22px',
                 borderRadius: 30,
                 border: actif === f ? '2px solid #000e91' : '2px solid rgba(0,14,145,0.15)',
-                background: actif === f ? '#000e91' : 'transparent',
+                background: actif === f ? '#000e91' : 'rgba(255,255,255,0.85)',
                 color: actif === f ? '#FFFFFF' : '#000e91',
                 fontSize: 12, fontWeight: 700,
                 letterSpacing: 1.2, textTransform: 'uppercase',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
+                backdropFilter: 'blur(4px)',
               }}
             >
               {f}
@@ -140,7 +154,8 @@ const Intervenants = () => {
               <div
                 key={i}
                 style={{
-                  background: '#FFFFFF',
+                  background: 'rgba(255,255,255,0.92)',
+                  backdropFilter: 'blur(10px)',
                   borderRadius: 16,
                   overflow: 'hidden',
                   border: '1px solid rgba(0,14,145,0.08)',
@@ -151,7 +166,7 @@ const Intervenants = () => {
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.transform = 'translateY(-5px)'
-                  e.currentTarget.style.boxShadow = '0 12px 36px rgba(0,14,145,0.13)'
+                  e.currentTarget.style.boxShadow = '0 16px 40px rgba(0,14,145,0.14)'
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.transform = 'translateY(0)'
@@ -170,7 +185,6 @@ const Intervenants = () => {
                       background: 'linear-gradient(135deg, #000e91, #0073f4)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: '#FFFFFF', fontSize: 18, fontWeight: 700,
-                      fontFamily: "'Cormorant Garamond', serif",
                       letterSpacing: 1, flexShrink: 0,
                     }}>
                       {p.initiales}
@@ -188,9 +202,9 @@ const Intervenants = () => {
 
                   {/* Nom & titre */}
                   <h3 style={{
-                    fontFamily: "'Cormorant Garamond', Georgia, serif",
-                    fontSize: 22, fontWeight: 700,
+                    fontSize: 22, fontWeight: 800,
                     color: '#000e91', margin: '0 0 4px', lineHeight: 1.2,
+                    letterSpacing: '-0.01em',
                   }}>
                     {p.nom}
                   </h3>

@@ -98,12 +98,12 @@ const Navbar = () => {
     { label: 'Intervenants', id: 'formateurs' },
   ]
 
+  // ✅ CORRIGÉ : virgule mal placée supprimée
   const dropdownLinks = [
     { label: 'Partenariats',        href: '/partenariats' },
     { label: 'Exposition Digitale', href: '/exposition-digitale' },
-  { label: 'Visiter',             href: '/visiter' },  // ← ajouter
-]
-
+    { label: 'Visiter',             href: '/visiter' },
+  ]
 
   const isDropdownActive = dropdownLinks.some(l => window.location.pathname === l.href)
   const logoHeight       = scrolled ? 36 : 44
@@ -139,7 +139,7 @@ const Navbar = () => {
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
       }}>
 
-        {/* LOGOS - LIENS SUPPRIMÉS POUR CRF ET AGPAOC */}
+        {/* LOGOS */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 15,
           padding: '8px 20px', background: '#FFFFFF', borderRadius: 10,
@@ -148,9 +148,9 @@ const Navbar = () => {
           <div style={{ display: 'flex' }}>
             <img src="/logocrf.png" alt="CRF" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
           </div>
-          
+
           <div style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)' }} />
-          
+
           <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
@@ -164,9 +164,9 @@ const Navbar = () => {
               </div>
             </div>
           </a>
-          
+
           <div style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)' }} />
-          
+
           <div style={{ display: 'flex' }}>
             <img src="/logoagpaoc.png" alt="AGPAOC" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
           </div>
@@ -279,6 +279,7 @@ const Navbar = () => {
         </button>
       </nav>
 
+      {/* MENU MOBILE */}
       <div className="mobile-menu" style={{
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
         background: '#000e91',
@@ -403,4 +404,4 @@ const mobileSubItemStyle = (active = false) => ({
   borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer',
 })
 
-export default Navbar;
+export default Navbar

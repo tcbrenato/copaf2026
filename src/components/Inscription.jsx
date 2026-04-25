@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import emailjs from '@emailjs/browser'
 
-const SHEET_URL     = 'https://script.google.com/macros/s/AKfycbyLClkSCepqlUnoshI8D01U_G4'
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
 const PRIX_UNITAIRE = 3500
 const EMAILJS_SVC   = 'service_x07g4et'
 const EMAILJS_TPL   = 'template_7wrkmm1'

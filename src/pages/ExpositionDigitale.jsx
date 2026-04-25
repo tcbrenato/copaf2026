@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabase'
 import Navbar from '../components/Navbar'
 
+// ─── SHEET URL ────────────────────────────────────────────────────────────────
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
+
 // ─── ICONES SVG ──────────────────────────────────────────────────────────────
 const Ico = ({ name, size = 20, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
@@ -215,6 +218,28 @@ export default function ExpositionDigitale() {
     try {
       const contactId = await upsertContact({ email: formData.email, nom: formData.name, telephone: formData.phone, organisation: formData.company, secteur: formData.sector })
       await createExposant({ contactId, entreprise: formData.company, secteur: formData.sector, forfait: selectedPlan, goals: formData.goals })
+
+      // ─── Envoi Google Sheets ───────────────────────────────────────────────
+      fetch(SHEET_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type:         'exposant',
+          prenom:       formData.name,
+          nom:          '',
+          email:        formData.email,
+          telephone:    formData.phone,
+          organisation: formData.company,
+          poste:        formData.sector,
+          pays:         '',
+          participants: 1,
+          montant:      selectedPlan,
+          dossier:      'EXPO-' + Date.now(),
+          paiement:     selectedPlan
+        })
+      }).catch(() => {})
+
       setFormSent(true)
     } catch (err) { setFormError('Erreur : ' + err.message) }
     setLoading(false)
@@ -290,16 +315,13 @@ export default function ExpositionDigitale() {
         @media(max-width:768px){ input,select,textarea { font-size:16px !important; } }
       `}</style>
 
-      {/* ── NAVBAR ── */}
       <Navbar />
 
-      {/* ── FLOAT CTA ── */}
       <button className={`float-cta ${floatVisible ? 'show' : ''}`} onClick={() => scrollTo('inscription')}>
         Reserver ma place
         <Ico name="arrowRight" size={16} color="#fff" />
       </button>
 
-      {/* ══════════ HERO ══════════ */}
       <section style={{
         minHeight: '100vh',
         display: 'flex', alignItems: 'center',
@@ -310,25 +332,20 @@ export default function ExpositionDigitale() {
         backgroundRepeat: 'no-repeat',
         position: 'relative', overflow: 'hidden', textAlign: 'center',
       }}>
-        {/* Overlay propre */}
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(1px)' }} />
-
         <div style={{ maxWidth: 680, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <div className="fade-up" style={{ display: 'inline-block', padding: '7px 18px', background: 'rgba(0,115,244,.1)', color: '#0073F4', borderRadius: 100, fontSize: 10, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 24 }}>
             TANGER MED &middot; MAROC &middot; 2026
           </div>
-
           <h1 className="fade-up-1" style={{ fontSize: 'clamp(30px,7vw,62px)', fontWeight: 900, color: '#000E91', marginBottom: 20, lineHeight: 1.05, letterSpacing: '-0.03em' }}>
             L'Exposition{' '}
             <span style={{ background: 'linear-gradient(135deg,#0073F4,#000E91)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               100% Digitale
             </span>
           </h1>
-
           <p className="fade-up-2" style={{ color: '#475569', fontSize: 'clamp(15px,2.5vw,18px)', lineHeight: 1.8, marginBottom: 40, maxWidth: 540, margin: '0 auto 40px' }}>
             Votre technologie directement dans les mains des decideurs portuaires — sans stand, sans logistique, avec plus d'impact.
           </p>
-
           <div className="fade-up-3" style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn-primary" onClick={() => scrollTo('inscription')}>
               Reserver ma place
@@ -339,7 +356,6 @@ export default function ExpositionDigitale() {
         </div>
       </section>
 
-      {/* ── STATS BAR ── */}
       <div style={{ background: '#000E91', padding: 'clamp(24px,4vw,40px) clamp(16px,5vw,60px)', display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, textAlign: 'center' }}>
         {STATS.map((s, i) => (
           <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
@@ -352,7 +368,6 @@ export default function ExpositionDigitale() {
         ))}
       </div>
 
-      {/* ── AVANTAGES ── */}
       <Section alt>
         <SectionHeader eyebrow="Pourquoi digital ?" title="5 raisons de choisir l'exposition digitale" />
         <div className="avantages-grid">
@@ -370,7 +385,6 @@ export default function ExpositionDigitale() {
         </div>
       </Section>
 
-      {/* ── COMPARAISON ── */}
       <Section>
         <SectionHeader eyebrow="Stand classique vs Digital" title="Un tableau qui convainc en 30 secondes" />
         <div style={{ overflowX: 'auto', borderRadius: 18, border: '1.5px solid #e2e8f0', background: '#fff', boxShadow: '0 4px 20px rgba(0,14,145,.06)' }}>
@@ -412,7 +426,6 @@ export default function ExpositionDigitale() {
         </div>
       </Section>
 
-      {/* ── 4 PILIERS ── */}
       <Section alt id="piliers">
         <SectionHeader eyebrow="Le dispositif" title="4 piliers pour une presence maximale" sub="Cliquez sur chaque pilier pour decouvrir les details." />
         <div className="piliers-grid">
@@ -435,7 +448,6 @@ export default function ExpositionDigitale() {
         </div>
       </Section>
 
-      {/* ── WORKFLOW ── */}
       <Section>
         <SectionHeader eyebrow="Le parcours exposant" title="5 etapes, de l'inscription au rapport" />
         <div style={{ maxWidth: 780, margin: '0 auto' }}>
@@ -458,7 +470,6 @@ export default function ExpositionDigitale() {
         </div>
       </Section>
 
-      {/* ── TARIFS ── */}
       <Section alt id="tarifs">
         <SectionHeader eyebrow="Nos formules" title="Choisissez votre niveau d'impact" sub="De la PME au leader mondial, un pack adapte a chaque strategie." />
         <div className="pricing-grid">
@@ -493,7 +504,6 @@ export default function ExpositionDigitale() {
         </div>
       </Section>
 
-      {/* ── TEMOIGNAGES ── */}
       <Section>
         <SectionHeader eyebrow="Ils nous font confiance" title="Ce que disent nos participants" />
         <div className="temo-grid">
@@ -515,7 +525,6 @@ export default function ExpositionDigitale() {
         </div>
       </Section>
 
-      {/* ── FAQ ── */}
       <Section alt>
         <SectionHeader eyebrow="Questions frequentes" title="Tout ce que vous devez savoir" />
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
@@ -533,7 +542,6 @@ export default function ExpositionDigitale() {
         </div>
       </Section>
 
-      {/* ── FORMULAIRE ── */}
       <section id="inscription" style={{ padding: 'clamp(56px,8vw,100px) clamp(16px,5vw,60px)', backgroundImage: 'url(/bg9.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,14,145,0.88)' }} />
         <div style={{ maxWidth: 640, margin: '0 auto', position: 'relative', zIndex: 1 }}>
@@ -552,7 +560,6 @@ export default function ExpositionDigitale() {
                   <h2 style={{ fontSize: 'clamp(20px,4vw,28px)', fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>Reservez votre exposition</h2>
                   <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.6 }}>Soumettez votre demande pour COPAF 2026. Notre equipe vous contacte sous 24h.</p>
                 </div>
-
                 <form onSubmit={submitForm} noValidate>
                   <div className="form-row-2">
                     <div><label style={lbl}>Entreprise *</label><input name="company" value={formData.company} onChange={handleField} required placeholder="Ex : Port Tech Solutions" style={inp('company')} {...foc('company')} autoComplete="organization" /></div>
@@ -577,13 +584,11 @@ export default function ExpositionDigitale() {
                     <label style={lbl}>Vos objectifs pour COPAF 2026</label>
                     <textarea name="goals" value={formData.goals} onChange={handleField} rows={3} placeholder="Ex : Trouver des partenaires en Afrique de l'Ouest, presenter notre solution..." style={{ ...inp('goals'), resize: 'vertical', minHeight: 80 }} {...foc('goals')} />
                   </div>
-
                   {formError && (
                     <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#dc2626', marginBottom: 18 }}>
                       {formError}
                     </div>
                   )}
-
                   <button type="submit" className="submit-btn" disabled={loading}>
                     {loading ? <><div className="spinner" />Envoi en cours...</> : <>Envoyer ma demande <Ico name="send" size={16} color="#fff" /></>}
                   </button>
@@ -595,12 +600,10 @@ export default function ExpositionDigitale() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
       <footer style={{ background: '#0a0f2c', padding: 'clamp(20px,4vw,32px) clamp(16px,5vw,60px)', textAlign: 'center', fontSize: 11, color: 'rgba(255,255,255,.3)', letterSpacing: 1, textTransform: 'uppercase', lineHeight: 1.8 }}>
         &copy; 2026 COPAF &mdash; Tanger Med &middot; Exposition 100% Digitale &middot; Tous droits reserves
       </footer>
 
-      {/* ── MODALE PILIER ── */}
       {activeModal && (
         <div className="modal-overlay" onClick={() => setActiveModal(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
