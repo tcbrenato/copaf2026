@@ -111,8 +111,7 @@ const Footer = () => {
           © 2026 COPAF — CRF Perfection. Tous droits réservés.
         </div>
         <div style={{ fontSize: 'clamp(11px, 1.6vw, 13px)', color: 'rgba(255,255,255,0.3)' }}>
-          Tanger Med (Maroc)
- · 15–17 Septembre 2026
+          Casablanca, Maroc · 15–17 Septembre 2026
         </div>
       </div>
 
