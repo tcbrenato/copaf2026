@@ -40,7 +40,7 @@ const jours = [
     sessions: [
       { heure: '09h00 – 10h30', titre: "Conférence d'ouverture", desc: "L'IA au cœur de la révolution du Smart Port. Panorama mondial et spécificités africaines.", icon: icons.mic, points: ["Panorama mondial des ports intelligents", "Spécificités du contexte africain", "Feuille de route de la conférence"] },
       { heure: '11h00 – 12h30', titre: 'Démystification technique', desc: 'Comprendre la Data, le Machine Learning et la Vision par Ordinateur sans jargon.', icon: icons.cpu, points: ["Data & Big Data expliqués simplement", "Machine Learning sans code", "Vision par Ordinateur appliquée aux ports"] },
-      { heure: '14h00 – 15h30', titre: 'Études de cas', desc: 'Succès et échecs des projets IA dans les ports de Tanger Med et Durban.', icon: icons.chart, points: ["Cas Tanger Med : déploiement IA", "Cas Durban : leçons des échecs", "Facteurs clés de succès identifiés"] },
+      { heure: '14h00 – 15h30', titre: 'Études de cas', desc: 'Succès et échecs des projets IA dans les ports africains et mondiaux.', icon: icons.chart, points: ["Cas concrets de déploiement IA en Afrique", "Leçons tirées des expériences internationales", "Facteurs clés de succès identifiés"] },
       { heure: '16h00 – 17h30', titre: 'Atelier de réflexion', desc: 'Diagnostic de maturité digitale de votre autorité portuaire.', icon: icons.search, points: ["Grille d'auto-évaluation digitale", "Cartographie des gaps technologiques", "Priorisation des chantiers urgents"] },
     ]
   },
@@ -264,7 +264,7 @@ const Programme = () => {
         {/* ── INFOS LOGISTIQUES ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16, marginTop: 40 }}>
           {[
-            { icon: icons.pin,   label: 'Lieu',    value: 'Tanger Med (Maroc)' },
+            { icon: icons.pin,   label: 'Lieu',    value: 'Casablanca, Maroc' },
             { icon: icons.cal,   label: 'Dates',   value: '15 – 17 Septembre 2026' },
             { icon: icons.globe, label: 'Langues', value: 'Français & Anglais (traduction simultanée)' },
           ].map((info, i) => (

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 const modules = [
   {
     num: "01",
-    titre: "Vision Stratégique & Smart Port",
+    titre: "IA & Logistique",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
         <circle cx="12" cy="12" r="3" />
@@ -11,9 +11,9 @@ const modules = [
       </svg>
     ),
     items: [
-      "L'IA comme levier de compétitivité dans la sous-région",
+      "Optimisation algorithmique pour une fluidification inédite des flux de conteneurs",
+      "Automatisation des opérations portuaires par l'Intelligence Artificielle",
       "Benchmarks mondiaux : Tanger Med, Singapour, Rotterdam",
-      "Élaboration d'une feuille de route digitale souveraine",
     ],
     color: "#0073f4",
     bg: "rgba(0,115,244,0.08)",
@@ -23,7 +23,27 @@ const modules = [
   },
   {
     num: "02",
-    titre: "Optimisation de la Chaîne Logistique",
+    titre: "Cybersécurité Portuaire",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        <polyline points="9 12 11 14 15 10" />
+      </svg>
+    ),
+    items: [
+      "Protection des actifs numériques et sécurisation des échanges douaniers",
+      "Faire face aux nouvelles menaces cyber dans les infrastructures critiques",
+      "Stratégies de résilience et de continuité d'activité portuaire",
+    ],
+    color: "#a78bfa",
+    bg: "rgba(167,139,250,0.08)",
+    stat: { value: "4", label: "Panels" },
+    duration: "6h",
+    level: "Expert",
+  },
+  {
+    num: "03",
+    titre: "Maintenance Prédictive & IoT",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
         <rect x="2" y="7" width="20" height="14" rx="2" />
@@ -33,9 +53,9 @@ const modules = [
       </svg>
     ),
     items: [
-      "IA Prédictive : anticiper l'arrivée des navires (Berth Planning)",
-      "Gestion des Terminaux (TOS) : rangement intelligent des conteneurs",
-      "Maintenance Prédictive par analyse vibratoire et thermique",
+      "Anticiper les défaillances pour garantir la disponibilité continue des infrastructures critiques",
+      "Capteurs IoT et analyse vibratoire pour la maintenance proactive",
+      "Réduction des coûts opérationnels grâce aux données temps réel",
     ],
     color: "#00b4d8",
     bg: "rgba(0,180,216,0.08)",
@@ -44,28 +64,8 @@ const modules = [
     level: "Opérationnel",
   },
   {
-    num: "03",
-    titre: "IA, Sûreté & Facilitation du Commerce",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        <polyline points="9 12 11 14 15 10" />
-      </svg>
-    ),
-    items: [
-      "Automatisation des Douanes : vision par ordinateur pour scanners",
-      "Fluidification de l'Hinterland : rendez-vous camions intelligents",
-      "Cyber sécurité : protéger les infrastructures critiques",
-    ],
-    color: "#a78bfa",
-    bg: "rgba(167,139,250,0.08)",
-    stat: { value: "4", label: "Panels" },
-    duration: "6h",
-    level: "Expert",
-  },
-  {
     num: "04",
-    titre: "Transition Énergétique & Port Vert",
+    titre: "Gouvernance Data-Driven",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
         <path d="M2 22a8 8 0 0 1 8-8h4a8 8 0 0 0 8-8V2" />
@@ -73,9 +73,9 @@ const modules = [
       </svg>
     ),
     items: [
-      "IA pour optimiser la consommation énergétique des terminaux",
-      "Gestion intelligente des déchets portuaires",
-      "Suivi de l'empreinte carbone en temps réel",
+      "Pilotage en temps réel et aide à la décision via des tableaux de bord prédictifs avancés",
+      "Structurer une gouvernance de la donnée souveraine et performante",
+      "KPIs portuaires intelligents pour une compétitivité continentale renforcée",
     ],
     color: "#10b981",
     bg: "rgba(16,185,129,0.08)",
@@ -86,13 +86,13 @@ const modules = [
 ];
 
 const objectifs = [
-  { num: "01", text: "Comprendre les fondamentaux de l'IA et de la data science" },
-  { num: "02", text: "Concevoir et structurer un projet IA adapté à la gestion portuaire" },
-  { num: "03", text: "Utiliser les données prédictives pour anticiper les flux" },
-  { num: "04", text: "Intégrer l'IA dans la gestion opérationnelle" },
-  { num: "05", text: "Identifier les gisements de productivité (temps d'attente, maintenance)" },
-  { num: "06", text: "Maîtriser la gouvernance de la donnée et la cyber sécurité" },
-  { num: "07", text: "Positionner le port comme maillon performant des corridors africains" },
+  { num: "01", text: "Comprendre les fondamentaux de l'IA et de la data science appliquée aux ports" },
+  { num: "02", text: "Concevoir et structurer un projet IA adapté à la gestion portuaire africaine" },
+  { num: "03", text: "Utiliser les données prédictives pour anticiper les flux logistiques" },
+  { num: "04", text: "Intégrer l'IA dans la gestion opérationnelle quotidienne des terminaux" },
+  { num: "05", text: "Identifier les gisements de productivité : temps d'attente, maintenance, congestion" },
+  { num: "06", text: "Maîtriser la gouvernance de la donnée et la cybersécurité portuaire" },
+  { num: "07", text: "Positionner le port comme maillon performant des corridors de commerce africains" },
 ];
 
 const CheckIcon = () => (
@@ -101,7 +101,6 @@ const CheckIcon = () => (
   </svg>
 );
 
-// Particules flottantes en SVG
 const FloatingParticles = () => (
   <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0 }} xmlns="http://www.w3.org/2000/svg">
     {[
@@ -113,18 +112,13 @@ const FloatingParticles = () => (
       { cx: "35%", cy: "92%", r: 1,   delay: 3.1 },
       { cx: "88%", cy: "55%", r: 2,   delay: 0.3 },
       { cx: "12%", cy: "45%", r: 1.5, delay: 2.0 },
-      { cx: "60%", cy: "88%", r: 1,   delay: 1.5 },
-      { cx: "45%", cy: "30%", r: 2,   delay: 0.9 },
     ].map((p, i) => (
       <circle key={i} cx={p.cx} cy={p.cy} r={p.r} fill="#0073f4" opacity="0.35">
-        <animate attributeName="cy" values={`${p.cy};calc(${p.cy} - 3%);${p.cy}`} dur={`${4 + i * 0.6}s`} repeatCount="indefinite" begin={`${p.delay}s`} />
         <animate attributeName="opacity" values="0.35;0.6;0.35" dur={`${3 + i * 0.4}s`} repeatCount="indefinite" begin={`${p.delay}s`} />
       </circle>
     ))}
-    {/* Lignes de connexion décoratives */}
     {[
       ["8%","15%","20%","80%"], ["92%","20%","75%","70%"], ["50%","5%","88%","55%"],
-      ["12%","45%","35%","92%"], ["45%","30%","60%","88%"],
     ].map(([x1,y1,x2,y2], i) => (
       <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#0073f4" strokeWidth="0.5" opacity="0.1" />
     ))}
@@ -136,10 +130,9 @@ const Modules = () => {
   const [progress,  setProgress]    = useState(0);
   const [animIn,    setAnimIn]      = useState(true);
   const [objVisible, setObjVisible] = useState(false);
-  const objRef = useRef(null);
+  const objRef   = useRef(null);
   const timerRef = useRef(null);
 
-  // Auto-avance des onglets toutes les 6s
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setAnimIn(false);
@@ -152,7 +145,6 @@ const Modules = () => {
     return () => clearInterval(timerRef.current);
   }, []);
 
-  // Barre de progression
   useEffect(() => {
     setProgress(0);
     const interval = setInterval(() => {
@@ -164,7 +156,6 @@ const Modules = () => {
     return () => clearInterval(interval);
   }, [activeTab]);
 
-  // Intersection observer pour objectifs
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([e]) => { if (e.isIntersecting) setObjVisible(true); },
@@ -210,9 +201,9 @@ const Modules = () => {
 
       <FloatingParticles />
 
-      <div style={{ position: "relative", maxWidth: 1280, margin: "0 auto", zIndex: 1 }}>
+      <div style={{ position: "relative", maxWidth: 1200, margin: "0 auto", zIndex: 1 }}>
 
-        {/* ── HEADER ── */}
+        {/* HEADER */}
         <div style={{ textAlign: "center", marginBottom: "clamp(48px, 7vw, 80px)" }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
@@ -221,29 +212,29 @@ const Modules = () => {
           }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#0073f4" }} />
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: "#0073f4" }}>
-              Programme Académique
+              Modules à Développer
             </span>
           </div>
 
           <h2 style={{
             fontSize: "clamp(28px, 4.5vw, 52px)",
             fontWeight: 800, lineHeight: 1.1,
-            letterSpacing: "-0.02em", color: "#fff",
-            marginBottom: 20,
+            letterSpacing: "-0.02em", color: "#fff", marginBottom: 20,
           }}>
-            4 Modules d'échanges lors de cette{" "}
+            4 Modules au cœur de la{" "}
             <span style={{
               background: "linear-gradient(135deg, #0073f4 0%, #00b4d8 100%)",
               WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-            }}>conférence</span>
+            }}>COPAF 2026</span>
           </h2>
 
-          <p style={{ fontSize: "clamp(14px, 1.8vw, 17px)", color: "rgba(255,255,255,0.5)", maxWidth: 540, margin: "0 auto", lineHeight: 1.8 }}>
-            Un cursus intensif conçu spécifiquement pour répondre aux défis technologiques des ports africains.
+          <p style={{ fontSize: "clamp(14px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", maxWidth: 560, margin: "0 auto", lineHeight: 1.8 }}>
+            Des modules thématiques conçus pour répondre aux défis technologiques
+            et opérationnels des ports africains d'aujourd'hui et de demain.
           </p>
         </div>
 
-        {/* ── ONGLETS NAVIGATION ── */}
+        {/* ONGLETS */}
         <div style={{
           display: "flex", gap: "clamp(8px, 1.5vw, 16px)",
           justifyContent: "center", flexWrap: "wrap",
@@ -261,45 +252,42 @@ const Modules = () => {
                 border: `1px solid ${activeTab === i ? mod.color : "rgba(255,255,255,0.1)"}`,
                 color: activeTab === i ? "#fff" : "rgba(255,255,255,0.5)",
                 fontWeight: 600, fontSize: "clamp(12px, 1.2vw, 14px)",
-                cursor: "pointer",
-                transition: "all 0.3s ease",
-                fontFamily: "inherit",
-                whiteSpace: "nowrap",
+                cursor: "pointer", transition: "all 0.3s ease",
+                fontFamily: "inherit", whiteSpace: "nowrap",
               }}
             >
               <span style={{ color: activeTab === i ? "#fff" : mod.color, display: "flex" }}>{mod.icon}</span>
-              <span className="tab-label">Module {mod.num}</span>
+              <span className="tab-label">{mod.titre}</span>
             </button>
           ))}
         </div>
 
-        {/* ── CONTENU MODULE ACTIF ── */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "clamp(20px, 3vw, 40px)",
-          marginBottom: "clamp(48px, 7vw, 80px)",
-          opacity: animIn ? 1 : 0,
-          transform: animIn ? "translateY(0)" : "translateY(16px)",
-          transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
-        }}
+        {/* CONTENU MODULE */}
+        <div
           className="module-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "clamp(20px, 3vw, 40px)",
+            marginBottom: "clamp(48px, 7vw, 80px)",
+            opacity: animIn ? 1 : 0,
+            transform: animIn ? "translateY(0)" : "translateY(16px)",
+            transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
+          }}
         >
-
-          {/* Panneau gauche : info principale */}
+          {/* Panneau gauche */}
           <div style={{
             background: "rgba(255,255,255,0.03)",
             border: `1px solid ${m.color}40`,
             borderRadius: 24, padding: "clamp(28px, 4vw, 48px)",
             position: "relative", overflow: "hidden",
           }}>
-            {/* Barre de progression top */}
+            {/* Barre progression */}
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "rgba(255,255,255,0.06)", borderRadius: "24px 24px 0 0" }}>
               <div style={{
                 height: "100%", width: `${progress}%`,
                 background: `linear-gradient(90deg, ${m.color}, ${m.color}99)`,
-                borderRadius: "24px 24px 0 0",
-                transition: "width 0.1s linear",
+                borderRadius: "24px 24px 0 0", transition: "width 0.1s linear",
               }} />
             </div>
 
@@ -310,7 +298,7 @@ const Modules = () => {
               color: `${m.color}0d`, userSelect: "none", pointerEvents: "none",
             }}>{m.num}</div>
 
-            {/* Icon + badge */}
+            {/* Icon + badges */}
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
               <div style={{
                 width: 56, height: 56, borderRadius: 16,
@@ -323,37 +311,29 @@ const Modules = () => {
                   Module {m.num}
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <span style={{
-                    fontSize: 11, fontWeight: 600, padding: "3px 10px",
-                    borderRadius: 20, background: `${m.color}20`, color: m.color,
-                  }}>{m.level}</span>
-                  <span style={{
-                    fontSize: 11, fontWeight: 600, padding: "3px 10px",
-                    borderRadius: 20, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)",
-                  }}>⏱ {m.duration}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: `${m.color}20`, color: m.color }}>{m.level}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}>⏱ {m.duration}</span>
                 </div>
               </div>
             </div>
 
             <h3 style={{
-              fontSize: "clamp(20px, 2.5vw, 28px)",
-              fontWeight: 800, color: "#fff",
-              lineHeight: 1.2, marginBottom: 24,
-              letterSpacing: "-0.01em",
+              fontSize: "clamp(20px, 2.5vw, 28px)", fontWeight: 800, color: "#fff",
+              lineHeight: 1.2, marginBottom: 24, letterSpacing: "-0.01em",
             }}>{m.titre}</h3>
 
             <div style={{ width: 40, height: 2, background: m.color, borderRadius: 2, marginBottom: 24, opacity: 0.6 }} />
 
-            {/* Items */}
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {m.items.map((item, j) => (
-                <div key={j} style={{
-                  display: "flex", gap: 12, alignItems: "flex-start",
-                  padding: "14px 16px",
-                  background: "rgba(255,255,255,0.03)",
-                  borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)",
-                  transition: "border-color 0.2s",
-                }}
+                <div key={j}
+                  style={{
+                    display: "flex", gap: 12, alignItems: "flex-start",
+                    padding: "14px 16px",
+                    background: "rgba(255,255,255,0.03)",
+                    borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)",
+                    transition: "border-color 0.2s",
+                  }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = `${m.color}40`}
                   onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"}
                 >
@@ -368,10 +348,9 @@ const Modules = () => {
             </div>
           </div>
 
-          {/* Panneau droit : stats + navigation visuelle */}
+          {/* Panneau droit */}
           <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 2vw, 24px)" }}>
 
-            {/* Stat card grande */}
             <div style={{
               background: `linear-gradient(135deg, ${m.color}22 0%, ${m.color}08 100%)`,
               border: `1px solid ${m.color}30`,
@@ -384,43 +363,37 @@ const Modules = () => {
                 position: "absolute", inset: 0,
                 background: `radial-gradient(circle at 50% 30%, ${m.color}15 0%, transparent 65%)`,
               }} />
-              <div style={{
-                fontSize: "clamp(52px, 7vw, 80px)", fontWeight: 900,
-                color: m.color, lineHeight: 1, marginBottom: 8, position: "relative",
-              }}>{m.stat.value}</div>
+              <div style={{ fontSize: "clamp(52px, 7vw, 80px)", fontWeight: 900, color: m.color, lineHeight: 1, marginBottom: 8, position: "relative" }}>
+                {m.stat.value}
+              </div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 2, position: "relative" }}>
                 {m.stat.label}
               </div>
-
-              {/* Indicateurs modules */}
               <div style={{ display: "flex", gap: 8, marginTop: 32, position: "relative" }}>
                 {modules.map((_, i) => (
                   <button key={i} onClick={() => handleTabClick(i)} style={{
-                    width: activeTab === i ? 28 : 8, height: 8,
-                    borderRadius: 4,
+                    width: activeTab === i ? 28 : 8, height: 8, borderRadius: 4,
                     background: activeTab === i ? m.color : "rgba(255,255,255,0.15)",
-                    border: "none", cursor: "pointer",
-                    transition: "all 0.3s ease",
-                    padding: 0,
+                    border: "none", cursor: "pointer", transition: "all 0.3s ease", padding: 0,
                   }} />
                 ))}
               </div>
             </div>
 
-            {/* Cards mini infos */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(12px, 1.5vw, 16px)" }}>
               {[
                 { label: "Format", value: "Présentiel" },
                 { label: "Langue", value: "FR / EN" },
                 { label: "Attestation", value: "Incluse" },
-                { label: "Accès replay", value: "6 mois" },
+                { label: "Support", value: "Tablette offerte" },
               ].map((info, i) => (
-                <div key={i} style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: 16, padding: "16px 18px",
-                  transition: "all 0.2s ease",
-                }}
+                <div key={i}
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: 16, padding: "16px 18px",
+                    transition: "all 0.2s ease",
+                  }}
                   onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = `${m.color}40`; }}
                   onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
                 >
@@ -429,12 +402,10 @@ const Modules = () => {
                 </div>
               ))}
             </div>
-
-
           </div>
         </div>
 
-        {/* ── OBJECTIFS ── */}
+        {/* OBJECTIFS */}
         <div ref={objRef} style={{
           background: "#fff",
           borderRadius: 28,
@@ -444,15 +415,14 @@ const Modules = () => {
         }}>
           <div style={{ textAlign: "center", marginBottom: "clamp(28px, 4vw, 44px)" }}>
             <h3 style={{
-              fontSize: "clamp(22px, 3.5vw, 38px)",
-              fontWeight: 900, color: "#0a1128",
+              fontSize: "clamp(22px, 3.5vw, 38px)", fontWeight: 900, color: "#0a1128",
               letterSpacing: "-0.02em", lineHeight: 1.15,
             }}>
-              Objectifs de la{" "}
-              <span style={{ color: "#0073f4" }}>conférence</span>
+              Ce que vous allez{" "}
+              <span style={{ color: "#0073f4" }}>maîtriser</span>
             </h3>
             <p style={{ fontSize: 15, color: "#64748b", marginTop: 12, maxWidth: 500, margin: "12px auto 0", lineHeight: 1.7 }}>
-              À l'issue de cette conférence, chaque participant sera en mesure de :
+              À l'issue de la COPAF 2026, chaque participant sera en mesure de :
             </p>
           </div>
 
@@ -462,16 +432,17 @@ const Modules = () => {
             gap: "clamp(10px, 1.5vw, 14px)",
           }}>
             {objectifs.map((o, i) => (
-              <div key={i} style={{
-                display: "flex", gap: 14, alignItems: "flex-start",
-                padding: "16px 18px",
-                background: "#F8FAFC", borderRadius: 14,
-                border: "1px solid #E2E8F0",
-                transition: "all 0.25s ease",
-                opacity: objVisible ? 1 : 0,
-                transform: objVisible ? "translateY(0)" : "translateY(20px)",
-                transitionDelay: `${i * 80}ms`,
-              }}
+              <div key={i}
+                style={{
+                  display: "flex", gap: 14, alignItems: "flex-start",
+                  padding: "16px 18px",
+                  background: "#F8FAFC", borderRadius: 14,
+                  border: "1px solid #E2E8F0",
+                  transition: "all 0.25s ease",
+                  opacity: objVisible ? 1 : 0,
+                  transform: objVisible ? "translateY(0)" : "translateY(20px)",
+                  transitionDelay: `${i * 80}ms`,
+                }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "#0073f4"; e.currentTarget.style.background = "#EEF4FF"; e.currentTarget.style.transform = "translateY(-2px)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2E8F0"; e.currentTarget.style.background = "#F8FAFC"; e.currentTarget.style.transform = "translateY(0)"; }}
               >
@@ -490,34 +461,27 @@ const Modules = () => {
           </div>
         </div>
 
-        {/* ── CERTIFICATIONS ── */}
+        {/* CERTIFICATIONS */}
         <div style={{ display: "flex", justifyContent: "center", gap: "clamp(14px, 2.5vw, 24px)", flexWrap: "wrap" }}>
           {[
             {
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="32" height="32">
-                  <path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" />
-                </svg>
-              ),
-              color: "#0073f4", titre: "Digital & Numeric Academy", desc: "Certification Internationale",
+              icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="32" height="32"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>),
+              color: "#0073f4", titre: "AGPAOC", desc: "Secrétariat Général",
             },
             {
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="32" height="32">
-                  <circle cx="12" cy="8" r="6" /><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" />
-                </svg>
-              ),
+              icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="32" height="32"><circle cx="12" cy="8" r="6" /><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" /></svg>),
               color: "#10b981", titre: "CRF Perfection", desc: "Expertise Panafricaine",
             },
           ].map((c, i) => (
-            <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 18,
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: 18, padding: "22px 32px",
-              minWidth: 260, flex: "1 1 260px", maxWidth: 400,
-              transition: "all 0.3s ease",
-            }}
+            <div key={i}
+              style={{
+                display: "flex", alignItems: "center", gap: 18,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 18, padding: "22px 32px",
+                minWidth: 260, flex: "1 1 260px", maxWidth: 400,
+                transition: "all 0.3s ease",
+              }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = `${c.color}60`; e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.transform = "translateY(-3px)"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.transform = "none"; }}
             >
@@ -539,9 +503,7 @@ const Modules = () => {
 
       <style>{`
         @media (max-width: 768px) {
-          .module-grid {
-            grid-template-columns: 1fr !important;
-          }
+          .module-grid { grid-template-columns: 1fr !important; }
           .tab-label { display: none; }
         }
         @media (max-width: 480px) {
