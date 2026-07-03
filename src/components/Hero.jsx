@@ -108,7 +108,7 @@ const Hero = () => {
             textTransform: 'uppercase',
             letterSpacing: '2.5px',
           }}>
-          
+            Conférence scientifique &amp; stratégique internationale
           </p>
 
           {/* Title */}
@@ -142,7 +142,9 @@ const Hero = () => {
             lineHeight: 1.85,
             marginBottom: '40px',
           }}>
-            Rejoignez l'élite portuaire africaine pour définir le futur de la logistique du continent.{' '}
+            Trois jours de réflexion scientifique et d'échanges stratégiques réunissant experts,
+            décideurs et institutions portuaires pour repenser, ensemble, l'avenir de la
+            logistique maritime en Afrique.{' '}
             <span style={{ color: '#fff', fontWeight: 700 }}>Innovation · Réseautage · Stratégie.</span>
           </p>
 
@@ -301,7 +303,7 @@ const Hero = () => {
                 <div style={{ height: '30px', width: '1px', background: 'rgba(255,255,255,0.12)' }} />
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ margin: 0, fontSize: '10px', color: '#4DA6FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dates</p>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>15 – 17 Sept. 2026</p>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>15, 16 &amp; 17 Sept. 2026</p>
                 </div>
               </div>
 
@@ -312,11 +314,15 @@ const Hero = () => {
                 background: 'rgba(0,8,50,0.78)',
                 backdropFilter: 'blur(10px)',
                 borderRadius: '8px',
-                padding: '6px 12px',
+                padding: '8px 12px',
                 border: '1px solid rgba(255,255,255,0.10)',
+                maxWidth: '210px',
               }}>
                 <p style={{ margin: 0, fontSize: '9px', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Organisé par</p>
-                <p style={{ margin: 0, fontSize: '11px', color: '#fff', fontWeight: 700, marginTop: '2px' }}>CRF Perfection · AGPAOC</p>
+                <p style={{ margin: 0, fontSize: '11px', color: '#fff', fontWeight: 700, marginTop: '2px' }}>CRF Perfection</p>
+                <p style={{ margin: 0, fontSize: '9px', color: 'rgba(255,255,255,0.55)', fontWeight: 600, marginTop: '4px', lineHeight: 1.4 }}>
+                  Sous l'égide de l'AGPAOC<br />Sous le haut patronage de l'ANP
+                </p>
               </div>
             </div>
 
@@ -352,7 +358,7 @@ const Hero = () => {
             zIndex: 2,
           }}>
             <p style={{ margin: 0, fontSize: '9px', color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '1px' }}>Date limite</p>
-            <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '2px' }}>15 Juillet 2026</p>
+            <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '2px' }}>15 Août 2026</p>
           </div>
         </div>
       </div>

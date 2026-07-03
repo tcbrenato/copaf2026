@@ -1,4 +1,9 @@
 import React from 'react'
+import {
+  Mic, GraduationCap, Handshake, Ship,
+  Landmark, BarChart3, Laptop, Settings,
+  Anchor, Microscope, Compass, Globe,
+} from 'lucide-react'
 
 const STATS = [
   { number: '200+', label: 'Participants Attendus' },
@@ -10,52 +15,58 @@ const STATS = [
 const OBJECTIFS = [
   {
     num: '01',
-    title: 'Partage d\'Expertise de Haut Niveau',
+    title: 'Partager l\'Expertise de Haut Niveau',
     desc: 'Institutionnaliser une plateforme d\'échange sur les meilleures pratiques et accroître la performance des cadres portuaires africains.',
   },
   {
     num: '02',
-    title: 'Renforcement du Réseau Décisionnel',
+    title: 'Renforcer le Réseau Décisionnel',
     desc: 'Fédérer les leaders et décideurs maritimes africains pour favoriser la synergie continentale et l\'émergence de partenariats stratégiques durables.',
   },
   {
     num: '03',
-    title: 'Immersion Technologique et Opérationnelle',
+    title: 'Vivre une Immersion Technologique et Opérationnelle',
     desc: 'Découvrir par l\'exemple les solutions concrètes en matière de Smart Port, d\'IA et d\'automatisation logistique.',
   },
   {
     num: '04',
-    title: 'Accélération de la Compétitivité Continentale',
+    title: 'Accélérer la Compétitivité Continentale',
     desc: 'Transformer les acquis techniques et relationnels en leviers de croissance pour porter la part de l\'Afrique dans le commerce maritime mondial.',
   },
 ]
 
 const FORMATS = [
   {
-    title: 'Sessions de Formation Immersive',
-    desc: 'Ateliers techniques pour les cadres et directeurs, alliant théorie et études de cas portuaires appliquées.',
-  },
-  {
+    icon: Mic,
     title: 'Conférences Plénières',
     desc: 'Keynotes d\'experts internationaux sur la digitalisation, l\'IA et la cybersécurité portuaire.',
   },
   {
-    title: 'Visites de Terrain',
-    desc: 'Immersion guidée dans les installations d\'un premier hub portuaire pour s\'approprier les solutions Smart Port.',
+    icon: GraduationCap,
+    title: 'Sessions de Formation Immersive',
+    desc: 'Ateliers techniques pour les cadres et directeurs, alliant théorie et études de cas portuaires appliquées.',
   },
   {
+    icon: Handshake,
     title: 'Networking & B2B',
     desc: 'Espaces dédiés aux échanges entre acteurs portuaires et fournisseurs de solutions technologiques.',
+  },
+  {
+    icon: Ship,
+    title: 'Visites de Terrain',
+    desc: 'Immersion guidée dans les installations d\'un premier hub portuaire pour s\'approprier les solutions Smart Port.',
   },
 ]
 
 const PUBLIC = [
-  { role: 'Directeurs Généraux', sub: 'Autorités Portuaires', tag: 'Leadership stratégique' },
-  { role: 'Directeurs Stratégie', sub: 'et Développement', tag: 'Planification & gouvernance' },
-  { role: 'DSI', sub: 'Systèmes d\'Information', tag: 'Transformation digitale' },
-  { role: 'Responsables Terminaux', sub: 'et Opérations', tag: 'Excellence opérationnelle' },
-  { role: 'La Capitainerie', sub: 'Sécurité maritime', tag: 'Réglementation & sûreté' },
-  { role: 'Responsables Innovation', sub: 'et Technologie', tag: 'Déploiement Smart Port' },
+  { icon: Landmark,    role: 'Directeurs Généraux', sub: 'Autorités Portuaires', tag: 'Leadership stratégique' },
+  { icon: BarChart3,   role: 'Directeurs Stratégie', sub: 'et Développement', tag: 'Planification & gouvernance' },
+  { icon: Laptop,      role: 'DSI', sub: 'Systèmes d\'Information', tag: 'Transformation digitale' },
+  { icon: Settings,    role: 'Responsables Terminaux', sub: 'et Opérations', tag: 'Excellence opérationnelle' },
+  { icon: Anchor,      role: 'La Capitainerie', sub: 'Sécurité maritime', tag: 'Réglementation & sûreté' },
+  { icon: Microscope,  role: 'Responsables Innovation', sub: 'et Technologie', tag: 'Déploiement Smart Port' },
+  { icon: Compass,     role: 'Autres Directeurs', sub: 'et Cadres Portuaires', tag: 'Pilotage opérationnel' },
+  { icon: Globe,       role: 'Acteurs du Secteur', sub: 'Portuaire et Paraportuaire', tag: 'Écosystème logistique' },
 ]
 
 const About = () => {
@@ -123,11 +134,11 @@ const About = () => {
             fontSize: 'clamp(15px, 1.6vw, 18px)', color: '#4A5568',
             maxWidth: '680px', margin: '0 auto', lineHeight: 1.75,
           }}>
-            La COPAF ambitionne de transformer les ports africains en moteurs de croissance,
-            en portant leur part dans le commerce mondial{' '}
-            <strong style={{ color: '#000E91' }}>au-delà de 3 %</strong> d'ici 2030,
-            grâce à l'adoption du modèle Smart Port et à la digitalisation comme leviers
-            de souveraineté et de résilience.
+            Propulser la part des ports africains{' '}
+            <strong style={{ color: '#000E91' }}>au-delà de 3 %</strong> dans le commerce
+            mondial d'ici 2030 : telle est l'ambition de la COPAF. En s'appuyant sur le
+            modèle Smart Port et la digitalisation, l'événement érige la performance
+            opérationnelle en levier de souveraineté et de résilience pour le continent.
           </p>
         </div>
 
@@ -225,34 +236,36 @@ const About = () => {
             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
             gap: '20px',
           }}>
-            {FORMATS.map((f, i) => (
-              <div key={i} className="card-feature" style={{
-                background: 'rgba(255,255,255,0.95)',
-                padding: 'clamp(24px, 3vw, 36px)',
-                borderRadius: '20px',
-                border: '1px solid rgba(0,14,145,0.07)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                transition: 'all 0.35s ease',
-              }}>
-                <div style={{
-                  width: '40px', height: '40px',
-                  background: 'rgba(0,115,244,0.08)',
-                  borderRadius: '10px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '18px',
+            {FORMATS.map((f, i) => {
+              const Icon = f.icon
+              return (
+                <div key={i} className="card-feature" style={{
+                  background: 'rgba(255,255,255,0.95)',
+                  padding: 'clamp(24px, 3vw, 36px)',
+                  borderRadius: '20px',
+                  border: '1px solid rgba(0,14,145,0.07)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  transition: 'all 0.35s ease',
                 }}>
-                  {['🎓', '🎤', '🚢', '🤝'][i]}
+                  <div style={{
+                    width: '44px', height: '44px',
+                    background: 'rgba(0,115,244,0.08)',
+                    borderRadius: '10px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Icon size={20} color="#0073F4" strokeWidth={2} />
+                  </div>
+                  <h4 style={{ fontSize: 'clamp(15px, 1.6vw, 17px)', fontWeight: 800, color: '#000E91', margin: 0 }}>
+                    {f.title}
+                  </h4>
+                  <p style={{ fontSize: '14px', color: '#4A5568', lineHeight: 1.7, margin: 0 }}>
+                    {f.desc}
+                  </p>
                 </div>
-                <h4 style={{ fontSize: 'clamp(15px, 1.6vw, 17px)', fontWeight: 800, color: '#000E91', margin: 0 }}>
-                  {f.title}
-                </h4>
-                <p style={{ fontSize: '14px', color: '#4A5568', lineHeight: 1.7, margin: 0 }}>
-                  {f.desc}
-                </p>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
@@ -282,41 +295,44 @@ const About = () => {
             gap: '16px',
             position: 'relative',
           }}>
-            {PUBLIC.map((p, i) => (
-              <div key={i} className="pillar-card" style={{
-                background: 'rgba(255,255,255,0.05)',
-                borderRadius: '16px',
-                border: '1px solid rgba(255,255,255,0.09)',
-                padding: 'clamp(20px, 2.5vw, 28px)',
-                transition: '0.3s',
-              }}>
-                <div style={{
-                  width: '36px', height: '36px',
-                  background: 'rgba(0,115,244,0.2)',
-                  borderRadius: '8px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '16px', marginBottom: '14px',
+            {PUBLIC.map((p, i) => {
+              const Icon = p.icon
+              return (
+                <div key={i} className="pillar-card" style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(255,255,255,0.09)',
+                  padding: 'clamp(20px, 2.5vw, 28px)',
+                  transition: '0.3s',
                 }}>
-                  {['🏛️', '📊', '💻', '⚙️', '⚓', '🔬'][i]}
+                  <div style={{
+                    width: '40px', height: '40px',
+                    background: 'rgba(0,115,244,0.2)',
+                    borderRadius: '8px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: '14px',
+                  }}>
+                    <Icon size={18} color="#4DA6FF" strokeWidth={2} />
+                  </div>
+                  <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: 800, marginBottom: '4px', lineHeight: 1.3 }}>
+                    {p.role}
+                  </h4>
+                  <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px', margin: '0 0 12px' }}>
+                    {p.sub}
+                  </p>
+                  <span style={{
+                    fontSize: '10px', fontWeight: 700,
+                    color: '#4DA6FF',
+                    background: 'rgba(0,115,244,0.15)',
+                    borderRadius: '50px',
+                    padding: '3px 10px',
+                    letterSpacing: '0.3px',
+                  }}>
+                    {p.tag}
+                  </span>
                 </div>
-                <h4 style={{ color: '#fff', fontSize: '14px', fontWeight: 800, marginBottom: '4px', lineHeight: 1.3 }}>
-                  {p.role}
-                </h4>
-                <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '12px', margin: '0 0 12px' }}>
-                  {p.sub}
-                </p>
-                <span style={{
-                  fontSize: '10px', fontWeight: 700,
-                  color: '#4DA6FF',
-                  background: 'rgba(0,115,244,0.15)',
-                  borderRadius: '50px',
-                  padding: '3px 10px',
-                  letterSpacing: '0.3px',
-                }}>
-                  {p.tag}
-                </span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 

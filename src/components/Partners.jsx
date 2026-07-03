@@ -8,6 +8,9 @@ const partners = [
   { url: 'https://i.ibb.co/d9rmN8v/images.png', name: 'Partenaire 5' },
   { url: 'https://i.ibb.co/4nB4hykm/logo-tmpa.png', name: 'TMPA' },
   { url: 'https://i.ibb.co/5WvKCqt8/logo-CRF-PERFECTION-4x-1761998753526.png', name: 'CRF Perfection' },
+  { url: '/ANP.png', name: 'ANP' },
+  { url: '/pac.png', name: 'PAC' },
+  { url: '/uapna.png', name: 'UAPNA' },
 ]
 
 const Partners = () => {

@@ -1,71 +1,51 @@
-import React, { useState } from 'react'
+import React from 'react'
 
 const intervenants = [
   {
-    initiales: 'I1',
-    nom: 'Intervenant 1',
-    titre: 'Titre du poste',
-    organisation: 'Organisation',
-    categorie: 'Conférencier',
-    bio: 'Courte biographie de l\'intervenant.',
+    initiales: 'RT',
+    photo: '/renatoint.png',
+    nom: 'Rénato TCHOBO',
+    titre: 'Expert en Transformation Digitale & Consultant en Solutions Numériques',
+    organisation: 'CRF Perfection',
   },
   {
-    initiales: 'I2',
-    nom: 'Intervenant 2',
-    titre: 'Titre du poste',
-    organisation: 'Organisation',
-    categorie: 'Panelistes',
-    bio: 'Courte biographie de l\'intervenant.',
+    initiales: 'WO',
+    photo: '/intervenant2.png',
+    nom: 'Dr. William ODAH',
+    titre: 'Expert en Gouvernance Stratégique et Développement Portuaire',
+    organisation: 'CRF Perfection',
   },
   {
-    initiales: 'I3',
-    nom: 'Intervenant 3',
-    titre: 'Titre du poste',
-    organisation: 'Organisation',
-    categorie: 'Expert',
-    bio: 'Courte biographie de l\'intervenant.',
+    initiales: 'PA',
+    photo: '/intervenant3.png',
+    nom: 'Expert Partenaire A',
+    titre: 'À confirmer',
+    organisation: 'À confirmer',
   },
   {
-    initiales: 'I4',
-    nom: 'Intervenant 4',
-    titre: 'Titre du poste',
-    organisation: 'Organisation',
-    categorie: 'Conférencier',
-    bio: 'Courte biographie de l\'intervenant.',
+    initiales: 'PB',
+    photo: '/intervenant4.png',
+    nom: 'Expert Partenaire B',
+    titre: 'À confirmer',
+    organisation: 'À confirmer',
   },
   {
-    initiales: 'I5',
-    nom: 'Intervenant 5',
-    titre: 'Titre du poste',
-    organisation: 'Organisation',
-    categorie: 'Expert',
-    bio: 'Courte biographie de l\'intervenant.',
+    initiales: 'RA',
+    photo: '/intervenant5.png',
+    nom: 'Expert Recruté A',
+    titre: 'À confirmer',
+    organisation: 'À confirmer',
   },
   {
-    initiales: 'I6',
-    nom: 'Intervenant 6',
-    titre: 'Titre du poste',
-    organisation: 'Organisation',
-    categorie: 'Panelistes',
-    bio: 'Courte biographie de l\'intervenant.',
+    initiales: 'RB',
+    photo: '/intervenant6.png',
+    nom: 'Expert Recruté B',
+    titre: 'À confirmer',
+    organisation: 'À confirmer',
   },
 ]
 
-const categorieStyle = {
-  Conférencier: { bg: '#e8ecff', color: '#000e91' },
-  Panelistes:   { bg: '#e8f6ff', color: '#005fa3' },
-  Expert:       { bg: '#fff4e8', color: '#a35f00' },
-}
-
-const filtres = ['Tous', 'Conférencier', 'Panelistes', 'Expert']
-
 const Intervenants = () => {
-  const [actif, setActif] = useState('Tous')
-
-  const visibles = actif === 'Tous'
-    ? intervenants
-    : intervenants.filter(i => i.categorie === actif)
-
   return (
     <section id="formateurs" style={{
       padding: 'clamp(80px, 10vw, 130px) clamp(20px, 5vw, 80px)',
@@ -110,36 +90,8 @@ const Intervenants = () => {
             fontSize: 16, color: '#555',
             maxWidth: 560, margin: '0 auto', lineHeight: 1.7,
           }}>
-            Experts, conférenciers et Panelistes réunis pour partager leurs connaissances
-            sur les enjeux portuaires en Afrique.
+            Des experts réunis pour partager leur expertise sur les enjeux portuaires en Afrique.
           </p>
-        </div>
-
-        {/* Filtres */}
-        <div style={{
-          display: 'flex', justifyContent: 'center',
-          gap: 10, marginBottom: 48, flexWrap: 'wrap',
-        }}>
-          {filtres.map(f => (
-            <button
-              key={f}
-              onClick={() => setActif(f)}
-              style={{
-                padding: '8px 22px',
-                borderRadius: 30,
-                border: actif === f ? '2px solid #000e91' : '2px solid rgba(0,14,145,0.15)',
-                background: actif === f ? '#000e91' : 'rgba(255,255,255,0.85)',
-                color: actif === f ? '#FFFFFF' : '#000e91',
-                fontSize: 12, fontWeight: 700,
-                letterSpacing: 1.2, textTransform: 'uppercase',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                backdropFilter: 'blur(4px)',
-              }}
-            >
-              {f}
-            </button>
-          ))}
         </div>
 
         {/* Grille */}
@@ -148,87 +100,110 @@ const Intervenants = () => {
           gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
           gap: 28,
         }}>
-          {visibles.map((p, i) => {
-            const cat = categorieStyle[p.categorie]
-            return (
+          {intervenants.map((p, i) => (
+            <div key={i} className="intervenant-card">
               <div
-                key={i}
-                style={{
-                  background: 'rgba(255,255,255,0.92)',
-                  backdropFilter: 'blur(10px)',
-                  borderRadius: 16,
-                  overflow: 'hidden',
-                  border: '1px solid rgba(0,14,145,0.08)',
-                  boxShadow: '0 4px 20px rgba(0,14,145,0.06)',
-                  transition: 'transform 0.25s, box-shadow 0.25s',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
+                className="intervenant-card-inner"
                 onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-5px)'
-                  e.currentTarget.style.boxShadow = '0 16px 40px rgba(0,14,145,0.14)'
+                  e.currentTarget.parentElement.style.transform = 'translateY(-5px)'
+                  e.currentTarget.parentElement.style.boxShadow = '0 16px 40px rgba(0,14,145,0.14)'
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,14,145,0.06)'
+                  e.currentTarget.parentElement.style.transform = 'translateY(0)'
+                  e.currentTarget.parentElement.style.boxShadow = '0 4px 20px rgba(0,14,145,0.06)'
                 }}
               >
-                {/* Bandeau supérieur */}
-                <div style={{ height: 6, background: 'linear-gradient(90deg, #000e91, #0073f4)' }} />
-
-                <div style={{ padding: '28px 28px 24px' }}>
-                  {/* Avatar + badge */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 }}>
-                    <div style={{
-                      width: 68, height: 68,
-                      borderRadius: '50%',
-                      background: 'linear-gradient(135deg, #000e91, #0073f4)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: '#FFFFFF', fontSize: 18, fontWeight: 700,
-                      letterSpacing: 1, flexShrink: 0,
-                    }}>
-                      {p.initiales}
-                    </div>
-                    <span style={{
-                      padding: '4px 12px',
-                      borderRadius: 20,
-                      fontSize: 10, fontWeight: 700,
-                      letterSpacing: 1.2, textTransform: 'uppercase',
-                      background: cat.bg, color: cat.color,
-                    }}>
-                      {p.categorie}
-                    </span>
-                  </div>
-
-                  {/* Nom & titre */}
-                  <h3 style={{
-                    fontSize: 22, fontWeight: 800,
-                    color: '#000e91', margin: '0 0 4px', lineHeight: 1.2,
-                    letterSpacing: '-0.01em',
-                  }}>
-                    {p.nom}
-                  </h3>
+              {/* Photo carrée en grand format, pleine largeur */}
+              <div style={{ width: '100%', aspectRatio: '1 / 1', position: 'relative', background: '#EBF3FF' }}>
+                {p.photo ? (
+                  <img
+                    src={p.photo}
+                    alt={p.nom}
+                    style={{
+                      width: '100%', height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                    }}
+                  />
+                ) : (
                   <div style={{
-                    fontSize: 12, fontWeight: 600,
-                    color: '#0073f4', textTransform: 'uppercase',
-                    letterSpacing: 0.8, marginBottom: 4,
+                    width: '100%', height: '100%',
+                    background: 'linear-gradient(135deg, #000e91, #0073f4)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#FFFFFF', fontSize: 48, fontWeight: 700,
+                    letterSpacing: 1,
                   }}>
-                    {p.titre}
+                    {p.initiales}
                   </div>
-                  <div style={{ fontSize: 12, color: '#888', marginBottom: 16, letterSpacing: 0.3 }}>
-                    {p.organisation}
-                  </div>
+                )}
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 5, background: 'linear-gradient(90deg, #000e91, #0073f4)' }} />
+              </div>
 
-                  <div style={{ height: 1, background: 'rgba(0,14,145,0.07)', marginBottom: 16 }} />
-
-                  <p style={{ fontSize: 13.5, color: '#555', lineHeight: 1.7, margin: 0 }}>
-                    {p.bio}
-                  </p>
+              <div style={{ padding: '24px 28px 30px' }}>
+                {/* Nom & titre */}
+                <h3 style={{
+                  fontSize: 22, fontWeight: 800,
+                  color: '#000e91', margin: '0 0 6px', lineHeight: 1.2,
+                  letterSpacing: '-0.01em',
+                }}>
+                  {p.nom}
+                </h3>
+                <div style={{
+                  fontSize: 13, fontWeight: 600,
+                  color: '#0073f4',
+                  letterSpacing: 0.3, lineHeight: 1.5,
+                  marginBottom: 8,
+                }}>
+                  {p.titre}
+                </div>
+                <div style={{ fontSize: 12, color: '#888', letterSpacing: 0.3 }}>
+                  {p.organisation}
                 </div>
               </div>
-            )
-          })}
+              </div>
+            </div>
+          ))}
         </div>
+
+        <style>{`
+          .intervenant-card {
+            position: relative;
+            border-radius: 17px;
+            padding: 1.5px;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 4px 20px rgba(0,14,145,0.06);
+          }
+          .intervenant-card::before {
+            content: '';
+            position: absolute;
+            inset: -60%;
+            background: conic-gradient(
+              from 0deg,
+              transparent 0deg,
+              transparent 300deg,
+              #4DA6FF 330deg,
+              #0073f4 345deg,
+              #000e91 355deg,
+              transparent 360deg
+            );
+            animation: intervenant-border-spin 3.2s linear infinite;
+          }
+          .intervenant-card-inner {
+            position: relative;
+            z-index: 1;
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+          }
+          @keyframes intervenant-border-spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
 
       </div>
     </section>
