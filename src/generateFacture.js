@@ -1,227 +1,1304 @@
-import { jsPDF } from 'jspdf'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { supabase } from '../supabase'
+import { generateBadge } from '../utils/generateBadge'
 
-export const generateFacture = (form) => {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-  const W = 210
-  const num = `FAC-2026-${Date.now().toString().slice(-5)}`
-  const date = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
-  const montant = parseInt(form.participants) * 5000
-  const montantStr = '$' + montant.toLocaleString('en-US')
-  const puStr = '$5,000'
+// ============================================================
+// REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
+// Extensions > Apps Script > Déployer > Nouvelle application web
+// ============================================================
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwbcaBVsg3ua3ZOoDJbzlHj75ozIDDLPeZ1youQnl8hKyu-CXIN-DJ2efwhira39bPY/exec'
 
-  // ── HEADER FOND ──
-  doc.setFillColor(0, 14, 145)
-  doc.rect(0, 0, W, 52, 'F')
-  doc.setFillColor(0, 115, 244)
-  doc.rect(0, 49, W, 5, 'F')
-
-  // ── TITRE ──
-  doc.setTextColor(255, 255, 255)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(26)
-  doc.text('COPAF 2026', 20, 24)
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(126, 184, 255)
-  doc.text('CONFERENCE OFFICIELLE DES PORTS AFRICAINS', 20, 32)
-  doc.text('Dubai  -  15 - 17 Septembre 2026', 20, 39)
-
-  // ── FACTURE N° ──
-  doc.setTextColor(255, 255, 255)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(14)
-  doc.text('FACTURE', W - 20, 22, { align: 'right' })
-  doc.setFontSize(9)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(126, 184, 255)
-  doc.text(num, W - 20, 30, { align: 'right' })
-  doc.text('Date : ' + date, W - 20, 37, { align: 'right' })
-
-  // ── EMETTEUR ──
-  doc.setTextColor(80, 80, 80)
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(0, 14, 145)
-  doc.text('EMETTEUR', 20, 68)
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(60, 60, 60)
-  doc.text('CRF PERFECTION', 20, 75)
-  doc.text('contact@crfperfection.pro', 20, 81)
-  doc.text('www.crfperfection.pro', 20, 87)
-  doc.text('+229 01 97 77 57 98   |   +1 (240) 978-4155', 20, 93)
-
-  // ── CLIENT BOX ──
-  doc.setFillColor(248, 249, 255)
-  doc.roundedRect(115, 60, 75, 42, 3, 3, 'F')
-  doc.setDrawColor(0, 115, 244)
-  doc.setLineWidth(0.4)
-  doc.roundedRect(115, 60, 75, 42, 3, 3, 'S')
-
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(0, 115, 244)
-  doc.setFontSize(8)
-  doc.text('FACTURE A', 120, 67)
-
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(0, 14, 145)
-  doc.setFontSize(10)
-  doc.text(form.prenom + ' ' + form.nom, 120, 75)
-
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(60, 60, 60)
-  doc.setFontSize(8.5)
-  doc.text(form.organisation || '', 120, 82)
-  if (form.poste && form.poste !== 'ffffff') {
-    doc.text(form.poste, 120, 88)
+// ─── ICÔNES SVG ──────────────────────────────────────────────────────────────
+const Icon = ({ name, size = 18, color = 'currentColor' }) => {
+  const s = { width: size, height: size, display: 'block', flexShrink: 0 }
+  const paths = {
+    users: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    diamond: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M2 9h20"/><path d="M12 22V9"/><path d="M6 3l6 6 6-6"/></svg>,
+    building: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>,
+    monitor: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>,
+    chart: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+    euro: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7 7 0 1 0 0 12"/></svg>,
+    check: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+    clock: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+    search: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+    download: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+    refresh: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>,
+    sheet: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
+    trash: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
+    mail: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+    close: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    filter: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
+    save: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+    globe: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+    menu: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+    copaf: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 2 17 12 22 22 17 22 7 12 2"/><polyline points="2 7 12 12 22 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>,
   }
-  doc.text(form.pays || '', 120, 94)
-  doc.text(form.email || '', 120, 100)
+  return paths[name] || null
+}
 
-  // ── SEPARATEUR ──
-  doc.setDrawColor(0, 115, 244)
-  doc.setLineWidth(0.3)
-  doc.line(20, 108, W - 20, 108)
+// ─── STATUTS ─────────────────────────────────────────────────────────────────
+const STATUS_CONFIG = {
+  nouveau:    { label: 'Nouveau',     bg: '#ede9fe', color: '#5b21b6', dot: '#7c3aed' },
+  en_attente: { label: 'En attente',  bg: '#fef3c7', color: '#92400e', dot: '#d97706' },
+  reserve:    { label: 'Réservé',     bg: '#dbeafe', color: '#1e40af', dot: '#2563eb' },
+  confirme:   { label: 'Confirmé',    bg: '#d1fae5', color: '#065f46', dot: '#10b981' },
+  annule:     { label: 'Annulé',      bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
+}
 
-  // ── TABLEAU HEADER ──
-  doc.setFillColor(0, 14, 145)
-  doc.rect(20, 113, W - 40, 9, 'F')
-  doc.setTextColor(255, 255, 255)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(8)
-  doc.text('DESIGNATION', 25, 119)
-  doc.text('QTE', 135, 119, { align: 'center' })
-  doc.text('P.U.', 158, 119, { align: 'center' })
-  doc.text('TOTAL', W - 25, 119, { align: 'right' })
+// ─── MODULES (onglets sidebar) ────────────────────────────────────────────────
+const MODULES = [
+  { id: 'dashboard',   label: 'Tableau de bord', icon: 'chart',    table: null },
+  { id: 'analytics',   label: 'Analytics',       icon: 'globe',    table: null },
+  { id: 'participants',label: 'Participants',     icon: 'users',    table: 'inscriptions',  statusField: 'paiement_status' },
+  { id: 'sponsors',    label: 'Sponsors',         icon: 'diamond',  table: 'sponsorships',  statusField: 'statut', filter: { type: 'sponsor' } },
+  { id: 'partenaires', label: 'Partenaires',      icon: 'building', table: 'sponsorships',  statusField: 'statut', filter: { type: 'partenaire_strategique' } },
+  { id: 'exposants',   label: 'Exposants',        icon: 'monitor',  table: 'exposants',     statusField: 'statut' },
+]
 
-  // ── LIGNE PRESTATION ──
-  doc.setFillColor(248, 249, 255)
-  doc.rect(20, 122, W - 40, 16, 'F')
-  doc.setTextColor(30, 30, 30)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
-  doc.text('Formation COPAF 2026 - Dubai', 25, 129)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7.5)
-  doc.setTextColor(100, 100, 100)
-  doc.text('3 jours - All-inclusive - Certification internationale', 25, 135)
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const fmt     = n  => (n || 0).toLocaleString('fr-FR')
+const fmtEur  = n  => `${fmt(n)} €`
+const fmtDate = d  => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+const fmtTime = d  => d ? new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
 
-  doc.setTextColor(30, 30, 30)
-  doc.setFontSize(9)
-  doc.text(String(form.participants), 135, 131, { align: 'center' })
-  doc.text(puStr, 158, 131, { align: 'center' })
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(0, 14, 145)
-  doc.text(montantStr, W - 25, 131, { align: 'right' })
+// Détection appareil à partir du user-agent stocké en base
+const parseDevice = ua => {
+  if (!ua) return 'Inconnu'
+  if (/tablet|ipad/i.test(ua)) return 'Tablette'
+  if (/mobile|android|iphone/i.test(ua)) return 'Mobile'
+  return 'Desktop'
+}
 
-  // ── LIGNE INCLUSIONS ──
-  doc.setFillColor(255, 255, 255)
-  doc.rect(20, 138, W - 40, 9, 'F')
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(120, 120, 120)
-  doc.setFontSize(7.5)
-  doc.text('Inclus : Hebergement - Transferts - Tablette - Pauses-cafe - Dejeuners', 25, 144)
+// Détection source à partir du referrer stocké en base
+const parseSource = ref => {
+  if (!ref) return 'Direct'
+  if (ref.includes('google')) return 'Google'
+  if (ref.includes('facebook')) return 'Facebook'
+  if (ref.includes('linkedin')) return 'LinkedIn'
+  if (ref.includes('twitter') || ref.includes('x.com')) return 'Twitter / X'
+  if (ref.includes('whatsapp')) return 'WhatsApp'
+  if (ref.includes('copaf-ports.com')) return 'Interne (navigation)'
+  return 'Autre'
+}
 
-  // ── SEPARATEUR ──
-  doc.setDrawColor(220, 220, 240)
-  doc.setLineWidth(0.3)
-  doc.line(20, 150, W - 20, 150)
+function exportCSV(rows, cols, filename) {
+  const header = cols.map(c => `"${c.label}"`).join(',')
+  const body   = rows.map(r => cols.map(c => `"${String(r[c.key] || '').replace(/"/g, '""')}"`).join(',')).join('\n')
+  const blob   = new Blob(['\uFEFF' + header + '\n' + body], { type: 'text/csv;charset=utf-8;' })
+  const a      = document.createElement('a')
+  a.href       = URL.createObjectURL(blob)
+  a.download   = filename
+  a.click()
+}
 
-  // ── TOTAL BOX ──
-  doc.setFillColor(0, 14, 145)
-  doc.roundedRect(120, 155, 70, 20, 3, 3, 'F')
-  doc.setTextColor(126, 184, 255)
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'normal')
-  doc.text('MONTANT TOTAL', 155, 162, { align: 'center' })
-  doc.setTextColor(255, 255, 255)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(15)
-  doc.text(montantStr, 155, 171, { align: 'center' })
+// ─── SYNC GOOGLE SHEETS ──────────────────────────────────────────────────────
+async function syncToSheets(action, payload) {
+  if (!SHEET_URL || SHEET_URL.includes('COLLEZ_ICI')) {
+    throw new Error("Configurez d'abord SHEET_URL dans AdminPage.jsx")
+  }
 
-  // ── NOTE FISCALE ──
-  doc.setFillColor(255, 248, 230)
-  doc.roundedRect(20, 155, 94, 20, 3, 3, 'F')
-  doc.setDrawColor(200, 150, 0)
-  doc.setLineWidth(0.3)
-  doc.roundedRect(20, 155, 94, 20, 3, 3, 'S')
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(150, 100, 0)
-  doc.setFontSize(7.5)
-  doc.text('NB :', 25, 162)
-  doc.setFont('helvetica', 'normal')
-  doc.text('Tarif net de taxes. Selon votre juridiction', 34, 162)
-  doc.text('fiscale, le mecanisme d\'auto-liquidation de', 25, 167)
-  doc.text('la TVA peut s\'appliquer.', 25, 172)
+  // Google Apps Script n'accepte pas application/json en cross-origin
+  // On encode les donnees en parametre URL (GET) pour contourner CORS
+  const body    = JSON.stringify({ action, ...payload })
+  const encoded = encodeURIComponent(body)
+  const url     = `${SHEET_URL}?data=${encoded}`
 
-  // ── PAIEMENT BOX ──
-  doc.setFillColor(248, 249, 255)
-  doc.roundedRect(20, 182, W - 40, 28, 3, 3, 'F')
-  doc.setDrawColor(0, 115, 244)
-  doc.setLineWidth(0.3)
-  doc.roundedRect(20, 182, W - 40, 28, 3, 3, 'S')
-
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(0, 115, 244)
-  doc.setFontSize(8)
-  doc.text('INSTRUCTIONS DE PAIEMENT', 25, 189)
-
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(60, 60, 60)
-  doc.setFontSize(8)
-  doc.text('Beneficiaire : CRF PERFECTION', 25, 196)
-  doc.text('Reference : COPAF2026 + ' + form.nom, 25, 202)
-  doc.text('Delai : 7 jours apres inscription', 25, 208)
-  doc.text('Mode : Virement bancaire uniquement', 115, 196)
-  doc.text('Coordonnees bancaires envoyees par email', 115, 202)
-
-  // ── INCLUSIONS ──
-  doc.setFont('helvetica', 'bold')
-  doc.setTextColor(0, 14, 145)
-  doc.setFontSize(8)
-  doc.text('CE QUI EST INCLUS', 20, 222)
-
-  const inclusions = [
-    'Formation complete (3 jours)',
-    'Hebergement',
-    'Transferts aeroport-hotel',
-    'Tablette precharge',
-    'Pauses-cafe & dejeuners',
-    '2 Certifications internationales',
-    'Materiels didactiques',
-    'Service conciergerie VIP',
-  ]
-
-  doc.setFont('helvetica', 'normal')
-  doc.setTextColor(50, 50, 50)
-  doc.setFontSize(8)
-  inclusions.forEach((item, i) => {
-    const col = i < 4 ? 20 : 110
-    const row = 229 + (i % 4) * 7
-    doc.text('- ' + item, col, row)
+  await fetch(url, {
+    method: 'GET',
+    mode: 'no-cors', // no-cors suffit pour GET — le script recoit bien les donnees
   })
 
-  // ── SEPARATEUR FOOTER ──
-  doc.setDrawColor(0, 115, 244)
-  doc.setLineWidth(0.5)
-  doc.line(0, 258, W, 258)
+  return true
+}
 
-  // ── FOOTER ──
-  doc.setFillColor(0, 14, 145)
-  doc.rect(0, 258, W, 39, 'F')
+// ─── BADGE STATUT ────────────────────────────────────────────────────────────
+function StatusBadge({ status }) {
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.nouveau
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      background: cfg.bg, color: cfg.color,
+      borderRadius: 20, padding: '4px 12px',
+      fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap',
+    }}>
+      <span style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
+      {cfg.label}
+    </span>
+  )
+}
 
-  doc.setTextColor(255, 255, 255)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(12)
-  doc.text('COPAF 2026', W / 2, 268, { align: 'center' })
+// ─── CARTE KPI ───────────────────────────────────────────────────────────────
+function KpiCard({ icon, label, value, sub, color, trend }) {
+  return (
+    <div style={{
+      background: '#fff', border: '1px solid #e8edf5',
+      borderRadius: 16, padding: '22px 20px',
+      borderLeft: `4px solid ${color}`,
+      boxShadow: '0 1px 4px rgba(0,14,145,.04)',
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name={icon} size={20} color={color} />
+        </div>
+        {trend !== undefined && (
+          <span style={{ fontSize: 11, fontWeight: 700, color: trend >= 0 ? '#10b981' : '#ef4444', background: trend >= 0 ? '#d1fae5' : '#fee2e2', padding: '2px 8px', borderRadius: 8 }}>
+            {trend >= 0 ? '+' : ''}{trend}%
+          </span>
+        )}
+      </div>
+      <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 12, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1, marginTop: 6, fontWeight: 600 }}>{label}</div>
+      {sub && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>{sub}</div>}
+    </div>
+  )
+}
 
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
-  doc.setTextColor(126, 184, 255)
-  doc.text('copaf-ports.com   -   contact@crfperfection.pro   -   +229 01 97 77 57 98', W / 2, 275, { align: 'center' })
-  doc.text('Document genere le ' + date + '   -   Ref. ' + num, W / 2, 282, { align: 'center' })
-  doc.setTextColor(100, 140, 200)
-  doc.setFontSize(7)
-  doc.text('Ce document est genere automatiquement et constitue une facture officielle.', W / 2, 290, { align: 'center' })
+// ─── BARRE HORIZONTALE ───────────────────────────────────────────────────────
+function BarRow({ label, value, max, color }) {
+  const pct = max > 0 ? Math.max(3, Math.round((value / max) * 100)) : 0
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#334155', marginBottom: 6, gap: 8 }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>{label}</span>
+        <span style={{ fontWeight: 700, color: '#0f172a', flexShrink: 0 }}>{value}</span>
+      </div>
+      <div style={{ background: '#f1f5f9', borderRadius: 4, height: 6, overflow: 'hidden' }}>
+        <div style={{ width: `${pct}%`, background: color, borderRadius: 4, height: '100%', transition: 'width .8s ease' }} />
+      </div>
+    </div>
+  )
+}
 
-  doc.save('Facture_COPAF2026_' + form.nom + '.pdf')
+// ─── MODAL GÉNÉRIQUE ─────────────────────────────────────────────────────────
+function Modal({ title, subtitle, accentColor, fields, status, statusField, onStatusChange, onSave, onDelete, onClose, saving, deleting, confirmDel, setConfirmDel, toast }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+      onClick={onClose}>
+      <div style={{ background: '#fff', borderRadius: 24, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,.15)', animation: 'modalIn .2s ease' }}
+        onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div style={{ padding: '28px 28px 0', borderBottom: '1px solid #f1f5f9', marginBottom: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingBottom: 20 }}>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>{title}</div>
+              {subtitle && <div style={{ fontSize: 13, color: accentColor, fontWeight: 600 }}>{subtitle}</div>}
+            </div>
+            <button onClick={onClose} style={{ background: '#f8fafc', border: 'none', width: 34, height: 34, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="close" size={16} color="#64748b" />
+            </button>
+          </div>
+        </div>
+
+        {/* Toast */}
+        {toast && (
+          <div style={{ margin: '14px 28px 0', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: '#065f46', fontWeight: 500 }}>
+            {toast}
+          </div>
+        )}
+
+        {/* Champs */}
+        <div style={{ padding: '20px 28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 24px' }}>
+          {fields.filter(f => f.value).map((f, i) => (
+            <div key={i} style={{ gridColumn: f.full ? '1 / -1' : 'auto' }}>
+              <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 5 }}>{f.label}</div>
+              <div style={{ fontSize: 14, color: '#334155', fontWeight: 500, lineHeight: 1.5, wordBreak: 'break-word' }}>{f.value}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Modifier statut */}
+        <div style={{ padding: '0 28px 20px' }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 10 }}>Modifier le statut</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+            {Object.entries(STATUS_CONFIG).map(([k, s]) => (
+              <button key={k} onClick={() => onStatusChange(k)} style={{
+                background: status === k ? s.bg : '#fff',
+                border: `1.5px solid ${status === k ? s.dot : '#e2e8f0'}`,
+                color: status === k ? s.color : '#64748b',
+                borderRadius: 20, padding: '7px 14px', fontSize: 12, fontWeight: 700,
+                cursor: 'pointer', transition: 'all .15s', fontFamily: 'inherit',
+              }}>{s.label}</button>
+            ))}
+          </div>
+
+          <button onClick={onSave} disabled={saving} style={{
+            width: '100%', padding: '13px', background: saving ? '#e2e8f0' : '#0f172a',
+            border: 'none', borderRadius: 12, color: saving ? '#94a3b8' : '#fff',
+            fontWeight: 700, fontSize: 14, cursor: saving ? 'not-allowed' : 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit',
+          }}>
+            <Icon name="save" size={16} color={saving ? '#94a3b8' : '#fff'} />
+            {saving ? 'Enregistrement...' : 'Enregistrer'}
+          </button>
+        </div>
+
+        {/* Suppression */}
+        {onDelete && (
+          <div style={{ padding: '0 28px 28px' }}>
+            <button onClick={onDelete} disabled={deleting} style={{
+              width: '100%', padding: '12px',
+              background: confirmDel ? '#fef2f2' : '#fff',
+              border: `1.5px solid ${confirmDel ? '#ef4444' : '#fee2e2'}`,
+              color: '#ef4444', borderRadius: 12, fontWeight: 600, fontSize: 13,
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit',
+              transition: 'all .15s',
+            }}>
+              <Icon name="trash" size={15} color="#ef4444" />
+              {deleting ? 'Suppression...' : confirmDel ? 'Confirmer la suppression ?' : 'Supprimer ce dossier'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── MODAL PARTICIPANT ────────────────────────────────────────────────────────
+function ModalParticipant({ row, onClose, onUpdate }) {
+  const [status,     setStatus]     = useState(row.paiement_status || 'en_attente')
+  const [saving,     setSaving]     = useState(false)
+  const [deleting,   setDeleting]   = useState(false)
+  const [confirmDel, setConfirmDel] = useState(false)
+  const [toast,      setToast]      = useState('')
+
+  const t = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
+
+  const save = async () => {
+    setSaving(true)
+    const { error } = await supabase.from('inscriptions').update({ paiement_status: status }).eq('id', row.id)
+    setSaving(false)
+    if (!error) {
+      onUpdate({ ...row, paiement_status: status })
+      t('Statut mis a jour avec succes')
+
+      // Generation automatique du badge des que le statut passe a "Confirme"
+      if (status === 'confirme' && row.paiement_status !== 'confirme') {
+        try {
+          await generateBadge({
+            nomPrenom: `${row.prenom} ${row.nom}`,
+            fonction: row.poste || '',
+            dossier: row.dossier,
+            photoSrc: row.photo_url || null,
+          })
+          t('Statut confirme — badge genere et telecharge automatiquement')
+        } catch (badgeErr) {
+          t('Statut confirme, mais erreur badge : ' + badgeErr.message)
+        }
+      }
+    }
+    else t('Erreur : ' + error.message)
+  }
+
+  const del = async () => {
+    if (!confirmDel) { setConfirmDel(true); return }
+    setDeleting(true)
+    const { error } = await supabase.from('inscriptions').delete().eq('id', row.id)
+    setDeleting(false)
+    if (!error) { onUpdate(null); onClose() }
+    else t('Erreur suppression')
+  }
+
+  return (
+    <Modal
+      title={`${row.prenom || ''} ${row.nom || ''}`}
+      subtitle={`${row.dossier || '—'} · ${row.organisation || ''}`}
+      accentColor="#6366f1"
+      fields={[
+        { label: 'Email',        value: row.email },
+        { label: 'Telephone',    value: row.telephone },
+        { label: 'Poste',        value: row.poste },
+        { label: 'Pays',         value: row.pays },
+        { label: 'Participants', value: `${row.participants || 1} personne(s)` },
+        { label: 'Montant',      value: fmtEur(row.montant) },
+        { label: 'Mode paiement',value: row.paiement_mode === 'maintenant' ? 'Paiement immediat' : 'Reservation differee' },
+        { label: 'Date',         value: `${fmtDate(row.created_at)} ${fmtTime(row.created_at)}` },
+        { label: 'Message',      value: row.message, full: true },
+      ]}
+      status={status} onStatusChange={setStatus}
+      onSave={save} saving={saving}
+      onDelete={del} deleting={deleting}
+      confirmDel={confirmDel} setConfirmDel={setConfirmDel}
+      onClose={onClose} toast={toast}
+    />
+  )
+}
+
+// ─── MODAL SPONSORSHIP (sponsor + partenaire) ─────────────────────────────────
+function ModalSponsorship({ row, onClose, onUpdate, type }) {
+  const [status,  setStatus]  = useState(row.statut || 'nouveau')
+  const [saving,  setSaving]  = useState(false)
+  const [toast,   setToast]   = useState('')
+  const t = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
+
+  const save = async () => {
+    setSaving(true)
+    const { error } = await supabase.from('sponsorships').update({ statut: status }).eq('id', row.id)
+    setSaving(false)
+    if (!error) { onUpdate({ ...row, statut: status }); t('Statut mis a jour') }
+    else t('Erreur : ' + error.message)
+  }
+
+  const isStrat = type === 'partenaires'
+  const accentColor = isStrat ? '#000E91' : '#d97706'
+
+  return (
+    <Modal
+      title={row.organisation || row['contacts']?.organisation || '—'}
+      subtitle={`${isStrat ? 'Partenaire' : 'Sponsor'} ${row.niveau || ''}${row.montant ? ' · ' + fmtEur(row.montant) : ''}`}
+      accentColor={accentColor}
+      fields={[
+        { label: 'Contact',          value: row['contacts']?.nom || row.contact },
+        { label: 'Email',            value: row['contacts']?.email || row.email },
+        { label: 'Telephone',        value: row['contacts']?.telephone || row.telephone },
+        { label: 'Pays',             value: row['contacts']?.pays || row.pays },
+        { label: 'Niveau',           value: row.niveau },
+        { label: 'Montant',          value: row.montant ? fmtEur(row.montant) : '—' },
+        ...(isStrat ? [{ label: 'Type institution', value: row.type_institution }] : []),
+        { label: 'Date',             value: fmtDate(row.created_at) },
+        { label: 'Message',          value: row.message, full: true },
+      ]}
+      status={status} onStatusChange={setStatus}
+      onSave={save} saving={saving}
+      onClose={onClose} toast={toast}
+    />
+  )
+}
+
+// ─── MODAL EXPOSANT ───────────────────────────────────────────────────────────
+function ModalExposant({ row, onClose, onUpdate }) {
+  const [status, setStatus] = useState(row.statut || 'nouveau')
+  const [saving, setSaving] = useState(false)
+  const [toast,  setToast]  = useState('')
+  const t = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
+
+  const save = async () => {
+    setSaving(true)
+    const { error } = await supabase.from('exposants').update({ statut: status }).eq('id', row.id)
+    setSaving(false)
+    if (!error) { onUpdate({ ...row, statut: status }); t('Statut mis a jour') }
+    else t('Erreur : ' + error.message)
+  }
+
+  return (
+    <Modal
+      title={row.entreprise || '—'}
+      subtitle={`Exposition ${row.forfait || ''}`}
+      accentColor="#0891b2"
+      fields={[
+        { label: 'Contact',  value: row['contacts']?.nom },
+        { label: 'Email',    value: row['contacts']?.email },
+        { label: 'Telephone',value: row['contacts']?.telephone },
+        { label: 'Secteur',  value: row.secteur },
+        { label: 'Forfait',  value: row.forfait },
+        { label: 'Date',     value: fmtDate(row.created_at) },
+        { label: 'Objectifs',value: row.goals, full: true },
+      ]}
+      status={status} onStatusChange={setStatus}
+      onSave={save} saving={saving}
+      onClose={onClose} toast={toast}
+    />
+  )
+}
+
+// ─── TABLE GÉNÉRIQUE ──────────────────────────────────────────────────────────
+function DataTable({ cols, rows, onRow }) {
+  if (rows.length === 0) return (
+    <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: 60, textAlign: 'center' }}>
+      <Icon name="filter" size={32} color="#cbd5e1" />
+      <div style={{ color: '#94a3b8', fontSize: 14, marginTop: 12 }}>Aucun enregistrement trouvé</div>
+    </div>
+  )
+
+  return (
+    <div style={{ overflowX: 'auto', borderRadius: 16, border: '1px solid #e8edf5', background: '#fff', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 600 }}>
+        <thead>
+          <tr style={{ borderBottom: '1.5px solid #f1f5f9', background: '#f8fafc' }}>
+            {cols.map((c, i) => (
+              <th key={i} style={{ padding: '14px 18px', textAlign: 'left', fontSize: 10, color: '#64748b', letterSpacing: 1, textTransform: 'uppercase', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                {c.label}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr
+              key={r.id || i}
+              onClick={() => onRow(r)}
+              style={{ borderBottom: '1px solid #f8fafc', cursor: 'pointer', transition: 'background .15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f8faff'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+            >
+              {cols.map((c, j) => (
+                <td key={j} style={{ padding: '14px 18px', color: c.muted ? '#94a3b8' : '#334155', whiteSpace: c.wrap ? 'normal' : 'nowrap', maxWidth: c.maxW || 'none', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {c.render ? c.render(r[c.key], r) : (r[c.key] || '—')}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ─── BARRE D'OUTILS ──────────────────────────────────────────────────────────
+function Toolbar({ search, setSearch, filterStatus, setFilterStatus, onExport, onSync, syncing, syncOk, placeholder }) {
+  return (
+    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20, alignItems: 'center' }}>
+      {/* Recherche */}
+      <div style={{ flex: 1, minWidth: 240, position: 'relative' }}>
+        <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+          <Icon name="search" size={16} color="#94a3b8" />
+        </div>
+        <input
+          value={search} onChange={e => setSearch(e.target.value)}
+          placeholder={placeholder || 'Rechercher...'}
+          style={{
+            width: '100%', padding: '11px 14px 11px 40px',
+            background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12,
+            fontSize: 13, outline: 'none', fontFamily: 'inherit', color: '#0f172a', boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      {/* Filtre statut */}
+      <select
+        value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
+        style={{ padding: '11px 14px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12, fontSize: 13, outline: 'none', cursor: 'pointer', color: '#475569', fontFamily: 'inherit' }}
+      >
+        <option value="tous">Tous les statuts</option>
+        {Object.entries(STATUS_CONFIG).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
+      </select>
+
+      {/* Export CSV */}
+      <button onClick={onExport} style={{ padding: '11px 16px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, color: '#475569', fontFamily: 'inherit', transition: 'all .15s' }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = '#0073F4'; e.currentTarget.style.color = '#0073F4' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#475569' }}>
+        <Icon name="download" size={15} color="currentColor" />
+        Exporter CSV
+      </button>
+
+      {/* Sync Google Sheets */}
+      <button onClick={onSync} disabled={syncing} style={{
+        padding: '11px 16px',
+        background: syncOk ? '#d1fae5' : '#000E91',
+        border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700,
+        cursor: syncing ? 'not-allowed' : 'pointer',
+        display: 'flex', alignItems: 'center', gap: 7,
+        color: syncOk ? '#065f46' : '#fff',
+        fontFamily: 'inherit', transition: 'all .2s', opacity: syncing ? .7 : 1,
+      }}>
+        <Icon name={syncOk ? 'check' : 'sheet'} size={15} color={syncOk ? '#065f46' : '#fff'} />
+        {syncing ? 'Synchronisation...' : syncOk ? 'Google Sheets OK' : 'Sync Google Sheets'}
+      </button>
+    </div>
+  )
+}
+
+// ─── SECTION PARTICIPANTS ─────────────────────────────────────────────────────
+function SectionParticipants({ data, setData }) {
+  const [search,        setSearch]        = useState('')
+  const [filterStatus,  setFilterStatus]  = useState('tous')
+  const [selected,      setSelected]      = useState(null)
+  const [syncing,       setSyncing]       = useState(false)
+  const [syncOk,        setSyncOk]        = useState(false)
+
+  const total       = data.length
+  const totalParts  = data.reduce((s, r) => s + (r.participants || 0), 0)
+  const totalMontant= data.reduce((s, r) => s + (r.montant || 0), 0)
+  const confirmes   = data.filter(r => r.paiement_status === 'confirme').length
+  const enAttente   = data.filter(r => ['en_attente', 'reserve'].includes(r.paiement_status)).length
+
+  const filtered = useMemo(() => data.filter(r => {
+    const s   = search.toLowerCase()
+    const ok  = [r.nom, r.prenom, r.email, r.organisation, r.pays, r.dossier].some(v => (v || '').toLowerCase().includes(s))
+    const st  = filterStatus === 'tous' || r.paiement_status === filterStatus
+    return ok && st
+  }), [data, search, filterStatus])
+
+  const CSV_COLS = [
+    { label: 'Dossier',         key: 'dossier' },
+    { label: 'Nom',             key: 'nom' },
+    { label: 'Prenom',          key: 'prenom' },
+    { label: 'Email',           key: 'email' },
+    { label: 'Telephone',       key: 'telephone' },
+    { label: 'Organisation',    key: 'organisation' },
+    { label: 'Poste',           key: 'poste' },
+    { label: 'Pays',            key: 'pays' },
+    { label: 'Participants',    key: 'participants' },
+    { label: 'Montant',         key: 'montant' },
+    { label: 'Statut',          key: 'paiement_status' },
+    { label: 'Mode paiement',   key: 'paiement_mode' },
+    { label: 'Date',            key: 'created_at' },
+    { label: 'Message',         key: 'message' },
+  ]
+
+  const doSync = async () => {
+    setSyncing(true)
+    try {
+      const rows = filtered.map(r => [
+        r.dossier, r.prenom, r.nom, r.email, r.telephone,
+        r.organisation, r.poste, r.pays, r.participants,
+        r.montant, r.paiement_status, r.paiement_mode,
+        r.message, fmtDate(r.created_at),
+      ])
+      await syncToSheets('sync_inscriptions', { rows })
+      setSyncOk(true)
+      setTimeout(() => setSyncOk(false), 4000)
+    } catch (err) { alert(err.message) }
+    setSyncing(false)
+  }
+
+  const TABLE_COLS = [
+    { key: 'dossier',         label: 'Dossier',       render: v => <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#6366f1', fontWeight: 600, background: '#eef2ff', padding: '2px 8px', borderRadius: 6 }}>{v || '—'}</span> },
+    { key: 'nom',             label: 'Nom & Prenom',  render: (v, r) => <div><div style={{ fontWeight: 700, color: '#0f172a' }}>{r.prenom} {r.nom}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{r.poste || '—'}</div></div> },
+    { key: 'organisation',    label: 'Organisation',  muted: true, maxW: 180 },
+    { key: 'pays',            label: 'Pays',          render: v => <span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 6, padding: '3px 8px', fontSize: 11 }}>{v || '—'}</span> },
+    { key: 'participants',    label: 'Pers.',         render: v => <span style={{ fontWeight: 700 }}>{v}</span> },
+    { key: 'montant',         label: 'Montant',       render: v => <span style={{ fontWeight: 800, color: '#d97706' }}>{fmtEur(v)}</span> },
+    { key: 'paiement_status', label: 'Statut',        render: v => <StatusBadge status={v} /> },
+    { key: 'created_at',      label: 'Date',          render: v => <span style={{ color: '#94a3b8', fontSize: 11 }}>{fmtDate(v)}</span> },
+  ]
+
+  return (
+    <div>
+      {/* KPIs */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
+        <KpiCard icon="users"  label="Dossiers"    value={total}           color="#6366f1" />
+        <KpiCard icon="chart"  label="Participants" value={totalParts}      color="#8b5cf6" />
+        <KpiCard icon="euro"   label="Revenus"      value={fmtEur(totalMontant)} color="#d97706" />
+        <KpiCard icon="check"  label="Confirmes"    value={confirmes}       color="#10b981" sub={`${Math.round((confirmes/total||0)*100)}% de conversion`} />
+        <KpiCard icon="clock"  label="En attente"   value={enAttente}       color="#2563eb" />
+      </div>
+
+      <Toolbar
+        search={search} setSearch={setSearch}
+        filterStatus={filterStatus} setFilterStatus={setFilterStatus}
+        onExport={() => exportCSV(filtered, CSV_COLS, `COPAF_participants_${new Date().toISOString().slice(0,10)}.csv`)}
+        onSync={doSync} syncing={syncing} syncOk={syncOk}
+        placeholder="Rechercher par nom, email, dossier, pays..."
+      />
+
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>
+        {filtered.length} enregistrement{filtered.length > 1 ? 's' : ''} affiches
+      </div>
+
+      <DataTable cols={TABLE_COLS} rows={filtered} onRow={setSelected} />
+
+      {selected && (
+        <ModalParticipant
+          row={selected}
+          onClose={() => setSelected(null)}
+          onUpdate={updated => {
+            if (!updated) setData(prev => prev.filter(r => r.id !== selected.id))
+            else { setData(prev => prev.map(r => r.id === updated.id ? updated : r)); setSelected(updated) }
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ─── SECTION GÉNÉRIQUE (Sponsors, Partenaires, Exposants) ────────────────────
+function SectionGeneric({ data, setData, moduleId, accentColor }) {
+  const [search,       setSearch]       = useState('')
+  const [filterStatus, setFilterStatus] = useState('tous')
+  const [selected,     setSelected]     = useState(null)
+  const [syncing,      setSyncing]      = useState(false)
+  const [syncOk,       setSyncOk]       = useState(false)
+
+  const filtered = useMemo(() => data.filter(r => {
+    const s  = search.toLowerCase()
+    const ok = [r.organisation, r.contact, r.email, r.pays, r.niveau, r.forfait, r.entreprise,
+                r['contacts']?.nom, r['contacts']?.email, r['contacts']?.organisation]
+               .some(v => (v || '').toLowerCase().includes(s))
+    const sf = r.statut || 'nouveau'
+    const st = filterStatus === 'tous' || sf === filterStatus
+    return ok && st
+  }), [data, search, filterStatus])
+
+  // Colonnes selon le module
+  const getCols = () => {
+    if (moduleId === 'sponsors' || moduleId === 'partenaires') return [
+      { key: 'organisation', label: 'Organisation', render: (v, r) => <span style={{ fontWeight: 700, color: '#0f172a' }}>{r['contacts']?.organisation || v || '—'}</span> },
+      { key: 'niveau',       label: 'Niveau',       render: v => <span style={{ color: accentColor, fontWeight: 700, textTransform: 'uppercase', fontSize: 11 }}>{v || '—'}</span> },
+      { key: 'contact',      label: 'Contact',      render: (v, r) => r['contacts']?.nom || v || '—', muted: true },
+      { key: 'email',        label: 'Email',        render: (v, r) => <span style={{ fontSize: 12, color: '#64748b' }}>{r['contacts']?.email || v || '—'}</span> },
+      { key: 'montant',      label: 'Montant',      render: v => v ? <span style={{ fontWeight: 800, color: '#d97706' }}>{fmtEur(v)}</span> : '—' },
+      { key: 'statut',       label: 'Statut',       render: v => <StatusBadge status={v || 'nouveau'} /> },
+      { key: 'created_at',   label: 'Date',         render: v => <span style={{ color: '#94a3b8', fontSize: 11 }}>{fmtDate(v)}</span> },
+    ]
+    // Exposants
+    return [
+      { key: 'entreprise', label: 'Entreprise',  render: v => <span style={{ fontWeight: 700, color: '#0f172a' }}>{v || '—'}</span> },
+      { key: 'forfait',    label: 'Forfait',     render: v => <span style={{ color: accentColor, fontWeight: 700, textTransform: 'uppercase', fontSize: 11 }}>{v || '—'}</span> },
+      { key: 'secteur',    label: 'Secteur',     muted: true },
+      { key: 'contact',    label: 'Contact',     render: (v, r) => r['contacts']?.nom || v || '—', muted: true },
+      { key: 'email',      label: 'Email',       render: (v, r) => <span style={{ fontSize: 12, color: '#64748b' }}>{r['contacts']?.email || v || '—'}</span> },
+      { key: 'statut',     label: 'Statut',      render: v => <StatusBadge status={v || 'nouveau'} /> },
+      { key: 'created_at', label: 'Date',        render: v => <span style={{ color: '#94a3b8', fontSize: 11 }}>{fmtDate(v)}</span> },
+    ]
+  }
+
+  const getSheetAction = () => {
+    if (moduleId === 'sponsors')    return 'sync_sponsors'
+    if (moduleId === 'partenaires') return 'sync_partenaires'
+    return 'sync_exposants'
+  }
+
+  const buildSheetRows = () => {
+    if (moduleId === 'sponsors' || moduleId === 'partenaires') {
+      return filtered.map(r => [
+        r.id, r['contacts']?.organisation || r.organisation,
+        r['contacts']?.nom, r['contacts']?.email, r['contacts']?.telephone,
+        r['contacts']?.pays, r.niveau, r.montant,
+        r.statut || 'nouveau', r.message, fmtDate(r.created_at),
+      ])
+    }
+    return filtered.map(r => [
+      r.id, r.entreprise, r.secteur,
+      r['contacts']?.nom, r['contacts']?.email, r['contacts']?.telephone,
+      r.forfait, r.statut || 'nouveau', r.goals, fmtDate(r.created_at),
+    ])
+  }
+
+  const doSync = async () => {
+    setSyncing(true)
+    try {
+      await syncToSheets(getSheetAction(), { rows: buildSheetRows() })
+      setSyncOk(true)
+      setTimeout(() => setSyncOk(false), 4000)
+    } catch (err) { alert(err.message) }
+    setSyncing(false)
+  }
+
+  const kpis = {
+    sponsors:    [
+      { icon: 'diamond',  label: 'Total Sponsors',  value: data.length,                                        color: '#d97706' },
+      { icon: 'check',    label: 'Confirmes',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981' },
+      { icon: 'clock',    label: 'Nouveaux',         value: data.filter(r => !r.statut || r.statut === 'nouveau').length, color: '#6366f1' },
+      { icon: 'euro',     label: 'Valeur estimee',   value: fmtEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
+    ],
+    partenaires: [
+      { icon: 'building', label: 'Partenaires',      value: data.length,                                        color: '#000E91' },
+      { icon: 'check',    label: 'Confirmes',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981' },
+      { icon: 'clock',    label: 'En attente',       value: data.filter(r => r.statut === 'en_attente').length, color: '#d97706' },
+      { icon: 'euro',     label: 'Valeur estimee',   value: fmtEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
+    ],
+    exposants:   [
+      { icon: 'monitor',  label: 'Total Exposants',  value: data.length,                                        color: '#0891b2' },
+      { icon: 'check',    label: 'Confirmes',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981' },
+      { icon: 'clock',    label: 'Nouveaux',         value: data.filter(r => !r.statut || r.statut === 'nouveau').length, color: '#6366f1' },
+    ],
+  }
+
+  const renderModal = r => {
+    if (moduleId === 'exposants') return (
+      <ModalExposant row={r} onClose={() => setSelected(null)}
+        onUpdate={u => { setData(prev => prev.map(x => x.id === u.id ? u : x)); setSelected(u) }} />
+    )
+    return (
+      <ModalSponsorship row={r} type={moduleId} onClose={() => setSelected(null)}
+        onUpdate={u => { setData(prev => prev.map(x => x.id === u.id ? u : x)); setSelected(u) }} />
+    )
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
+        {(kpis[moduleId] || []).map((k, i) => <KpiCard key={i} {...k} />)}
+      </div>
+
+      <Toolbar
+        search={search} setSearch={setSearch}
+        filterStatus={filterStatus} setFilterStatus={setFilterStatus}
+        onExport={() => exportCSV(filtered, getCols().map(c => ({ label: c.label, key: c.key })), `COPAF_${moduleId}_${new Date().toISOString().slice(0,10)}.csv`)}
+        onSync={doSync} syncing={syncing} syncOk={syncOk}
+        placeholder={`Rechercher dans ${moduleId}...`}
+      />
+
+      <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>
+        {filtered.length} enregistrement{filtered.length > 1 ? 's' : ''} affiches
+      </div>
+
+      <DataTable cols={getCols()} rows={filtered} onRow={setSelected} />
+      {selected && renderModal(selected)}
+    </div>
+  )
+}
+
+// ─── SECTION TABLEAU DE BORD ──────────────────────────────────────────────────
+function SectionDashboard({ allData }) {
+  const { inscriptions = [], sponsors = [], partenaires = [], exposants = [] } = allData
+
+  const totalRevenu  = inscriptions.reduce((s, r) => s + (r.montant || 0), 0)
+    + sponsors.reduce((s, r) => s + (r.montant || 0), 0)
+    + partenaires.reduce((s, r) => s + (r.montant || 0), 0)
+  const confirmes    = inscriptions.filter(r => r.paiement_status === 'confirme').length
+
+  // Top pays
+  const paysMap = {}
+  inscriptions.forEach(r => { if (r.pays) paysMap[r.pays] = (paysMap[r.pays] || 0) + 1 })
+  const topPays = Object.entries(paysMap).sort((a, b) => b[1] - a[1]).slice(0, 6)
+  const maxPays = topPays[0]?.[1] || 1
+
+  // Inscriptions 14 derniers jours
+  const dayMap = {}
+  inscriptions.forEach(r => {
+    const d = fmtDate(r.created_at)
+    dayMap[d] = (dayMap[d] || 0) + 1
+  })
+  const dailyEntries = Object.entries(dayMap).slice(-14)
+  const maxDaily     = Math.max(...dailyEntries.map(d => d[1]), 1)
+
+  // Statuts inscriptions
+  const statutsInsc = Object.entries(STATUS_CONFIG).map(([k, s]) => ({
+    label: s.label, color: s.dot,
+    value: inscriptions.filter(r => r.paiement_status === k).length,
+  }))
+
+  return (
+    <div>
+      {/* KPIs globaux */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 32 }}>
+        <KpiCard icon="users"    label="Participants" value={inscriptions.reduce((s, r) => s + (r.participants || 0), 0)} color="#6366f1" sub={`${inscriptions.length} dossiers`} />
+        <KpiCard icon="euro"     label="Revenus totaux" value={fmtEur(totalRevenu)} color="#10b981" />
+        <KpiCard icon="check"    label="Confirmes"    value={confirmes} color="#10b981" sub={`${Math.round((confirmes / (inscriptions.length || 1)) * 100)}% conv.`} />
+        <KpiCard icon="diamond"  label="Sponsors"     value={sponsors.length} color="#d97706" />
+        <KpiCard icon="building" label="Partenaires"  value={partenaires.length} color="#000E91" />
+        <KpiCard icon="monitor"  label="Exposants"    value={exposants.length} color="#0891b2" />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
+        {/* Inscriptions par jour */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Inscriptions par jour</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>14 derniers jours</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80 }}>
+            {dailyEntries.length === 0 ? (
+              <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 12 }}>Aucune donnee</div>
+            ) : dailyEntries.map(([label, val], i) => (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div title={`${label}: ${val}`} style={{ width: '100%', borderRadius: '3px 3px 0 0', height: `${Math.max(4, Math.round((val / maxDaily) * 70))}px`, background: '#6366f1', opacity: .8 }} />
+                <span style={{ fontSize: 8, color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top pays */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Top pays</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Par nombre de dossiers</div>
+          {topPays.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnee</div>
+            : topPays.map(([pays, nb], i) => <BarRow key={i} label={pays} value={nb} max={maxPays} color={['#6366f1','#0073F4','#000E91','#10b981','#d97706','#0891b2'][i % 6]} />)
+          }
+        </div>
+      </div>
+
+      {/* Statuts inscriptions */}
+      <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Repartition des statuts — Inscriptions</div>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          {statutsInsc.map((s, i) => (
+            <div key={i} style={{ background: '#f8fafc', border: '1px solid #e8edf5', borderRadius: 14, padding: '16px 20px', minWidth: 110, textAlign: 'center', flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 8 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: s.color }} />
+                <span style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{s.label}</span>
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px' }}>{s.value}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── SECTION ANALYTICS (façon Google Analytics) ───────────────────────────────
+const AUTO_REFRESH_MS   = 15000  // 15 secondes
+const ACTIVE_WINDOW_MIN = 5      // fenêtre "actifs maintenant"
+const ANALYTICS_LOOKBACK_DAYS = 30
+
+function SectionAnalytics() {
+  const [sessions,     setSessions]     = useState([])
+  const [pageViews,    setPageViews]    = useState([])
+  const [topPages,     setTopPages]     = useState([])
+  const [funnel,       setFunnel]       = useState([])
+  const [loading,      setLoading]      = useState(true)
+  const [lastLoad,     setLastLoad]     = useState(null)
+  const [syncing,      setSyncing]      = useState(false)
+  const [syncOk,       setSyncOk]       = useState(false)
+  const [clearing,     setClearing]     = useState(false)
+  const [confirmClear, setConfirmClear] = useState(false)
+
+  const load = useCallback(async () => {
+    const since = new Date(Date.now() - 1000 * 60 * 60 * 24 * ANALYTICS_LOOKBACK_DAYS).toISOString()
+    const [
+      { data: sess },
+      { data: pv },
+      { data: tp },
+      { data: fn },
+    ] = await Promise.all([
+      supabase.from('sessions').select('*').gte('started_at', since).order('started_at', { ascending: false }).limit(1000),
+      supabase.from('page_views').select('*').gte('viewed_at', since).order('viewed_at', { ascending: false }).limit(2000),
+      supabase.from('v_top_pages').select('*').order('visites', { ascending: false }),
+      supabase.from('v_funnel').select('*').order('ordre', { ascending: true }),
+    ])
+    setSessions(sess || [])
+    setPageViews(pv || [])
+    setTopPages(tp || [])
+    setFunnel(fn || [])
+    setLastLoad(new Date())
+    setLoading(false)
+  }, [])
+
+  // Chargement initial + auto-refresh
+  useEffect(() => {
+    load()
+    const interval = setInterval(load, AUTO_REFRESH_MS)
+    return () => clearInterval(interval)
+  }, [load])
+
+  // Utilisateurs actifs (fenêtre glissante de X minutes, calculée côté client)
+  const activeNow = useMemo(() => {
+    const cutoff = Date.now() - ACTIVE_WINDOW_MIN * 60 * 1000
+    const ids = new Set(
+      pageViews.filter(p => new Date(p.viewed_at).getTime() > cutoff).map(p => p.session_id)
+    )
+    return ids.size
+  }, [pageViews])
+
+  const totalSessions  = sessions.length
+  const totalPageViews = pageViews.length
+  const totalVisites   = funnel.find(f => f.etape === 'Visites')?.nb || 0
+  const totalConfirmes = funnel.find(f => f.etape === 'Confirmés')?.nb || 0
+  const tauxConv        = totalVisites > 0 ? Math.round((totalConfirmes / totalVisites) * 100) : 0
+
+  // Répartition appareils
+  const deviceEntries = useMemo(() => {
+    const m = {}
+    sessions.forEach(s => { const d = parseDevice(s.user_agent); m[d] = (m[d] || 0) + 1 })
+    return Object.entries(m).sort((a, b) => b[1] - a[1])
+  }, [sessions])
+  const maxDevice = deviceEntries[0]?.[1] || 1
+
+  // Répartition sources / referrers
+  const sourceEntries = useMemo(() => {
+    const m = {}
+    pageViews.forEach(p => { const s = parseSource(p.referrer); m[s] = (m[s] || 0) + 1 })
+    return Object.entries(m).sort((a, b) => b[1] - a[1])
+  }, [pageViews])
+  const maxSource = sourceEntries[0]?.[1] || 1
+
+  // Répartition pays
+  const countryEntries = useMemo(() => {
+    const m = {}
+    sessions.forEach(s => { if (s.country) m[s.country] = (m[s.country] || 0) + 1 })
+    return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 8)
+  }, [sessions])
+  const maxCountry = countryEntries[0]?.[1] || 1
+
+  const maxTopPage = topPages[0]?.visites || 1
+  const maxFunnel  = funnel[0]?.nb || 1
+
+  // ── Sync vers Google Sheets ──
+  // NB: nécessite d'ajouter un cas 'sync_analytics' côté Google Apps Script
+  const doSync = async () => {
+    setSyncing(true)
+    try {
+      const rows = topPages.map(p => [
+        p.path, p.visites, p.sessions_uniques, Math.round(p.temps_moyen_sec || 0),
+      ])
+      await syncToSheets('sync_analytics', {
+        rows,
+        summary: [totalSessions, totalPageViews, activeNow, tauxConv],
+        generated_at: new Date().toISOString(),
+      })
+      setSyncOk(true)
+      setTimeout(() => setSyncOk(false), 4000)
+    } catch (err) { alert(err.message) }
+    setSyncing(false)
+  }
+
+  // ── Vider les données analytics (sessions, page_views, events) ──
+  const clearAnalytics = async () => {
+    if (!confirmClear) { setConfirmClear(true); return }
+    setClearing(true)
+    await supabase.from('events').delete().not('id', 'is', null)
+    await supabase.from('page_views').delete().not('id', 'is', null)
+    await supabase.from('sessions').delete().not('id', 'is', null)
+    setClearing(false)
+    setConfirmClear(false)
+    await load()
+  }
+
+  return (
+    <div>
+      {/* Barre du haut : indicateur live + actions */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1px solid #e8edf5', borderRadius: 12, padding: '9px 16px' }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', animation: 'pulseLive 1.6s infinite' }} />
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>Temps réel</span>
+          <span style={{ fontSize: 11, color: '#94a3b8' }}>· actualisation auto {AUTO_REFRESH_MS / 1000}s</span>
+        </div>
+
+        <div style={{ flex: 1 }} />
+
+        <button onClick={doSync} disabled={syncing} style={{
+          padding: '11px 16px',
+          background: syncOk ? '#d1fae5' : '#000E91',
+          border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700,
+          cursor: syncing ? 'not-allowed' : 'pointer',
+          display: 'flex', alignItems: 'center', gap: 7,
+          color: syncOk ? '#065f46' : '#fff', fontFamily: 'inherit',
+          opacity: syncing ? .7 : 1,
+        }}>
+          <Icon name={syncOk ? 'check' : 'sheet'} size={15} color={syncOk ? '#065f46' : '#fff'} />
+          {syncing ? 'Synchronisation...' : syncOk ? 'Google Sheets à jour' : 'Sync Google Sheets'}
+        </button>
+
+        <button onClick={clearAnalytics} disabled={clearing} style={{
+          padding: '11px 16px',
+          background: confirmClear ? '#fef2f2' : '#fff',
+          border: `1.5px solid ${confirmClear ? '#ef4444' : '#e2e8f0'}`,
+          borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 7, color: '#ef4444', fontFamily: 'inherit',
+        }}>
+          <Icon name="trash" size={15} color="#ef4444" />
+          {clearing ? 'Suppression...' : confirmClear ? 'Confirmer : tout supprimer ?' : 'Vider les données analytics'}
+        </button>
+      </div>
+
+      {/* KPIs */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
+        <KpiCard icon="users" label={`Actifs (${ACTIVE_WINDOW_MIN} min)`} value={activeNow} color="#10b981" />
+        <KpiCard icon="chart" label={`Sessions (${ANALYTICS_LOOKBACK_DAYS}j)`} value={fmt(totalSessions)} color="#6366f1" />
+        <KpiCard icon="globe" label={`Pages vues (${ANALYTICS_LOOKBACK_DAYS}j)`} value={fmt(totalPageViews)} color="#0073F4" />
+        <KpiCard icon="check" label="Taux de conversion" value={`${tauxConv}%`} color="#d97706" sub={`${totalConfirmes} / ${totalVisites} visites`} />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+        {/* Pages les plus vues */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Pages les plus vues</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Toutes périodes</div>
+          {topPages.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
+            : topPages.slice(0, 8).map((p, i) => (
+              <BarRow key={i} label={p.path} value={p.visites} max={maxTopPage}
+                color={['#6366f1', '#0073F4', '#000E91', '#10b981', '#d97706', '#0891b2', '#8b5cf6', '#ef4444'][i % 8]} />
+            ))
+          }
+        </div>
+
+        {/* Tunnel de conversion */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Tunnel de conversion</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Visite → Inscription confirmée</div>
+          {funnel.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
+            : funnel.map((f, i) => (
+              <BarRow key={i} label={f.etape} value={f.nb} max={maxFunnel}
+                color={['#6366f1', '#0073F4', '#000E91', '#10b981', '#d97706'][i % 5]} />
+            ))
+          }
+        </div>
+      </div>
+
+      <div className="analytics-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
+        {/* Appareils */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Appareils</div>
+          {deviceEntries.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
+            : deviceEntries.map(([label, val], i) => (
+              <BarRow key={i} label={label} value={val} max={maxDevice} color={['#0073F4', '#6366f1', '#0891b2'][i % 3]} />
+            ))
+          }
+        </div>
+
+        {/* Sources */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Sources de trafic</div>
+          {sourceEntries.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
+            : sourceEntries.map(([label, val], i) => (
+              <BarRow key={i} label={label} value={val} max={maxSource} color={['#10b981', '#d97706', '#6366f1', '#0073F4', '#ef4444', '#8b5cf6'][i % 6]} />
+            ))
+          }
+        </div>
+
+        {/* Pays */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Top pays</div>
+          {countryEntries.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
+            : countryEntries.map(([label, val], i) => (
+              <BarRow key={i} label={label} value={val} max={maxCountry}
+                color={['#6366f1', '#0073F4', '#000E91', '#10b981', '#d97706', '#0891b2', '#8b5cf6', '#ef4444'][i % 8]} />
+            ))
+          }
+        </div>
+      </div>
+
+      {lastLoad && (
+        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 16, textAlign: 'right' }}>
+          Dernière actualisation : {lastLoad.toLocaleTimeString('fr-FR')}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────────────────
+export default function AdminPage() {
+  const [activeModule,   setActiveModule]   = useState('dashboard')
+  const [sidebarOpen,    setSidebarOpen]    = useState(true)
+  const [allData,        setAllData]        = useState({ inscriptions: [], sponsors: [], partenaires: [], exposants: [] })
+  const [sectionData,    setSectionData]    = useState([])
+  const [loading,        setLoading]        = useState(true)
+  const [lastSync,       setLastSync]       = useState(null)
+  const [globalSyncing,  setGlobalSyncing]  = useState(false)
+  const [globalSyncOk,   setGlobalSyncOk]   = useState(false)
+
+  // Chargement initial : toutes les tables pour le dashboard
+  const loadAll = useCallback(async () => {
+    setLoading(true)
+    const [
+      { data: insc },
+      { data: spons },
+      { data: part },
+      { data: expo },
+    ] = await Promise.all([
+      supabase.from('inscriptions').select('*, contacts(nom,prenom,email,telephone,organisation,pays,poste)').order('created_at', { ascending: false }),
+      supabase.from('sponsorships').select('*, contacts(nom,email,telephone,organisation,pays)').eq('type', 'sponsor').order('created_at', { ascending: false }),
+      supabase.from('sponsorships').select('*, contacts(nom,email,telephone,organisation,pays)').eq('type', 'partenaire_strategique').order('created_at', { ascending: false }),
+      supabase.from('exposants').select('*, contacts(nom,email,telephone,organisation)').order('created_at', { ascending: false }),
+    ])
+    const d = {
+      inscriptions: insc  || [],
+      sponsors:     spons || [],
+      partenaires:  part  || [],
+      exposants:    expo  || [],
+    }
+    setAllData(d)
+    setSectionData(d[activeModule] || [])
+    setLastSync(new Date())
+    setLoading(false)
+  }, [activeModule])
+
+  useEffect(() => { loadAll() }, [])
+
+  // Changement d'onglet
+  useEffect(() => {
+    if (activeModule === 'dashboard' || activeModule === 'analytics') return
+    setSectionData(allData[activeModule] || [])
+  }, [activeModule, allData])
+
+  // Sync globale vers Google Sheets
+  const syncAll = async () => {
+    setGlobalSyncing(true)
+    try {
+      const rows = {
+        inscriptions: allData.inscriptions.map(r => [
+          r.dossier, r.prenom, r.nom, r.email, r.telephone,
+          r.organisation, r.poste, r.pays, r.participants,
+          r.montant, r.paiement_status, r.paiement_mode, r.message, fmtDate(r.created_at),
+        ]),
+        sponsors: allData.sponsors.map(r => [
+          r.id, r['contacts']?.organisation, r['contacts']?.nom, r['contacts']?.email,
+          r['contacts']?.telephone, r['contacts']?.pays, r.niveau, r.montant, r.statut, r.message, fmtDate(r.created_at),
+        ]),
+        partenaires: allData.partenaires.map(r => [
+          r.id, r['contacts']?.organisation, r.type_institution, r['contacts']?.pays,
+          r['contacts']?.nom, r['contacts']?.email, r['contacts']?.telephone,
+          r.niveau, r.montant, r.statut, r.message, fmtDate(r.created_at),
+        ]),
+        exposants: allData.exposants.map(r => [
+          r.id, r.entreprise, r.secteur,
+          r['contacts']?.nom, r['contacts']?.email, r['contacts']?.telephone,
+          r.forfait, r.statut, r.goals, fmtDate(r.created_at),
+        ]),
+      }
+      await syncToSheets('sync_all', rows)
+      setGlobalSyncOk(true)
+      setTimeout(() => setGlobalSyncOk(false), 5000)
+    } catch (err) { alert(err.message) }
+    setGlobalSyncing(false)
+  }
+
+  const activeM = MODULES.find(m => m.id === activeModule)
+
+  return (
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f4f6fb', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif" }}>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; }
+        @keyframes modalIn { from { opacity:0; transform:scale(.96); } to { opacity:1; transform:scale(1); } }
+        @keyframes spin    { to { transform:rotate(360deg); } }
+        @keyframes pulseLive {
+          0%   { box-shadow: 0 0 0 0 rgba(16,185,129,.55); }
+          70%  { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+          100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+        }
+        .spinner { width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite; }
+        .nav-item { display:flex;align-items:center;gap:12px;padding:11px 16px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;color:#64748b;transition:all .18s;width:100%;text-align:left; }
+        .nav-item:hover { background:#f1f5f9;color:#0f172a; }
+        .nav-item.active { background:#EBF3FF;color:#000E91; }
+        ::-webkit-scrollbar { width:5px;height:5px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:#e2e8f0;border-radius:10px; }
+        @media (max-width: 900px) {
+          .analytics-grid-3 { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+
+      {/* ══════════ SIDEBAR ══════════ */}
+      <aside style={{
+        width: sidebarOpen ? 260 : 0,
+        minWidth: sidebarOpen ? 260 : 0,
+        background: '#fff',
+        borderRight: '1px solid #e8edf5',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        transition: 'width .25s ease, min-width .25s ease',
+        flexShrink: 0,
+      }}>
+        {/* Logo */}
+        <div style={{ padding: '28px 20px 20px', borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#000E91,#0073F4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon name="copaf" size={18} color="#fff" />
+            </div>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.3px' }}>COPAF 2026</div>
+              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase' }}>Administration</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav style={{ padding: '16px 12px', flex: 1, overflowY: 'auto' }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', padding: '0 8px 10px' }}>Menu principal</div>
+          {MODULES.map(m => (
+            <button
+              key={m.id}
+              className={`nav-item${activeModule === m.id ? ' active' : ''}`}
+              onClick={() => setActiveModule(m.id)}
+            >
+              <Icon name={m.icon} size={18} color={activeModule === m.id ? '#000E91' : '#64748b'} />
+              <span style={{ whiteSpace: 'nowrap' }}>{m.label}</span>
+              {m.table && allData[m.id]?.length > 0 && (
+                <span style={{ marginLeft: 'auto', background: activeModule === m.id ? '#000E91' : '#f1f5f9', color: activeModule === m.id ? '#fff' : '#64748b', borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                  {allData[m.id]?.length}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+
+        {/* Derniere sync */}
+        {lastSync && (
+          <div style={{ padding: '14px 20px', borderTop: '1px solid #f1f5f9', fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>
+            <div style={{ fontWeight: 600, color: '#64748b', marginBottom: 2 }}>Derniere actualisation</div>
+            {lastSync.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          </div>
+        )}
+      </aside>
+
+      {/* ══════════ MAIN ══════════ */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+
+        {/* Topbar */}
+        <header style={{ background: '#fff', borderBottom: '1px solid #e8edf5', padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button
+              onClick={() => setSidebarOpen(o => !o)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, display: 'flex', color: '#64748b', transition: 'background .15s' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+              onMouseLeave={e => e.currentTarget.style.background = 'none'}
+            >
+              <Icon name="menu" size={20} color="#64748b" />
+            </button>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>{activeM?.label}</div>
+              <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                {allData[activeModule]?.length > 0 ? `${allData[activeModule].length} enregistrements` : activeModule === 'analytics' ? 'Statistiques de fréquentation' : 'Tableau de bord general'}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {/* Sync tout vers Sheets */}
+            <button
+              onClick={syncAll}
+              disabled={globalSyncing}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '9px 16px',
+                background: globalSyncOk ? '#d1fae5' : '#fff',
+                border: `1.5px solid ${globalSyncOk ? '#10b981' : '#e2e8f0'}`,
+                borderRadius: 12, fontSize: 13, fontWeight: 700,
+                color: globalSyncOk ? '#065f46' : '#0f172a',
+                cursor: globalSyncing ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit', transition: 'all .2s',
+                opacity: globalSyncing ? .7 : 1,
+              }}
+            >
+              {globalSyncing ? <div className="spinner" style={{ borderTopColor: '#0f172a', borderColor: '#e2e8f0' }} /> : <Icon name="sheet" size={16} color={globalSyncOk ? '#065f46' : '#0f172a'} />}
+              {globalSyncing ? 'Sync en cours...' : globalSyncOk ? 'Google Sheets a jour' : 'Tout synchroniser'}
+            </button>
+
+            {/* Actualiser */}
+            <button
+              onClick={loadAll}
+              disabled={loading}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', background: '#000E91', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading ? .7 : 1 }}
+            >
+              {loading ? <div className="spinner" /> : <Icon name="refresh" size={16} color="#fff" />}
+              Actualiser
+            </button>
+          </div>
+        </header>
+
+        {/* Contenu */}
+        <main style={{ flex: 1, overflowY: 'auto', padding: '28px 28px 40px' }}>
+          {activeModule === 'analytics' ? (
+            <SectionAnalytics />
+          ) : loading ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', flexDirection: 'column', gap: 16 }}>
+              <div style={{ width: 36, height: 36, border: '3px solid #e2e8f0', borderTopColor: '#000E91', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+              <div style={{ color: '#64748b', fontSize: 14, fontWeight: 500 }}>Chargement des donnees...</div>
+            </div>
+          ) : (
+            <>
+              {activeModule === 'dashboard' && <SectionDashboard allData={allData} />}
+              {activeModule === 'participants' && (
+                <SectionParticipants
+                  data={allData.inscriptions}
+                  setData={d => setAllData(prev => ({ ...prev, inscriptions: typeof d === 'function' ? d(prev.inscriptions) : d }))}
+                />
+              )}
+              {(activeModule === 'sponsors' || activeModule === 'partenaires' || activeModule === 'exposants') && (
+                <SectionGeneric
+                  data={allData[activeModule]}
+                  setData={d => setAllData(prev => ({ ...prev, [activeModule]: typeof d === 'function' ? d(prev[activeModule]) : d }))}
+                  moduleId={activeModule}
+                  accentColor={activeModule === 'sponsors' ? '#d97706' : activeModule === 'partenaires' ? '#000E91' : '#0891b2'}
+                />
+              )}
+            </>
+          )}
+        </main>
+      </div>
+    </div>
+  )
 }
