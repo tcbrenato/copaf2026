@@ -369,6 +369,15 @@ export default function Inscription() {
                       ))}
                     </div>
 
+                    {/* Verification anti-fraude */}
+                    <div style={{ background:'#EBF3FF', border:'1.5px solid #bfdbfe', borderRadius:12, padding:'14px 16px', display:'flex', gap:10, alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', textAlign:'left', marginBottom:16 }}>
+                      <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
+                        <Ico name="shield" size={16} color="#0073F4" />
+                        <p style={{ fontSize:12.5, color:'#1e40af', lineHeight:1.6, margin:0 }}>Verifiez toujours le RIB avant de payer sur notre page dediee.</p>
+                      </div>
+                      <a href="/verifier" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, fontWeight:700, color:'#0073F4', textDecoration:'underline', whiteSpace:'nowrap' }}>Verifier maintenant &rarr;</a>
+                    </div>
+
                     {/* Rappel non-remboursement */}
                     <div style={{ background:'#fef2f2', border:'1px solid #fca5a5', borderRadius:12, padding:'14px 16px', display:'flex', gap:10, alignItems:'flex-start', textAlign:'left' }}>
                       <Ico name="ban" size={16} color="#dc2626" />
@@ -441,21 +450,13 @@ export default function Inscription() {
                       </div>
                     </div>
 
-                    {/* Alerte non-remboursement */}
-                    <div style={{ background:'#fef2f2', border:'1.5px solid #fca5a5', borderRadius:14, padding:'14px 16px', marginBottom:16, display:'flex', gap:10, alignItems:'flex-start' }}>
-                      <Ico name="ban" size={18} color="#dc2626" />
-                      <div>
-                        <div style={{ fontSize:12, fontWeight:700, color:'#dc2626', marginBottom:4 }}>Politique de non-remboursement</div>
-                        <p style={{ fontSize:12, color:'#7f1d1d', lineHeight:1.65, margin:0 }}>Les inscriptions sont <strong>fermes et definitives</strong>. Aucun remboursement ne sera effectue, quelle que soit la raison. En cas d'empechement, remplacement par un collegue possible (notification 72h avant requise).</p>
-                      </div>
-                    </div>
-
-                    {/* Alerte confirmation WhatsApp */}
-                    <div style={{ background:'#fffbeb', border:'1.5px solid #fcd34d', borderRadius:14, padding:'14px 16px', marginBottom:22, display:'flex', gap:10, alignItems:'flex-start' }}>
+                    {/* Alerte non-remboursement + confirmation, fusionnee */}
+                    <div style={{ background:'#fffbeb', border:'1.5px solid #fcd34d', borderRadius:14, padding:'16px 18px', marginBottom:22, display:'flex', gap:10, alignItems:'flex-start' }}>
                       <Ico name="info" size={18} color="#d97706" />
                       <div>
-                        <div style={{ fontSize:12, fontWeight:700, color:'#92400e', marginBottom:4 }}>Etape de confirmation requise apres soumission</div>
-                        <p style={{ fontSize:12, color:'#78350f', lineHeight:1.65, margin:0 }}>Apres reception de l'email de confirmation automatique, vous devez <strong>obligatoirement nous contacter</strong> par WhatsApp (+229 01 97 67 22 00) ou par email pour recevoir les instructions de paiement et confirmer definitivement votre place.</p>
+                        <div style={{ fontSize:12, fontWeight:700, color:'#92400e', marginBottom:6 }}>A savoir avant de valider</div>
+                        <p style={{ fontSize:12, color:'#78350f', lineHeight:1.65, margin:'0 0 6px' }}>Les inscriptions sont <strong>fermes et definitives</strong> : aucun remboursement, quel que soit le motif (un collegue peut vous remplacer avec notification 72h avant).</p>
+                        <p style={{ fontSize:12, color:'#78350f', lineHeight:1.65, margin:0 }}>Apres votre email de confirmation, contactez-nous par WhatsApp ou email pour finaliser le paiement.</p>
                       </div>
                     </div>
 
@@ -519,6 +520,14 @@ export default function Inscription() {
                       <span style={{ fontSize:12, color:'#0f172a', fontWeight:700, textAlign:'right', wordBreak:'break-all' }}>{item.v}</span>
                     </div>
                   ))}
+                  <a href="/verifier" target="_blank" rel="noopener noreferrer" style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    marginTop: 14, padding: '9px', background: '#f8fafc', border: '1px solid #e2e8f0',
+                    borderRadius: 10, color: '#0073F4', fontSize: 12, fontWeight: 700, textDecoration: 'none',
+                  }}>
+                    <Ico name="shield" size={13} color="#0073F4" />
+                    Verifier l'authenticite de ce RIB
+                  </a>
                 </div>
 
                 <div style={{ background:'#EBF3FF', border:'1.5px solid #bfdbfe', borderRadius:20, padding:'20px' }}>

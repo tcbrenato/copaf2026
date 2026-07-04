@@ -23,6 +23,7 @@ const ROUTES = [
   '/partenariats',
   '/exposition-digitale',
   '/visiter',
+  '/verifier',
 ]
 
 function waitForServer(url, timeoutMs = 20000) {
@@ -89,3 +90,4 @@ main().catch(err => {
   console.error('[prerender] Erreur :', err)
   process.exit(1)
 })
+

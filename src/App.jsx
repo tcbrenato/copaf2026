@@ -13,6 +13,7 @@ import { useAnalytics } from './useAnalytics'
 import Partenariats from './pages/Partenariats'
 import ExpositionDigitale from './pages/ExpositionDigitale'
 import VisiterExposition from './pages/VisiterExposition'
+import VerifierDossier from './pages/VerifierDossier'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -48,6 +49,17 @@ const InscriptionPage = () => (
   </>
 )
 
+// ─── Page Vérification anti-fraude ────────────────────────────────────────────
+const VerifierPage = () => (
+  <>
+    <Navbar />
+    <div style={{ paddingTop: 80 }}>
+      <VerifierDossier />
+    </div>
+    <Footer />
+  </>
+)
+
 // ─── Application principale ───────────────────────────────────────────────────
 function App() {
   return (
@@ -56,6 +68,7 @@ function App() {
       <Routes>
         <Route path="/"                    element={<MainSite />} />
         <Route path="/inscription"         element={<InscriptionPage />} />
+        <Route path="/verifier"            element={<VerifierPage />} />
         <Route path="/partenariats"        element={<Partenariats />} />
         <Route path="/exposition-digitale" element={<ExpositionDigitale />} />
         <Route path="/admin"               element={<AdminDashboard />} />
