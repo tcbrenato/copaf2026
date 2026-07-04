@@ -74,9 +74,11 @@ async function main() {
       const html = await page.content()
       await page.close()
 
+      const htmlCorrige = html.replace(/=(["'])\.\//g, '=$1/')
+
       const outDir = route === '/' ? DIST_DIR : path.join(DIST_DIR, route)
       await mkdir(outDir, { recursive: true })
-      await writeFile(path.join(outDir, 'index.html'), html, 'utf-8')
+      await writeFile(path.join(outDir, 'index.html'), htmlCorrige, 'utf-8')
     }
 
     await browser.close()
@@ -90,4 +92,3 @@ main().catch(err => {
   console.error('[prerender] Erreur :', err)
   process.exit(1)
 })
-
