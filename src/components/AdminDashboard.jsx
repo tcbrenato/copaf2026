@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabase } from '../supabase'
+import { jsPDF } from 'jspdf'
+import QRCode from 'qrcode'
 
 // ============================================================
 // REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
@@ -110,6 +112,110 @@ async function syncToSheets(action, payload) {
   return true
 }
 
+// ─── GÉNÉRATION DU BADGE PARTICIPANT (PDF + QR code) ──────────────────────────
+async function generateBadgePDF(row) {
+  const NAVY = '#000E91'
+  const BLUE = '#0073F4'
+  const DARK = '#0f172a'
+  const GRAY = '#64748b'
+  const LIGHT_GRAY = '#e2e8f0'
+  const GREEN = '#10b981'
+
+  // Format badge événementiel type lanyard : 100 x 150 mm
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [100, 150] })
+
+  // Fond blanc + bordure fine
+  doc.setDrawColor(LIGHT_GRAY)
+  doc.setLineWidth(0.4)
+  doc.rect(2, 2, 96, 146)
+
+  // Bandeau supérieur (dégradé simulé par 2 rectangles)
+  doc.setFillColor(NAVY)
+  doc.rect(2, 2, 96, 30, 'F')
+  doc.setFillColor(BLUE)
+  doc.rect(2, 28, 96, 4, 'F')
+
+  doc.setTextColor('#ffffff')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(17)
+  doc.text('COPAF 2026', 50, 14, { align: 'center' })
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(7.5)
+  doc.text('Conférence des Ports Africains', 50, 20.5, { align: 'center' })
+  doc.text('Casablanca, Maroc · 15-17 Septembre 2026', 50, 25.5, { align: 'center' })
+
+  // Pastille de statut
+  doc.setFillColor(GREEN)
+  doc.roundedRect(28, 38, 44, 8, 4, 4, 'F')
+  doc.setTextColor('#ffffff')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8.5)
+  doc.text('PARTICIPANT CONFIRMÉ', 50, 43.2, { align: 'center' })
+
+  // Nom du participant
+  doc.setTextColor(DARK)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(16)
+  const fullName = `${row.prenom || ''} ${row.nom || ''}`.trim() || '—'
+  doc.text(fullName, 50, 56, { align: 'center', maxWidth: 88 })
+
+  // Poste
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9.5)
+  doc.setTextColor(GRAY)
+  if (row.poste) doc.text(row.poste, 50, 62.5, { align: 'center', maxWidth: 88 })
+
+  // Organisation
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(11)
+  doc.setTextColor(NAVY)
+  doc.text(row.organisation || '', 50, 69.5, { align: 'center', maxWidth: 88 })
+
+  // Pays
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(GRAY)
+  doc.text(row.pays || '', 50, 75, { align: 'center' })
+
+  // Séparateur
+  doc.setDrawColor(LIGHT_GRAY)
+  doc.setLineWidth(0.3)
+  doc.line(15, 80, 85, 80)
+
+  // QR code — encode l'URL de vérification officielle du dossier
+  const verifUrl = `https://copaf-ports.com/verifier?dossier=${encodeURIComponent(row.dossier || row.id || '')}`
+  try {
+    const qrDataUrl = await QRCode.toDataURL(verifUrl, {
+      margin: 0,
+      width: 400,
+      color: { dark: NAVY, light: '#ffffff' },
+    })
+    doc.addImage(qrDataUrl, 'PNG', 30, 86, 40, 40)
+  } catch (e) {
+    console.error('Erreur génération QR code', e)
+  }
+
+  // Dossier
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9)
+  doc.setTextColor(DARK)
+  doc.text(row.dossier || '—', 50, 131, { align: 'center' })
+
+  // Séparateur bas
+  doc.setDrawColor(LIGHT_GRAY)
+  doc.line(15, 136, 85, 136)
+
+  // Footer
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(6.3)
+  doc.setTextColor(GRAY)
+  doc.text('Scannez ce QR code pour vérifier le badge', 50, 140.5, { align: 'center' })
+  doc.text("Organisé par CRF Perfection · Sous l'égide de l'AGPAOC", 50, 144.5, { align: 'center' })
+
+  const safeName = (row.dossier || fullName || 'participant').replace(/[^a-zA-Z0-9_-]+/g, '_')
+  doc.save(`Badge_COPAF2026_${safeName}.pdf`)
+}
+
 // ─── BADGE STATUT ────────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.nouveau
@@ -169,7 +275,7 @@ function BarRow({ label, value, max, color }) {
 }
 
 // ─── MODAL GÉNÉRIQUE ─────────────────────────────────────────────────────────
-function Modal({ title, subtitle, accentColor, fields, status, statusField, onStatusChange, onSave, onDelete, onClose, saving, deleting, confirmDel, setConfirmDel, toast }) {
+function Modal({ title, subtitle, accentColor, fields, status, statusField, onStatusChange, onSave, onDelete, onClose, saving, deleting, confirmDel, setConfirmDel, toast, onDownloadBadge, generatingBadge }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={onClose}>
@@ -230,6 +336,20 @@ function Modal({ title, subtitle, accentColor, fields, status, statusField, onSt
             <Icon name="save" size={16} color={saving ? '#94a3b8' : '#fff'} />
             {saving ? 'Enregistrement...' : 'Enregistrer'}
           </button>
+
+          {onDownloadBadge && (
+            <button onClick={onDownloadBadge} disabled={generatingBadge} style={{
+              width: '100%', padding: '13px', marginTop: 10,
+              background: '#fff', border: '1.5px solid #000E91',
+              borderRadius: 12, color: '#000E91',
+              fontWeight: 700, fontSize: 14, cursor: generatingBadge ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit',
+              opacity: generatingBadge ? .6 : 1,
+            }}>
+              <Icon name="download" size={16} color="#000E91" />
+              {generatingBadge ? 'Génération du badge...' : 'Télécharger le badge (PDF)'}
+            </button>
+          )}
         </div>
 
         {/* Suppression */}
@@ -260,6 +380,7 @@ function ModalParticipant({ row, onClose, onUpdate }) {
   const [deleting,   setDeleting]   = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
   const [toast,      setToast]      = useState('')
+  const [genBadge,   setGenBadge]   = useState(false)
 
   const t = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
@@ -267,7 +388,19 @@ function ModalParticipant({ row, onClose, onUpdate }) {
     setSaving(true)
     const { error } = await supabase.from('inscriptions').update({ paiement_status: status }).eq('id', row.id)
     setSaving(false)
-    if (!error) { onUpdate({ ...row, paiement_status: status }); t('Statut mis a jour avec succes') }
+    if (!error) {
+      const wasConfirmed = row.paiement_status === 'confirme'
+      const updated = { ...row, paiement_status: status }
+      onUpdate(updated)
+      if (status === 'confirme' && !wasConfirmed) {
+        t('Statut confirmé — génération du badge...')
+        setGenBadge(true)
+        try { await generateBadgePDF(updated) } catch (e) { console.error(e) }
+        setGenBadge(false)
+      } else {
+        t('Statut mis a jour avec succes')
+      }
+    }
     else t('Erreur : ' + error.message)
   }
 
@@ -278,6 +411,13 @@ function ModalParticipant({ row, onClose, onUpdate }) {
     setDeleting(false)
     if (!error) { onUpdate(null); onClose() }
     else t('Erreur suppression')
+  }
+
+  const downloadBadge = async () => {
+    setGenBadge(true)
+    try { await generateBadgePDF({ ...row, paiement_status: status }) }
+    catch (e) { t('Erreur génération badge : ' + e.message) }
+    setGenBadge(false)
   }
 
   return (
@@ -301,6 +441,8 @@ function ModalParticipant({ row, onClose, onUpdate }) {
       onDelete={del} deleting={deleting}
       confirmDel={confirmDel} setConfirmDel={setConfirmDel}
       onClose={onClose} toast={toast}
+      onDownloadBadge={status === 'confirme' ? downloadBadge : null}
+      generatingBadge={genBadge}
     />
   )
 }

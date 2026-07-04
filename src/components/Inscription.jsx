@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import emailjs from '@emailjs/browser'
+import { generateRecapPDF } from '../utils/generateRecapPDF'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
 const PRIX_UNITAIRE = 3500
@@ -58,7 +59,6 @@ const PAYS = [
   { value: 'Cap-Vert',            label: 'Cap-Vert' },
   { value: 'Afrique du Sud',      label: 'Afrique du Sud' },
   { value: 'Algerie',             label: 'Algerie' },
-  { value: 'Maroc',               label: 'Maroc' },
   { value: 'Tunisie',             label: 'Tunisie' },
   { value: 'Egypte',              label: 'Egypte' },
   { value: 'Kenya',               label: 'Kenya' },
@@ -96,7 +96,7 @@ const CGV_CONTENT = [
 
 const RGPD_CONTENT = [
   { title:'1. Responsable du traitement', text:"CRF Perfection, organisant la COPAF 2026, est responsable du traitement. Contact : inscriptions@copaf-ports.com" },
-  { title:'2. Donnees collectees', text:"Nous collectons : nom, prenom, email, telephone, organisation, poste, pays. Ces donnees sont collectees lors de votre inscription." },
+  { title:'2. Donnees collectees', text:"Nous collectons : nom, prenom, email, telephone, organisation, poste, pays, et le cas echeant une photo pour le badge participant. Ces donnees sont collectees lors de votre inscription." },
   { title:'3. Finalites', text:"Vos donnees servent a : la gestion de votre inscription, l'envoi des confirmations, la creation de votre badge, la communication sur les editions futures." },
   { title:'4. Base legale', text:"Le traitement est fonde sur l'execution du contrat d'inscription (article 6.1.b du RGPD) et votre consentement explicite." },
   { title:'5. Conservation', text:"Vos donnees sont conservees pendant 3 ans a compter de la date de l'evenement, sauf obligation legale contraire." },
@@ -107,14 +107,24 @@ const RGPD_CONTENT = [
 
 const genDossier = () => `COPAF2026-${Math.floor(Math.random() * 90000) + 10000}`
 
+async function uploadPhoto(file, dossier) {
+  if (!file) return null
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+  const path = `${dossier}.${ext}`
+  const { error } = await supabase.storage.from('badges-photos').upload(path, file, { upsert: true })
+  if (error) throw new Error("Erreur lors de l'envoi de la photo : " + error.message)
+  const { data } = supabase.storage.from('badges-photos').getPublicUrl(path)
+  return data.publicUrl
+}
+
 async function upsertContact(form) {
   const { data, error } = await supabase.from('contacts').upsert({ email:form.email, prenom:form.prenom, nom:form.nom, telephone:form.telephone, organisation:form.organisation, poste:form.poste, pays:form.pays, source:'inscription' }, { onConflict:'email' }).select('id').single()
   if (error) throw new Error(error.message)
   return data.id
 }
 
-async function createInscription(contactId, form, nb, montant, paiementMode, dossier) {
-  const { error } = await supabase.from('inscriptions').insert([{ contact_id:contactId, dossier, participants:nb, montant, paiement_status:paiementMode==='maintenant'?'en_attente':'reserve', paiement_mode:paiementMode, message:form.message }])
+async function createInscription(contactId, form, nb, montant, paiementMode, dossier, photoUrl) {
+  const { error } = await supabase.from('inscriptions').insert([{ contact_id:contactId, dossier, participants:nb, montant, paiement_status:paiementMode==='maintenant'?'en_attente':'reserve', paiement_mode:paiementMode, message:form.message, photo_url:photoUrl }])
   if (error) throw new Error(error.message)
 }
 
@@ -185,6 +195,8 @@ export default function Inscription() {
   const [dossierNum,   setDossierNum]   = useState('')
   const [focused,      setFocused]      = useState('')
   const [modal,        setModal]        = useState(null)
+  const [photoFile,    setPhotoFile]    = useState(null)
+  const [photoPreview, setPhotoPreview] = useState('')
 
   const nb    = parseInt(form.participants) || 1
   const total = nb * PRIX_UNITAIRE
@@ -192,15 +204,24 @@ export default function Inscription() {
   const handleChange     = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   const handleTypeSelect = type => { if (type.redirect) navigate(type.redirectTo); else setEtape(2) }
 
+  const handlePhotoChange = e => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhotoFile(file)
+    setPhotoPreview(URL.createObjectURL(file))
+  }
+
   const handleSubmit = async e => {
     e.preventDefault(); setLoading(true); setErrorMsg('')
     const dossier = genDossier()
     try {
+      const photoUrl = await uploadPhoto(photoFile, dossier)
       const contactId = await upsertContact(form)
-      await createInscription(contactId, form, nb, total, paiementMode, dossier)
+      await createInscription(contactId, form, nb, total, paiementMode, dossier, photoUrl)
       fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:total,dossier,paiement:paiementMode}) }).catch(()=>{})
       await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, { prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation, poste:form.poste, pays:form.pays, participants:form.participants, montant:`${total.toLocaleString('fr-FR')} EUR`, tarif:`${PRIX_UNITAIRE.toLocaleString('fr-FR')} EUR/pers.`, dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee', paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'' }, EMAILJS_KEY)
       setDossierNum(dossier); setSubmitted(true)
+      generateRecapPDF({ form, dossier, nb, total, paiementMode })
     } catch(err) { setErrorMsg('Une erreur est survenue : ' + err.message) }
     setLoading(false)
   }
@@ -324,9 +345,20 @@ export default function Inscription() {
                     <h3 style={{ fontSize:'clamp(18px,3vw,26px)', fontWeight:900, color:'#0f172a', marginBottom:8 }}>{paiementMode==='maintenant'?'Inscription enregistree !':'Place reservee !'}</h3>
                     <p style={{ fontSize:14, color:'#64748b', marginBottom:24, lineHeight:1.8 }}>Merci <strong style={{ color:'#0f172a' }}>{form.prenom} {form.nom}</strong>.<br/>Un email de confirmation a ete envoye a <strong style={{ color:'#0073F4' }}>{form.email}</strong>.</p>
 
-                    <div style={{ background:'linear-gradient(135deg,#000E91,#0073F4)', borderRadius:16, padding:'20px 32px', display:'inline-block', marginBottom:28, boxShadow:'0 10px 32px rgba(0,14,145,.25)' }}>
+                    <div style={{ background:'linear-gradient(135deg,#000E91,#0073F4)', borderRadius:16, padding:'20px 32px', display:'inline-block', marginBottom:16, boxShadow:'0 10px 32px rgba(0,14,145,.25)' }}>
                       <div style={{ fontSize:10, color:'rgba(255,255,255,.55)', letterSpacing:2.5, textTransform:'uppercase', marginBottom:8 }}>Numero de dossier</div>
                       <div style={{ fontSize:'clamp(18px,4vw,26px)', fontWeight:900, color:'#fff', letterSpacing:2 }}>{dossierNum}</div>
+                    </div>
+
+                    <div style={{ marginBottom:28 }}>
+                      <button
+                        onClick={() => generateRecapPDF({ form, dossier: dossierNum, nb, total, paiementMode })}
+                        className="cta-btn"
+                        style={{ background:'#EBF3FF', color:'#000E91', border:'1.5px solid #bfdbfe', margin:'0 auto' }}
+                      >
+                        <Ico name="file" size={18} color="#000E91" />
+                        Telecharger mon recapitulatif (PDF)
+                      </button>
                     </div>
 
                     {/* Action requise */}
@@ -422,6 +454,31 @@ export default function Inscription() {
                           {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} participant{n>1?'s':''} - {(n*PRIX_UNITAIRE).toLocaleString('fr-FR')} EUR</option>)}
                         </select>
                       </div>
+                    </div>
+
+                    <div style={{ marginBottom:22 }}>
+                      <label style={lbl}>Photo (pour votre badge participant)</label>
+                      <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+                        <div style={{
+                          width:64, height:64, borderRadius:12, flexShrink:0,
+                          background: photoPreview ? `url(${photoPreview}) center/cover` : '#f8fafc',
+                          border:'1.5px solid #e2e8f0', display:'flex', alignItems:'center', justifyContent:'center',
+                        }}>
+                          {!photoPreview && <Ico name="user" size={22} color="#cbd5e1" />}
+                        </div>
+                        <label style={{
+                          display:'inline-flex', alignItems:'center', gap:8, cursor:'pointer',
+                          padding:'11px 18px', background:'#f8fafc', border:'1.5px solid #e2e8f0',
+                          borderRadius:12, fontSize:13, fontWeight:600, color:'#334155',
+                        }}>
+                          <Ico name="user" size={15} color="#0073F4" />
+                          {photoPreview ? 'Changer la photo' : 'Choisir une photo'}
+                          <input type="file" accept="image/*" onChange={handlePhotoChange} style={{ display:'none' }} />
+                        </label>
+                      </div>
+                      <p style={{ fontSize:11.5, color:'#94a3b8', marginTop:8, lineHeight:1.5 }}>
+                        Facultatif a ce stade — utilisee pour generer votre badge une fois l'inscription confirmee. Format portrait recommande.
+                      </p>
                     </div>
 
                     <div style={{ marginBottom:22 }}>

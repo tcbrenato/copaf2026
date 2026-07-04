@@ -46,10 +46,10 @@ const jours = [
     objectif: 'Comprendre le paysage technologique et identifier les opportunités',
     icon: icons.compass, accent: C.blue, accentBg: C.bluePale, accentBorder: C.blueMid,
     sessions: [
-      { heure: '09h00 – 10h30', titre: "Conférence d'ouverture", desc: "L'IA au cœur de la révolution du Smart Port. Panorama mondial et spécificités africaines.", icon: icons.mic, points: ["Panorama mondial des ports intelligents", "Spécificités du contexte africain", "Feuille de route de la conférence"], intervenant: 'Expert Partenaire A', categorie: 'Partenaire' },
-      { heure: '11h00 – 12h30', titre: 'Démystification technique', desc: 'Comprendre la Data, le Machine Learning et la Vision par Ordinateur sans jargon.', icon: icons.cpu, points: ["Data & Big Data expliqués simplement", "Machine Learning sans code", "Vision par Ordinateur appliquée aux ports"], intervenant: 'TCHOBO Rénato', categorie: 'Maison' },
-      { heure: '14h00 – 15h30', titre: 'Études de cas', desc: 'Succès et échecs des projets IA dans les ports africains et mondiaux.', icon: icons.chart, points: ["Cas concrets de déploiement IA en Afrique", "Leçons tirées des expériences internationales", "Facteurs clés de succès identifiés"], intervenant: 'Expert Partenaire A', categorie: 'Partenaire' },
-      { heure: '16h00 – 17h30', titre: 'Atelier de réflexion', desc: 'Diagnostic de maturité digitale de votre autorité portuaire.', icon: icons.search, points: ["Grille d'auto-évaluation digitale", "Cartographie des gaps technologiques", "Priorisation des chantiers urgents"], intervenant: 'Dr. William ODAH', categorie: 'Maison' },
+      { heure: '09h00 – 10h30', type: 'Plénière', titre: "Conférence d'ouverture", desc: "L'IA au cœur de la révolution du Smart Port. Panorama mondial et spécificités africaines.", icon: icons.mic, points: ["Panorama mondial des ports intelligents", "Spécificités du contexte africain", "Feuille de route de la conférence"], intervenant: 'Expert Partenaire A', categorie: 'Partenaire' },
+      { heure: '11h00 – 12h30', type: "Panel d'apprentissage organisationnel", titre: 'Démystification technique', desc: 'Comprendre la Data, le Machine Learning et la Vision par Ordinateur sans jargon.', icon: icons.cpu, points: ["Data & Big Data expliqués simplement", "Machine Learning sans code", "Vision par Ordinateur appliquée aux ports"], intervenant: 'TCHOBO Rénato', categorie: 'Maison' },
+      { heure: '14h00 – 15h30', type: "Atelier d'étude de cas", titre: 'Études de cas', desc: 'Succès et échecs des projets IA dans les ports africains et mondiaux.', icon: icons.chart, points: ["Cas concrets de déploiement IA en Afrique", "Leçons tirées des expériences internationales", "Facteurs clés de succès identifiés"], intervenant: 'Expert Partenaire A', categorie: 'Partenaire' },
+      { heure: '16h00 – 17h30', type: 'Table ronde de réflexion', titre: 'Atelier de réflexion', desc: 'Diagnostic de maturité digitale de votre autorité portuaire.', icon: icons.search, points: ["Grille d'auto-évaluation digitale", "Cartographie des gaps technologiques", "Priorisation des chantiers urgents"], intervenant: 'Dr. William ODAH', categorie: 'Maison' },
     ]
   },
   {
@@ -57,10 +57,10 @@ const jours = [
     objectif: "Voir comment l'IA transforme le terrain (quais, terminaux, accès)",
     icon: icons.gear, accent: C.navy, accentBg: 'rgba(0,14,145,0.06)', accentBorder: 'rgba(0,14,145,0.2)',
     sessions: [
-      { heure: '09h00 – 10h30', titre: 'Opérations nautiques', desc: 'Prédiction des arrivées (ETA) et gestion intelligente des postes à quai.', icon: icons.anchor, points: ["Algorithmes de prédiction ETA", "Optimisation des postes à quai", "Réduction des temps d'attente"], intervenant: 'Expert Recruté A', categorie: 'Recruté' },
-      { heure: '11h00 – 12h30', titre: "Fluidité de l'Hinterland", desc: 'Algorithmes de gestion des flux de camions et réduction de la congestion urbaine.', icon: icons.truck, points: ["Gestion intelligente des flux camions", "Réduction de la congestion urbaine", "Coordination avec les douanes"], intervenant: 'Expert Recruté A', categorie: 'Recruté' },
-      { heure: '14h00 – 15h30', titre: 'Sécurité & Sûreté', desc: "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", icon: icons.lock, points: ["Analyse automatisée des scanners", "Vidéosurveillance intelligente", "Alertes en temps réel"], intervenant: 'Expert Recruté B', categorie: 'Recruté' },
-      { heure: '16h00 – 17h30', titre: 'Cybersécurité portuaire', desc: 'Comment protéger un port connecté contre les menaces étatiques et criminelles.', icon: icons.shield, points: ["Cartographie des menaces cyber", "Protocoles de protection OT/IT", "Gestion des incidents et réponse"], intervenant: 'Expert Recruté B', categorie: 'Recruté' },
+      { heure: '09h00 – 10h30', type: 'Plénière', titre: 'Opérations nautiques', desc: 'Prédiction des arrivées (ETA) et gestion intelligente des postes à quai.', icon: icons.anchor, points: ["Algorithmes de prédiction ETA", "Optimisation des postes à quai", "Réduction des temps d'attente"], intervenant: 'Expert Recruté A', categorie: 'Recruté' },
+      { heure: '11h00 – 12h30', type: "Panel d'apprentissage organisationnel", titre: "Fluidité de l'Hinterland", desc: 'Algorithmes de gestion des flux de camions et réduction de la congestion urbaine.', icon: icons.truck, points: ["Gestion intelligente des flux camions", "Réduction de la congestion urbaine", "Coordination avec les douanes"], intervenant: 'Expert Recruté A', categorie: 'Recruté' },
+      { heure: '14h00 – 15h30', type: "Atelier d'étude de cas", titre: 'Sécurité & Sûreté', desc: "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", icon: icons.lock, points: ["Analyse automatisée des scanners", "Vidéosurveillance intelligente", "Alertes en temps réel"], intervenant: 'Expert Recruté B', categorie: 'Recruté' },
+      { heure: '16h00 – 17h30', type: 'Table ronde de réflexion', titre: 'Cybersécurité portuaire', desc: 'Comment protéger un port connecté contre les menaces étatiques et criminelles.', icon: icons.shield, points: ["Cartographie des menaces cyber", "Protocoles de protection OT/IT", "Gestion des incidents et réponse"], intervenant: 'Expert Recruté B', categorie: 'Recruté' },
     ]
   },
   {
@@ -68,10 +68,10 @@ const jours = [
     objectif: "Préparer l'après-formation : financer et piloter le changement",
     icon: icons.map, accent: C.blueLight, accentBg: 'rgba(51,145,246,0.08)', accentBorder: 'rgba(51,145,246,0.25)',
     sessions: [
-      { heure: '09h00 – 10h30', titre: "Modèle économique de l'IA", desc: "Calculer le ROI d'un projet technologique portuaire.", icon: icons.dollar, points: ["Méthodes de calcul du ROI tech", "Modèles de financement disponibles", "Présentation aux instances dirigeantes"], intervenant: 'Expert Partenaire B', categorie: 'Partenaire' },
-      { heure: '11h00 – 12h30', titre: 'Gouvernance de la donnée', desc: 'Créer une culture Data-Driven et recruter les talents nécessaires.', icon: icons.users, points: ["Mise en place d'une Data Governance", "Stratégie de recrutement tech", "Conduite du changement organisationnel"], intervenant: 'TCHOBO Rénato', categorie: 'Maison' },
-      { heure: '14h00 – 15h30', titre: 'Atelier Action Plan', desc: "Élaboration d'une feuille de route de transformation digitale personnalisée.", icon: icons.clipboard, points: ["Template de feuille de route", "Priorisation sur 12 / 24 / 36 mois", "KPIs de suivi de transformation"], intervenant: 'Dr. William ODAH', categorie: 'Maison' },
-      { heure: '16h00 – 17h00', titre: 'Table ronde finale', desc: "Signature d'un manifeste pour la coopération technologique entre ports africains.", icon: icons.handshake, points: ["Présentation des plans d'action", "Réseau de coopération inter-ports", "Signature du manifeste COPAF 2026"], intervenant: 'Expert Partenaire B', categorie: 'Partenaire' },
+      { heure: '09h00 – 10h30', type: 'Plénière', titre: "Modèle économique de l'IA", desc: "Calculer le ROI d'un projet technologique portuaire.", icon: icons.dollar, points: ["Méthodes de calcul du ROI tech", "Modèles de financement disponibles", "Présentation aux instances dirigeantes"], intervenant: 'Expert Partenaire B', categorie: 'Partenaire' },
+      { heure: '11h00 – 12h30', type: "Panel d'apprentissage organisationnel", titre: 'Gouvernance de la donnée', desc: 'Créer une culture Data-Driven et recruter les talents nécessaires.', icon: icons.users, points: ["Mise en place d'une Data Governance", "Stratégie de recrutement tech", "Conduite du changement organisationnel"], intervenant: 'TCHOBO Rénato', categorie: 'Maison' },
+      { heure: '14h00 – 15h30', type: "Atelier d'étude de cas", titre: 'Atelier Action Plan', desc: "Élaboration d'une feuille de route de transformation digitale personnalisée.", icon: icons.clipboard, points: ["Template de feuille de route", "Priorisation sur 12 / 24 / 36 mois", "KPIs de suivi de transformation"], intervenant: 'Dr. William ODAH', categorie: 'Maison' },
+      { heure: '16h00 – 17h00', type: 'Table ronde de réflexion', titre: 'Table ronde finale', desc: "Signature d'un manifeste pour la coopération technologique entre ports africains.", icon: icons.handshake, points: ["Présentation des plans d'action", "Réseau de coopération inter-ports", "Signature du manifeste COPAF 2026"], intervenant: 'Expert Partenaire B', categorie: 'Partenaire' },
     ]
   },
 ]
@@ -197,7 +197,7 @@ const Programme = () => {
                 {jour.date} 2026
               </div>
               <div style={{ fontSize: 'clamp(18px, 3vw, 26px)', fontWeight: 900, color: C.white, lineHeight: 1.15, letterSpacing: '-0.01em' }}>
-                {jour.jour} — {jour.titre}
+                {jour.jour} : {jour.titre}
               </div>
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 8, lineHeight: 1.6 }}>
                 {jour.objectif}
@@ -253,6 +253,9 @@ const Programme = () => {
                     }}>{s.icon}</div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: jour.accent, marginBottom: 4 }}>
+                        {s.type}
+                      </div>
                       <div style={{ fontSize: 'clamp(14px, 2vw, 16px)', fontWeight: 700, color: C.navy, marginBottom: 5, letterSpacing: '-0.01em' }}>{s.titre}</div>
                       <div style={{ fontSize: 'clamp(12px, 1.5vw, 13px)', color: '#888', lineHeight: 1.65, marginBottom: 8 }}>{s.desc}</div>
                       <div style={{
@@ -327,7 +330,7 @@ const Programme = () => {
                 </div>
                 <div>
                   <div style={{ fontSize: 10, color: C.blueMid, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 5, fontWeight: 700 }}>
-                    Session — {activeSession.jourTitre}
+                    {activeSession.type} — {activeSession.jourTitre}
                   </div>
                   <div style={{ fontSize: 'clamp(16px, 3vw, 21px)', fontWeight: 900, color: C.white, lineHeight: 1.2, letterSpacing: '-0.01em' }}>
                     {activeSession.titre}

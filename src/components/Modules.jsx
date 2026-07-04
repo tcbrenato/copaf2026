@@ -1,87 +1,79 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 
-const modules = [
+const icons = {
+  compass: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>,
+  shield: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>,
+  gauge: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 22a8 8 0 0 1 8-8h4a8 8 0 0 0 8-8V2"/><path d="M7 7c.9-1.9 3.1-3 5.5-2.8C15.2 4.4 17 6.5 17 9c0 3.3-3 5-5 7"/></svg>,
+  user: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  close: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  arrow: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+}
+
+const C = {
+  navy: '#000E91', navyLight: '#0A1AAF', blue: '#0073F4',
+  navyAlpha10: 'rgba(0,14,145,0.10)',
+}
+
+const categorieBadge = {
+  Maison:     { bg: '#E8ECFF', color: '#000E91' },
+  Partenaire: { bg: '#EBF3FF', color: '#0073F4' },
+  Recruté:    { bg: '#FFF4E8', color: '#A35F00' },
+}
+
+const AXES = [
   {
     num: "01",
-    titre: "IA & Logistique",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
-      </svg>
-    ),
-    items: [
-      "Optimisation algorithmique pour une fluidification inédite des flux de conteneurs",
-      "Automatisation des opérations portuaires par l'Intelligence Artificielle",
-      "Benchmarks mondiaux : Tanger Med, Singapour, Rotterdam",
-    ],
+    jour: "Jour 1",
+    date: "15 Sept.",
+    titre: "IA & Vision Stratégique",
+    sousTitre: "Comprendre le paysage technologique et identifier les opportunités",
+    icon: icons.compass,
     color: "#0073f4",
     bg: "rgba(0,115,244,0.08)",
-    stat: { value: "3", label: "Keynotes" },
-    duration: "6h",
     level: "Stratégique",
+    duration: "6h",
+    activites: [
+      { type: "Plénière", titre: "L'IA au cœur de la révolution du Smart Port", desc: "Panorama mondial et spécificités africaines.", intervenant: "Expert Partenaire A", categorie: "Partenaire" },
+      { type: "Panel d'apprentissage organisationnel", titre: "Automatisation des opérations portuaires par l'Intelligence Artificielle", desc: "", intervenant: "TCHOBO Rénato", categorie: "Maison" },
+      { type: "Atelier d'étude de cas", titre: "Études de cas, succès et échecs des projets IA", desc: "Dans les ports africains et mondiaux.", intervenant: "Expert Partenaire A", categorie: "Partenaire" },
+      { type: "Table ronde de réflexion", titre: "Diagnostic de maturité digitale", desc: "De votre autorité portuaire.", intervenant: "Dr. William ODAH", categorie: "Maison" },
+    ],
   },
   {
     num: "02",
-    titre: "Cybersécurité Portuaire",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-        <polyline points="9 12 11 14 15 10" />
-      </svg>
-    ),
-    items: [
-      "Protection des actifs numériques et sécurisation des échanges douaniers",
-      "Faire face aux nouvelles menaces cyber dans les infrastructures critiques",
-      "Stratégies de résilience et de continuité d'activité portuaire",
-    ],
+    jour: "Jour 2",
+    date: "16 Sept.",
+    titre: "Excellence Opérationnelle & Sécurité",
+    sousTitre: "Voir comment l'IA transforme le terrain (quais, terminaux, accès)",
+    icon: icons.shield,
     color: "#a78bfa",
     bg: "rgba(167,139,250,0.08)",
-    stat: { value: "4", label: "Panels" },
-    duration: "6h",
     level: "Expert",
+    duration: "6h",
+    activites: [
+      { type: "Plénière", titre: "Opérations nautiques", desc: "Prédiction des arrivées (ETA) et gestion intelligente des postes à quai.", intervenant: "Expert Recruté A", categorie: "Recruté" },
+      { type: "Panel d'apprentissage organisationnel", titre: "Fluidité de l'Hinterland", desc: "Algorithmes de gestion des flux de camions et réduction de la congestion urbaine.", intervenant: "Expert Recruté A", categorie: "Recruté" },
+      { type: "Atelier d'étude de cas", titre: "Sécurité & Sûreté", desc: "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", intervenant: "Expert Recruté B", categorie: "Recruté" },
+      { type: "Table ronde de réflexion", titre: "Cybersécurité portuaire", desc: "Comment protéger un port connecté contre les menaces criminelles.", intervenant: "Expert Recruté B", categorie: "Recruté" },
+    ],
   },
   {
     num: "03",
-    titre: "Maintenance Prédictive & IoT",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
-        <rect x="2" y="7" width="20" height="14" rx="2" />
-        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-        <line x1="12" y1="12" x2="12" y2="16" />
-        <line x1="10" y1="14" x2="14" y2="14" />
-      </svg>
-    ),
-    items: [
-      "Anticiper les défaillances pour garantir la disponibilité continue des infrastructures critiques",
-      "Capteurs IoT et analyse vibratoire pour la maintenance proactive",
-      "Réduction des coûts opérationnels grâce aux données temps réel",
-    ],
-    color: "#00b4d8",
-    bg: "rgba(0,180,216,0.08)",
-    stat: { value: "5", label: "Ateliers" },
-    duration: "8h",
-    level: "Opérationnel",
-  },
-  {
-    num: "04",
-    titre: "Gouvernance Data-Driven",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
-        <path d="M2 22a8 8 0 0 1 8-8h4a8 8 0 0 0 8-8V2" />
-        <path d="M7 7c.9-1.9 3.1-3 5.5-2.8C15.2 4.4 17 6.5 17 9c0 3.3-3 5-5 7" />
-      </svg>
-    ),
-    items: [
-      "Pilotage en temps réel et aide à la décision via des tableaux de bord prédictifs avancés",
-      "Structurer une gouvernance de la donnée souveraine et performante",
-      "KPIs portuaires intelligents pour une compétitivité continentale renforcée",
-    ],
+    jour: "Jour 3",
+    date: "17 Sept.",
+    titre: "Gouvernance Data-Driven & Feuille de Route",
+    sousTitre: "Préparer l'après-formation & optimiser le management du changement",
+    icon: icons.gauge,
     color: "#10b981",
     bg: "rgba(16,185,129,0.08)",
-    stat: { value: "6", label: "Cas pratiques" },
-    duration: "7h",
     level: "Avancé",
+    duration: "7h",
+    activites: [
+      { type: "Plénière", titre: "Modèle économique de l'IA", desc: "Calculer le ROI d'un projet technologique portuaire.", intervenant: "Expert Partenaire B", categorie: "Partenaire" },
+      { type: "Panel d'apprentissage organisationnel", titre: "Gouvernance de la donnée", desc: "Créer une culture Data-Driven et recruter les talents nécessaires.", intervenant: "TCHOBO Rénato", categorie: "Maison" },
+      { type: "Atelier d'étude de cas", titre: "Pilotage en temps réel", desc: "Aide à la décision via des tableaux de bord prédictifs avancés.", intervenant: "Dr. William ODAH", categorie: "Maison" },
+      { type: "Table ronde de réflexion", titre: "KPIs portuaires intelligents", desc: "Pour une compétitivité continentale renforcée.", intervenant: "Expert Partenaire B", categorie: "Partenaire" },
+    ],
   },
 ];
 
@@ -95,423 +87,238 @@ const objectifs = [
   { num: "07", text: "Positionner le port comme maillon performant des corridors de commerce africains" },
 ];
 
-const CheckIcon = () => (
-  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="12" height="12">
-    <polyline points="3 8 6.5 11.5 13 4.5" />
-  </svg>
-);
-
-const FloatingParticles = () => (
-  <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 0 }} xmlns="http://www.w3.org/2000/svg">
-    {[
-      { cx: "8%",  cy: "15%", r: 1.5, delay: 0 },
-      { cx: "92%", cy: "20%", r: 2,   delay: 1.2 },
-      { cx: "20%", cy: "80%", r: 1,   delay: 2.5 },
-      { cx: "75%", cy: "70%", r: 2.5, delay: 0.7 },
-      { cx: "50%", cy: "5%",  r: 1.5, delay: 1.8 },
-      { cx: "35%", cy: "92%", r: 1,   delay: 3.1 },
-      { cx: "88%", cy: "55%", r: 2,   delay: 0.3 },
-      { cx: "12%", cy: "45%", r: 1.5, delay: 2.0 },
-    ].map((p, i) => (
-      <circle key={i} cx={p.cx} cy={p.cy} r={p.r} fill="#0073f4" opacity="0.35">
-        <animate attributeName="opacity" values="0.35;0.6;0.35" dur={`${3 + i * 0.4}s`} repeatCount="indefinite" begin={`${p.delay}s`} />
-      </circle>
-    ))}
-    {[
-      ["8%","15%","20%","80%"], ["92%","20%","75%","70%"], ["50%","5%","88%","55%"],
-    ].map(([x1,y1,x2,y2], i) => (
-      <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#0073f4" strokeWidth="0.5" opacity="0.1" />
-    ))}
-  </svg>
-);
-
-const Modules = () => {
-  const [activeTab, setActiveTab]   = useState(0);
-  const [progress,  setProgress]    = useState(0);
-  const [animIn,    setAnimIn]      = useState(true);
-  const [objVisible, setObjVisible] = useState(false);
-  const objRef   = useRef(null);
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setAnimIn(false);
-      setTimeout(() => {
-        setActiveTab(prev => (prev + 1) % modules.length);
-        setAnimIn(true);
-        setProgress(0);
-      }, 300);
-    }, 6000);
-    return () => clearInterval(timerRef.current);
-  }, []);
-
-  useEffect(() => {
-    setProgress(0);
-    const interval = setInterval(() => {
-      setProgress(p => {
-        if (p >= 100) { clearInterval(interval); return 100; }
-        return p + 100 / 60;
-      });
-    }, 100);
-    return () => clearInterval(interval);
-  }, [activeTab]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setObjVisible(true); },
-      { threshold: 0.2 }
-    );
-    if (objRef.current) observer.observe(objRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  const handleTabClick = (i) => {
-    clearInterval(timerRef.current);
-    setAnimIn(false);
-    setTimeout(() => { setActiveTab(i); setAnimIn(true); setProgress(0); }, 250);
-  };
-
-  const m = modules[activeTab];
+const AxesThematiques = () => {
+  const [activeAxe, setActiveAxe] = useState(null);
+  const [hovered, setHovered] = useState(null);
 
   return (
-    <section id="modules" style={{
-      padding: "clamp(80px, 10vw, 130px) clamp(20px, 5vw, 60px)",
-      background: "linear-gradient(170deg, #020924 0%, #001156 50%, #020924 100%)",
-      color: "#fff",
-      fontFamily: "'Inter', 'Helvetica Neue', sans-serif",
-      position: "relative",
-      overflow: "hidden",
+    <section id="axes-thematiques" style={{
+      padding: "clamp(60px, 10vw, 100px) 0",
+      background: "#ffffff",
+      fontFamily: "'Outfit', 'Roboto', sans-serif",
+      overflowX: "hidden",
     }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap');
+        .axe-card { transition: all 0.25s cubic-bezier(.4,0,.2,1) !important; }
+        .axe-card:hover { transform: translateY(-5px); }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.94) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .modal-animate { animation: modalIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards; }
+        .axes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        @media (max-width: 820px) { .axes-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; } }
+      `}</style>
 
-      {/* Grille de fond */}
-      <div style={{
-        position: "absolute", inset: 0,
-        backgroundImage: `linear-gradient(rgba(0,115,244,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,115,244,0.04) 1px, transparent 1px)`,
-        backgroundSize: "60px 60px",
-        pointerEvents: "none",
-      }} />
-
-      {/* Glow radial */}
-      <div style={{
-        position: "absolute", top: "5%", left: "50%", transform: "translateX(-50%)",
-        width: 800, height: 400,
-        background: "radial-gradient(ellipse, rgba(0,115,244,0.13) 0%, transparent 70%)",
-        pointerEvents: "none",
-      }} />
-
-      <FloatingParticles />
-
-      <div style={{ position: "relative", maxWidth: 1200, margin: "0 auto", zIndex: 1 }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 clamp(16px, 5vw, 40px)" }}>
 
         {/* HEADER */}
-        <div style={{ textAlign: "center", marginBottom: "clamp(48px, 7vw, 80px)" }}>
+        <div style={{ textAlign: "center", marginBottom: "clamp(40px, 6vw, 60px)" }}>
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
-            background: "rgba(0,115,244,0.12)", border: "1px solid rgba(0,115,244,0.3)",
-            borderRadius: 100, padding: "7px 20px", marginBottom: 28,
+            background: C.navy, borderRadius: 100, padding: "7px 20px", marginBottom: 20,
           }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#0073f4" }} />
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: "#0073f4" }}>
-              Modules à Développer
-            </span>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.blue }} />
+            <span style={{ color: "#fff", fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase" }}>Axes Thématiques</span>
           </div>
-
-          <h2 style={{
-            fontSize: "clamp(28px, 4.5vw, 52px)",
-            fontWeight: 800, lineHeight: 1.1,
-            letterSpacing: "-0.02em", color: "#fff", marginBottom: 20,
-          }}>
-            4 Modules au cœur de la{" "}
-            <span style={{
-              background: "linear-gradient(135deg, #0073f4 0%, #00b4d8 100%)",
-              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-            }}>COPAF 2026</span>
+          <h2 style={{ fontSize: "clamp(24px, 4.5vw, 44px)", fontWeight: 900, color: C.navy, margin: "0 0 12px", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
+            3 Jours, 3 Axes au cœur de la{" "}
+            <span style={{ background: `linear-gradient(135deg, ${C.blue}, ${C.navyLight})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>COPAF 2026</span>
           </h2>
-
-          <p style={{ fontSize: "clamp(14px, 1.6vw, 17px)", color: "rgba(255,255,255,0.5)", maxWidth: 560, margin: "0 auto", lineHeight: 1.8 }}>
-            Des modules thématiques conçus pour répondre aux défis technologiques
-            et opérationnels des ports africains d'aujourd'hui et de demain.
+          <p style={{ fontSize: "clamp(13px, 1.8vw, 16px)", color: "#64748b", maxWidth: 480, margin: "0 auto", lineHeight: 1.7 }}>
+            Cliquez sur un jour pour découvrir sa plénière, son panel, son atelier et sa table ronde.
           </p>
         </div>
 
-        {/* ONGLETS */}
-        <div style={{
-          display: "flex", gap: "clamp(8px, 1.5vw, 16px)",
-          justifyContent: "center", flexWrap: "wrap",
-          marginBottom: "clamp(32px, 5vw, 52px)",
-        }}>
-          {modules.map((mod, i) => (
-            <button
-              key={i}
-              onClick={() => handleTabClick(i)}
-              style={{
-                display: "flex", alignItems: "center", gap: 10,
-                padding: "12px clamp(14px, 2vw, 24px)",
-                borderRadius: 50,
-                background: activeTab === i ? mod.color : "rgba(255,255,255,0.05)",
-                border: `1px solid ${activeTab === i ? mod.color : "rgba(255,255,255,0.1)"}`,
-                color: activeTab === i ? "#fff" : "rgba(255,255,255,0.5)",
-                fontWeight: 600, fontSize: "clamp(12px, 1.2vw, 14px)",
-                cursor: "pointer", transition: "all 0.3s ease",
-                fontFamily: "inherit", whiteSpace: "nowrap",
-              }}
-            >
-              <span style={{ color: activeTab === i ? "#fff" : mod.color, display: "flex" }}>{mod.icon}</span>
-              <span className="tab-label">{mod.titre}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* CONTENU MODULE */}
-        <div
-          className="module-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "clamp(20px, 3vw, 40px)",
-            marginBottom: "clamp(48px, 7vw, 80px)",
-            opacity: animIn ? 1 : 0,
-            transform: animIn ? "translateY(0)" : "translateY(16px)",
-            transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
-          }}
-        >
-          {/* Panneau gauche */}
-          <div style={{
-            background: "rgba(255,255,255,0.03)",
-            border: `1px solid ${m.color}40`,
-            borderRadius: 24, padding: "clamp(28px, 4vw, 48px)",
-            position: "relative", overflow: "hidden",
-          }}>
-            {/* Barre progression */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "rgba(255,255,255,0.06)", borderRadius: "24px 24px 0 0" }}>
-              <div style={{
-                height: "100%", width: `${progress}%`,
-                background: `linear-gradient(90deg, ${m.color}, ${m.color}99)`,
-                borderRadius: "24px 24px 0 0", transition: "width 0.1s linear",
-              }} />
-            </div>
-
-            {/* Numéro décoratif */}
-            <div style={{
-              position: "absolute", top: -20, right: 20,
-              fontSize: 120, fontWeight: 900, lineHeight: 1,
-              color: `${m.color}0d`, userSelect: "none", pointerEvents: "none",
-            }}>{m.num}</div>
-
-            {/* Icon + badges */}
-            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 28 }}>
-              <div style={{
-                width: 56, height: 56, borderRadius: 16,
-                background: m.bg, border: `1px solid ${m.color}40`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: m.color,
-              }}>{m.icon}</div>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: m.color, marginBottom: 4 }}>
-                  Module {m.num}
+        {/* CARTES JOUR */}
+        <div className="axes-grid">
+          {AXES.map((axe, i) => {
+            const isHover = hovered === i;
+            return (
+              <div key={i} className="axe-card"
+                onClick={() => setActiveAxe(axe)}
+                onMouseEnter={() => setHovered(i)}
+                onMouseLeave={() => setHovered(null)}
+                style={{
+                  background: "#fff", borderRadius: 20, padding: "clamp(24px, 3.5vw, 32px)",
+                  cursor: "pointer", position: "relative", overflow: "hidden",
+                  border: `1.5px solid ${C.navyAlpha10}`,
+                  boxShadow: isHover ? `0 20px 44px ${axe.color}30` : "0 4px 16px rgba(0,14,145,0.05)",
+                }}
+              >
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: axe.color }} />
+                <div style={{
+                  width: 56, height: 56, borderRadius: 16, marginBottom: 18,
+                  background: axe.bg, border: `1px solid ${axe.color}30`,
+                  display: "flex", alignItems: "center", justifyContent: "center", color: axe.color,
+                }}>{axe.icon}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: axe.color, marginBottom: 6 }}>
+                  {axe.jour} · {axe.date}
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: `${m.color}20`, color: m.color }}>{m.level}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, padding: "3px 10px", borderRadius: 20, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}>⏱ {m.duration}</span>
+                <div style={{ fontSize: "clamp(16px, 2.3vw, 19px)", fontWeight: 900, color: C.navy, lineHeight: 1.25, marginBottom: 10 }}>
+                  {axe.titre}
+                </div>
+                <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, marginBottom: 20 }}>{axe.sousTitre}</p>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: axe.color, background: axe.bg, borderRadius: 20, padding: "4px 10px" }}>4 activités</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: axe.color }}>
+                    Voir le détail {icons.arrow}
+                  </span>
                 </div>
               </div>
-            </div>
-
-            <h3 style={{
-              fontSize: "clamp(20px, 2.5vw, 28px)", fontWeight: 800, color: "#fff",
-              lineHeight: 1.2, marginBottom: 24, letterSpacing: "-0.01em",
-            }}>{m.titre}</h3>
-
-            <div style={{ width: 40, height: 2, background: m.color, borderRadius: 2, marginBottom: 24, opacity: 0.6 }} />
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {m.items.map((item, j) => (
-                <div key={j}
-                  style={{
-                    display: "flex", gap: 12, alignItems: "flex-start",
-                    padding: "14px 16px",
-                    background: "rgba(255,255,255,0.03)",
-                    borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)",
-                    transition: "border-color 0.2s",
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = `${m.color}40`}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"}
-                >
-                  <span style={{
-                    flexShrink: 0, width: 20, height: 20, borderRadius: 6,
-                    background: `${m.color}25`, color: m.color,
-                    display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1,
-                  }}><CheckIcon /></span>
-                  <span style={{ fontSize: "clamp(13px, 1.4vw, 14.5px)", color: "rgba(255,255,255,0.7)", lineHeight: 1.6 }}>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Panneau droit */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "clamp(16px, 2vw, 24px)" }}>
-
-            <div style={{
-              background: `linear-gradient(135deg, ${m.color}22 0%, ${m.color}08 100%)`,
-              border: `1px solid ${m.color}30`,
-              borderRadius: 24, padding: "clamp(28px, 4vw, 44px)",
-              textAlign: "center", flex: 1,
-              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-              position: "relative", overflow: "hidden",
-            }}>
-              <div style={{
-                position: "absolute", inset: 0,
-                background: `radial-gradient(circle at 50% 30%, ${m.color}15 0%, transparent 65%)`,
-              }} />
-              <div style={{ fontSize: "clamp(52px, 7vw, 80px)", fontWeight: 900, color: m.color, lineHeight: 1, marginBottom: 8, position: "relative" }}>
-                {m.stat.value}
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 2, position: "relative" }}>
-                {m.stat.label}
-              </div>
-              <div style={{ display: "flex", gap: 8, marginTop: 32, position: "relative" }}>
-                {modules.map((_, i) => (
-                  <button key={i} onClick={() => handleTabClick(i)} style={{
-                    width: activeTab === i ? 28 : 8, height: 8, borderRadius: 4,
-                    background: activeTab === i ? m.color : "rgba(255,255,255,0.15)",
-                    border: "none", cursor: "pointer", transition: "all 0.3s ease", padding: 0,
-                  }} />
-                ))}
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(12px, 1.5vw, 16px)" }}>
-              {[
-                { label: "Format", value: "Présentiel" },
-                { label: "Langue", value: "FR / EN" },
-                { label: "Attestation", value: "Incluse" },
-                { label: "Support", value: "Tablette offerte" },
-              ].map((info, i) => (
-                <div key={i}
-                  style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    borderRadius: 16, padding: "16px 18px",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = `${m.color}40`; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
-                >
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6 }}>{info.label}</div>
-                  <div style={{ fontSize: "clamp(13px, 1.3vw, 15px)", color: "#fff", fontWeight: 700 }}>{info.value}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+            );
+          })}
         </div>
 
         {/* OBJECTIFS */}
-        <div ref={objRef} style={{
-          background: "#fff",
-          borderRadius: 28,
-          padding: "clamp(36px, 6vw, 64px)",
-          boxShadow: "0 40px 80px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.08)",
-          marginBottom: "clamp(40px, 6vw, 64px)",
+        <div style={{
+          marginTop: "clamp(40px, 6vw, 64px)",
+          background: "#F8FAFC", borderRadius: 20,
+          padding: "clamp(24px, 4vw, 40px)", border: "1px solid #E2E8F0",
         }}>
-          <div style={{ textAlign: "center", marginBottom: "clamp(28px, 4vw, 44px)" }}>
-            <h3 style={{
-              fontSize: "clamp(22px, 3.5vw, 38px)", fontWeight: 900, color: "#0a1128",
-              letterSpacing: "-0.02em", lineHeight: 1.15,
-            }}>
-              Ce que vous allez{" "}
-              <span style={{ color: "#0073f4" }}>maîtriser</span>
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <h3 style={{ fontSize: "clamp(18px, 2.8vw, 26px)", fontWeight: 900, color: C.navy, marginBottom: 8 }}>
+              Ce que vous allez <span style={{ color: C.blue }}>maîtriser</span>
             </h3>
-            <p style={{ fontSize: 15, color: "#64748b", marginTop: 12, maxWidth: 500, margin: "12px auto 0", lineHeight: 1.7 }}>
-              À l'issue de la COPAF 2026, chaque participant sera en mesure de :
-            </p>
+            <p style={{ fontSize: 13.5, color: "#64748b", margin: 0 }}>À l'issue de la COPAF 2026, chaque participant sera en mesure de :</p>
           </div>
-
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
-            gap: "clamp(10px, 1.5vw, 14px)",
-          }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 12 }}>
             {objectifs.map((o, i) => (
-              <div key={i}
-                style={{
-                  display: "flex", gap: 14, alignItems: "flex-start",
-                  padding: "16px 18px",
-                  background: "#F8FAFC", borderRadius: 14,
-                  border: "1px solid #E2E8F0",
-                  transition: "all 0.25s ease",
-                  opacity: objVisible ? 1 : 0,
-                  transform: objVisible ? "translateY(0)" : "translateY(20px)",
-                  transitionDelay: `${i * 80}ms`,
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "#0073f4"; e.currentTarget.style.background = "#EEF4FF"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2E8F0"; e.currentTarget.style.background = "#F8FAFC"; e.currentTarget.style.transform = "translateY(0)"; }}
-              >
+              <div key={i} style={{
+                display: "flex", gap: 12, alignItems: "flex-start",
+                padding: "14px 16px", background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0",
+              }}>
                 <div style={{
-                  flexShrink: 0, width: 34, height: 34,
-                  background: "linear-gradient(135deg, #0073f4 0%, #0055c4 100%)",
-                  borderRadius: 10,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 12, fontWeight: 800, color: "#fff", letterSpacing: 0.5,
+                  flexShrink: 0, width: 28, height: 28, background: `linear-gradient(135deg, ${C.blue}, ${C.navy})`,
+                  borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 11, fontWeight: 800, color: "#fff",
                 }}>{o.num}</div>
-                <div style={{ fontSize: "clamp(13px, 1.5vw, 14.5px)", color: "#334155", fontWeight: 500, lineHeight: 1.6, paddingTop: 4 }}>
-                  {o.text}
-                </div>
+                <div style={{ fontSize: 13, color: "#334155", lineHeight: 1.55, paddingTop: 3 }}>{o.text}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* CERTIFICATIONS */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "clamp(14px, 2.5vw, 24px)", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", marginTop: 32 }}>
           {[
-            {
-              icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="32" height="32"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>),
-              color: "#0073f4", titre: "AGPAOC", desc: "Secrétariat Général",
-            },
-            {
-              icon: (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" width="32" height="32"><circle cx="12" cy="8" r="6" /><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11" /></svg>),
-              color: "#10b981", titre: "CRF Perfection", desc: "Expertise Panafricaine",
-            },
+            { titre: "AGPAOC", desc: "Secrétariat Général", color: C.blue },
+            { titre: "CRF Perfection", desc: "Expertise Panafricaine", color: "#10b981" },
           ].map((c, i) => (
-            <div key={i}
-              style={{
-                display: "flex", alignItems: "center", gap: 18,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: 18, padding: "22px 32px",
-                minWidth: 260, flex: "1 1 260px", maxWidth: 400,
-                transition: "all 0.3s ease",
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = `${c.color}60`; e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.transform = "translateY(-3px)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.transform = "none"; }}
-            >
+            <div key={i} style={{
+              display: "flex", alignItems: "center", gap: 14,
+              background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 16,
+              padding: "16px 22px", minWidth: 220, flex: "1 1 220px", maxWidth: 320,
+            }}>
               <div style={{
-                width: 56, height: 56, borderRadius: 14,
-                background: `${c.color}20`, border: `1px solid ${c.color}40`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: c.color, flexShrink: 0,
-              }}>{c.icon}</div>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 16, color: "#fff", marginBottom: 5, lineHeight: 1.3 }}>{c.titre}</div>
-                <div style={{ fontSize: 11, color: c.color, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1.5 }}>{c.desc}</div>
+                width: 42, height: 42, borderRadius: 12, background: `${c.color}15`,
+                display: "flex", alignItems: "center", justifyContent: "center", color: c.color, flexShrink: 0, fontWeight: 900,
+              }}>{c.titre[0]}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 800, fontSize: 14, color: C.navy }}>{c.titre}</div>
+                <div style={{ fontSize: 10.5, color: c.color, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>{c.desc}</div>
               </div>
             </div>
           ))}
         </div>
-
       </div>
 
-      <style>{`
-        @media (max-width: 768px) {
-          .module-grid { grid-template-columns: 1fr !important; }
-          .tab-label { display: none; }
-        }
-        @media (max-width: 480px) {
-          .tab-label { display: none; }
-        }
-      `}</style>
+      {/* MODAL DU JOUR */}
+      {activeAxe && (
+        <div onClick={() => setActiveAxe(null)} style={{
+          position: "fixed", inset: 0, background: "rgba(0,14,145,0.45)",
+          backdropFilter: "blur(6px)", display: "flex", alignItems: "center",
+          justifyContent: "center", zIndex: 9999, padding: 20,
+        }}>
+          <div className="modal-animate" onClick={e => e.stopPropagation()} style={{
+            background: "#fff", borderRadius: 24, maxWidth: 560, width: "100%",
+            maxHeight: "88vh", overflowY: "auto", boxShadow: "0 40px 100px rgba(0,14,145,0.3)",
+          }}>
+            {/* Header modal */}
+            <div style={{
+              background: `linear-gradient(135deg, ${activeAxe.color}, ${activeAxe.color}cc)`,
+              padding: "clamp(20px, 4vw, 28px)", display: "flex", justifyContent: "space-between",
+              alignItems: "flex-start", gap: 12, position: "sticky", top: 0, zIndex: 1,
+            }}>
+              <div style={{ display: "flex", gap: 14, alignItems: "center", minWidth: 0 }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+                  background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)",
+                  display: "flex", alignItems: "center", justifyContent: "center", color: "#fff",
+                }}>{activeAxe.icon}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.8)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 4, fontWeight: 700 }}>
+                    {activeAxe.jour} · {activeAxe.date}
+                  </div>
+                  <div style={{ fontSize: "clamp(15px, 3vw, 19px)", fontWeight: 900, color: "#fff", lineHeight: 1.25, wordBreak: "break-word" }}>
+                    {activeAxe.titre}
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setActiveAxe(null)} style={{
+                background: "rgba(255,255,255,0.2)", border: "none", color: "#fff",
+                width: 32, height: 32, borderRadius: "50%", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+              }}>{icons.close}</button>
+            </div>
+
+            {/* Corps modal */}
+            <div style={{ padding: "clamp(20px, 4vw, 26px)" }}>
+              <p style={{ fontSize: 13.5, color: "#64748b", lineHeight: 1.7, marginBottom: 20 }}>
+                {activeAxe.sousTitre}
+              </p>
+              <div style={{ display: "flex", gap: 8, marginBottom: 22 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, background: activeAxe.bg, color: activeAxe.color }}>{activeAxe.level}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 12px", borderRadius: 20, background: "#F1F5F9", color: "#64748b" }}>⏱ {activeAxe.duration}</span>
+              </div>
+
+              <div style={{ fontSize: 10, color: activeAxe.color, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>
+                Les 4 activités du jour
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {activeAxe.activites.map((act, k) => {
+                  const cat = categorieBadge[act.categorie] || categorieBadge.Partenaire;
+                  return (
+                    <div key={k} style={{
+                      background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 14,
+                      padding: "14px 16px",
+                    }}>
+                      <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase", color: activeAxe.color, marginBottom: 5 }}>
+                        {act.type}
+                      </div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: C.navy, marginBottom: act.desc ? 4 : 8, lineHeight: 1.4 }}>
+                        {act.titre}
+                      </div>
+                      {act.desc && (
+                        <div style={{ fontSize: 12.5, color: "#64748b", lineHeight: 1.55, marginBottom: 8 }}>
+                          {act.desc}
+                        </div>
+                      )}
+                      <div style={{
+                        display: "inline-flex", alignItems: "center", gap: 6,
+                        fontSize: 10.5, fontWeight: 700, color: cat.color,
+                        background: cat.bg, borderRadius: 20, padding: "3px 9px 3px 7px",
+                      }}>
+                        <span style={{ display: "flex" }}>{icons.user}</span>
+                        {act.intervenant}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button onClick={() => setActiveAxe(null)} style={{
+                marginTop: 22, width: "100%",
+                background: `linear-gradient(135deg, ${C.navy}, ${C.blue})`,
+                color: "#fff", border: "none", padding: 14, borderRadius: 12,
+                fontFamily: "inherit", fontWeight: 700, fontSize: 13,
+                letterSpacing: 1, textTransform: "uppercase", cursor: "pointer",
+              }}>Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
 
-export default Modules;
+export default AxesThematiques;
