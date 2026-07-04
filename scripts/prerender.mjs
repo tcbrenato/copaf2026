@@ -65,6 +65,11 @@ async function main() {
       await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 })
       await new Promise(r => setTimeout(r, 600))
 
+      await page.evaluate(() => {
+        document.querySelectorAll('script[src*="googletagmanager.com/gtag/js"]')
+          .forEach(el => el.remove())
+      })
+
       const html = await page.content()
       await page.close()
 

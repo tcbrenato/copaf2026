@@ -7,9 +7,15 @@ const SESSION_KEY = 'copaf_session_id'
 const CONTACT_KEY = 'copaf_contact_id'
 const GA_MEASUREMENT_ID = 'G-57V7TBTS1F'
 
-// Garde un flag au niveau du module pour n'initialiser GA4 qu'une seule fois,
-// même si le hook est monté plusieurs fois.
-let gaInitialized = false
+// Utilise un flag global sur window (plutôt qu'une variable de module) pour
+// garantir une seule initialisation GA4, même si le module venait à être
+// chargé plusieurs fois par le bundler.
+function isGaInitialized() {
+  return typeof window !== 'undefined' && window.__GA_INITIALIZED__ === true
+}
+function markGaInitialized() {
+  if (typeof window !== 'undefined') window.__GA_INITIALIZED__ = true
+}
 
 function getUtmParams() {
   const p = new URLSearchParams(window.location.search)
@@ -65,9 +71,12 @@ export function useAnalytics() {
   // Initialisation GA4 (une seule fois) + création/récupération de la session Supabase
   useEffect(() => {
     if (window.location.pathname.includes('/admin')) return
-    if (!gaInitialized) {
+    // Double vérification : le flag ET la présence réelle du script dans le DOM,
+    // pour éviter toute injection en double du tag gtag.js.
+    const scriptDejaPresent = !!document.querySelector('script[src*="googletagmanager.com/gtag/js"]')
+    if (!isGaInitialized() && !scriptDejaPresent) {
       ReactGA.initialize(GA_MEASUREMENT_ID)
-      gaInitialized = true
+      markGaInitialized()
     }
     getOrCreateSession().then(id => { sessionRef.current = id })
   }, [])
@@ -79,7 +88,7 @@ export function useAnalytics() {
     if (location.pathname.includes('/admin')) return
 
     // ── Google Analytics 4 : pageview ──
-    if (gaInitialized) {
+    if (isGaInitialized()) {
       ReactGA.send({
         hitType: 'pageview',
         page: location.pathname + location.search,
@@ -108,7 +117,7 @@ export function useAnalytics() {
 
   const trackEvent = useCallback(async (category, action, label = null, value = null, metadata = {}) => {
     // GA4
-    if (gaInitialized) {
+    if (isGaInitialized()) {
       ReactGA.event({ category, action, label: label || undefined, value: value || undefined })
     }
 
