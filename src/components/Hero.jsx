@@ -8,6 +8,8 @@ const images = [
   "/hero4.png",
   "/hero5.png",
   "/hero6.png",
+  "/hero7.png",
+  "/copaf.png",
 ]
 
 const scrollToSection = (id) => {

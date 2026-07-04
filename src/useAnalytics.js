@@ -1,9 +1,15 @@
 ﻿import { useEffect, useRef, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
+import ReactGA from 'react-ga4'
 import { supabase } from './supabase'
 
 const SESSION_KEY = 'copaf_session_id'
 const CONTACT_KEY = 'copaf_contact_id'
+const GA_MEASUREMENT_ID = 'G-57V7TBTS1F'
+
+// Garde un flag au niveau du module pour n'initialiser GA4 qu'une seule fois,
+// même si le hook est monté plusieurs fois.
+let gaInitialized = false
 
 function getUtmParams() {
   const p = new URLSearchParams(window.location.search)
@@ -56,12 +62,32 @@ export function useAnalytics() {
   const sessionRef   = useRef(null)
   const pageStartRef = useRef(Date.now())
 
+  // Initialisation GA4 (une seule fois) + création/récupération de la session Supabase
   useEffect(() => {
+    if (window.location.pathname.includes('/admin')) return
+    if (!gaInitialized) {
+      ReactGA.initialize(GA_MEASUREMENT_ID)
+      gaInitialized = true
+    }
     getOrCreateSession().then(id => { sessionRef.current = id })
   }, [])
 
   useEffect(() => {
     if (!location) return
+
+    // Pas de tracking sur le panneau admin
+    if (location.pathname.includes('/admin')) return
+
+    // ── Google Analytics 4 : pageview ──
+    if (gaInitialized) {
+      ReactGA.send({
+        hitType: 'pageview',
+        page: location.pathname + location.search,
+        title: document.title,
+      })
+    }
+
+    // ── Tracking détaillé (Supabase : sessions / page_views) ──
     const trackView = async () => {
       const sessionId = sessionRef.current || await getOrCreateSession()
       if (!sessionId) return
@@ -81,6 +107,12 @@ export function useAnalytics() {
   }, [location?.pathname])
 
   const trackEvent = useCallback(async (category, action, label = null, value = null, metadata = {}) => {
+    // GA4
+    if (gaInitialized) {
+      ReactGA.event({ category, action, label: label || undefined, value: value || undefined })
+    }
+
+    // Supabase
     const sessionId = sessionRef.current
     const contactId = localStorage.getItem(CONTACT_KEY) || null
     await supabase.from('events').insert([{

@@ -1,0 +1,18 @@
+﻿# Gestion du routage React Router (SPA) sur hébergement Apache
+# Toute requête vers un fichier/dossier inexistant est redirigée vers index.html
+# pour laisser React Router gérer la route côté client.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Ne pas réécrire si le fichier ou dossier demandé existe réellement
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Rediriger toutes les autres requêtes vers index.html
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Assure un encodage UTF-8 correct
+AddDefaultCharset UTF-8

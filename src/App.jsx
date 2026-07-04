@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
@@ -51,12 +50,6 @@ const InscriptionPage = () => (
 
 // ─── Application principale ───────────────────────────────────────────────────
 function App() {
-  useEffect(() => {
-    import('react-ga4').then(({ default: ReactGA }) => {
-      ReactGA.initialize('G-YV45FLXNXB')
-    })
-  }, [])
-
   return (
     <Router>
       <AnalyticsTracker />

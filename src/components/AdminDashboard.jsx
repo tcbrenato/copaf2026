@@ -5,7 +5,7 @@ import { supabase } from '../supabase'
 // REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
 // Extensions > Apps Script > Déployer > Nouvelle application web
 // ============================================================
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyUGginuWT4Um8Z_Ipvmy1zfHHjtn_ceP2idR65J4a2ZfOdrR4qIW2-Rxm6XOdtrv9KKg/exec'
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwbcaBVsg3ua3ZOoDJbzlHj75ozIDDLPeZ1youQnl8hKyu-CXIN-DJ2efwhira39bPY/exec'
 
 // ─── ICÔNES SVG ──────────────────────────────────────────────────────────────
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
@@ -47,6 +47,7 @@ const STATUS_CONFIG = {
 // ─── MODULES (onglets sidebar) ────────────────────────────────────────────────
 const MODULES = [
   { id: 'dashboard',   label: 'Tableau de bord', icon: 'chart',    table: null },
+  { id: 'analytics',   label: 'Analytics',       icon: 'globe',    table: null },
   { id: 'participants',label: 'Participants',     icon: 'users',    table: 'inscriptions',  statusField: 'paiement_status' },
   { id: 'sponsors',    label: 'Sponsors',         icon: 'diamond',  table: 'sponsorships',  statusField: 'statut', filter: { type: 'sponsor' } },
   { id: 'partenaires', label: 'Partenaires',      icon: 'building', table: 'sponsorships',  statusField: 'statut', filter: { type: 'partenaire_strategique' } },
@@ -58,6 +59,26 @@ const fmt     = n  => (n || 0).toLocaleString('fr-FR')
 const fmtEur  = n  => `${fmt(n)} €`
 const fmtDate = d  => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 const fmtTime = d  => d ? new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
+
+// Détection appareil à partir du user-agent stocké en base
+const parseDevice = ua => {
+  if (!ua) return 'Inconnu'
+  if (/tablet|ipad/i.test(ua)) return 'Tablette'
+  if (/mobile|android|iphone/i.test(ua)) return 'Mobile'
+  return 'Desktop'
+}
+
+// Détection source à partir du referrer stocké en base
+const parseSource = ref => {
+  if (!ref) return 'Direct'
+  if (ref.includes('google')) return 'Google'
+  if (ref.includes('facebook')) return 'Facebook'
+  if (ref.includes('linkedin')) return 'LinkedIn'
+  if (ref.includes('twitter') || ref.includes('x.com')) return 'Twitter / X'
+  if (ref.includes('whatsapp')) return 'WhatsApp'
+  if (ref.includes('copaf-ports.com')) return 'Interne (navigation)'
+  return 'Autre'
+}
 
 function exportCSV(rows, cols, filename) {
   const header = cols.map(c => `"${c.label}"`).join(',')
@@ -779,6 +800,242 @@ function SectionDashboard({ allData }) {
   )
 }
 
+// ─── SECTION ANALYTICS (façon Google Analytics) ───────────────────────────────
+const AUTO_REFRESH_MS   = 15000  // 15 secondes
+const ACTIVE_WINDOW_MIN = 5      // fenêtre "actifs maintenant"
+const ANALYTICS_LOOKBACK_DAYS = 30
+
+function SectionAnalytics() {
+  const [sessions,     setSessions]     = useState([])
+  const [pageViews,    setPageViews]    = useState([])
+  const [topPages,     setTopPages]     = useState([])
+  const [funnel,       setFunnel]       = useState([])
+  const [loading,      setLoading]      = useState(true)
+  const [lastLoad,     setLastLoad]     = useState(null)
+  const [syncing,      setSyncing]      = useState(false)
+  const [syncOk,       setSyncOk]       = useState(false)
+  const [clearing,     setClearing]     = useState(false)
+  const [confirmClear, setConfirmClear] = useState(false)
+
+  const load = useCallback(async () => {
+    const since = new Date(Date.now() - 1000 * 60 * 60 * 24 * ANALYTICS_LOOKBACK_DAYS).toISOString()
+    const [
+      { data: sess },
+      { data: pv },
+      { data: tp },
+      { data: fn },
+    ] = await Promise.all([
+      supabase.from('sessions').select('*').gte('started_at', since).order('started_at', { ascending: false }).limit(1000),
+      supabase.from('page_views').select('*').gte('viewed_at', since).order('viewed_at', { ascending: false }).limit(2000),
+      supabase.from('v_top_pages').select('*').order('visites', { ascending: false }),
+      supabase.from('v_funnel').select('*').order('ordre', { ascending: true }),
+    ])
+    setSessions(sess || [])
+    setPageViews(pv || [])
+    setTopPages(tp || [])
+    setFunnel(fn || [])
+    setLastLoad(new Date())
+    setLoading(false)
+  }, [])
+
+  // Chargement initial + auto-refresh
+  useEffect(() => {
+    load()
+    const interval = setInterval(load, AUTO_REFRESH_MS)
+    return () => clearInterval(interval)
+  }, [load])
+
+  // Utilisateurs actifs (fenêtre glissante de X minutes, calculée côté client)
+  const activeNow = useMemo(() => {
+    const cutoff = Date.now() - ACTIVE_WINDOW_MIN * 60 * 1000
+    const ids = new Set(
+      pageViews.filter(p => new Date(p.viewed_at).getTime() > cutoff).map(p => p.session_id)
+    )
+    return ids.size
+  }, [pageViews])
+
+  const totalSessions  = sessions.length
+  const totalPageViews = pageViews.length
+  const totalVisites   = funnel.find(f => f.etape === 'Visites')?.nb || 0
+  const totalConfirmes = funnel.find(f => f.etape === 'Confirmés')?.nb || 0
+  const tauxConv        = totalVisites > 0 ? Math.round((totalConfirmes / totalVisites) * 100) : 0
+
+  // Répartition appareils
+  const deviceEntries = useMemo(() => {
+    const m = {}
+    sessions.forEach(s => { const d = parseDevice(s.user_agent); m[d] = (m[d] || 0) + 1 })
+    return Object.entries(m).sort((a, b) => b[1] - a[1])
+  }, [sessions])
+  const maxDevice = deviceEntries[0]?.[1] || 1
+
+  // Répartition sources / referrers
+  const sourceEntries = useMemo(() => {
+    const m = {}
+    pageViews.forEach(p => { const s = parseSource(p.referrer); m[s] = (m[s] || 0) + 1 })
+    return Object.entries(m).sort((a, b) => b[1] - a[1])
+  }, [pageViews])
+  const maxSource = sourceEntries[0]?.[1] || 1
+
+  // Répartition pays
+  const countryEntries = useMemo(() => {
+    const m = {}
+    sessions.forEach(s => { if (s.country) m[s.country] = (m[s.country] || 0) + 1 })
+    return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 8)
+  }, [sessions])
+  const maxCountry = countryEntries[0]?.[1] || 1
+
+  const maxTopPage = topPages[0]?.visites || 1
+  const maxFunnel  = funnel[0]?.nb || 1
+
+  // ── Sync vers Google Sheets ──
+  // NB: nécessite d'ajouter un cas 'sync_analytics' côté Google Apps Script
+  const doSync = async () => {
+    setSyncing(true)
+    try {
+      const rows = topPages.map(p => [
+        p.path, p.visites, p.sessions_uniques, Math.round(p.temps_moyen_sec || 0),
+      ])
+      await syncToSheets('sync_analytics', {
+        rows,
+        summary: [totalSessions, totalPageViews, activeNow, tauxConv],
+        generated_at: new Date().toISOString(),
+      })
+      setSyncOk(true)
+      setTimeout(() => setSyncOk(false), 4000)
+    } catch (err) { alert(err.message) }
+    setSyncing(false)
+  }
+
+  // ── Vider les données analytics (sessions, page_views, events) ──
+  const clearAnalytics = async () => {
+    if (!confirmClear) { setConfirmClear(true); return }
+    setClearing(true)
+    await supabase.from('events').delete().not('id', 'is', null)
+    await supabase.from('page_views').delete().not('id', 'is', null)
+    await supabase.from('sessions').delete().not('id', 'is', null)
+    setClearing(false)
+    setConfirmClear(false)
+    await load()
+  }
+
+  return (
+    <div>
+      {/* Barre du haut : indicateur live + actions */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1px solid #e8edf5', borderRadius: 12, padding: '9px 16px' }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', animation: 'pulseLive 1.6s infinite' }} />
+          <span style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>Temps réel</span>
+          <span style={{ fontSize: 11, color: '#94a3b8' }}>· actualisation auto {AUTO_REFRESH_MS / 1000}s</span>
+        </div>
+
+        <div style={{ flex: 1 }} />
+
+        <button onClick={doSync} disabled={syncing} style={{
+          padding: '11px 16px',
+          background: syncOk ? '#d1fae5' : '#000E91',
+          border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700,
+          cursor: syncing ? 'not-allowed' : 'pointer',
+          display: 'flex', alignItems: 'center', gap: 7,
+          color: syncOk ? '#065f46' : '#fff', fontFamily: 'inherit',
+          opacity: syncing ? .7 : 1,
+        }}>
+          <Icon name={syncOk ? 'check' : 'sheet'} size={15} color={syncOk ? '#065f46' : '#fff'} />
+          {syncing ? 'Synchronisation...' : syncOk ? 'Google Sheets à jour' : 'Sync Google Sheets'}
+        </button>
+
+        <button onClick={clearAnalytics} disabled={clearing} style={{
+          padding: '11px 16px',
+          background: confirmClear ? '#fef2f2' : '#fff',
+          border: `1.5px solid ${confirmClear ? '#ef4444' : '#e2e8f0'}`,
+          borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 7, color: '#ef4444', fontFamily: 'inherit',
+        }}>
+          <Icon name="trash" size={15} color="#ef4444" />
+          {clearing ? 'Suppression...' : confirmClear ? 'Confirmer : tout supprimer ?' : 'Vider les données analytics'}
+        </button>
+      </div>
+
+      {/* KPIs */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
+        <KpiCard icon="users" label={`Actifs (${ACTIVE_WINDOW_MIN} min)`} value={activeNow} color="#10b981" />
+        <KpiCard icon="chart" label={`Sessions (${ANALYTICS_LOOKBACK_DAYS}j)`} value={fmt(totalSessions)} color="#6366f1" />
+        <KpiCard icon="globe" label={`Pages vues (${ANALYTICS_LOOKBACK_DAYS}j)`} value={fmt(totalPageViews)} color="#0073F4" />
+        <KpiCard icon="check" label="Taux de conversion" value={`${tauxConv}%`} color="#d97706" sub={`${totalConfirmes} / ${totalVisites} visites`} />
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+        {/* Pages les plus vues */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Pages les plus vues</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Toutes périodes</div>
+          {topPages.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
+            : topPages.slice(0, 8).map((p, i) => (
+              <BarRow key={i} label={p.path} value={p.visites} max={maxTopPage}
+                color={['#6366f1', '#0073F4', '#000E91', '#10b981', '#d97706', '#0891b2', '#8b5cf6', '#ef4444'][i % 8]} />
+            ))
+          }
+        </div>
+
+        {/* Tunnel de conversion */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Tunnel de conversion</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Visite → Inscription confirmée</div>
+          {funnel.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
+            : funnel.map((f, i) => (
+              <BarRow key={i} label={f.etape} value={f.nb} max={maxFunnel}
+                color={['#6366f1', '#0073F4', '#000E91', '#10b981', '#d97706'][i % 5]} />
+            ))
+          }
+        </div>
+      </div>
+
+      <div className="analytics-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
+        {/* Appareils */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Appareils</div>
+          {deviceEntries.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
+            : deviceEntries.map(([label, val], i) => (
+              <BarRow key={i} label={label} value={val} max={maxDevice} color={['#0073F4', '#6366f1', '#0891b2'][i % 3]} />
+            ))
+          }
+        </div>
+
+        {/* Sources */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Sources de trafic</div>
+          {sourceEntries.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
+            : sourceEntries.map(([label, val], i) => (
+              <BarRow key={i} label={label} value={val} max={maxSource} color={['#10b981', '#d97706', '#6366f1', '#0073F4', '#ef4444', '#8b5cf6'][i % 6]} />
+            ))
+          }
+        </div>
+
+        {/* Pays */}
+        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Top pays</div>
+          {countryEntries.length === 0
+            ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
+            : countryEntries.map(([label, val], i) => (
+              <BarRow key={i} label={label} value={val} max={maxCountry}
+                color={['#6366f1', '#0073F4', '#000E91', '#10b981', '#d97706', '#0891b2', '#8b5cf6', '#ef4444'][i % 8]} />
+            ))
+          }
+        </div>
+      </div>
+
+      {lastLoad && (
+        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 16, textAlign: 'right' }}>
+          Dernière actualisation : {lastLoad.toLocaleTimeString('fr-FR')}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────────────────
 export default function AdminPage() {
   const [activeModule,   setActiveModule]   = useState('dashboard')
@@ -820,7 +1077,7 @@ export default function AdminPage() {
 
   // Changement d'onglet
   useEffect(() => {
-    if (activeModule === 'dashboard') return
+    if (activeModule === 'dashboard' || activeModule === 'analytics') return
     setSectionData(allData[activeModule] || [])
   }, [activeModule, allData])
 
@@ -867,6 +1124,11 @@ export default function AdminPage() {
         body { margin: 0; }
         @keyframes modalIn { from { opacity:0; transform:scale(.96); } to { opacity:1; transform:scale(1); } }
         @keyframes spin    { to { transform:rotate(360deg); } }
+        @keyframes pulseLive {
+          0%   { box-shadow: 0 0 0 0 rgba(16,185,129,.55); }
+          70%  { box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+          100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+        }
         .spinner { width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite; }
         .nav-item { display:flex;align-items:center;gap:12px;padding:11px 16px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;color:#64748b;transition:all .18s;width:100%;text-align:left; }
         .nav-item:hover { background:#f1f5f9;color:#0f172a; }
@@ -874,6 +1136,9 @@ export default function AdminPage() {
         ::-webkit-scrollbar { width:5px;height:5px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:#e2e8f0;border-radius:10px; }
+        @media (max-width: 900px) {
+          .analytics-grid-3 { grid-template-columns: 1fr !important; }
+        }
       `}</style>
 
       {/* ══════════ SIDEBAR ══════════ */}
@@ -947,7 +1212,7 @@ export default function AdminPage() {
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>{activeM?.label}</div>
               <div style={{ fontSize: 11, color: '#94a3b8' }}>
-                {allData[activeModule]?.length > 0 ? `${allData[activeModule].length} enregistrements` : 'Tableau de bord general'}
+                {allData[activeModule]?.length > 0 ? `${allData[activeModule].length} enregistrements` : activeModule === 'analytics' ? 'Statistiques de fréquentation' : 'Tableau de bord general'}
               </div>
             </div>
           </div>
@@ -987,7 +1252,9 @@ export default function AdminPage() {
 
         {/* Contenu */}
         <main style={{ flex: 1, overflowY: 'auto', padding: '28px 28px 40px' }}>
-          {loading ? (
+          {activeModule === 'analytics' ? (
+            <SectionAnalytics />
+          ) : loading ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', flexDirection: 'column', gap: 16 }}>
               <div style={{ width: 36, height: 36, border: '3px solid #e2e8f0', borderTopColor: '#000E91', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
               <div style={{ color: '#64748b', fontSize: 14, fontWeight: 500 }}>Chargement des donnees...</div>
