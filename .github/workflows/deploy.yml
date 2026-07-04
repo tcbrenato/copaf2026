@@ -3,8 +3,8 @@
 on:
   push:
     branches:
-      - main
-  workflow_dispatch:
+      - main   # adapte si ta branche principale s'appelle autrement (ex: master)
+  workflow_dispatch:   # permet aussi de le lancer manuellement depuis l'onglet Actions
 
 jobs:
   build-and-deploy:
@@ -32,3 +32,22 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
           server-dir: ./
+          timeout: 60000
+          log-level: verbose
+        continue-on-error: true
+        id: ftp-attempt-1
+
+      - name: 🔁 Nouvelle tentative si echec reseau
+        if: steps.ftp-attempt-1.outcome == 'failure'
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./dist/
+          server-dir: ./
+          timeout: 60000
+          log-level: verbose          # adapte si ton compte FTP ne pointe pas déjà sur le bon dossier
+          # IMPORTANT : on ne met PAS dangerous-clean-slate ici,
+          # pour ne jamais supprimer les images (hero*.png, intervenant*.png, copaf.png, etc.)
+          # que tu uploades manuellement et qui ne sont pas versionnées dans Git.
