@@ -150,16 +150,14 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
 
   const intro = doc.splitTextToSize(
     `Nous avons le plaisir de vous confirmer que votre inscription à la ${EVENT.titreLong} ` +
-    `(${EVENT.nom}) a bien été enregistrée. Veuillez trouver ci-dessous le récapitulatif de vos informations.`,
+    `(${EVENT.nom}) a bien été enregistrée. Veuillez trouver ci-dessous le récapitulatif officiel de votre dossier.`,
     contentW
   )
   doc.text(intro, P, y)
   y += intro.length * 13 + 18
 
-  // ── Récapitulatif ──
-  const montantLabel = paiementMode === 'maintenant'
-    ? `${fmtEur(total)} (à régler par virement bancaire, sous 7 jours ouvrables)`
-    : `${fmtEur(total)} (à régler par virement bancaire, avant le 1er août 2026)`
+  // ── Récapitulatif (Date fixe réglementaire pour éviter tout litige) ──
+  const montantLabel = `${fmtEur(total)} (à régler par virement bancaire, impérativement avant le 25 août 2026)`
 
   const recap = [
     ["Référence d'inscription", `N° ${dossier}`],
@@ -167,7 +165,7 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
     ['Date de début', EVENT.dates],
     ['Lieu', EVENT.lieu],
     ['Nombre de participants', String(nb)],
-    ['Montant dû', montantLabel],
+    ['Montant global dû', montantLabel],
   ]
 
   const valueWidth = contentW * 0.58
@@ -248,13 +246,13 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9.5)
   doc.setTextColor(...NAVY)
-  doc.text('Prochaines étapes', P, y)
+  doc.text('Prochaines étapes réglementaires', P, y)
   y += 16
 
   const etapes = [
-    'Contactez-nous par WhatsApp ou par e-mail pour valider votre inscription et recevoir les instructions de virement.',
-    "Procédez au règlement par virement bancaire selon l'échéance indiquée ci-dessus.",
-    'Votre badge et vos accès participant vous seront transmis après réception du paiement.',
+    'Transmettez votre preuve de virement par e-mail ou WhatsApp pour validation prioritaire.',
+    "Exécutez le règlement par virement bancaire avant la date limite impérative du 25 août 2026.",
+    'Votre badge officiel sécurisé et vos accès vous seront envoyés dès confirmation des fonds par la banque.',
   ]
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
@@ -266,11 +264,11 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   })
   y += 12
 
-  // ── Contact (Gestion anti-débordement complète) ──
+  // ── Contact ──
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   doc.setTextColor(...GRAY)
-  const contactText = `Pour toute question, contactez notre équipe à l'adresse ${CONTACT.email} ou au ${CONTACT.tel1} / ${CONTACT.tel2}.`
+  const contactText = `Pour toute assistance administrative, contactez le secrétariat à l'adresse ${CONTACT.email} ou au ${CONTACT.tel1} / ${CONTACT.tel2}.`
   const contactLines = doc.splitTextToSize(contactText, contentW)
   doc.text(contactLines, P, y)
   y += contactLines.length * 11 + 16
@@ -310,30 +308,26 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
     doc.text('Cliquez ou scannez', qrX + qrSize/2, y + qrSize + 2, { align: 'center' })
   }
 
-  // ── CACHET NUMÉRIQUE OFFICIEL STYLE image_1ceebf.png ──
+  // ── CACHET NUMÉRIQUE OFFICIEL ──
   const stampX = qrX + qrSize + 25
   const stampY = y - 12
   
   doc.saveGraphicsState()
-  
-  // Légère inclinaison de 4 degrés pour l'aspect authentique
   doc.setCurrentTransformationMatrix(new doc.Matrix(Math.cos(0.07), Math.sin(0.07), -Math.sin(0.07), Math.cos(0.07), stampX, stampY))
   
   doc.setDrawColor(...RED)
   doc.setTextColor(...RED)
   
-  // Double bordure rouge arrondie imbriquée
   doc.setLineWidth(2.2) 
   doc.roundedRect(0, 0, 130, 56, 9, 9, 'D')
   doc.setLineWidth(0.6) 
   doc.roundedRect(3, 3, 124, 50, 7, 7, 'D')
   
-  // Textes internes
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(7.5)
   doc.text('CRF PERFECTION', 65, 14, { align: 'center' })
   
-  doc.setFont('times', 'bold') // Typographie à empattement traditionnelle pour "DOCUMENT OFFICIEL"
+  doc.setFont('times', 'bold') 
   doc.setFontSize(11)
   doc.text('DOCUMENT OFFICIEL', 65, 27, { align: 'center' })
   
@@ -359,7 +353,7 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.text(`L'équipe ${CONTACT.structure}`, sigX, y + 12)
   doc.text(CONTACT.site, sigX, y + 24)
 
-  // ── Pied de page (Maintenant 100% dynamique) ──
+  // ── Pied de page ──
   const fy = pageHeight - M - 26
   doc.setDrawColor(226, 232, 240)
   doc.setLineWidth(0.5)

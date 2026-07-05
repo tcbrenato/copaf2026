@@ -198,6 +198,7 @@ export default function Inscription() {
   const [modal,        setModal]        = useState(null)
   const [photoFile,    setPhotoFile]    = useState(null)
   const [photoPreview, setPhotoPreview] = useState('')
+  const [pdfNotice,    setPdfNotice]    = useState('')
 
   const nb    = parseInt(form.participants) || 1
   const total = nb * PRIX_UNITAIRE
@@ -213,7 +214,7 @@ export default function Inscription() {
   }
 
   const handleSubmit = async e => {
-    e.preventDefault(); setLoading(true); setErrorMsg('')
+    e.preventDefault(); setLoading(true); setErrorMsg(''); setPdfNotice('')
     const dossier = genDossier()
     try {
       const photoUrl = await uploadPhoto(photoFile, dossier)
@@ -223,9 +224,40 @@ export default function Inscription() {
       await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, { prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation, poste:form.poste, pays:form.pays, participants:form.participants, montant:`${total.toLocaleString('fr-FR')} EUR`, tarif:`${PRIX_UNITAIRE.toLocaleString('fr-FR')} EUR/pers.`, dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee', paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'' }, EMAILJS_KEY)
       setDossierNum(dossier); setSubmitted(true)
       const donneesDossier = { form, dossier, nb, total, paiementMode }
-      await generateRecapPDF(donneesDossier)
+      try {
+        await generateRecapPDF(donneesDossier)
+        setPdfNotice('Votre PDF officiel a été préparé.')
+      } catch (pdfErr) {
+        setPdfNotice('Le téléchargement automatique a été bloqué. Utilisez le bouton ci-dessous pour le récupérer.')
+      }
     } catch(err) { setErrorMsg('Une erreur est survenue : ' + err.message) }
     setLoading(false)
+  }
+
+  const handleDownloadRecap = async () => {
+    if (!dossierNum) return
+    setPdfNotice('Téléchargement du PDF officiel...')
+    try {
+      const donneesDossier = { form, dossier: dossierNum, nb, total, paiementMode }
+      const pdfDoc = await generateRecapPDF({ ...donneesDossier, download: false })
+      if (!pdfDoc) {
+        setPdfNotice('Le PDF est prêt. Si le téléchargement ne démarre pas, veuillez réessayer depuis un navigateur de bureau.')
+        return
+      }
+
+      const blob = pdfDoc.output('blob')
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `COPAF2026-Confirmation-${dossierNum}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+      setPdfNotice('Le PDF officiel a été téléchargé avec succès.')
+    } catch (err) {
+      setPdfNotice('Le téléchargement manuel a échoué. Veuillez réessayer.')
+    }
   }
 
   const inp = name => ({ width:'100%', padding:'13px 16px', fontSize:15, fontFamily:'inherit', color:'#0f172a', background:focused===name?'#fff':'#f8fafc', border:`1.5px solid ${focused===name?'#0073F4':'#e2e8f0'}`, borderRadius:12, outline:'none', transition:'all .2s', boxSizing:'border-box', boxShadow:focused===name?'0 0 0 3px rgba(0,115,244,.12)':'none', WebkitAppearance:'none', appearance:'none' })
@@ -352,18 +384,31 @@ export default function Inscription() {
                       <div style={{ fontSize:'clamp(18px,4vw,26px)', fontWeight:900, color:'#fff', letterSpacing:2 }}>{dossierNum}</div>
                     </div>
 
-                    <div style={{ marginBottom:28 }}>
+                    <div style={{ marginBottom:22 }}>
                       <button
-                        onClick={async () => {
-                          const donneesDossier = { form, dossier: dossierNum, nb, total, paiementMode }
-                          await generateRecapPDF(donneesDossier)
-                        }}
+                        onClick={handleDownloadRecap}
                         className="cta-btn"
-                        style={{ background:'#EBF3FF', color:'#000E91', border:'1.5px solid #bfdbfe', margin:'0 auto' }}
+                        style={{
+                          background:'linear-gradient(135deg,#000E91,#0073F4)',
+                          color:'#fff',
+                          border:'1.5px solid #000E91',
+                          margin:'0 auto',
+                          padding:'14px 22px',
+                          borderRadius:16,
+                          boxShadow:'0 16px 40px rgba(0,14,145,.24)',
+                          fontSize:14,
+                          minWidth:'min(100%, 320px)',
+                          justifyContent:'center',
+                        }}
                       >
-                        <Ico name="file" size={18} color="#000E91" />
-                        Telecharger mon recapitulatif (PDF)
+                        <Ico name="file" size={18} color="#fff" />
+                        Télécharger le PDF officiel COPAF 2026
                       </button>
+                      {pdfNotice && (
+                        <div style={{ marginTop:10, fontSize:12.5, color:'#1e40af', fontWeight:600, lineHeight:1.5 }}>
+                          {pdfNotice}
+                        </div>
+                      )}
                     </div>
 
                     {/* Action requise */}
