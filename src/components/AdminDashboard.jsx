@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabase } from '../supabase'
-import { jsPDF } from 'jspdf'
-import QRCode from 'qrcode'
+import { generateBadge } from '../utils/generateBadge'
 
 // ============================================================
 // REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
@@ -110,110 +109,6 @@ async function syncToSheets(action, payload) {
   })
 
   return true
-}
-
-// ─── GÉNÉRATION DU BADGE PARTICIPANT (PDF + QR code) ──────────────────────────
-async function generateBadgePDF(row) {
-  const NAVY = '#000E91'
-  const BLUE = '#0073F4'
-  const DARK = '#0f172a'
-  const GRAY = '#64748b'
-  const LIGHT_GRAY = '#e2e8f0'
-  const GREEN = '#10b981'
-
-  // Format badge événementiel type lanyard : 100 x 150 mm
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [100, 150] })
-
-  // Fond blanc + bordure fine
-  doc.setDrawColor(LIGHT_GRAY)
-  doc.setLineWidth(0.4)
-  doc.rect(2, 2, 96, 146)
-
-  // Bandeau supérieur (dégradé simulé par 2 rectangles)
-  doc.setFillColor(NAVY)
-  doc.rect(2, 2, 96, 30, 'F')
-  doc.setFillColor(BLUE)
-  doc.rect(2, 28, 96, 4, 'F')
-
-  doc.setTextColor('#ffffff')
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(17)
-  doc.text('COPAF 2026', 50, 14, { align: 'center' })
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7.5)
-  doc.text('Conférence des Ports Africains', 50, 20.5, { align: 'center' })
-  doc.text('Casablanca, Maroc · 15-17 Septembre 2026', 50, 25.5, { align: 'center' })
-
-  // Pastille de statut
-  doc.setFillColor(GREEN)
-  doc.roundedRect(28, 38, 44, 8, 4, 4, 'F')
-  doc.setTextColor('#ffffff')
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(8.5)
-  doc.text('PARTICIPANT CONFIRMÉ', 50, 43.2, { align: 'center' })
-
-  // Nom du participant
-  doc.setTextColor(DARK)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(16)
-  const fullName = `${row.prenom || ''} ${row.nom || ''}`.trim() || '—'
-  doc.text(fullName, 50, 56, { align: 'center', maxWidth: 88 })
-
-  // Poste
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9.5)
-  doc.setTextColor(GRAY)
-  if (row.poste) doc.text(row.poste, 50, 62.5, { align: 'center', maxWidth: 88 })
-
-  // Organisation
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.setTextColor(NAVY)
-  doc.text(row.organisation || '', 50, 69.5, { align: 'center', maxWidth: 88 })
-
-  // Pays
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setTextColor(GRAY)
-  doc.text(row.pays || '', 50, 75, { align: 'center' })
-
-  // Séparateur
-  doc.setDrawColor(LIGHT_GRAY)
-  doc.setLineWidth(0.3)
-  doc.line(15, 80, 85, 80)
-
-  // QR code — encode l'URL de vérification officielle du dossier
-  const verifUrl = `https://copaf-ports.com/verifier?dossier=${encodeURIComponent(row.dossier || row.id || '')}`
-  try {
-    const qrDataUrl = await QRCode.toDataURL(verifUrl, {
-      margin: 0,
-      width: 400,
-      color: { dark: NAVY, light: '#ffffff' },
-    })
-    doc.addImage(qrDataUrl, 'PNG', 30, 86, 40, 40)
-  } catch (e) {
-    console.error('Erreur génération QR code', e)
-  }
-
-  // Dossier
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
-  doc.setTextColor(DARK)
-  doc.text(row.dossier || '—', 50, 131, { align: 'center' })
-
-  // Séparateur bas
-  doc.setDrawColor(LIGHT_GRAY)
-  doc.line(15, 136, 85, 136)
-
-  // Footer
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(6.3)
-  doc.setTextColor(GRAY)
-  doc.text('Scannez ce QR code pour vérifier le badge', 50, 140.5, { align: 'center' })
-  doc.text("Organisé par CRF Perfection · Sous l'égide de l'AGPAOC", 50, 144.5, { align: 'center' })
-
-  const safeName = (row.dossier || fullName || 'participant').replace(/[^a-zA-Z0-9_-]+/g, '_')
-  doc.save(`Badge_COPAF2026_${safeName}.pdf`)
 }
 
 // ─── BADGE STATUT ────────────────────────────────────────────────────────────
@@ -347,7 +242,7 @@ function Modal({ title, subtitle, accentColor, fields, status, statusField, onSt
               opacity: generatingBadge ? .6 : 1,
             }}>
               <Icon name="download" size={16} color="#000E91" />
-              {generatingBadge ? 'Génération du badge...' : 'Télécharger le badge (PDF)'}
+              {generatingBadge ? 'Génération du badge...' : 'Télécharger le badge (PNG)'}
             </button>
           )}
         </div>
@@ -395,7 +290,14 @@ function ModalParticipant({ row, onClose, onUpdate }) {
       if (status === 'confirme' && !wasConfirmed) {
         t('Statut confirmé — génération du badge...')
         setGenBadge(true)
-        try { await generateBadgePDF(updated) } catch (e) { console.error(e) }
+        try {
+          await generateBadge({
+            nomPrenom: `${updated.prenom || ''} ${updated.nom || ''}`.trim(),
+            fonction: updated.pays || '',
+            dossier: updated.dossier || updated.id,
+            photoSrc: updated.photo_url || undefined,
+          })
+        } catch (e) { console.error(e) }
         setGenBadge(false)
       } else {
         t('Statut mis a jour avec succes')
@@ -415,7 +317,14 @@ function ModalParticipant({ row, onClose, onUpdate }) {
 
   const downloadBadge = async () => {
     setGenBadge(true)
-    try { await generateBadgePDF({ ...row, paiement_status: status }) }
+    try {
+      await generateBadge({
+        nomPrenom: `${row.prenom || ''} ${row.nom || ''}`.trim(),
+        fonction: row.pays || '',
+        dossier: row.dossier || row.id,
+        photoSrc: row.photo_url || undefined,
+      })
+    }
     catch (e) { t('Erreur génération badge : ' + e.message) }
     setGenBadge(false)
   }
