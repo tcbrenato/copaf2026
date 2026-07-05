@@ -112,34 +112,37 @@ export async function generateBadge({
     }
   }
 
-  // ── Nom et Prenom ──
+  // ── Nom et Prenom (centre) ──
   {
     const box = toPx(POSITIONS_MM.nom)
     const fontSize = fitTextFont(ctx, nomPrenom, box.w, box.h * 0.9, 'Arial', true)
     ctx.font = `bold ${fontSize}px Arial`
     ctx.fillStyle = '#0f172a'
     ctx.textBaseline = 'middle'
-    ctx.fillText(nomPrenom, box.x, box.y + box.h / 2)
+    ctx.textAlign = 'center'
+    ctx.fillText(nomPrenom, box.x + box.w / 2, box.y + box.h / 2)
   }
 
-  // ── Fonction ──
+  // ── Fonction (centre) ──
   {
     const box = toPx(POSITIONS_MM.fonction)
     const fontSize = fitTextFont(ctx, fonction, box.w, box.h * 1.6, 'Arial', false)
     ctx.font = `${fontSize}px Arial`
     ctx.fillStyle = '#475569'
     ctx.textBaseline = 'middle'
-    ctx.fillText(fonction, box.x, box.y + box.h / 2)
+    ctx.textAlign = 'center'
+    ctx.fillText(fonction, box.x + box.w / 2, box.y + box.h / 2)
   }
 
-  // ── Numero de dossier ──
+  // ── Numero de dossier (centre) ──
   {
     const box = toPx(POSITIONS_MM.dossier)
     const fontSize = fitTextFont(ctx, dossier, box.w, box.h * 1.6, 'Arial', true)
     ctx.font = `bold ${fontSize}px Arial`
     ctx.fillStyle = '#000E91'
     ctx.textBaseline = 'middle'
-    ctx.fillText(dossier, box.x, box.y + box.h / 2)
+    ctx.textAlign = 'center'
+    ctx.fillText(dossier, box.x + box.w / 2, box.y + box.h / 2)
   }
 
   if (!download) {
