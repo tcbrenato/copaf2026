@@ -1,13 +1,14 @@
-﻿import { useState } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { supabase } from '../supabase'
 
-const CONTACT_PHONE = '+229 01 97 67 22 00'
+const CONTACT_PHONE = '+229 69 30 30 19'
+const OFFICIAL_IBAN = 'BJ66BJ083010010005027398097' // Version nettoyée pour comparaison
 
 const STATUT_LABEL = {
   en_attente: { label: 'En attente de paiement', color: '#d97706', bg: '#fef3c7' },
-  reserve:    { label: 'Place reservee',         color: '#2563eb', bg: '#dbeafe' },
-  confirme:   { label: 'Inscription confirmee',  color: '#059669', bg: '#d1fae5' },
-  annule:     { label: 'Annule',                 color: '#dc2626', bg: '#fee2e2' },
+  reserve:    { label: 'Place réservée',         color: '#2563eb', bg: '#dbeafe' },
+  confirme:   { label: 'Inscription confirmée',  color: '#059669', bg: '#d1fae5' },
+  annule:     { label: 'Annulé',                 color: '#dc2626', bg: '#fee2e2' },
 }
 
 const Ico = ({ name, size = 20, color = 'currentColor' }) => {
@@ -25,26 +26,55 @@ const Ico = ({ name, size = 20, color = 'currentColor' }) => {
 export default function VerifierDossier() {
   const [input,   setInput]   = useState('')
   const [loading, setLoading] = useState(false)
-  const [result,  setResult]  = useState(undefined)
+  const [result,  setResult]  = useState(undefined) // undefined = rien, null = introuvable, {type: 'iban'} ou {...dossier}
   const [error,   setError]   = useState('')
 
-  const handleSearch = async e => {
-    e.preventDefault()
-    if (!input.trim()) return
+  const executeVerification = async (rawValue) => {
+    const cleanedInput = rawValue.trim()
+    if (!cleanedInput) return
+
     setLoading(true)
     setError('')
     setResult(undefined)
 
+    // 1. Vérification si c'est l'IBAN officiel copié-collé
+    const inputAsIban = cleanedInput.replace(/\s+/g, '') // Enlever tous les espaces
+    if (inputAsIban === OFFICIAL_IBAN) {
+      setResult({ type: 'iban' })
+      setLoading(false)
+      return
+    }
+
+    // 2. Sinon, on interroge la base de données Supabase pour le numéro de dossier
     try {
-      const { data, error: err } = await supabase.rpc('verifier_dossier', { p_dossier: input.trim() })
+      const { data, error: err } = await supabase.rpc('verifier_dossier', { p_dossier: cleanedInput })
       if (err) throw new Error(err.message)
-      setResult(data && data.length > 0 ? data[0] : null)
+      
+      if (data && data.length > 0) {
+        setResult({ type: 'dossier', ...data[0] })
+      } else {
+        setResult(null) // Introuvable
+      }
     } catch (err) {
-      setError('Erreur lors de la verification. Reessayez ou contactez-nous directement.')
+      setError('Erreur lors de la vérification. Réessayez ou contactez-nous directement.')
       setResult(undefined)
     }
     setLoading(false)
   }
+
+  const handleSearch = e => {
+    e.preventDefault()
+    executeVerification(input)
+  }
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const dossierParam = params.get('dossier') || params.get('ref') || params.get('iban')
+    if (dossierParam) {
+      setInput(dossierParam)
+      executeVerification(dossierParam)
+    }
+  }, [])
 
   return (
     <section style={{
@@ -67,15 +97,14 @@ export default function VerifierDossier() {
           }}>
             <Ico name="shield" size={14} color="#0073F4" />
             <span style={{ color: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase' }}>
-              Verification anti-fraude
+              Vérification anti-fraude
             </span>
           </div>
           <h1 style={{ fontSize: 'clamp(24px,4.5vw,38px)', fontWeight: 900, color: '#0f172a', marginBottom: 12, lineHeight: 1.15 }}>
-            Verifiez votre dossier COPAF 2026
+            Vérifiez vos informations COPAF 2026
           </h1>
           <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, maxWidth: 480, margin: '0 auto' }}>
-            Entrez votre numero de dossier pour confirmer que votre inscription est bien enregistree chez nous,
-            et retrouver les seules coordonnees bancaires officielles.
+            Entrez votre numéro de dossier <strong>ou collez l'IBAN reçu</strong> pour confirmer l'authenticité de votre demande de paiement.
           </p>
         </div>
 
@@ -87,7 +116,7 @@ export default function VerifierDossier() {
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="Ex : COPAF2026-12345"
+            placeholder="N° de dossier ou IBAN officiel..."
             style={{
               flex: '1 1 220px', padding: '14px 16px', fontSize: 15, fontFamily: 'inherit',
               color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0',
@@ -102,7 +131,7 @@ export default function VerifierDossier() {
             opacity: loading ? 0.7 : 1, flexShrink: 0,
           }}>
             {loading ? <div className="spinner" /> : <Ico name="search" size={16} color="#fff" />}
-            Verifier
+            Vérifier
           </button>
         </form>
 
@@ -112,15 +141,33 @@ export default function VerifierDossier() {
           </div>
         )}
 
-        {result && (
+        {/* CAS A : Succès - Validation du RIB collé */}
+        {result && result.type === 'iban' && (
+          <div style={{ background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: 20, padding: 28, marginBottom: 24, boxShadow: '0 8px 32px rgba(5,150,105,.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Ico name="check" size={22} color="#059669" />
+              </div>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#065f46' }}>RIB Officiel Certifié & Authentique</div>
+                <div style={{ fontSize: 13, color: '#047857', marginTop: 2, lineHeight: 1.4 }}>
+                  L'IBAN que vous avez copié correspond exactement au compte bancaire officiel de la <strong>COPAF 2026 (SGBE Bénin)</strong>. Vous pouvez procéder à votre virement en toute sécurité.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CAS B : Succès - Validation d'un numéro de dossier */}
+        {result && result.type === 'dossier' && (
           <div style={{ background: '#fff', border: '1.5px solid #a7f3d0', borderRadius: 20, padding: 28, marginBottom: 24, boxShadow: '0 8px 32px rgba(5,150,105,.1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
               <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Ico name="check" size={22} color="#059669" />
               </div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Dossier verifie et authentique</div>
-                <div style={{ fontSize: 13, color: '#64748b' }}>Ce numero correspond bien a une inscription COPAF 2026 reelle.</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Dossier vérifié et authentique</div>
+                <div style={{ fontSize: 13, color: '#64748b' }}>Ce numéro correspond bien à une inscription COPAF 2026 réelle.</div>
               </div>
             </div>
 
@@ -130,9 +177,9 @@ export default function VerifierDossier() {
                 { l: 'Titulaire',    v: `${result.initiales} — ${result.organisation || 'N/A'}` },
                 { l: 'Participants', v: result.participants },
                 { l: 'Statut',       v: (STATUT_LABEL[result.statut] || {}).label || result.statut },
-                { l: 'Date',         v: new Date(result.date_inscription).toLocaleDateString('fr-FR') },
+                { l: 'Date d\'inscription', v: new Date(result.date_inscription).toLocaleDateString('fr-FR', {day: '2-digit', month: 'long', year: 'numeric'}) },
               ].map((row, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 4 ? '1px solid #eef2f7' : 'none', fontSize: 13.5 }}>
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: i < 4 ? '1px solid #eef2f7' : 'none', fontSize: 13.5 }}>
                   <span style={{ color: '#94a3b8', fontWeight: 600 }}>{row.l}</span>
                   <span style={{ color: '#0f172a', fontWeight: 700 }}>{row.v}</span>
                 </div>
@@ -141,6 +188,7 @@ export default function VerifierDossier() {
           </div>
         )}
 
+        {/* CAS C : Introuvable */}
         {result === null && (
           <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 20, padding: 28, marginBottom: 24 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
@@ -148,33 +196,40 @@ export default function VerifierDossier() {
                 <Ico name="alert" size={22} color="#dc2626" />
               </div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#7f1d1d' }}>Ce numero n'existe pas dans notre base</div>
-                <div style={{ fontSize: 13, color: '#991b1b' }}>Ne procedez a aucun virement avant d'avoir verifie l'authenticite de cette demande.</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#7f1d1d' }}>Cette référence n'existe pas dans notre base</div>
+                <div style={{ fontSize: 13, color: '#991b1b' }}>Ne procédez à aucun virement avant d'avoir vérifié l'authenticité de cette coordonnée.</div>
               </div>
             </div>
             <p style={{ fontSize: 13.5, color: '#7f1d1d', lineHeight: 1.7, margin: 0 }}>
-              Si quelqu'un vous a communique ce numero en pretendant representer COPAF 2026, contactez-nous
-              immediatement au <strong>{CONTACT_PHONE}</strong> avant tout paiement.
+              Si un tiers vous a fourni cet IBAN ou ce numéro en prétendant représenter COPAF 2026, contactez-nous
+              immédiatement au <strong>{CONTACT_PHONE}</strong> avant tout virement bancaire.
             </p>
           </div>
         )}
 
+        {/* Coordonnées bancaires toujours visibles pour comparaison */}
         <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: 24, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,14,145,.06)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Ico name="bank" size={18} color="#0073F4" />
             </div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Coordonnees bancaires officielles — les SEULES valables</div>
+            <div style={{ fontSize: 14.5, fontWeight: 800, color: '#0f172a' }}>Coordonnées bancaires officielles — les SEULES valables</div>
           </div>
           {[
-            { l: 'Banque',    v: 'SGBE Benin' },
-            { l: 'IBAN',      v: 'BJ66 BJ083 01001 00050273980 97' },
-            { l: 'BIC',       v: 'SGBEBJ BX' },
-            { l: 'Titulaire', v: 'COPAF 2026' },
+            { l: 'Banque',    v: 'SGBE Bénin', empha: false },
+            { l: 'IBAN',      v: 'BJ66 BJ083 01001 00050273980 97', empha: true },
+            { l: 'BIC',       v: 'SGBEBJ BX', empha: true },
+            { l: 'Titulaire', v: 'COPAF 2026', empha: false },
           ].map((item, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '8px 0', borderBottom: i < 3 ? '1px solid #f1f5f9' : 'none' }}>
-              <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>{item.l}</span>
-              <span style={{ fontSize: 12, color: '#0f172a', fontWeight: 700, textAlign: 'right', wordBreak: 'break-all' }}>{item.v}</span>
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '11px 0', borderBottom: i < 3 ? '1px solid #f1f5f9' : 'none' }}>
+              <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>{item.l}</span>
+              <span style={{ 
+                fontSize: item.empha ? 14 : 13, 
+                color: item.empha ? '#000E91' : '#0f172a', 
+                fontWeight: 700, 
+                textAlign: 'right', 
+                wordBreak: 'break-all' 
+              }}>{item.v}</span>
             </div>
           ))}
         </div>
@@ -182,9 +237,9 @@ export default function VerifierDossier() {
         <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 16, padding: '18px 20px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <Ico name="alert" size={18} color="#d97706" />
           <p style={{ fontSize: 13, color: '#78350f', lineHeight: 1.75, margin: 0 }}>
-            <strong>Nous ne changerons JAMAIS ces coordonnees bancaires</strong> par email, SMS ou WhatsApp.
-            Si une personne vous contacte avec un RIB different en se faisant passer pour COPAF 2026, il s'agit
-            d'une tentative de fraude. Verifiez toujours sur <strong>copaf-ports.com/verifier</strong> avant
+            <strong>Nous ne changerons JAMAIS ces coordonnées bancaires</strong> par e-mail, SMS ou WhatsApp.
+            Si une personne vous contacte avec un RIB différent en se faisant passer pour COPAF 2026, il s'agit
+            d'une tentative de fraude. Vérifiez toujours sur <strong>copaf-ports.com/verifier</strong> avant
             tout virement, ou appelez-nous directement au <strong>{CONTACT_PHONE}</strong>.
           </p>
         </div>

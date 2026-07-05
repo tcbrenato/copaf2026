@@ -1,203 +1,382 @@
 ﻿// src/utils/generateRecapPDF.js
 //
-// Genere le PDF recapitulatif d'inscription, envoye/telechargeable
-// immediatement apres soumission du formulaire, AVANT paiement.
-// Utilise jsPDF (deja present dans les dependances du projet).
+// Génère le document officiel de CONFIRMATION D'INSCRIPTION COPAF 2026,
+// tenant obligatoirement sur UNE SEULE PAGE.
 
 import jsPDF from 'jspdf'
 
-const NAVY  = [0, 14, 145]   // #000E91
-const BLUE  = [0, 115, 244]  // #0073F4
-const GRAY  = [100, 116, 139]
-const DARK  = [15, 23, 42]
+const NAVY     = [0, 14, 145]     // #000E91
+const BLUE     = [0, 115, 244]    // #0073F4
+const GRAY     = [100, 116, 139]
+const DARK     = [15, 23, 42]
 const LIGHT_BG = [248, 250, 252]
-const RED   = [220, 38, 38]
+const RED      = [190, 30, 30]
+const GREEN_WA = [37, 211, 102]  // Couleur WhatsApp officielle
+
+const EVENT = {
+  nom: 'COPAF 2026',
+  titreLong: 'Conférence des Ports Africains',
+  dates: 'Du 15 au 17 Septembre 2026',
+  lieu: 'Casablanca, Royaume du Maroc',
+  organisateur: 'CRF Perfection',
+}
 
 const RIB = {
-  banque: 'SGBE Benin',
+  banque: 'SGBE Bénin',
   iban: 'BJ66 BJ083 01001 00050273980 97',
   bic: 'SGBEBJ BX',
   titulaire: 'COPAF 2026',
 }
 
+const CONTACT = {
+  structure: 'CRF Perfection',
+  email: 'contactcrfperfection@gmail.com',
+  tel1: '+229 0169 30 30 19',
+  tel2: '+1 (240) 978-4155',
+  whatsapp: '+229 69 30 30 19',
+  site: 'www.copaf-ports.com',
+}
+
 function fmtEur(n) {
-  return `${Number(n).toLocaleString('fr-FR')} EUR`
+  return `${Number(n).toLocaleString('de-DE')} EUR` 
 }
 
-function fmtDateNow() {
-  return new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+function fmtDateLong(d = new Date()) {
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-/**
- * @param {object} params
- * @param {object} params.form - { nom, prenom, email, telephone, organisation, poste, pays, message }
- * @param {string} params.dossier - ex: 'COPAF2026-45210'
- * @param {number} params.nb - nombre de participants
- * @param {number} params.total - montant total en EUR
- * @param {string} params.paiementMode - 'maintenant' | 'plus_tard'
- * @param {boolean} [params.download=true] - true = declenche le telechargement, false = retourne le doc jsPDF
- */
-export function generateRecapPDF({ form, dossier, nb, total, paiementMode, download = true }) {
+function loadQR(url) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+export async function generateRecapPDF({ form, dossier, nb, total, paiementMode, download = true }) {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
-  const pageWidth = doc.internal.pageSize.getWidth()
-  const margin = 44
-  let y = 0
+  const pageWidth  = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
+  
+  const M = 34               
+  const P = M + 22           
+  const contentW = pageWidth - P * 2
+  const now = new Date()
 
-  // ── Bandeau d'en-tete ──
-  doc.setFillColor(...NAVY)
-  doc.rect(0, 0, pageWidth, 96, 'F')
+  // Construction de l'URL de vérification sécurisée avec l'IBAN pré-rempli
+  const verificationUrl = `https://copaf-ports.com/verifier?iban=${encodeURIComponent(RIB.iban)}`
+  // URL WhatsApp directe
+  const whatsappUrl = `https://wa.me/22969303019?text=${encodeURIComponent(`Bonjour, je vous contacte concernant mon inscription à la COPAF 2026. Référence dossier : ${dossier}`)}`
 
-  doc.setTextColor(255, 255, 255)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(22)
-  doc.text('COPAF 2026', margin, 40)
-
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(10)
-  doc.setTextColor(200, 215, 255)
-  doc.text('Conference des Ports Africains — Casablanca, Maroc — 15, 16 & 17 Septembre 2026', margin, 58)
-  doc.text('Organise par CRF Perfection · Sous l\'egide de l\'AGPAOC · Sous le haut patronage de l\'ANP', margin, 72)
-
-  y = 128
-
-  // ── Titre document ──
-  doc.setTextColor(...DARK)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(16)
-  doc.text('RECAPITULATIF D\'INSCRIPTION', margin, y)
-  y += 10
-
+  // ── Cadre extérieur ──
+  doc.setDrawColor(...NAVY)
+  doc.setLineWidth(1.4)
+  doc.rect(M, M, pageWidth - M * 2, pageHeight - M * 2)
   doc.setDrawColor(...BLUE)
-  doc.setLineWidth(2)
-  doc.line(margin, y, margin + 60, y)
-  y += 28
+  doc.setLineWidth(0.5)
+  doc.rect(M + 5, M + 5, pageWidth - (M + 5) * 2, pageHeight - (M + 5) * 2)
 
-  // ── Numero de dossier + statut ──
-  doc.setFillColor(...LIGHT_BG)
-  doc.roundedRect(margin, y, pageWidth - margin * 2, 54, 6, 6, 'F')
+  let y = P + 18
 
+  // ── En-tête ──
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9)
+  doc.setTextColor(...GRAY)
+  doc.text(EVENT.organisateur.toUpperCase(), P, y)
+  doc.text('DOCUMENT OFFICIEL', pageWidth - P, y, { align: 'right' })
+  y += 8
+  doc.setDrawColor(...GRAY)
+  doc.setLineWidth(0.4)
+  doc.line(P, y, pageWidth - P, y)
+  y += 24
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(17)
+  doc.setTextColor(...NAVY)
+  doc.text(EVENT.titreLong, P, y)
+  y += 18
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(12)
+  doc.setTextColor(...BLUE)
+  doc.text(EVENT.nom, P, y)
+  y += 14
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(...GRAY)
-  doc.text('NUMERO DE DOSSIER', margin + 16, y + 20)
+  doc.text(`${EVENT.dates}  —  ${EVENT.lieu}`, P, y)
+  y += 24
 
+  // ── Bandeau titre du document ──
+  doc.setFillColor(...NAVY)
+  doc.rect(P, y, contentW, 28, 'F')
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(15)
-  doc.setTextColor(...NAVY)
-  doc.text(dossier, margin + 16, y + 40)
-
-  const statutLabel = paiementMode === 'maintenant' ? 'EN ATTENTE DE REGLEMENT' : 'PLACE RESERVEE'
-  const statutColor = paiementMode === 'maintenant' ? [217, 119, 6] : [37, 99, 235]
-  const statutWidth = doc.getTextWidth(statutLabel) + 24
-  doc.setFillColor(...statutColor)
-  doc.roundedRect(pageWidth - margin - statutWidth - 16, y + 15, statutWidth, 24, 12, 12, 'F')
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
+  doc.setFontSize(11.5)
   doc.setTextColor(255, 255, 255)
-  doc.text(statutLabel, pageWidth - margin - statutWidth - 16 + 12, y + 31)
+  doc.text("CONFIRMATION D'INSCRIPTION", P + 12, y + 18.5)
 
-  y += 80
-
-  // ── Details participant ──
+  const statutLabel = paiementMode === 'maintenant' ? 'EN ATTENTE DE RÈGLEMENT' : 'PLACE RÉSERVÉE'
+  const statutColor = paiementMode === 'maintenant' ? [217, 119, 6] : [37, 99, 235]
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.setTextColor(...NAVY)
-  doc.text('DETAILS DE L\'INSCRIPTION', margin, y)
-  y += 18
+  doc.setFontSize(7.5)
+  const statutWidth = doc.getTextWidth(statutLabel) + 16
+  doc.setFillColor(...statutColor)
+  doc.roundedRect(P + contentW - statutWidth - 8, y + 6, statutWidth, 16, 6, 6, 'F')
+  doc.setTextColor(255, 255, 255)
+  doc.text(statutLabel, P + contentW - statutWidth - 8 + statutWidth / 2, y + 16, { align: 'center' })
+  y += 42
 
-  const rows = [
-    ['Nom complet', `${form.prenom} ${form.nom}`],
-    ['Organisation', form.organisation || '—'],
-    ['Poste', form.poste || '—'],
-    ['Pays', form.pays || '—'],
-    ['Email', form.email || '—'],
-    ['Telephone', form.telephone || '—'],
-    ['Nombre de participants', String(nb)],
-    ['Tarif unitaire', fmtEur(3500)],
-    ['Montant total', fmtEur(total)],
-    ['Mode de paiement', paiementMode === 'maintenant' ? 'Paiement immediat' : 'Reservation differee'],
-    ['Date limite de reglement', paiementMode === 'maintenant' ? 'Sous 7 jours ouvrables' : 'Avant le 1er Aout 2026'],
-  ]
-
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(10.5)
-  rows.forEach(([label, value], i) => {
-    const rowY = y + i * 22
-    if (i % 2 === 0) {
-      doc.setFillColor(...LIGHT_BG)
-      doc.rect(margin, rowY - 14, pageWidth - margin * 2, 22, 'F')
-    }
-    doc.setTextColor(...GRAY)
-    doc.text(label, margin + 10, rowY)
-    doc.setTextColor(...DARK)
-    doc.setFont('helvetica', 'bold')
-    doc.text(String(value), pageWidth - margin - 10, rowY, { align: 'right' })
-    doc.setFont('helvetica', 'normal')
-  })
-  y += rows.length * 22 + 24
-
-  // ── Coordonnees bancaires ──
+  // ── Objet ──
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.setTextColor(...NAVY)
-  doc.text('COORDONNEES BANCAIRES OFFICIELLES', margin, y)
-  y += 18
+  doc.setFontSize(9.5)
+  doc.setTextColor(...DARK)
+  doc.text('Objet : Confirmation de votre inscription', P, y)
+  y += 22
 
-  const ribRows = [
-    ['Banque', RIB.banque],
-    ['IBAN', RIB.iban],
-    ['BIC', RIB.bic],
-    ['Titulaire', RIB.titulaire],
-  ]
-  doc.setFillColor(235, 243, 255)
-  doc.roundedRect(margin, y - 14, pageWidth - margin * 2, ribRows.length * 20 + 12, 6, 6, 'F')
+  // ── Corps du message ──
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
-  ribRows.forEach(([label, value], i) => {
-    const rowY = y + i * 20
-    doc.setTextColor(...GRAY)
-    doc.text(label, margin + 14, rowY)
+  doc.setTextColor(...DARK)
+  doc.text(`Bonjour ${form.prenom} ${form.nom},`, P, y)
+  y += 18
+
+  const intro = doc.splitTextToSize(
+    `Nous avons le plaisir de vous confirmer que votre inscription à la ${EVENT.titreLong} ` +
+    `(${EVENT.nom}) a bien été enregistrée. Veuillez trouver ci-dessous le récapitulatif de vos informations.`,
+    contentW
+  )
+  doc.text(intro, P, y)
+  y += intro.length * 13 + 18
+
+  // ── Récapitulatif ──
+  const montantLabel = paiementMode === 'maintenant'
+    ? `${fmtEur(total)} (à régler par virement bancaire, sous 7 jours ouvrables)`
+    : `${fmtEur(total)} (à régler par virement bancaire, avant le 1er août 2026)`
+
+  const recap = [
+    ["Référence d'inscription", `N° ${dossier}`],
+    ['Événement', `${EVENT.nom} — ${EVENT.titreLong}`],
+    ['Date de début', EVENT.dates],
+    ['Lieu', EVENT.lieu],
+    ['Nombre de participants', String(nb)],
+    ['Montant dû', montantLabel],
+  ]
+
+  const valueWidth = contentW * 0.58
+  let totalTableH = 0
+  const preparedRecap = recap.map(([label, value]) => {
     doc.setFont('helvetica', 'bold')
-    doc.setTextColor(...NAVY)
-    doc.text(value, pageWidth - margin - 14, rowY, { align: 'right' })
-    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    const lines = doc.splitTextToSize(String(value), valueWidth)
+    const rowH = Math.max(20, lines.length * 12 + 8) 
+    totalTableH += rowH
+    return { label, lines, rowH }
   })
-  y += ribRows.length * 20 + 26
 
-  // ── Avertissement anti-fraude ──
-  doc.setFillColor(255, 251, 235)
-  const fraudBoxHeight = 46
-  doc.roundedRect(margin, y - 14, pageWidth - margin * 2, fraudBoxHeight, 6, 6, 'F')
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
-  doc.setTextColor(...RED)
-  doc.text('⚠ VERIFICATION ANTI-FRAUDE', margin + 14, y + 2)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setTextColor(120, 53, 15)
-  doc.text('Ces coordonnees sont les seules valables. Ne payez jamais sur un autre RIB recu par', margin + 14, y + 15)
-  doc.text('WhatsApp/email. Verifiez toujours sur copaf-ports.com/verifier avant tout virement.', margin + 14, y + 27)
-  y += fraudBoxHeight + 24
-
-  // ── Pied de page ──
+  doc.setFillColor(...LIGHT_BG)
+  doc.rect(P, y - 4, contentW, totalTableH + 6, 'F')
   doc.setDrawColor(226, 232, 240)
-  doc.setLineWidth(1)
-  doc.line(margin, y, pageWidth - margin, y)
-  y += 20
+  doc.setLineWidth(0.5)
+  doc.rect(P, y - 4, contentW, totalTableH + 6)
 
+  let currentY = y + 10
+  preparedRecap.forEach((row, i) => {
+    if (i > 0) {
+      doc.setDrawColor(226, 232, 240)
+      doc.line(P, currentY - 10, P + contentW, currentY - 10)
+    }
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    doc.setTextColor(...GRAY)
+    doc.text(row.label, P + 12, currentY)
+    
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...DARK)
+    doc.text(row.lines, P + contentW - 12, currentY, { align: 'right' })
+    currentY += row.rowH
+  })
+  
+  y += totalTableH + 26
+
+  // ── Coordonnées bancaires ──
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10.5)
+  doc.setTextColor(...NAVY)
+  doc.text('Coordonnées bancaires officielles pour règlement', P, y)
+  y += 12
+  
+  doc.setFillColor(235, 243, 255)
+  doc.setDrawColor(191, 219, 254)
+  doc.setLineWidth(0.8)
+  doc.rect(P, y - 8, contentW, 58, 'FD')
+  
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9.5)
+  doc.setTextColor(...DARK)
+  doc.text(`Banque : ${RIB.banque}`, P + 14, y + 6)
+  doc.text(`Titulaire : ${RIB.titulaire}`, P + contentW / 2 + 10, y + 6)
+  
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(...NAVY)
+  doc.text(`IBAN : ${RIB.iban}`, P + 14, y + 23)
+  doc.text(`BIC : ${RIB.bic}`, P + contentW / 2 + 10, y + 23)
+  
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(...RED)
+  doc.text('Ne payez jamais sur un autre RIB reçu par un autre canal. Vérifiez sur ', P + 14, y + 40)
+  
+  // URL de vérification cliquable
+  const textWidthPre = doc.getTextWidth('Ne payez jamais sur un autre RIB reçu par un autre canal. Vérifiez sur ')
+  doc.setTextColor(...BLUE)
+  doc.setFont('helvetica', 'bold')
+  doc.text('copaf-ports.com/verifier', P + 14 + textWidthPre, y + 40)
+  doc.link(P + 14 + textWidthPre, y + 32, doc.getTextWidth('copaf-ports.com/verifier'), 10, { url: verificationUrl })
+  
+  y += 66
+
+  // ── Prochaines étapes ──
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9.5)
+  doc.setTextColor(...NAVY)
+  doc.text('Prochaines étapes', P, y)
+  y += 16
+
+  const etapes = [
+    'Contactez-nous par WhatsApp ou par e-mail pour valider votre inscription et recevoir les instructions de virement.',
+    "Procédez au règlement par virement bancaire selon l'échéance indiquée ci-dessus.",
+    'Votre badge et vos accès participant vous seront transmis après réception du paiement.',
+  ]
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8.5)
+  doc.setTextColor(...DARK)
+  etapes.forEach((line, i) => {
+    const lines = doc.splitTextToSize(`${i + 1}. ${line}`, contentW - 4)
+    doc.text(lines, P, y)
+    y += lines.length * 11.5 + 3
+  })
+  y += 12
+
+  // ── Contact (Gestion anti-débordement complète) ──
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   doc.setTextColor(...GRAY)
-  doc.text(`Document genere le ${fmtDateNow()} — Conditions generales de vente et politique de confidentialite acceptees.`, margin, y)
-  y += 14
-  doc.text('CRF Perfection · contactcrfperfection@gmail.com', margin, y)
-  y += 14
-  doc.text('+229 0169 30 30 19  ·  +1 (240) 978-4155', margin, y)
-  y += 14
-  doc.text('Ce document est un recapitulatif informatif. L\'inscription est confirmee apres reception du paiement.', margin, y)
+  const contactText = `Pour toute question, contactez notre équipe à l'adresse ${CONTACT.email} ou au ${CONTACT.tel1} / ${CONTACT.tel2}.`
+  const contactLines = doc.splitTextToSize(contactText, contentW)
+  doc.text(contactLines, P, y)
+  y += contactLines.length * 11 + 16
+
+  // ── BOUTON CLIQUABLE WHATSAPP ──
+  const btnW = 160
+  const btnH = 22
+  doc.setFillColor(...GREEN_WA)
+  doc.roundedRect(P, y, btnW, btnH, 4, 4, 'F')
+  
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8.5)
+  doc.setTextColor(255, 255, 255)
+  doc.text('Nous contacter sur WhatsApp', P + btnW / 2, y + 14, { align: 'center' })
+  doc.link(P, y, btnW, btnH, { url: whatsappUrl })
+  
+  y += btnH + 28
+
+  // ── Bloc signature, QR CODE et Cachet Numérique ──
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(...DARK)
+  doc.text(`Fait à Cotonou, le ${fmtDateLong(now)}`, P, y)
+  
+  // QR Code interactif
+  const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${encodeURIComponent(verificationUrl)}`
+  const qrBase64 = await loadQR(qrUrl)
+  const qrSize = 52
+  const qrX = P + 130
+  
+  if (qrBase64) {
+    doc.addImage(qrBase64, 'PNG', qrX, y - 10, qrSize, qrSize)
+    doc.link(qrX, y - 10, qrSize, qrSize, { url: verificationUrl })
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(6)
+    doc.setTextColor(...GRAY)
+    doc.text('Cliquez ou scannez', qrX + qrSize/2, y + qrSize + 2, { align: 'center' })
+  }
+
+  // ── CACHET NUMÉRIQUE OFFICIEL STYLE image_1ceebf.png ──
+  const stampX = qrX + qrSize + 25
+  const stampY = y - 12
+  
+  doc.saveGraphicsState()
+  
+  // Légère inclinaison de 4 degrés pour l'aspect authentique
+  doc.setCurrentTransformationMatrix(new doc.Matrix(Math.cos(0.07), Math.sin(0.07), -Math.sin(0.07), Math.cos(0.07), stampX, stampY))
+  
+  doc.setDrawColor(...RED)
+  doc.setTextColor(...RED)
+  
+  // Double bordure rouge arrondie imbriquée
+  doc.setLineWidth(2.2) 
+  doc.roundedRect(0, 0, 130, 56, 9, 9, 'D')
+  doc.setLineWidth(0.6) 
+  doc.roundedRect(3, 3, 124, 50, 7, 7, 'D')
+  
+  // Textes internes
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(7.5)
+  doc.text('CRF PERFECTION', 65, 14, { align: 'center' })
+  
+  doc.setFont('times', 'bold') // Typographie à empattement traditionnelle pour "DOCUMENT OFFICIEL"
+  doc.setFontSize(11)
+  doc.text('DOCUMENT OFFICIEL', 65, 27, { align: 'center' })
+  
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8.5)
+  doc.text('COPAF 2026', 65, 40, { align: 'center' })
+  
+  doc.setFont('helvetica', 'italic')
+  doc.setFontSize(6)
+  doc.text(`Inscrit le : ${fmtDateLong(now)}`, 65, 49, { align: 'center' })
+  
+  doc.restoreGraphicsState()
+
+  // Bloc de Signature Droite
+  const sigX = P + contentW - 120
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9)
+  doc.setTextColor(...NAVY)
+  doc.text('Cordialement,', sigX, y)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8.5)
+  doc.setTextColor(...GRAY)
+  doc.text(`L'équipe ${CONTACT.structure}`, sigX, y + 12)
+  doc.text(CONTACT.site, sigX, y + 24)
+
+  // ── Pied de page (Maintenant 100% dynamique) ──
+  const fy = pageHeight - M - 26
+  doc.setDrawColor(226, 232, 240)
+  doc.setLineWidth(0.5)
+  doc.line(P, fy, pageWidth - P, fy)
+  
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(7)
+  doc.setTextColor(...GRAY)
+  
+  doc.text("Ce document est un récapitulatif informatif. L'inscription est confirmée après réception du paiement.", P, fy + 10)
+  doc.text(`Document généré le ${fmtDateLong(now)} — Conditions générales de vente et politique de confidentialité acceptées.`, P, fy + 20)
+  
+  doc.text(`${EVENT.organisateur} · ${CONTACT.email}`, pageWidth - P, fy + 10, { align: 'right' })
+  doc.text(`${CONTACT.tel1} · ${CONTACT.tel2}`, pageWidth - P, fy + 20, { align: 'right' })
 
   if (download) {
-    doc.save(`COPAF2026-Recapitulatif-${dossier}.pdf`)
+    doc.save(`COPAF2026-Confirmation-${dossier}.pdf`)
     return null
   }
   return doc
