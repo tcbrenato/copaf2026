@@ -9,8 +9,9 @@ const PRIX_UNITAIRE = 3500
 const EMAILJS_SVC   = 'service_x07g4et'
 const EMAILJS_TPL   = 'template_7wrkmm1'
 const EMAILJS_KEY   = 'zBZAZxCfznICTKLJK'
-const WHATSAPP_NUM  = '22997672200'
-const CONTACT_EMAIL = 'inscriptions@copaf-ports.com'
+const WHATSAPP_NUM  = '22969303019'
+const CONTACT_PHONE = '+229 69 30 30 19'
+const CONTACT_EMAIL = 'contactcrfperfection@gmail.com'
 
 const Ico = ({ name, size = 18, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
@@ -85,7 +86,7 @@ const TYPES = [
 
 const CGV_CONTENT = [
   { title:'1. Objet', text:"Les presentes conditions generales de vente regissent les inscriptions a la Conference des Ports Africains (COPAF 2026) organisee par CRF Perfection, prevue du 15 au 17 septembre 2026 a Tanger Med, Maroc." },
-  { title:'2. Inscription et confirmation', text:"Toute inscription n'est definitivement confirmee qu'apres reception du paiement integral. Apres reception du mail de confirmation automatique, le participant doit contacter l'organisation par WhatsApp au +229 01 97 67 22 00 ou par email a inscriptions@copaf-ports.com pour valider son inscription et recevoir les instructions de paiement." },
+  { title:'2. Inscription et confirmation', text:`Toute inscription n'est definitivement confirmee qu'apres reception du paiement integral. Apres reception du mail de confirmation automatique, le participant doit contacter l'organisation par WhatsApp au ${CONTACT_PHONE} ou par email a ${CONTACT_EMAIL} pour valider son inscription et recevoir les instructions de paiement.` },
   { title:'3. Tarifs et paiement', text:"Le tarif est fixe a 3 500 EUR par personne. Le paiement s'effectue exclusivement par virement bancaire. Le paiement doit etre effectue dans les 7 jours ouvrables suivant la confirmation d'inscription. En cas de reservation (paiement differe), le reglement doit intervenir avant le 1er aout 2026." },
   { title:'4. Politique de non-remboursement', text:"Les inscriptions sont fermes et definitives. Aucun remboursement ne sera effectue, quelle que soit la raison de l'annulation (raison personnelle, professionnelle, medicale, force majeure, refus de visa, etc.). En cas d'empechement, le participant peut se faire remplacer par une autre personne de son organisation sous reserve de notification ecrite au moins 72h avant l'evenement." },
   { title:'5. Annulation par l\'organisateur', text:"En cas d'annulation de l'evenement par l'organisateur pour des raisons de force majeure, un avoir sera propose pour l'edition suivante. Aucun remboursement en numeraire ne sera effectue." },
@@ -95,13 +96,13 @@ const CGV_CONTENT = [
 ]
 
 const RGPD_CONTENT = [
-  { title:'1. Responsable du traitement', text:"CRF Perfection, organisant la COPAF 2026, est responsable du traitement. Contact : inscriptions@copaf-ports.com" },
+  { title:'1. Responsable du traitement', text:`CRF Perfection, organisant la COPAF 2026, est responsable du traitement. Contact : ${CONTACT_EMAIL}` },
   { title:'2. Donnees collectees', text:"Nous collectons : nom, prenom, email, telephone, organisation, poste, pays, et le cas echeant une photo pour le badge participant. Ces donnees sont collectees lors de votre inscription." },
   { title:'3. Finalites', text:"Vos donnees servent a : la gestion de votre inscription, l'envoi des confirmations, la creation de votre badge, la communication sur les editions futures." },
   { title:'4. Base legale', text:"Le traitement est fonde sur l'execution du contrat d'inscription (article 6.1.b du RGPD) et votre consentement explicite." },
   { title:'5. Conservation', text:"Vos donnees sont conservees pendant 3 ans a compter de la date de l'evenement, sauf obligation legale contraire." },
   { title:'6. Destinataires', text:"Vos donnees peuvent etre transmises aux partenaires organisant l'evenement dans la stricte limite necessaire. Elles ne sont jamais vendues." },
-  { title:'7. Vos droits', text:"Vous disposez des droits d'acces, de rectification, d'effacement, de limitation, d'opposition et de portabilite. Contactez-nous a inscriptions@copaf-ports.com." },
+  { title:'7. Vos droits', text:`Vous disposez des droits d'acces, de rectification, d'effacement, de limitation, d'opposition et de portabilite. Contactez-nous a ${CONTACT_EMAIL}.` },
   { title:'8. Securite', text:"Nous mettons en oeuvre toutes les mesures techniques et organisationnelles appropriees pour proteger vos donnees." },
 ]
 
@@ -221,7 +222,8 @@ export default function Inscription() {
       fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:total,dossier,paiement:paiementMode}) }).catch(()=>{})
       await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, { prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation, poste:form.poste, pays:form.pays, participants:form.participants, montant:`${total.toLocaleString('fr-FR')} EUR`, tarif:`${PRIX_UNITAIRE.toLocaleString('fr-FR')} EUR/pers.`, dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee', paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'' }, EMAILJS_KEY)
       setDossierNum(dossier); setSubmitted(true)
-      generateRecapPDF({ form, dossier, nb, total, paiementMode })
+      const donneesDossier = { form, dossier, nb, total, paiementMode }
+      await generateRecapPDF(donneesDossier)
     } catch(err) { setErrorMsg('Une erreur est survenue : ' + err.message) }
     setLoading(false)
   }
@@ -352,7 +354,10 @@ export default function Inscription() {
 
                     <div style={{ marginBottom:28 }}>
                       <button
-                        onClick={() => generateRecapPDF({ form, dossier: dossierNum, nb, total, paiementMode })}
+                        onClick={async () => {
+                          const donneesDossier = { form, dossier: dossierNum, nb, total, paiementMode }
+                          await generateRecapPDF(donneesDossier)
+                        }}
                         className="cta-btn"
                         style={{ background:'#EBF3FF', color:'#000E91', border:'1.5px solid #bfdbfe', margin:'0 auto' }}
                       >
@@ -429,7 +434,7 @@ export default function Inscription() {
                     </div>
 
                     <div className="field-row">
-                      {[{name:'email',label:'Email *',ph:'votre@email.com',type:'email'},{name:'telephone',label:'Telephone *',ph:'+229 01 XX XX XX',type:'tel'}].map(f => (
+                      {[{name:'email',label:'Email *',ph:'votre@email.com',type:'email'},{name:'telephone',label:'Telephone *',ph:'+229 69 30 30 19',type:'tel'}].map(f => (
                         <div key={f.name}><label style={lbl}>{f.label}</label><input name={f.name} type={f.type} required value={form[f.name]} onChange={handleChange} placeholder={f.ph} style={inp(f.name)} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')} /></div>
                       ))}
                     </div>
@@ -589,7 +594,7 @@ export default function Inscription() {
 
                 <div style={{ background:'#EBF3FF', border:'1.5px solid #bfdbfe', borderRadius:20, padding:'20px' }}>
                   <div style={{ fontSize:10, color:'#000E91', fontWeight:700, letterSpacing:2, textTransform:'uppercase', marginBottom:14 }}>Besoin d'aide ?</div>
-                  {[{icon:'phone',text:'+229 01 97 67 22 00'},{icon:'mail',text:'inscriptions@copaf-ports.com'},{icon:'globe',text:'www.copaf-ports.com'}].map((item,i) => (
+                  {[{icon:'phone',text:CONTACT_PHONE},{icon:'mail',text:CONTACT_EMAIL},{icon:'globe',text:'www.copaf-ports.com'}].map((item,i) => (
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, color:'#1e40af', fontWeight:500, marginBottom:i<2?10:0 }}>
                       <Ico name={item.icon} size={15} color="#0073F4" />
                       <span style={{ wordBreak:'break-word', overflowWrap:'break-word' }}>{item.text}</span>
