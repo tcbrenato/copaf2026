@@ -546,7 +546,7 @@ function SectionParticipants({ data, setData }) {
 
   const filtered = useMemo(() => data.filter(r => {
     const s   = search.toLowerCase()
-    const ok  = [r.nom, r.prenom, r.email, r.organisation, r.pays, r.dossier].some(v => (v || '').toLowerCase().includes(s))
+    const ok  = [r.contacts?.nom, r.contacts?.prenom, r.contacts?.email, r.contacts?.organisation, r.contacts?.pays, r.dossier].some(v => (v || '').toLowerCase().includes(s))
     const st  = filterStatus === 'tous' || r.paiement_status === filterStatus
     return ok && st
   }), [data, search, filterStatus])
@@ -572,9 +572,11 @@ function SectionParticipants({ data, setData }) {
     setSyncing(true)
     try {
       const rows = filtered.map(r => [
-        r.dossier, r.prenom, r.nom, r.email, r.telephone,
-        r.organisation, r.poste, r.pays, r.participants,
-        r.montant, r.paiement_status, r.paiement_mode,
+        r.dossier,
+        r.contacts?.prenom || '', r.contacts?.nom || '',
+        r.contacts?.email || '', r.contacts?.telephone || '',
+        r.contacts?.organisation || '', r.contacts?.poste || '', r.contacts?.pays || '',
+        r.participants, r.montant, r.paiement_status, r.paiement_mode,
         r.message, fmtDate(r.created_at),
       ])
       await syncToSheets('sync_inscriptions', { rows })
@@ -586,9 +588,9 @@ function SectionParticipants({ data, setData }) {
 
   const TABLE_COLS = [
     { key: 'dossier',         label: 'Dossier',       render: v => <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#6366f1', fontWeight: 600, background: '#eef2ff', padding: '2px 8px', borderRadius: 6 }}>{v || '—'}</span> },
-    { key: 'nom',             label: 'Nom & Prenom',  render: (v, r) => <div><div style={{ fontWeight: 700, color: '#0f172a' }}>{r.prenom} {r.nom}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{r.poste || '—'}</div></div> },
-    { key: 'organisation',    label: 'Organisation',  muted: true, maxW: 180 },
-    { key: 'pays',            label: 'Pays',          render: v => <span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 6, padding: '3px 8px', fontSize: 11 }}>{v || '—'}</span> },
+    { key: 'nom',             label: 'Nom & Prenom',  render: (v, r) => <div><div style={{ fontWeight: 700, color: '#0f172a' }}>{r.contacts?.prenom} {r.contacts?.nom}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{r.contacts?.poste || '—'}</div></div> },
+    { key: 'organisation',    label: 'Organisation',  muted: true, maxW: 180, render: (v, r) => r.contacts?.organisation || '—' },
+    { key: 'pays',            label: 'Pays',          render: (v, r) => <span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 6, padding: '3px 8px', fontSize: 11 }}>{r.contacts?.pays || '—'}</span> },
     { key: 'participants',    label: 'Pers.',         render: v => <span style={{ fontWeight: 700 }}>{v}</span> },
     { key: 'montant',         label: 'Montant',       render: v => <span style={{ fontWeight: 800, color: '#d97706' }}>{fmtEur(v)}</span> },
     { key: 'paiement_status', label: 'Statut',        render: v => <StatusBadge status={v} /> },
@@ -609,7 +611,15 @@ function SectionParticipants({ data, setData }) {
       <Toolbar
         search={search} setSearch={setSearch}
         filterStatus={filterStatus} setFilterStatus={setFilterStatus}
-        onExport={() => exportCSV(filtered, CSV_COLS, `COPAF_participants_${new Date().toISOString().slice(0,10)}.csv`)}
+        onExport={() => {
+          const flat = filtered.map(r => ({
+            ...r,
+            nom: r.contacts?.nom, prenom: r.contacts?.prenom, email: r.contacts?.email,
+            telephone: r.contacts?.telephone, organisation: r.contacts?.organisation,
+            poste: r.contacts?.poste, pays: r.contacts?.pays,
+          }))
+          exportCSV(flat, CSV_COLS, `COPAF_participants_${new Date().toISOString().slice(0,10)}.csv`)
+        }}
         onSync={doSync} syncing={syncing} syncOk={syncOk}
         placeholder="Rechercher par nom, email, dossier, pays..."
       />
@@ -1138,9 +1148,11 @@ export default function AdminPage() {
     try {
       const rows = {
         inscriptions: allData.inscriptions.map(r => [
-          r.dossier, r.prenom, r.nom, r.email, r.telephone,
-          r.organisation, r.poste, r.pays, r.participants,
-          r.montant, r.paiement_status, r.paiement_mode, r.message, fmtDate(r.created_at),
+          r.dossier,
+          r.contacts?.prenom || '', r.contacts?.nom || '',
+          r.contacts?.email || '', r.contacts?.telephone || '',
+          r.contacts?.organisation || '', r.contacts?.poste || '', r.contacts?.pays || '',
+          r.participants, r.montant, r.paiement_status, r.paiement_mode, r.message, fmtDate(r.created_at),
         ]),
         sponsors: allData.sponsors.map(r => [
           r.id, r['contacts']?.organisation, r['contacts']?.nom, r['contacts']?.email,

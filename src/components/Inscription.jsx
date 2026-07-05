@@ -4,7 +4,7 @@ import { supabase } from '../supabase'
 import emailjs from '@emailjs/browser'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
 
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwbcaBVsg3ua3ZOoDJbzlHj75ozIDDLPeZ1youQnl8hKyu-CXIN-DJ2efwhira39bPY/exec'
 const PRIX_UNITAIRE = 3500
 const EMAILJS_SVC   = 'service_x07g4et'
 const EMAILJS_TPL   = 'template_7wrkmm1'
@@ -220,7 +220,8 @@ export default function Inscription() {
       const photoUrl = await uploadPhoto(photoFile, dossier)
       const contactId = await upsertContact(form)
       await createInscription(contactId, form, nb, total, paiementMode, dossier, photoUrl)
-      fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:total,dossier,paiement:paiementMode}) }).catch(()=>{})
+      const sheetPayload = JSON.stringify({ action: 'new_inscription', ...form, montant: total, dossier, paiement: paiementMode })
+      fetch(`${SHEET_URL}?data=${encodeURIComponent(sheetPayload)}`, { method: 'GET', mode: 'no-cors' }).catch(() => {})
       await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, { prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation, poste:form.poste, pays:form.pays, participants:form.participants, montant:`${total.toLocaleString('fr-FR')} EUR`, tarif:`${PRIX_UNITAIRE.toLocaleString('fr-FR')} EUR/pers.`, dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee', paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'' }, EMAILJS_KEY)
       setDossierNum(dossier); setSubmitted(true)
       const donneesDossier = { form, dossier, nb, total, paiementMode }
