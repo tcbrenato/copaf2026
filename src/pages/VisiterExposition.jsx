@@ -13,9 +13,9 @@ const STANDS = [
     country: 'Maroc',
     flag: 'MA',
     sector: 'Autorité Portuaire',
-    tagline: 'Le port le plus connecté d\'Afrique',
-    description: 'Tanger Med Port Authority présente sa plateforme IA de gestion prédictive des flux de conteneurs, réduisant les temps d\'attente de 38 % grâce au machine learning appliqué aux données AIS en temps réel.',
-    products: ['Plateforme Smart Gate AI', 'Monitoring IoT des quais', 'Dashboard de prédiction d\'escale'],
+    tagline: "Le port le plus connecté d'Afrique",
+    description: "Tanger Med Port Authority présente sa plateforme IA de gestion prédictive des flux de conteneurs, réduisant les temps d'attente de 38 % grâce au machine learning appliqué aux données AIS en temps réel.",
+    products: ['Plateforme Smart Gate AI', 'Monitoring IoT des quais', "Dashboard de prédiction d'escale"],
     contact: { email: 'digital@tangermed.ma', phone: '+212 539 39 39 39', web: 'tangermed.ma' },
     slots: ['10h00', '14h00', '16h30'],
     category: 'Port',
@@ -43,9 +43,9 @@ const STANDS = [
     country: 'Sénégal',
     flag: 'SN',
     sector: 'Terminal à Conteneurs',
-    tagline: 'Smart Port Gateway — Afrique de l\'Ouest',
-    description: 'Dakar Terminal expose sa solution de jumeau numérique (digital twin) du terminal, permettant une simulation en temps réel des opérations et une planification optimisée des ressources humaines et matérielles.',
-    products: ['Digital Twin Terminal', 'Optimiseur d\'allocation grues & RTG', 'Portail shipper 360°'],
+    tagline: "Smart Port Gateway — Afrique de l'Ouest",
+    description: "Dakar Terminal expose sa solution de jumeau numérique (digital twin) du terminal, permettant une simulation en temps réel des opérations et une planification optimisée des ressources humaines et matérielles.",
+    products: ['Digital Twin Terminal', "Optimiseur d'allocation grues & RTG", 'Portail shipper 360°'],
     contact: { email: 'digital@dakarterminal.sn', phone: '+221 33 849 45 00', web: 'dakarterminal.sn' },
     slots: ['11h00', '15h00'],
     category: 'Terminal',
@@ -59,7 +59,7 @@ const STANDS = [
     flag: 'FR',
     sector: 'Grand Port Maritime',
     tagline: 'Le corridor méditerranéen digitalisé',
-    description: 'Le Grand Port Maritime de Marseille présente son programme Smart Port 2030 : infrastructure IoT unifiée, plateforme de données partagées inter-acteurs et solutions de décarbonation instrumentées par l\'intelligence artificielle.',
+    description: "Le Grand Port Maritime de Marseille présente son programme Smart Port 2030 : infrastructure IoT unifiée, plateforme de données partagées inter-acteurs et solutions de décarbonation instrumentées par l'intelligence artificielle.",
     products: ['Programme Smart Port 2030', 'Hub de données portuaires mutualisées', 'Suivi CO₂ en temps réel'],
     contact: { email: 'innovation@marseille-port.fr', phone: '+33 4 91 39 40 00', web: 'marseille-port.fr' },
     slots: ['10h30', '14h30', '17h00'],
@@ -74,7 +74,7 @@ const STANDS = [
     flag: 'AE',
     sector: 'Opérateur de Terminal',
     tagline: 'Automation & IA au service des terminaux du Golfe',
-    description: 'Gulftainer Technologies expose ses solutions d\'automatisation de terminaux : grues automatisées pilotées par IA, véhicules autonomes guidés (AGV) et systèmes de gestion de yard nouvelle génération.',
+    description: "Gulftainer Technologies expose ses solutions d'automatisation de terminaux : grues automatisées pilotées par IA, véhicules autonomes guidés (AGV) et systèmes de gestion de yard nouvelle génération.",
     products: ['Grue RTG automatisée IA', 'Système AGV intelligent', 'TOS NextGen avec ML embarqué'],
     contact: { email: 'tech@gulftainer.com', phone: '+971 6 526 2626', web: 'gulftainer.com' },
     slots: ['09h00', '12h00', '16h00'],
@@ -85,10 +85,10 @@ const STANDS = [
     id: 6,
     company: 'Abidjan Terminal',
     acronym: 'AT',
-    country: 'Côte d\'Ivoire',
+    country: "Côte d'Ivoire",
     flag: 'CI',
     sector: 'Terminal à Conteneurs',
-    tagline: 'Le hub numérique de l\'Afrique de l\'Ouest',
+    tagline: "Le hub numérique de l'Afrique de l'Ouest",
     description: 'Abidjan Terminal présente sa transformation digitale : déploiement d\'un TOS intégré, connectivité API avec les lignes maritimes et son programme de formation aux outils numériques pour les dockers et officiers de port.',
     products: ['TOS Integra Cloud', 'Portail shipper & transitaire', 'Programme Digital Talent Port'],
     contact: { email: 'innovation@abidjan-terminal.ci', phone: '+225 27 23 23 00 00', web: 'abidjan-terminal.ci' },
@@ -100,10 +100,12 @@ const STANDS = [
 
 const CATEGORIES = ['Tous', 'Port', 'Terminal', 'Technologie']
 const FLAGS = { MA: '🇲🇦', SN: '🇸🇳', FR: '🇫🇷', AE: '🇦🇪', CI: '🇨🇮' }
+
+// Palette inspirée des couleurs de coques de conteneurs maritimes
 const CAT = {
-  Port:        { accent: '#000E91', bg: '#EEF0FF' },
-  Terminal:    { accent: '#0D7A5F', bg: '#EDFAF5' },
-  Technologie: { accent: '#92400E', bg: '#FEF6E4' },
+  Port:        { accent: '#0E7490', bg: '#E7F3F5' }, // teal conteneur
+  Terminal:    { accent: '#C2410C', bg: '#FCECE3' }, // rouille conteneur
+  Technologie: { accent: '#312E81', bg: '#EAE9FA' }, // indigo digital
 }
 
 // ─── ICONS ────────────────────────────────────────────────────────────────────
@@ -127,6 +129,69 @@ const IcoShield = () => <Svg fill><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10
 const IcoClose  = () => <Svg size={16}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></Svg>
 const IcoArrow  = () => <Svg size={13}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></Svg>
 
+// ─── TABLEAU D'AFFICHAGE ANIMÉ (signature du hero) ────────────────────────────
+
+function DepartureBoard({ items }) {
+  const [i, setI] = useState(0)
+
+  useEffect(() => {
+    const t = setInterval(() => setI(v => (v + 1) % items.length), 2900)
+    return () => clearInterval(t)
+  }, [items.length])
+
+  const s = items[i]
+  const code = `${s.flag}${String(s.id).padStart(2, '0')}`
+
+  return (
+    <div style={{
+      background: '#050A1C',
+      border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 14,
+      overflow: 'hidden',
+      fontFamily: "'IBM Plex Mono', monospace",
+      boxShadow: '0 30px 60px -20px rgba(0,0,0,0.6)',
+    }}>
+      {/* En-tête du tableau */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '10px 18px', borderBottom: '1px solid rgba(255,255,255,0.08)',
+        background: 'rgba(255,255,255,0.02)',
+      }}>
+        <span style={{ fontSize: 10, letterSpacing: 2, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase' }}>
+          Tableau des exposants
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 10, color: '#FF6A3D', fontWeight: 600 }}>
+          <span className="board-dot" style={{ width: 5, height: 5, borderRadius: '50%', background: '#FF6A3D', display: 'inline-block' }} />
+          LIVE
+        </span>
+      </div>
+
+      {/* Colonnes */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: '64px 1fr 96px', gap: 10,
+        padding: '8px 18px 0', fontSize: 9, letterSpacing: 1.5,
+        color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase',
+      }}>
+        <span>Code</span><span>Exposant</span><span>Statut</span>
+      </div>
+
+      {/* Ligne animée */}
+      <div key={i} className="board-flip" style={{
+        display: 'grid', gridTemplateColumns: '64px 1fr 96px', gap: 10,
+        alignItems: 'center', padding: '14px 18px 18px',
+      }}>
+        <span style={{ color: '#FF6A3D', fontWeight: 600, fontSize: 15 }}>{code}</span>
+        <span style={{ color: '#fff', fontSize: 13.5, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {s.company}
+        </span>
+        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11 }}>
+          {FLAGS[s.flag]} EN DIRECT
+        </span>
+      </div>
+    </div>
+  )
+}
+
 // ─── MODAL ────────────────────────────────────────────────────────────────────
 
 const Modal = ({ stand, onClose }) => {
@@ -142,7 +207,7 @@ const Modal = ({ stand, onClose }) => {
   return (
     <div onClick={onClose} style={{
       position: 'fixed', inset: 0, zIndex: 3000,
-      background: 'rgba(5,10,50,0.65)',
+      background: 'rgba(5,10,28,0.7)',
       backdropFilter: 'blur(14px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: '20px 16px',
@@ -151,10 +216,9 @@ const Modal = ({ stand, onClose }) => {
         background: '#fff', borderRadius: 20,
         width: '100%', maxWidth: 600,
         maxHeight: '90vh', overflowY: 'auto',
-        boxShadow: '0 40px 80px rgba(0,14,145,0.2)',
+        boxShadow: '0 40px 80px rgba(10,17,40,0.25)',
         animation: 'modalIn 0.28s cubic-bezier(0.16,1,0.3,1)',
       }}>
-        {/* ── Modal header ── */}
         <div style={{ padding: '32px 36px 28px', position: 'relative' }}>
           <button onClick={onClose} style={{
             position: 'absolute', top: 20, right: 20,
@@ -171,8 +235,8 @@ const Modal = ({ stand, onClose }) => {
               width: 56, height: 56, borderRadius: 14, flexShrink: 0,
               background: c.accent,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 14, fontWeight: 800, color: '#fff',
-              fontFamily: "'Syne', sans-serif",
+              fontSize: 13, fontWeight: 700, color: '#fff',
+              fontFamily: "'IBM Plex Mono', monospace",
             }}>
               {stand.acronym}
             </div>
@@ -180,7 +244,7 @@ const Modal = ({ stand, onClose }) => {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 3 }}>
                 <h2 style={{
                   margin: 0, fontSize: 20, fontWeight: 700, color: '#0A0A0A',
-                  fontFamily: "'Syne', sans-serif", lineHeight: 1.2,
+                  fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1.2,
                 }}>
                   {stand.company}
                 </h2>
@@ -203,14 +267,13 @@ const Modal = ({ stand, onClose }) => {
 
           <p style={{
             margin: 0, fontSize: 14, color: '#555', lineHeight: 1.75,
-            fontFamily: "'Lora', Georgia, serif",
+            fontFamily: "'Inter', sans-serif",
             paddingTop: 18, borderTop: '1px solid #F0F0F0',
           }}>
             {stand.description}
           </p>
         </div>
 
-        {/* ── Modal body ── */}
         <div style={{ padding: '0 36px 32px' }}>
 
           <Label>Solutions présentées</Label>
@@ -235,7 +298,8 @@ const Modal = ({ stand, onClose }) => {
                 padding: '7px 13px', borderRadius: 7,
                 border: `1.5px solid ${c.accent}`,
                 color: c.accent, fontSize: 12, fontWeight: 700,
-                cursor: 'default', transition: 'all 0.15s',
+                fontFamily: "'IBM Plex Mono', monospace",
+                cursor: 'default',
               }}>
                 <IcoClock /> {s}
               </span>
@@ -270,7 +334,7 @@ const Modal = ({ stand, onClose }) => {
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
             fontWeight: 700, fontSize: 12, letterSpacing: 1.2,
             textTransform: 'uppercase', cursor: 'pointer',
-            fontFamily: "'Syne', sans-serif", transition: 'opacity 0.2s',
+            fontFamily: "'Space Grotesk', sans-serif", transition: 'opacity 0.2s',
           }}
             onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
             onMouseLeave={e => e.currentTarget.style.opacity = '1'}
@@ -287,6 +351,7 @@ const Label = ({ children }) => (
   <p style={{
     margin: '0 0 10px', fontSize: 10, fontWeight: 700,
     letterSpacing: 1.8, textTransform: 'uppercase', color: '#C0C0C0',
+    fontFamily: "'IBM Plex Mono', monospace",
   }}>
     {children}
   </p>
@@ -297,6 +362,7 @@ const Label = ({ children }) => (
 const Card = ({ stand, onOpen, idx }) => {
   const [hov, setHov] = useState(false)
   const c = CAT[stand.category] || CAT.Port
+  const code = `${stand.flag}-${String(stand.id).padStart(2, '0')}`
 
   return (
     <article
@@ -307,7 +373,7 @@ const Card = ({ stand, onOpen, idx }) => {
         background: '#fff', borderRadius: 14, cursor: 'pointer',
         border: `1.5px solid ${hov ? c.accent : '#EBEBEB'}`,
         padding: '26px 28px',
-        boxShadow: hov ? `0 12px 36px -6px ${c.accent}20` : '0 1px 3px rgba(0,0,0,0.04)',
+        boxShadow: hov ? `0 12px 36px -6px ${c.accent}25` : '0 1px 3px rgba(0,0,0,0.04)',
         transform: hov ? 'translateY(-2px)' : 'none',
         transition: 'all 0.22s cubic-bezier(0.4,0,0.2,1)',
         display: 'flex', flexDirection: 'column',
@@ -315,14 +381,14 @@ const Card = ({ stand, onOpen, idx }) => {
       }}
     >
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
         <div style={{
           width: 46, height: 46, borderRadius: 11, flexShrink: 0,
           background: hov ? c.accent : c.bg,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 12, fontWeight: 800,
+          fontSize: 12, fontWeight: 700,
           color: hov ? '#fff' : c.accent,
-          fontFamily: "'Syne', sans-serif",
+          fontFamily: "'IBM Plex Mono', monospace",
           transition: 'all 0.22s',
         }}>
           {stand.acronym}
@@ -336,11 +402,20 @@ const Card = ({ stand, onOpen, idx }) => {
         </span>
       </div>
 
+      {/* Code manifeste */}
+      <p style={{
+        margin: '0 0 8px', fontSize: 10, letterSpacing: 1.5,
+        color: '#C4C4C4', fontFamily: "'IBM Plex Mono', monospace",
+        textTransform: 'uppercase',
+      }}>
+        Réf. {code}
+      </p>
+
       {/* Company */}
       <h3 style={{
         margin: '0 0 3px', fontSize: 15, fontWeight: 700,
         color: '#0A0A0A', lineHeight: 1.3,
-        fontFamily: "'Syne', sans-serif",
+        fontFamily: "'Space Grotesk', sans-serif",
       }}>
         {stand.company}
       </h3>
@@ -348,31 +423,28 @@ const Card = ({ stand, onOpen, idx }) => {
         {FLAGS[stand.flag]} {stand.country} &nbsp;·&nbsp; {stand.sector}
       </p>
 
-      {/* Divider */}
       <div style={{ height: 1, background: '#F3F3F3', marginBottom: 16 }} />
 
-      {/* Tagline */}
       <p style={{
         margin: '0 0 18px', fontSize: 13, color: '#666', lineHeight: 1.65,
-        fontFamily: "'Lora', Georgia, serif", flexGrow: 1,
+        fontFamily: "'Inter', sans-serif", flexGrow: 1,
       }}>
         {stand.tagline}
       </p>
 
-      {/* Slots */}
       <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginBottom: 18 }}>
         {stand.slots.map((s, i) => (
           <span key={i} style={{
             display: 'inline-flex', alignItems: 'center', gap: 4,
             fontSize: 10, fontWeight: 600, color: '#999',
             background: '#F7F7F7', padding: '4px 8px', borderRadius: 5,
+            fontFamily: "'IBM Plex Mono', monospace",
           }}>
             <IcoClock /> {s}
           </span>
         ))}
       </div>
 
-      {/* Footer */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         paddingTop: 14, borderTop: '1px solid #F3F3F3',
@@ -414,12 +486,14 @@ export default function VisiterExposition() {
     [s.company, s.country, s.sector, s.tagline].join(' ').toLowerCase().includes(search.toLowerCase())
   )
 
+  const countriesCount = new Set(STANDS.map(s => s.country)).size
+
   return (
     <>
       <Navbar />
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Lora:ital,wght@0,400;1,400&family=DM+Sans:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
         *, *::before, *::after { box-sizing: border-box; }
 
         @keyframes cardIn {
@@ -434,15 +508,34 @@ export default function VisiterExposition() {
           from { opacity: 0; transform: translateY(20px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
-          50%       { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+        @keyframes boardPulse {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.25; }
+        }
+        @keyframes flipDown {
+          from { opacity: 0; transform: rotateX(-90deg); }
+          to   { opacity: 1; transform: rotateX(0deg); }
         }
 
-        .vi-input::placeholder { color: #C8C8C8; }
-        .vi-input:focus { outline: none; border-color: #000E91 !important; }
-        .vi-cat:hover   { border-color: #000E91 !important; color: #000E91 !important; }
+        .board-flip { animation: flipDown 0.5s cubic-bezier(0.2,0.8,0.3,1) both; transform-origin: top; }
+        .board-dot  { animation: boardPulse 1.4s ease infinite; }
 
+        .vi-input::placeholder { color: #C8C8C8; }
+        .vi-input:focus { outline: none; border-color: #0A1128 !important; }
+        .vi-cat:hover   { border-color: #0A1128 !important; color: #0A1128 !important; }
+
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+
+        @media (max-width: 900px) {
+          .vi-hero-layout { grid-template-columns: 1fr !important; }
+          .vi-board { margin-top: 40px !important; max-width: 420px !important; }
+        }
         @media (max-width: 680px) {
           .vi-grid  { grid-template-columns: 1fr !important; }
           .vi-h1    { font-size: 38px !important; }
@@ -454,26 +547,23 @@ export default function VisiterExposition() {
 
       {/* ─── HERO ─── */}
       <section style={{
-        background: '#000E91',
-        paddingTop: 130, paddingBottom: 96,
+        background: '#0A1128',
+        paddingTop: 130, paddingBottom: 80,
         position: 'relative', overflow: 'hidden',
       }}>
-        {/* dot texture */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          backgroundImage: 'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)',
-          backgroundSize: '30px 30px',
+          backgroundImage: 'radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
         }} />
-        {/* glow */}
         <div style={{
-          position: 'absolute', right: -100, top: '40%', transform: 'translateY(-50%)',
+          position: 'absolute', right: -120, top: '30%',
           width: 520, height: 520, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(0,115,244,0.25) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(255,106,61,0.14) 0%, transparent 70%)',
           pointerEvents: 'none',
         }} />
 
         <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 32px', position: 'relative' }}>
-          {/* breadcrumb */}
           <div style={{
             marginBottom: 40,
             display: 'flex', gap: 8, alignItems: 'center',
@@ -491,66 +581,69 @@ export default function VisiterExposition() {
             <span style={{ color: 'rgba(255,255,255,0.6)' }}>Exposition Digitale</span>
           </div>
 
-          {/* live badge */}
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 28,
-            border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: 100, padding: '6px 14px 6px 10px',
-            animation: 'heroFade 0.45s 0.04s ease both',
-          }}>
-            <span style={{
-              width: 7, height: 7, borderRadius: '50%', background: '#22C55E',
-              animation: 'pulse 2.2s ease infinite',
-            }} />
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.4, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase' }}>
-              En direct — COPAF 2026
-            </span>
-          </div>
-
-          <h1 className="vi-h1" style={{
-            margin: '0 0 16px', fontSize: 58, fontWeight: 800,
-            color: '#fff', lineHeight: 1.05,
-            fontFamily: "'Syne', sans-serif", letterSpacing: -1.5,
-            animation: 'heroFade 0.45s 0.08s ease both',
-          }}>
-            Stands<br />
-            <span style={{ color: '#0073F4' }}>Digitaux</span>
-          </h1>
-
-          <p style={{
-            margin: '0 0 52px', fontSize: 16, color: 'rgba(255,255,255,0.55)',
-            lineHeight: 1.8, maxWidth: 460,
-            fontFamily: "'DM Sans', sans-serif",
-            animation: 'heroFade 0.45s 0.12s ease both',
-          }}>
-            Découvrez les solutions présentées par les acteurs du smart port, de la digitalisation portuaire et de l'IA maritime.
-          </p>
-
-          {/* stats */}
-          <div className="vi-stats" style={{
-            display: 'flex', gap: 52,
-            animation: 'heroFade 0.45s 0.16s ease both',
-          }}>
-            {[
-              [STANDS.length, 'Exposants'],
-              [STANDS.filter(s => s.verified).length, 'Vérifiés'],
-              [STANDS.reduce((a, s) => a + s.slots.length, 0), 'Sessions live'],
-            ].map(([n, l], i) => (
-              <div key={i}>
-                <div style={{
-                  fontSize: 44, fontWeight: 800, color: '#fff', lineHeight: 1,
-                  fontFamily: "'Syne', sans-serif",
-                }}>
-                  {n}
-                </div>
-                <div style={{
-                  fontSize: 10, fontWeight: 600, letterSpacing: 1.5,
-                  color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', marginTop: 5,
-                }}>
-                  {l}
-                </div>
+          <div className="vi-hero-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 48, alignItems: 'center' }}>
+            <div>
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 24,
+                border: '1px solid rgba(255,106,61,0.35)', background: 'rgba(255,106,61,0.08)',
+                borderRadius: 100, padding: '6px 14px',
+                animation: 'heroFade 0.45s 0.04s ease both',
+              }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.4, color: '#FF8F6B', textTransform: 'uppercase' }}>
+                  Exposition 100% digitale
+                </span>
               </div>
-            ))}
+
+              <h1 className="vi-h1" style={{
+                margin: '0 0 18px', fontSize: 56, fontWeight: 700,
+                color: '#fff', lineHeight: 1.05,
+                fontFamily: "'Space Grotesk', sans-serif", letterSpacing: -1.2,
+                animation: 'heroFade 0.45s 0.08s ease both',
+              }}>
+                L'exposition qui<br />
+                <span style={{ color: '#FF6A3D' }}>vient à vous.</span>
+              </h1>
+
+              <p style={{
+                margin: '0 0 48px', fontSize: 16, color: 'rgba(255,255,255,0.55)',
+                lineHeight: 1.8, maxWidth: 440,
+                fontFamily: "'Inter', sans-serif",
+                animation: 'heroFade 0.45s 0.12s ease both',
+              }}>
+                Aucun stand à monter, aucun vol à réserver. Les innovations du smart port s'affichent en direct, où que vous soyez dans le monde.
+              </p>
+
+              <div className="vi-stats" style={{
+                display: 'flex', gap: 48,
+                animation: 'heroFade 0.45s 0.16s ease both',
+              }}>
+                {[
+                  [STANDS.length, 'Exposants'],
+                  [countriesCount, 'Pays représentés'],
+                  ['0', 'Km à parcourir'],
+                ].map(([n, l], i) => (
+                  <div key={i}>
+                    <div style={{
+                      fontSize: 38, fontWeight: 700, color: '#fff', lineHeight: 1,
+                      fontFamily: "'Space Grotesk', sans-serif",
+                    }}>
+                      {n}
+                    </div>
+                    <div style={{
+                      fontSize: 10, fontWeight: 600, letterSpacing: 1.3,
+                      color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', marginTop: 5,
+                    }}>
+                      {l}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Tableau d'affichage — signature visuelle */}
+            <div className="vi-board" style={{ animation: 'heroFade 0.5s 0.2s ease both' }}>
+              <DepartureBoard items={STANDS} />
+            </div>
           </div>
         </div>
       </section>
@@ -578,7 +671,7 @@ export default function VisiterExposition() {
                 width: '100%', padding: '9px 12px 9px 34px',
                 border: '1.5px solid #EBEBEB', borderRadius: 8,
                 fontSize: 13, color: '#222',
-                fontFamily: "'DM Sans', sans-serif",
+                fontFamily: "'Inter', sans-serif",
                 background: '#FAFAFA', transition: 'border-color 0.18s',
               }}
             />
@@ -589,12 +682,12 @@ export default function VisiterExposition() {
               <button key={c} className="vi-cat" onClick={() => setCat(c)} style={{
                 padding: '7px 15px', borderRadius: 7,
                 border: '1.5px solid',
-                borderColor: cat === c ? '#000E91' : '#EBEBEB',
-                background: cat === c ? '#000E91' : '#fff',
+                borderColor: cat === c ? '#0A1128' : '#EBEBEB',
+                background: cat === c ? '#0A1128' : '#fff',
                 color: cat === c ? '#fff' : '#999',
                 fontSize: 11, fontWeight: 700, letterSpacing: 0.8,
                 textTransform: 'uppercase', cursor: 'pointer',
-                fontFamily: "'Syne', sans-serif",
+                fontFamily: "'Space Grotesk', sans-serif",
                 transition: 'all 0.16s',
               }}>
                 {c}
@@ -605,11 +698,12 @@ export default function VisiterExposition() {
       </div>
 
       {/* ─── GRID ─── */}
-      <main style={{ background: '#F7F7F7', padding: '52px 32px 96px', minHeight: '50vh' }}>
+      <main style={{ background: '#F7F7F5', padding: '52px 32px 96px', minHeight: '50vh' }}>
         <div style={{ maxWidth: 1080, margin: '0 auto' }}>
           <p style={{
             fontSize: 11, fontWeight: 600, color: '#C0C0C0',
             letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 28,
+            fontFamily: "'IBM Plex Mono', monospace",
           }}>
             {filtered.length} exposant{filtered.length !== 1 ? 's' : ''}
           </p>
@@ -631,46 +725,53 @@ export default function VisiterExposition() {
 
       {/* ─── CTA ─── */}
       <section style={{
-        background: '#fff', borderTop: '1px solid #EBEBEB',
-        padding: '72px 32px',
+        background: '#0A1128',
+        padding: '80px 32px',
+        position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{ maxWidth: 520, margin: '0 auto', textAlign: 'center' }}>
+        <div style={{
+          position: 'absolute', left: -100, bottom: -100,
+          width: 400, height: 400, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(14,116,144,0.18) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{ maxWidth: 520, margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <h2 style={{
-            margin: '0 0 12px', fontSize: 30, fontWeight: 800,
-            color: '#0A0A0A', fontFamily: "'Syne', sans-serif",
+            margin: '0 0 12px', fontSize: 30, fontWeight: 700,
+            color: '#fff', fontFamily: "'Space Grotesk', sans-serif",
             letterSpacing: -0.5, lineHeight: 1.2,
           }}>
             Exposer votre organisation ?
           </h2>
           <p style={{
-            margin: '0 0 32px', fontSize: 14, color: '#999', lineHeight: 1.75,
-            fontFamily: "'DM Sans', sans-serif",
+            margin: '0 0 32px', fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.75,
+            fontFamily: "'Inter', sans-serif",
           }}>
             Rejoignez les exposants de COPAF 2026 et présentez vos solutions sans contrainte géographique.
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => navigate('/exposition-digitale')} style={{
               padding: '12px 26px', borderRadius: 9,
-              background: '#000E91', color: '#fff', border: 'none',
+              background: '#FF6A3D', color: '#fff', border: 'none',
               fontWeight: 700, fontSize: 11, letterSpacing: 1.2,
               textTransform: 'uppercase', cursor: 'pointer',
-              fontFamily: "'Syne', sans-serif", transition: 'opacity 0.18s',
+              fontFamily: "'Space Grotesk', sans-serif", transition: 'opacity 0.18s',
             }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.82'}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}
             >
               Réserver mon stand
             </button>
             <button onClick={() => navigate('/')} style={{
               padding: '12px 26px', borderRadius: 9,
-              background: 'transparent', color: '#000E91',
-              border: '1.5px solid #000E91',
+              background: 'transparent', color: '#fff',
+              border: '1.5px solid rgba(255,255,255,0.25)',
               fontWeight: 700, fontSize: 11, letterSpacing: 1.2,
               textTransform: 'uppercase', cursor: 'pointer',
-              fontFamily: "'Syne', sans-serif", transition: 'all 0.18s',
+              fontFamily: "'Space Grotesk', sans-serif", transition: 'all 0.18s',
             }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#000E91'; e.currentTarget.style.color = '#fff' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#000E91' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
             >
               En savoir plus
             </button>
