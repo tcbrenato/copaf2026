@@ -292,8 +292,8 @@ function ModalParticipant({ row, onClose, onUpdate }) {
         setGenBadge(true)
         try {
           await generateBadge({
-            nomPrenom: `${updated.prenom || ''} ${updated.nom || ''}`.trim(),
-            fonction: updated.pays || '',
+            nomPrenom: `${updated.contacts?.prenom || ''} ${updated.contacts?.nom || ''}`.trim(),
+            fonction: updated.contacts?.pays || '',
             dossier: updated.dossier || updated.id,
             photoSrc: updated.photo_url || undefined,
           })
@@ -319,8 +319,8 @@ function ModalParticipant({ row, onClose, onUpdate }) {
     setGenBadge(true)
     try {
       await generateBadge({
-        nomPrenom: `${row.prenom || ''} ${row.nom || ''}`.trim(),
-        fonction: row.pays || '',
+        nomPrenom: `${row.contacts?.prenom || ''} ${row.contacts?.nom || ''}`.trim(),
+        fonction: row.contacts?.pays || '',
         dossier: row.dossier || row.id,
         photoSrc: row.photo_url || undefined,
       })
