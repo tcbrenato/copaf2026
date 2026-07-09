@@ -30,24 +30,40 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
           local-dir: ./dist/
           server-dir: ./
           timeout: 60000
           log-level: verbose
+          # IMPORTANT : on ne met PAS dangerous-clean-slate ici,
+          # pour ne jamais supprimer les images (hero*.png, intervenant*.png, copaf.png, etc.)
+          # que tu uploades manuellement et qui ne sont pas versionnées dans Git.
         continue-on-error: true
         id: ftp-attempt-1
 
-      - name: 🔁 Nouvelle tentative si echec reseau
+      - name: 🔁 Nouvelle tentative si echec reseau (FTP simple, sans TLS)
         if: steps.ftp-attempt-1.outcome == 'failure'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          port: 21
           local-dir: ./dist/
           server-dir: ./
-          timeout: 60000
-          log-level: verbose          # adapte si ton compte FTP ne pointe pas déjà sur le bon dossier
+          timeout: 90000
+          log-level: verbose
           # IMPORTANT : on ne met PAS dangerous-clean-slate ici,
           # pour ne jamais supprimer les images (hero*.png, intervenant*.png, copaf.png, etc.)
           # que tu uploades manuellement et qui ne sont pas versionnées dans Git.
+        id: ftp-attempt-2
+
+      - name: ❌ Échec final si les deux tentatives ont échoué
+        if: steps.ftp-attempt-1.outcome == 'failure' && steps.ftp-attempt-2.outcome == 'failure'
+        run: |
+          echo "Les deux tentatives de déploiement FTP/FTPS ont échoué."
+          echo "Vérifie : FTP_HOST (sans ftp://), FTP_USERNAME, FTP_PASSWORD dans les secrets GitHub,"
+          echo "et la config Sécurité/liste blanche IP dans hPanel Hostinger."
+          exit 1
