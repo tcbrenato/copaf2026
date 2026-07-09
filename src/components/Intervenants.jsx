@@ -2,20 +2,6 @@ import React from 'react'
 
 const intervenants = [
   {
-    initiales: 'RT',
-    photo: '/renatoint.png',
-    nom: 'Rénato TCHOBO',
-    titre: 'Expert en Transformation Digitale & Consultant en Solutions Numériques',
-    organisation: 'CRF Perfection',
-  },
-  {
-    initiales: 'WO',
-    photo: '/intervenant2.png',
-    nom: 'Dr. William ODAH',
-    titre: 'Expert en Gouvernance Stratégique et Développement Portuaire',
-    organisation: 'CRF Perfection',
-  },
-  {
     initiales: 'PA',
     photo: '/intervenant3.png',
     nom: 'Expert Partenaire A',
@@ -42,6 +28,20 @@ const intervenants = [
     nom: 'Expert Recruté B',
     titre: 'À confirmer',
     organisation: 'À confirmer',
+  },
+  {
+    initiales: 'WO',
+    photo: '/intervenant2.png',
+    nom: 'Dr. William ODAH',
+    titre: 'Expert en Gouvernance Stratégique et Développement Portuaire',
+    organisation: 'CRF Perfection',
+  },
+  {
+    initiales: 'RT',
+    photo: '/renatoint.png',
+    nom: 'Rénato TCHOBO',
+    titre: 'Expert en Transformation Digitale & Consultant en Solutions Numériques',
+    organisation: 'CRF Perfection',
   },
 ]
 
