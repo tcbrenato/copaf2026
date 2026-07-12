@@ -3,15 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import emailjs from '@emailjs/browser'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
+import { useAnalytics } from '../useAnalytics'
 
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwbcaBVsg3ua3ZOoDJbzlHj75ozIDDLPeZ1youQnl8hKyu-CXIN-DJ2efwhira39bPY/exec'
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
 const PRIX_UNITAIRE = 3500
 const EMAILJS_SVC   = 'service_x07g4et'
 const EMAILJS_TPL   = 'template_7wrkmm1'
 const EMAILJS_KEY   = 'zBZAZxCfznICTKLJK'
-const WHATSAPP_NUM  = '22969303019'
-const CONTACT_PHONE = '+229 69 30 30 19'
-const CONTACT_EMAIL = 'contactcrfperfection@gmail.com'
+const WHATSAPP_NUM  = '22997672200'
+const CONTACT_EMAIL = 'inscriptions@copaf-ports.com'
 
 const Ico = ({ name, size = 18, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
@@ -86,7 +86,7 @@ const TYPES = [
 
 const CGV_CONTENT = [
   { title:'1. Objet', text:"Les presentes conditions generales de vente regissent les inscriptions a la Conference des Ports Africains (COPAF 2026) organisee par CRF Perfection, prevue du 15 au 17 septembre 2026 a Tanger Med, Maroc." },
-  { title:'2. Inscription et confirmation', text:`Toute inscription n'est definitivement confirmee qu'apres reception du paiement integral. Apres reception du mail de confirmation automatique, le participant doit contacter l'organisation par WhatsApp au ${CONTACT_PHONE} ou par email a ${CONTACT_EMAIL} pour valider son inscription et recevoir les instructions de paiement.` },
+  { title:'2. Inscription et confirmation', text:"Toute inscription n'est definitivement confirmee qu'apres reception du paiement integral. Apres reception du mail de confirmation automatique, le participant doit contacter l'organisation par WhatsApp au +229 01 97 67 22 00 ou par email a inscriptions@copaf-ports.com pour valider son inscription et recevoir les instructions de paiement." },
   { title:'3. Tarifs et paiement', text:"Le tarif est fixe a 3 500 EUR par personne. Le paiement s'effectue exclusivement par virement bancaire. Le paiement doit etre effectue dans les 7 jours ouvrables suivant la confirmation d'inscription. En cas de reservation (paiement differe), le reglement doit intervenir avant le 1er aout 2026." },
   { title:'4. Politique de non-remboursement', text:"Les inscriptions sont fermes et definitives. Aucun remboursement ne sera effectue, quelle que soit la raison de l'annulation (raison personnelle, professionnelle, medicale, force majeure, refus de visa, etc.). En cas d'empechement, le participant peut se faire remplacer par une autre personne de son organisation sous reserve de notification ecrite au moins 72h avant l'evenement." },
   { title:'5. Annulation par l\'organisateur', text:"En cas d'annulation de l'evenement par l'organisateur pour des raisons de force majeure, un avoir sera propose pour l'edition suivante. Aucun remboursement en numeraire ne sera effectue." },
@@ -96,13 +96,13 @@ const CGV_CONTENT = [
 ]
 
 const RGPD_CONTENT = [
-  { title:'1. Responsable du traitement', text:`CRF Perfection, organisant la COPAF 2026, est responsable du traitement. Contact : ${CONTACT_EMAIL}` },
+  { title:'1. Responsable du traitement', text:"CRF Perfection, organisant la COPAF 2026, est responsable du traitement. Contact : inscriptions@copaf-ports.com" },
   { title:'2. Donnees collectees', text:"Nous collectons : nom, prenom, email, telephone, organisation, poste, pays, et le cas echeant une photo pour le badge participant. Ces donnees sont collectees lors de votre inscription." },
   { title:'3. Finalites', text:"Vos donnees servent a : la gestion de votre inscription, l'envoi des confirmations, la creation de votre badge, la communication sur les editions futures." },
   { title:'4. Base legale', text:"Le traitement est fonde sur l'execution du contrat d'inscription (article 6.1.b du RGPD) et votre consentement explicite." },
   { title:'5. Conservation', text:"Vos donnees sont conservees pendant 3 ans a compter de la date de l'evenement, sauf obligation legale contraire." },
   { title:'6. Destinataires', text:"Vos donnees peuvent etre transmises aux partenaires organisant l'evenement dans la stricte limite necessaire. Elles ne sont jamais vendues." },
-  { title:'7. Vos droits', text:`Vous disposez des droits d'acces, de rectification, d'effacement, de limitation, d'opposition et de portabilite. Contactez-nous a ${CONTACT_EMAIL}.` },
+  { title:'7. Vos droits', text:"Vous disposez des droits d'acces, de rectification, d'effacement, de limitation, d'opposition et de portabilite. Contactez-nous a inscriptions@copaf-ports.com." },
   { title:'8. Securite', text:"Nous mettons en oeuvre toutes les mesures techniques et organisationnelles appropriees pour proteger vos donnees." },
 ]
 
@@ -185,6 +185,7 @@ function ModalDocument({ type, onClose }) {
 
 export default function Inscription() {
   const navigate = useNavigate()
+  const { trackFormStart, trackConversion } = useAnalytics()
   const [etape,        setEtape]        = useState(1)
   const [form,         setForm]         = useState({ nom:'', prenom:'', email:'', telephone:'', organisation:'', poste:'', pays:'', participants:'1', message:'' })
   const [paiementMode, setPaiementMode] = useState('maintenant')
@@ -196,15 +197,15 @@ export default function Inscription() {
   const [dossierNum,   setDossierNum]   = useState('')
   const [focused,      setFocused]      = useState('')
   const [modal,        setModal]        = useState(null)
+  const [showVideo,    setShowVideo]    = useState(false)
   const [photoFile,    setPhotoFile]    = useState(null)
   const [photoPreview, setPhotoPreview] = useState('')
-  const [pdfNotice,    setPdfNotice]    = useState('')
 
   const nb    = parseInt(form.participants) || 1
   const total = nb * PRIX_UNITAIRE
 
   const handleChange     = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-  const handleTypeSelect = type => { if (type.redirect) navigate(type.redirectTo); else setEtape(2) }
+  const handleTypeSelect = type => { if (type.redirect) navigate(type.redirectTo); else { trackFormStart('inscription'); setEtape(2) } }
 
   const handlePhotoChange = e => {
     const file = e.target.files?.[0]
@@ -214,51 +215,19 @@ export default function Inscription() {
   }
 
   const handleSubmit = async e => {
-    e.preventDefault(); setLoading(true); setErrorMsg(''); setPdfNotice('')
+    e.preventDefault(); setLoading(true); setErrorMsg('')
     const dossier = genDossier()
     try {
       const photoUrl = await uploadPhoto(photoFile, dossier)
       const contactId = await upsertContact(form)
       await createInscription(contactId, form, nb, total, paiementMode, dossier, photoUrl)
-      const sheetPayload = JSON.stringify({ action: 'new_inscription', ...form, montant: total, dossier, paiement: paiementMode })
-      fetch(`${SHEET_URL}?data=${encodeURIComponent(sheetPayload)}`, { method: 'GET', mode: 'no-cors' }).catch(() => {})
+      fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:total,dossier,paiement:paiementMode}) }).catch(()=>{})
       await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, { prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation, poste:form.poste, pays:form.pays, participants:form.participants, montant:`${total.toLocaleString('fr-FR')} EUR`, tarif:`${PRIX_UNITAIRE.toLocaleString('fr-FR')} EUR/pers.`, dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee', paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'' }, EMAILJS_KEY)
       setDossierNum(dossier); setSubmitted(true)
-      const donneesDossier = { form, dossier, nb, total, paiementMode }
-      try {
-        await generateRecapPDF(donneesDossier)
-        setPdfNotice('Votre PDF officiel a été préparé.')
-      } catch (pdfErr) {
-        setPdfNotice('Le téléchargement automatique a été bloqué. Utilisez le bouton ci-dessous pour le récupérer.')
-      }
+      generateRecapPDF({ form, dossier, nb, total, paiementMode })
+      trackConversion('inscription', paiementMode, total)
     } catch(err) { setErrorMsg('Une erreur est survenue : ' + err.message) }
     setLoading(false)
-  }
-
-  const handleDownloadRecap = async () => {
-    if (!dossierNum) return
-    setPdfNotice('Téléchargement du PDF officiel...')
-    try {
-      const donneesDossier = { form, dossier: dossierNum, nb, total, paiementMode }
-      const pdfDoc = await generateRecapPDF({ ...donneesDossier, download: false })
-      if (!pdfDoc) {
-        setPdfNotice('Le PDF est prêt. Si le téléchargement ne démarre pas, veuillez réessayer depuis un navigateur de bureau.')
-        return
-      }
-
-      const blob = pdfDoc.output('blob')
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `COPAF2026-Confirmation-${dossierNum}.pdf`
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
-      setPdfNotice('Le PDF officiel a été téléchargé avec succès.')
-    } catch (err) {
-      setPdfNotice('Le téléchargement manuel a échoué. Veuillez réessayer.')
-    }
   }
 
   const inp = name => ({ width:'100%', padding:'13px 16px', fontSize:15, fontFamily:'inherit', color:'#0f172a', background:focused===name?'#fff':'#f8fafc', border:`1.5px solid ${focused===name?'#0073F4':'#e2e8f0'}`, borderRadius:12, outline:'none', transition:'all .2s', boxSizing:'border-box', boxShadow:focused===name?'0 0 0 3px rgba(0,115,244,.12)':'none', WebkitAppearance:'none', appearance:'none' })
@@ -310,6 +279,17 @@ export default function Inscription() {
 
       {modal && <ModalDocument type={modal} onClose={() => setModal(null)} />}
 
+      {showVideo && (
+        <div onClick={() => setShowVideo(false)} style={{ position:'fixed', inset:0, background:'rgba(15,23,42,.7)', backdropFilter:'blur(4px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background:'#000', borderRadius:16, width:'100%', maxWidth:820, boxShadow:'0 24px 60px rgba(0,0,0,.4)', overflow:'hidden', position:'relative' }}>
+            <button onClick={() => setShowVideo(false)} style={{ position:'absolute', top:12, right:12, background:'rgba(255,255,255,.15)', border:'none', width:36, height:36, borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1 }}>
+              <Ico name="close" size={16} color="#fff" />
+            </button>
+            <video src="/inscriptioncopaf.mp4" controls autoPlay style={{ width:'100%', display:'block', maxHeight:'80vh' }} />
+          </div>
+        </div>
+      )}
+
       <section id="inscription" style={{ padding:'clamp(64px,10vw,120px) 0', background:'linear-gradient(180deg,#f0f6ff 0%,#f8faff 100%)', fontFamily:"'Plus Jakarta Sans',sans-serif", position:'relative', minHeight:'100vh', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:'radial-gradient(circle at 10% 15%,rgba(0,115,244,.08) 0%,transparent 50%),radial-gradient(circle at 90% 85%,rgba(0,14,145,.06) 0%,transparent 50%)' }} />
 
@@ -327,6 +307,19 @@ export default function Inscription() {
             <p style={{ fontSize:'clamp(14px,2vw,17px)', color:'#64748b', maxWidth:500, margin:'0 auto', lineHeight:1.8 }}>
               {etape===1 ? 'Selectionnez la categorie correspondant a votre profil.' : 'Remplissez le formulaire. Paiement securise par virement bancaire.'}
             </p>
+            {etape===1 && (
+              <button onClick={() => setShowVideo(true)} style={{
+                display:'inline-flex', alignItems:'center', gap:8, marginTop:18,
+                padding:'10px 20px', background:'#fff', border:'1.5px solid #e2e8f0',
+                borderRadius:100, cursor:'pointer', fontFamily:'inherit',
+                fontSize:13, fontWeight:700, color:'#0073F4', transition:'all .2s',
+              }}
+                onMouseEnter={e => {e.currentTarget.style.borderColor='#0073F4'; e.currentTarget.style.background='#EBF3FF'}}
+                onMouseLeave={e => {e.currentTarget.style.borderColor='#e2e8f0'; e.currentTarget.style.background='#fff'}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#0073F4"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Voir le tutoriel video : comment s'inscrire
+              </button>
+            )}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginTop:20 }}>
               {[1,2].map(s => <div key={s} className="step-dot" style={{ width:etape===s?24:8, background:etape===s?'#0073F4':'#cbd5e1', borderRadius:etape===s?4:'50%' }} />)}
             </div>
@@ -385,31 +378,15 @@ export default function Inscription() {
                       <div style={{ fontSize:'clamp(18px,4vw,26px)', fontWeight:900, color:'#fff', letterSpacing:2 }}>{dossierNum}</div>
                     </div>
 
-                    <div style={{ marginBottom:22 }}>
+                    <div style={{ marginBottom:28 }}>
                       <button
-                        onClick={handleDownloadRecap}
+                        onClick={() => generateRecapPDF({ form, dossier: dossierNum, nb, total, paiementMode })}
                         className="cta-btn"
-                        style={{
-                          background:'linear-gradient(135deg,#000E91,#0073F4)',
-                          color:'#fff',
-                          border:'1.5px solid #000E91',
-                          margin:'0 auto',
-                          padding:'14px 22px',
-                          borderRadius:16,
-                          boxShadow:'0 16px 40px rgba(0,14,145,.24)',
-                          fontSize:14,
-                          minWidth:'min(100%, 320px)',
-                          justifyContent:'center',
-                        }}
+                        style={{ background:'#EBF3FF', color:'#000E91', border:'1.5px solid #bfdbfe', margin:'0 auto' }}
                       >
-                        <Ico name="file" size={18} color="#fff" />
-                        Télécharger le PDF officiel COPAF 2026
+                        <Ico name="file" size={18} color="#000E91" />
+                        Telecharger mon recapitulatif (PDF)
                       </button>
-                      {pdfNotice && (
-                        <div style={{ marginTop:10, fontSize:12.5, color:'#1e40af', fontWeight:600, lineHeight:1.5 }}>
-                          {pdfNotice}
-                        </div>
-                      )}
                     </div>
 
                     {/* Action requise */}
@@ -480,7 +457,7 @@ export default function Inscription() {
                     </div>
 
                     <div className="field-row">
-                      {[{name:'email',label:'Email *',ph:'votre@email.com',type:'email'},{name:'telephone',label:'Telephone *',ph:'+229 69 30 30 19',type:'tel'}].map(f => (
+                      {[{name:'email',label:'Email *',ph:'votre@email.com',type:'email'},{name:'telephone',label:'Telephone *',ph:'+229 01 XX XX XX',type:'tel'}].map(f => (
                         <div key={f.name}><label style={lbl}>{f.label}</label><input name={f.name} type={f.type} required value={form[f.name]} onChange={handleChange} placeholder={f.ph} style={inp(f.name)} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')} /></div>
                       ))}
                     </div>
@@ -640,7 +617,7 @@ export default function Inscription() {
 
                 <div style={{ background:'#EBF3FF', border:'1.5px solid #bfdbfe', borderRadius:20, padding:'20px' }}>
                   <div style={{ fontSize:10, color:'#000E91', fontWeight:700, letterSpacing:2, textTransform:'uppercase', marginBottom:14 }}>Besoin d'aide ?</div>
-                  {[{icon:'phone',text:CONTACT_PHONE},{icon:'mail',text:CONTACT_EMAIL},{icon:'globe',text:'www.copaf-ports.com'}].map((item,i) => (
+                  {[{icon:'phone',text:'+229 01 97 67 22 00'},{icon:'mail',text:'inscriptions@copaf-ports.com'},{icon:'globe',text:'www.copaf-ports.com'}].map((item,i) => (
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, color:'#1e40af', fontWeight:500, marginBottom:i<2?10:0 }}>
                       <Ico name={item.icon} size={15} color="#0073F4" />
                       <span style={{ wordBreak:'break-word', overflowWrap:'break-word' }}>{item.text}</span>
