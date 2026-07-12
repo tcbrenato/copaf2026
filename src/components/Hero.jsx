@@ -360,7 +360,7 @@ const Hero = () => {
             zIndex: 2,
           }}>
             <p style={{ margin: 0, fontSize: '9px', color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: '1px' }}>Date limite</p>
-            <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '2px' }}>15 Août 2026</p>
+            <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '2px' }}>31 Août 2026</p>
           </div>
         </div>
       </div>

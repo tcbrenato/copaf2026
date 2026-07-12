@@ -78,6 +78,17 @@ const PAYS = [
   { value: 'Autre',               label: 'Autre pays' },
 ]
 
+const INCLUS_PARTICIPANT = [
+  "Accueil a l'aeroport et installation a l'hotel",
+  "Navette Aeroport <-> Hotel (aller-retour)",
+  "Hebergement 4 nuitees en Hotel 4 etoiles",
+  "Petit-dejeuner & dejeuner pendant les 3 jours",
+  "Acces aux conferences, ateliers & networking",
+  "Visite guidee du port de Casablanca",
+  "Tablette pre-chargee avec etudes de cas",
+  "Attestation de participation",
+]
+
 const TYPES = [
   { id:'participant', icon:'badge',   label:'Participant',        sublabel:'Je participe a la conference',       desc:'Ports, autorites portuaires, logisticiens, shippers et tout professionnel du maritime.', prix:'3 500 EUR', tag:'par personne',         cta:"S'inscrire maintenant", redirect:false,  color:'#0073F4', bg:'#EBF3FF' },
   { id:'sponsor',     icon:'diamond', label:'Sponsor / Partenaire', sublabel:'Visibilite & partenariat',         desc:'Sponsors Platine, Or, Argent, Bronze ou partenariat institutionnel, media, academique.',  prix:'Des 8 000 EUR', tag:'sponsors & partenaires', cta:'Voir les offres',      redirect:true,   redirectTo:'/partenariats',        color:'#000E91', bg:'rgba(0,14,145,0.06)' },
@@ -87,7 +98,7 @@ const TYPES = [
 const CGV_CONTENT = [
   { title:'1. Objet', text:"Les presentes conditions generales de vente regissent les inscriptions a la Conference des Ports Africains (COPAF 2026) organisee par CRF Perfection, prevue du 15 au 17 septembre 2026 a Tanger Med, Maroc." },
   { title:'2. Inscription et confirmation', text:"Toute inscription n'est definitivement confirmee qu'apres reception du paiement integral. Apres reception du mail de confirmation automatique, le participant doit contacter l'organisation par WhatsApp au +229 01 97 67 22 00 ou par email a inscriptions@copaf-ports.com pour valider son inscription et recevoir les instructions de paiement." },
-  { title:'3. Tarifs et paiement', text:"Le tarif est fixe a 3 500 EUR par personne. Le paiement s'effectue exclusivement par virement bancaire. Le paiement doit etre effectue dans les 7 jours ouvrables suivant la confirmation d'inscription. En cas de reservation (paiement differe), le reglement doit intervenir avant le 1er aout 2026." },
+  { title:'3. Tarifs et paiement', text:"Le tarif est fixe a 3 500 EUR par personne. Le paiement s'effectue exclusivement par virement bancaire. Le paiement doit etre effectue dans les 7 jours ouvrables suivant la confirmation d'inscription. En cas de reservation (paiement differe), le reglement doit intervenir avant le 31 aout 2026." },
   { title:'4. Politique de non-remboursement', text:"Les inscriptions sont fermes et definitives. Aucun remboursement ne sera effectue, quelle que soit la raison de l'annulation (raison personnelle, professionnelle, medicale, force majeure, refus de visa, etc.). En cas d'empechement, le participant peut se faire remplacer par une autre personne de son organisation sous reserve de notification ecrite au moins 72h avant l'evenement." },
   { title:'5. Annulation par l\'organisateur', text:"En cas d'annulation de l'evenement par l'organisateur pour des raisons de force majeure, un avoir sera propose pour l'edition suivante. Aucun remboursement en numeraire ne sera effectue." },
   { title:'6. Droits et obligations', text:"Le participant s'engage a respecter le reglement interieur de l'evenement et a se comporter de maniere professionnelle. L'organisateur se reserve le droit d'exclure tout participant ne respectant pas ces regles sans remboursement." },
@@ -127,6 +138,39 @@ async function upsertContact(form) {
 async function createInscription(contactId, form, nb, montant, paiementMode, dossier, photoUrl) {
   const { error } = await supabase.from('inscriptions').insert([{ contact_id:contactId, dossier, participants:nb, montant, paiement_status:paiementMode==='maintenant'?'en_attente':'reserve', paiement_mode:paiementMode, message:form.message, photo_url:photoUrl }])
   if (error) throw new Error(error.message)
+}
+
+function ModalInclus({ onClose }) {
+  return (
+    <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(15,23,42,.55)', backdropFilter:'blur(4px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:480, boxShadow:'0 24px 60px rgba(0,0,0,.2)', overflow:'hidden' }}>
+        <div style={{ padding:'24px 28px 20px', borderBottom:'1px solid #f1f5f9', display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ width:36, height:36, borderRadius:10, background:'#EBF3FF', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Ico name="check" size={18} color="#0073F4" />
+            </div>
+            <div>
+              <div style={{ fontSize:16, fontWeight:800, color:'#0f172a' }}>Ce qui est inclus</div>
+              <div style={{ fontSize:12, color:'#0073F4', fontWeight:600 }}>Tarif Participant — 3 500 EUR</div>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background:'#f1f5f9', border:'none', width:32, height:32, borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+            <Ico name="close" size={14} color="#64748b" />
+          </button>
+        </div>
+        <div style={{ padding:'20px 28px 28px' }}>
+          {INCLUS_PARTICIPANT.map((item, i) => (
+            <div key={i} style={{ display:'flex', gap:12, alignItems:'flex-start', marginBottom: i < INCLUS_PARTICIPANT.length - 1 ? 14 : 0 }}>
+              <div style={{ width:22, height:22, borderRadius:7, background:'#EBF3FF', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
+                <Ico name="check" size={12} color="#0073F4" />
+              </div>
+              <span style={{ fontSize:14, color:'#334155', lineHeight:1.6 }}>{item}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function ModalDocument({ type, onClose }) {
@@ -198,6 +242,7 @@ export default function Inscription() {
   const [focused,      setFocused]      = useState('')
   const [modal,        setModal]        = useState(null)
   const [showVideo,    setShowVideo]    = useState(false)
+  const [showInclus,   setShowInclus]   = useState(false)
   const [photoFile,    setPhotoFile]    = useState(null)
   const [photoPreview, setPhotoPreview] = useState('')
 
@@ -290,6 +335,8 @@ export default function Inscription() {
         </div>
       )}
 
+      {showInclus && <ModalInclus onClose={() => setShowInclus(false)} />}
+
       <section id="inscription" style={{ padding:'clamp(64px,10vw,120px) 0', background:'linear-gradient(180deg,#f0f6ff 0%,#f8faff 100%)', fontFamily:"'Plus Jakarta Sans',sans-serif", position:'relative', minHeight:'100vh', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:'radial-gradient(circle at 10% 15%,rgba(0,115,244,.08) 0%,transparent 50%),radial-gradient(circle at 90% 85%,rgba(0,14,145,.06) 0%,transparent 50%)' }} />
 
@@ -345,10 +392,24 @@ export default function Inscription() {
                   <div style={{ fontSize:18, fontWeight:800, color:'#0f172a', marginBottom:4 }}>{type.label}</div>
                   <div style={{ fontSize:12, fontWeight:600, color:type.color, marginBottom:14 }}>{type.sublabel}</div>
                   <p style={{ fontSize:13.5, color:'#64748b', lineHeight:1.7, marginBottom:20 }}>{type.desc}</p>
-                  <div style={{ background:type.bg, borderRadius:12, padding:'12px 16px', marginBottom:18, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <div style={{ background:type.bg, borderRadius:12, padding:'12px 16px', marginBottom:type.id==='participant'?10:18, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ fontSize:20, fontWeight:900, color:'#0f172a' }}>{type.prix}</span>
                     <span style={{ fontSize:11, color:'#94a3b8', fontWeight:600 }}>{type.tag}</span>
                   </div>
+                  {type.id === 'participant' && (
+                    <button
+                      type="button"
+                      onClick={e => { e.stopPropagation(); setShowInclus(true) }}
+                      style={{
+                        display:'flex', alignItems:'center', gap:6, background:'none', border:'none',
+                        padding:0, marginBottom:18, cursor:'pointer', fontFamily:'inherit',
+                        fontSize:12, fontWeight:700, color:'#0073F4', textDecoration:'underline',
+                      }}
+                    >
+                      <Ico name="check" size={13} color="#0073F4" />
+                      Voir ce qui est inclus
+                    </button>
+                  )}
                   <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'13px 18px', background:`linear-gradient(135deg,${type.color},${type.color}cc)`, borderRadius:12, color:'#fff', fontSize:13, fontWeight:700 }}>
                     <span>{type.cta}</span>
                     <Ico name="arrow" size={16} color="#fff" />
@@ -417,7 +478,7 @@ export default function Inscription() {
                         {icon:'mail',     text:'Email de confirmation automatique envoye'},
                         {icon:'whatsapp', text:'Vous nous contactez par WhatsApp ou email'},
                         {icon:'bank',     text:'Reception des instructions de virement'},
-                        {icon:'card',     text:paiementMode==='maintenant'?'Paiement sous 7 jours ouvrables':'Paiement avant le 1er aout 2026'},
+                        {icon:'card',     text:paiementMode==='maintenant'?'Paiement sous 7 jours ouvrables':'Paiement avant le 31 aout 2026'},
                         {icon:'badge',    text:'Badge et acces participant envoyes apres paiement'},
                       ].map((step,i,arr) => (
                         <div key={i} style={{ display:'flex', gap:10, alignItems:'center', padding:'8px 0', borderBottom:i<arr.length-1?'1px solid #f1f5f9':'none' }}>
@@ -518,7 +579,7 @@ export default function Inscription() {
                     <div style={{ marginBottom:18 }}>
                       <label style={lbl}>Mode de paiement *</label>
                       <div className="pay-grid">
-                        {[{value:'maintenant',icon:'card',title:'Payer maintenant',desc:'Virement sous 7 jours ouvrables'},{value:'plus_tard',icon:'calendar',title:'Reserver ma place',desc:'Paiement avant le 1er aout 2026'}].map(opt => {
+                        {[{value:'maintenant',icon:'card',title:'Payer maintenant',desc:'Virement sous 7 jours ouvrables'},{value:'plus_tard',icon:'calendar',title:'Reserver ma place',desc:'Paiement avant le 31 aout 2026'}].map(opt => {
                           const active = paiementMode===opt.value
                           return (
                             <button key={opt.value} type="button" onClick={() => setPaiementMode(opt.value)} style={{ background:active?'#EBF3FF':'#f8fafc', border:`2px solid ${active?'#0073F4':'#e2e8f0'}`, borderRadius:14, padding:'14px 16px', cursor:'pointer', textAlign:'left', fontFamily:'inherit', transition:'all .2s', display:'flex', flexDirection:'column', gap:8, minHeight:75 }}>

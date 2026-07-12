@@ -4,6 +4,7 @@
 // tenant obligatoirement sur UNE SEULE PAGE.
 
 import jsPDF from 'jspdf'
+import QRCode from 'qrcode'
 
 const NAVY     = [0, 14, 145]     // #000E91
 const BLUE     = [0, 115, 244]    // #0073F4
@@ -45,22 +46,6 @@ function fmtDateLong(d = new Date()) {
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-function loadQR(url) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'Anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = () => resolve(null);
-    img.src = url;
-  });
-}
 
 export async function generateRecapPDF({ form, dossier, nb, total, paiementMode, download = true }) {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
@@ -123,6 +108,8 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.setTextColor(255, 255, 255)
   doc.text("CONFIRMATION D'INSCRIPTION", P + 12, y + 18.5)
 
+
+
   const statutLabel = paiementMode === 'maintenant' ? 'EN ATTENTE DE RÈGLEMENT' : 'PLACE RÉSERVÉE'
   const statutColor = paiementMode === 'maintenant' ? [217, 119, 6] : [37, 99, 235]
   doc.setFont('helvetica', 'bold')
@@ -157,7 +144,7 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   y += intro.length * 13 + 18
 
   // ── Récapitulatif (Date fixe réglementaire pour éviter tout litige) ──
-  const montantLabel = `${fmtEur(total)} (à régler par virement bancaire, impérativement avant le 25 août 2026)`
+  const montantLabel = `${fmtEur(total)} (à régler par virement bancaire, impérativement avant le 31 août 2026)`
 
   const recap = [
     ["Référence d'inscription", `N° ${dossier}`],
@@ -222,6 +209,8 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.text(`Banque : ${RIB.banque}`, P + 14, y + 6)
   doc.text(`Titulaire : ${RIB.titulaire}`, P + contentW / 2 + 10, y + 6)
   
+
+
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
   doc.setTextColor(...NAVY)
@@ -251,7 +240,7 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
 
   const etapes = [
     'Transmettez votre preuve de virement par e-mail ou WhatsApp pour validation prioritaire.',
-    "Exécutez le règlement par virement bancaire avant la date limite impérative du 25 août 2026.",
+    "Exécutez le règlement par virement bancaire avant la date limite impérative du 31 août 2026.",
     'Votre badge officiel sécurisé et vos accès vous seront envoyés dès confirmation des fonds par la banque.',
   ]
   doc.setFont('helvetica', 'normal')
@@ -293,12 +282,22 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.setTextColor(...DARK)
   doc.text(`Fait à Cotonou, le ${fmtDateLong(now)}`, P, y)
   
-  // QR Code interactif
-  const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${encodeURIComponent(verificationUrl)}`
-  const qrBase64 = await loadQR(qrUrl)
+  // QR Code interactif (genere localement, sans dependance a une API externe)
+  let qrBase64 = null
+  try {
+    qrBase64 = await QRCode.toDataURL(verificationUrl, {
+      width: 300,
+      margin: 1,
+      color: { dark: '#000E91', light: '#FFFFFF' },
+    })
+  } catch {
+    qrBase64 = null
+  }
   const qrSize = 52
   const qrX = P + 130
-  
+
+
+
   if (qrBase64) {
     doc.addImage(qrBase64, 'PNG', qrX, y - 10, qrSize, qrSize)
     doc.link(qrX, y - 10, qrSize, qrSize, { url: verificationUrl })
@@ -352,6 +351,8 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.setTextColor(...GRAY)
   doc.text(`L'équipe ${CONTACT.structure}`, sigX, y + 12)
   doc.text(CONTACT.site, sigX, y + 24)
+
+
 
   // ── Pied de page ──
   const fy = pageHeight - M - 26
