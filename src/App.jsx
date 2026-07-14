@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+﻿import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import About from './components/About'
@@ -8,6 +8,7 @@ import Intervenants from './components/Intervenants'
 import Inscription from './components/Inscription'
 import Footer from './components/Footer'
 import AdminDashboard from './components/AdminDashboard'
+import AdminGate from './components/AdminGate'
 import Partners from './components/Partners'
 import { useAnalytics } from './useAnalytics'
 import Partenariats from './pages/Partenariats'
@@ -49,7 +50,7 @@ const InscriptionPage = () => (
   </>
 )
 
-// ─── Page Vérification anti-fraude ────────────────────────────────────────────
+// ─── Page Verification anti-fraude ────────────────────────────────────────────
 const VerifierPage = () => (
   <>
     <Navbar />
@@ -58,6 +59,13 @@ const VerifierPage = () => (
     </div>
     <Footer />
   </>
+)
+
+// ─── Page Admin protegee par mot de passe ─────────────────────────────────────
+const AdminPage = () => (
+  <AdminGate>
+    <AdminDashboard />
+  </AdminGate>
 )
 
 // ─── Application principale ───────────────────────────────────────────────────
@@ -71,7 +79,7 @@ function App() {
         <Route path="/verifier"            element={<VerifierPage />} />
         <Route path="/partenariats"        element={<Partenariats />} />
         <Route path="/exposition-digitale" element={<ExpositionDigitale />} />
-        <Route path="/admin"               element={<AdminDashboard />} />
+        <Route path="/admin"               element={<AdminPage />} />
         <Route path="/visiter" element={<VisiterExposition />} />
       </Routes>
     </Router>
