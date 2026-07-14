@@ -11,6 +11,11 @@ const partners = [
   { url: '/ANP.png', name: 'ANP' },
   { url: '/pac.png', name: 'PAC' },
   { url: '/uapna.png', name: 'UAPNA' },
+  { url: '/portdouala.png', name: 'Port Autonome de Douala' },
+  { url: '/portdakar.jpg', name: 'Port Autonome de Dakar' },
+  { url: '/port.png', name: 'Port Autonome de Nouakchott' },
+  { url: '/papn.png', name: 'Port Autonome de Pointe-Noire' },
+  { url: '/portkribi.png', name: 'Port Autonome de Kribi' },
 ]
 
 const Partners = () => {
