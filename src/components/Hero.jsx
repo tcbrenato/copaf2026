@@ -10,6 +10,10 @@ const images = [
   "/hero6.png",
   "/hero7.png",
   "/copaf.png",
+  "/copaflancement.jpg",
+  "/logocopafbleu.jpg",
+  "/logocopaf.png",
+  "/lieucopaf.jpg",
 ]
 
 const scrollToSection = (id) => {
@@ -150,7 +154,7 @@ const Hero = () => {
             {STATS.map(({ value, label }) => (
               <div key={label}>
                 <div style={{
-                  fontSize: 'clamp(22px, 2.8vw, 32px)',
+                  fontSize: 'clamp(20px, 2.2vw, 26px)',
                   fontWeight: 900,
                   color: '#fff',
                   lineHeight: 1,
@@ -177,7 +181,7 @@ const Hero = () => {
                 background: 'linear-gradient(135deg, #0073F4, #005CC4)',
                 color: '#fff',
                 border: 'none',
-                padding: '16px 38px',
+                padding: '13px 34px',
                 borderRadius: '10px',
                 fontWeight: 800,
                 fontSize: '13px',
@@ -200,7 +204,7 @@ const Hero = () => {
                 background: 'rgba(255,255,255,0.07)',
                 color: '#fff',
                 border: '1.5px solid rgba(255,255,255,0.30)',
-                padding: '14px 32px',
+                padding: '11px 28px',
                 borderRadius: '10px',
                 fontWeight: 700,
                 fontSize: '13px',
@@ -247,7 +251,7 @@ const Hero = () => {
             <div style={{
               borderRadius: '16px',
               overflow: 'hidden',
-              aspectRatio: '4/3',
+              aspectRatio: '16/11',
               position: 'relative',
             }}>
               <img
@@ -386,7 +390,6 @@ const Hero = () => {
             align-items: center !important;
             text-align: center !important;
           }
-          .hero-eyebrow,
           .hero-subtitle {
             margin-left: auto !important;
             margin-right: auto !important;
