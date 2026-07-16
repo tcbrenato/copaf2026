@@ -56,12 +56,13 @@ const Hero = () => {
       id="hero"
       style={{
         minHeight: '100vh',
+        boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         position: 'relative',
         overflow: 'hidden',
-        padding: 'clamp(100px, 12vw, 130px) 6% 80px',
+        padding: 'clamp(80px, 8vw, 100px) 6% 32px',
       }}
     >
       {/* Background image */}
@@ -83,43 +84,28 @@ const Hero = () => {
       }} />
 
       {/* Content grid */}
-      <div
-        className="hero-grid"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '64px',
-          alignItems: 'center',
-          width: '100%',
-          maxWidth: 1180,
-          margin: '0 auto',
-          zIndex: 2,
-          position: 'relative',
-        }}
-      >
+      <div className="hero-grid" style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '44px',
+        alignItems: 'center',
+        width: '100%',
+        maxWidth: 1180,
+        margin: '0 auto',
+        zIndex: 2,
+        position: 'relative',
+      }}>
 
         {/* ── LEFT ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-
-          {/* Eyebrow */}
-          <p style={{
-            margin: '0 0 18px',
-            fontSize: '12px',
-            fontWeight: 700,
-            color: 'rgba(255,255,255,0.55)',
-            textTransform: 'uppercase',
-            letterSpacing: '2.5px',
-          }}>
-            Conférence scientifique &amp; stratégique internationale
-          </p>
+        <div className="hero-left">
 
           {/* Title */}
           <h1 style={{
             fontFamily: "'Inter', 'Roboto', sans-serif",
-            fontSize: 'clamp(34px, 5vw, 64px)',
+            fontSize: 'clamp(28px, 3.8vw, 46px)',
             fontWeight: 900,
             lineHeight: 1.05,
-            marginBottom: '24px',
+            marginBottom: '14px',
             color: '#fff',
             letterSpacing: '-1.5px',
           }}>
@@ -137,31 +123,30 @@ const Hero = () => {
           </h1>
 
           {/* Subtitle */}
-          <p style={{
-            fontSize: 'clamp(15px, 1.5vw, 17px)',
+          <p className="hero-subtitle" style={{
+            fontSize: 'clamp(13px, 1.2vw, 15px)',
             color: 'rgba(255,255,255,0.70)',
-            maxWidth: '480px',
-            lineHeight: 1.85,
-            marginBottom: '40px',
+            maxWidth: '460px',
+            lineHeight: 1.6,
+            marginBottom: '22px',
           }}>
             Trois jours de réflexion scientifique et d'échanges stratégiques réunissant experts,
-            décideurs et institutions portuaires pour repenser, ensemble, l'avenir de la
-            logistique maritime en Afrique.{' '}
-            <span style={{ color: '#fff', fontWeight: 700 }}>Innovation · Réseautage · Stratégie.</span>
+            décideurs et institutions portuaires autour de la thématique « Smart Port Africain : IA
+            et cybersécurité au service de la performance ».
+            <span style={{ color: '#fff', fontWeight: 700, display: 'block', marginTop: '10px' }}>
+              Apprentissage · Réseautage · Stratégie.
+            </span>
           </p>
 
           {/* Stats */}
-          <div
-            className="hero-stats"
-            style={{
-              display: 'flex',
-              gap: '40px',
-              marginBottom: '44px',
-              opacity: statsIn ? 1 : 0,
-              transform: statsIn ? 'translateY(0)' : 'translateY(12px)',
-              transition: 'all 0.7s ease',
-            }}
-          >
+          <div className="hero-stats" style={{
+            display: 'flex',
+            gap: '32px',
+            marginBottom: '26px',
+            opacity: statsIn ? 1 : 0,
+            transform: statsIn ? 'translateY(0)' : 'translateY(12px)',
+            transition: 'all 0.7s ease',
+          }}>
             {STATS.map(({ value, label }) => (
               <div key={label}>
                 <div style={{
@@ -185,7 +170,7 @@ const Hero = () => {
           </div>
 
           {/* Buttons */}
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+          <div className="hero-buttons" style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             <button
               onClick={handleInscription}
               style={{
@@ -235,7 +220,7 @@ const Hero = () => {
         </div>
 
         {/* ── RIGHT ── */}
-        <div style={{ position: 'relative' }}>
+        <div className="hero-right" style={{ position: 'relative' }}>
 
           {/* Glow */}
           <div style={{
@@ -249,7 +234,7 @@ const Hero = () => {
           }} />
 
           {/* Card */}
-          <div style={{
+          <div className="hero-card" style={{
             position: 'relative', zIndex: 1,
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(255,255,255,0.12)',
@@ -283,26 +268,23 @@ const Hero = () => {
               }} />
 
               {/* Location/Date badge */}
-              <div
-                className="glass-badge"
-                style={{
-                  position: 'absolute',
-                  bottom: '14px', left: '14px', right: '14px',
-                  background: 'rgba(0,8,50,0.78)',
-                  backdropFilter: 'blur(14px)',
-                  borderRadius: '12px',
-                  padding: '14px 20px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  border: '1px solid rgba(0,115,244,0.25)',
-                }}
-              >
+              <div className="glass-badge" style={{
+                position: 'absolute',
+                bottom: '14px', left: '14px', right: '14px',
+                background: 'rgba(0,8,50,0.78)',
+                backdropFilter: 'blur(14px)',
+                borderRadius: '12px',
+                padding: '14px 20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                border: '1px solid rgba(0,115,244,0.25)',
+              }}>
                 <div>
                   <p style={{ margin: 0, fontSize: '10px', color: '#4DA6FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Localisation</p>
                   <p style={{ margin: 0, fontSize: '14px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>Casablanca, Maroc</p>
                 </div>
-                <div style={{ height: '30px', width: '1px', background: 'rgba(255,255,255,0.12)' }} />
+                <div className="glass-badge-divider" style={{ height: '30px', width: '1px', background: 'rgba(255,255,255,0.12)' }} />
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ margin: 0, fontSize: '10px', color: '#4DA6FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dates</p>
                   <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>15, 16 &amp; 17 Sept. 2026</p>
@@ -310,7 +292,7 @@ const Hero = () => {
               </div>
 
               {/* Organiser badge */}
-              <div style={{
+              <div className="hero-badge-organiser" style={{
                 position: 'absolute',
                 top: '14px', right: '14px',
                 background: 'rgba(0,8,50,0.78)',
@@ -350,7 +332,7 @@ const Hero = () => {
           </div>
 
           {/* Floating deadline card */}
-          <div style={{
+          <div className="hero-badge-deadline" style={{
             position: 'absolute',
             top: '-18px', left: '-18px',
             background: 'linear-gradient(135deg, #0073F4, #000E91)',
@@ -392,17 +374,20 @@ const Hero = () => {
           50% { opacity: 1; transform: scaleY(1.2); }
         }
 
-        /* ── Desktop ── */
+        /* ── Tablette / Desktop étroit ── */
         @media (max-width: 900px) {
           .hero-grid {
             grid-template-columns: 1fr !important;
             gap: 48px !important;
           }
-          .hero-grid > div:first-child {
+          .hero-left {
+            display: flex;
+            flex-direction: column;
             align-items: center !important;
             text-align: center !important;
           }
-          .hero-grid > div:first-child p {
+          .hero-eyebrow,
+          .hero-subtitle {
             margin-left: auto !important;
             margin-right: auto !important;
             text-align: center !important;
@@ -410,8 +395,13 @@ const Hero = () => {
           .hero-stats {
             justify-content: center !important;
           }
-          .hero-grid > div:first-child > div:last-of-type {
+          .hero-buttons {
             justify-content: center !important;
+          }
+          /* La carte flottante "Date limite" déborde du cadre en tablette : on la ramène à l'intérieur */
+          .hero-badge-deadline {
+            top: 10px !important;
+            left: 10px !important;
           }
         }
 
@@ -421,11 +411,10 @@ const Hero = () => {
             padding-top: 90px !important;
             padding-bottom: 60px !important;
           }
-          .hero-grid > div:first-child > div {
-            justify-content: center !important;
+          .hero-buttons {
             flex-wrap: wrap !important;
           }
-          .hero-grid > div:first-child > div button {
+          .hero-buttons button {
             width: 100% !important;
             max-width: 300px !important;
           }
@@ -435,7 +424,28 @@ const Hero = () => {
             text-align: center !important;
           }
           .glass-badge > div { text-align: center !important; }
-          .glass-badge > div[style*="width: 1px"] { display: none !important; }
+          .glass-badge-divider { display: none !important; }
+
+          /* Les deux badges flottants se chevauchaient avec le titre/l'image en mobile :
+             on les repasse en position statique, empilés au-dessus de la carte. */
+          .hero-right {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 10px;
+          }
+          .hero-badge-deadline,
+          .hero-badge-organiser {
+            position: static !important;
+            width: fit-content;
+            max-width: none !important;
+          }
+          .hero-badge-deadline {
+            align-self: flex-start;
+          }
+          .hero-badge-organiser {
+            align-self: flex-end;
+            margin-bottom: 8px;
+          }
         }
       `}</style>
     </section>
