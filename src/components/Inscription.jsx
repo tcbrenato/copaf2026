@@ -113,8 +113,8 @@ const INCLUS_PARTICIPANT = [
 
 const TYPES = [
   { id:'participant', icon:'badge',   label:'Participant',        sublabel:'Je participe a la conference',       desc:'Ports, autorites portuaires, logisticiens, shippers et tout professionnel du maritime.', prix:'3 500 EUR', tag:'par personne',         cta:"S'inscrire maintenant", redirect:false,  color:'#0073F4', bg:'#EBF3FF' },
-  { id:'sponsor',     icon:'diamond', label:'Sponsor / Partenaire', sublabel:'Visibilite & partenariat',         desc:'Sponsors Platine, Or, Argent, Bronze ou partenariat institutionnel, media, academique.',  prix:'Des 8 000 EUR', tag:'sponsors & partenaires', cta:'Voir les offres',      redirect:true,   redirectTo:'/partenariats',        color:'#000E91', bg:'rgba(0,14,145,0.06)' },
-  { id:'exposant',    icon:'monitor', label:'Exposant Digital',   sublabel:'Vitrine digitale de vos solutions',  desc:'Exposition 100% digitale sur le site COPAF et les tablettes distribuees aux participants.', prix:'Des 500 EUR',  tag:'digital - site + tablettes', cta:'Voir les formules',    redirect:true,   redirectTo:'/exposition-digitale', color:'#0891b2', bg:'rgba(8,145,178,0.06)' },
+  { id:'sponsor',     icon:'diamond', label:'Sponsor / Partenaire', sublabel:'Visibilite & partenariat',         desc:'Sponsors Platine, Or, Argent, Bronze ou partenariat institutionnel, media, academique.',  prix:'A partir de 8\u00A0000 EUR', tag:'sponsors & partenaires', cta:'Voir les offres',      redirect:true,   redirectTo:'/partenariats',        color:'#000E91', bg:'rgba(0,14,145,0.06)' },
+  { id:'exposant',    icon:'monitor', label:'Exposant Digital',   sublabel:'Vitrine digitale de vos solutions',  desc:'Exposition 100% digitale sur le site COPAF et les tablettes distribuees aux participants.', prix:'A partir de 500 EUR',  tag:'digital - site + tablettes', cta:'Voir les formules',    redirect:true,   redirectTo:'/exposition-digitale', color:'#0891b2', bg:'rgba(8,145,178,0.06)' },
 ]
 
 const CGV_CONTENT = [

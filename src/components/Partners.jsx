@@ -2,19 +2,12 @@ import { useRef } from 'react'
 
 const partners = [
   { url: 'https://i.ibb.co/7dNZJQN5/agpaoc-0.jpg', name: 'AGPAOC' },
-  { url: 'https://i.ibb.co/pBtnm4xV/npa2.webp', name: 'NPA' },
-  { url: 'https://i.ibb.co/6cM7Mq8L/images.jpg', name: 'Partenaire 3' },
-  { url: 'https://i.ibb.co/d4vkQYmc/logopaa.gif', name: 'PAA' },
-  { url: 'https://i.ibb.co/d9rmN8v/images.png', name: 'Partenaire 5' },
-  { url: 'https://i.ibb.co/4nB4hykm/logo-tmpa.png', name: 'TMPA' },
   { url: 'https://i.ibb.co/5WvKCqt8/logo-CRF-PERFECTION-4x-1761998753526.png', name: 'CRF Perfection' },
   { url: '/ANP.png', name: 'ANP' },
+  { url: 'https://i.ibb.co/4nB4hykm/logo-tmpa.png', name: 'Tanger Med' },
+  { url: '/beninmanutentions.png', name: 'Benin Manutention' },
   { url: '/pac.png', name: 'PAC' },
-  { url: '/uapna.png', name: 'UAPNA' },
   { url: '/portdouala.png', name: 'Port Autonome de Douala' },
-  { url: '/portdakar.jpg', name: 'Port Autonome de Dakar' },
-  { url: '/port.png', name: 'Port Autonome de Nouakchott' },
-  { url: '/papn.png', name: 'Port Autonome de Pointe-Noire' },
   { url: '/portkribi.png', name: 'Port Autonome de Kribi' },
 ]
 
