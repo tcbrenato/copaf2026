@@ -63,7 +63,7 @@ async function main() {
       const url = `${BASE_URL}${route}`
       console.log('[prerender] Rendu de', url)
 
-      await page.goto(url, { waitUntil: 'networkidle0', timeout: 30000 })
+      await page.goto(url, { waitUntil: 'networkidle0', timeout: 90000 })
       await new Promise(r => setTimeout(r, 600))
 
       await page.evaluate(() => {
@@ -92,3 +92,4 @@ main().catch(err => {
   console.error('[prerender] Erreur :', err)
   process.exit(1)
 })
+
