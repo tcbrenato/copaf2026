@@ -1,6 +1,8 @@
-// src/utils/generateProformaPDF.js
+// src/utils/generateFactureDefinitivePDF.js
 //
-// Genere la FACTURE PROFORMA officielle CRF Perfection.
+// Genere la FACTURE DEFINITIVE (post-paiement), avec numero sequentiel
+// officiel. Contrairement a la proforma, ce document constitue une
+// veritable piece comptable.
 
 import jsPDF from 'jspdf'
 
@@ -62,8 +64,6 @@ function loadImage(src) {
   })
 }
 
-// Recompresse l'image via un canvas a une taille raisonnable, pour eviter
-// d'embarquer un fichier source haute-resolution (plusieurs Mo) dans le PDF.
 async function loadLogoCompressed(src, targetHeightPx = 220) {
   const img = await loadImage(src)
   const ratio = img.width / img.height
@@ -76,7 +76,17 @@ async function loadLogoCompressed(src, targetHeightPx = 220) {
   return { dataUrl: canvas.toDataURL('image/png'), ratio }
 }
 
-export async function generateProformaPDF({ form, dossier, nb, total, download = true, logoSrc = '/crflogo.png' }) {
+/**
+ * @param {object} params
+ * @param {object} params.form
+ * @param {string} params.dossier
+ * @param {string} params.numeroFacture - ex: 'FACT-2026-0001'
+ * @param {number} params.nb
+ * @param {number} params.total
+ * @param {boolean} [params.download=true]
+ * @param {string} [params.logoSrc='/crflogo.png']
+ */
+export async function generateFactureDefinitivePDF({ form, dossier, numeroFacture, nb, total, download = true, logoSrc = '/crflogo.png' }) {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
   const W = doc.internal.pageSize.getWidth()
   const H = doc.internal.pageSize.getHeight()
@@ -84,9 +94,8 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   const contentW = W - M * 2
   let y = 0
 
-  const numero = `PF-${dossier}`
   const prixU = nb > 0 ? total / nb : total
-  const FOOTER_TOP = H - 62 // limite haute reservee au pied de page
+  const FOOTER_TOP = H - 62
 
   const sectionLabel = (text, yy) => {
     doc.setFont('helvetica', 'bold')
@@ -98,9 +107,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
     doc.line(M, yy + 5, W - M, yy + 5)
   }
 
-  // ══════════════════════════════════════════
-  // EN-TETE — logo reel charge depuis /crflogo.png
-  // ══════════════════════════════════════════
+  // ── En-tete avec logo ──
   let logoH = 0
   try {
     const { dataUrl, ratio } = await loadLogoCompressed(logoSrc)
@@ -109,7 +116,6 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
     const logoW = logoH * ratio
     doc.addImage(dataUrl, 'PNG', M, 14, logoW, logoH)
   } catch {
-    // Repli si le logo ne charge pas : texte stylise
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(20)
     doc.setTextColor(...MAROON)
@@ -119,7 +125,6 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
     doc.text('Perfection', M + crfW, 44)
     logoH = 30
   }
-
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.5)
   doc.setTextColor(...GRAY)
@@ -130,9 +135,9 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.setFillColor(...MAROON)
   doc.rect(W - M - bannerW, 20, bannerW, bannerH, 'F')
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(14)
+  doc.setFontSize(15)
   doc.setTextColor(...WHITE)
-  doc.text('FACTURE PROFORMA', W - M - bannerW / 2, 20 + bannerH / 2 + 5, { align: 'center' })
+  doc.text('FACTURE', W - M - bannerW / 2, 20 + bannerH / 2 + 5, { align: 'center' })
 
   y = Math.max(84, 14 + logoH + 22)
   doc.setDrawColor(...MAROON)
@@ -140,9 +145,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.line(M, y, W - M, y)
   y += 20
 
-  // ══════════════════════════════════════════
-  // EMETTEUR / DESTINATAIRE
-  // ══════════════════════════════════════════
+  // ── Emetteur / Destinataire ──
   const colGap = 24
   const colW = (contentW - colGap) / 2
   const colX2 = M + colW + colGap
@@ -162,43 +165,27 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.text(destText, colX2, y)
   y += 13
 
-  const emetteurLines = [
-    EMETTEUR.adresse,
-    EMETTEUR.email,
-    `${EMETTEUR.tel1}`,
-    EMETTEUR.tel2,
-    `IFU : ${EMETTEUR.ifu || '—'}`,
-    EMETTEUR.rccm,
-  ]
-  const destLines = [
-    `${form.prenom || ''} ${form.nom || ''}`.trim(),
-    form.poste || '—',
-    form.pays || '—',
-    form.email || '—',
-  ]
+  const emetteurLines = [EMETTEUR.adresse, EMETTEUR.email, EMETTEUR.tel1, EMETTEUR.tel2, `IFU : ${EMETTEUR.ifu}`, EMETTEUR.rccm]
+  const destLines = [`${form.prenom || ''} ${form.nom || ''}`.trim(), form.poste || '—', form.pays || '—', form.email || '—']
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   doc.setTextColor(...GRAY)
   let ey = y
   emetteurLines.forEach(line => { doc.text(line, M, ey); ey += 11.5 })
-
   let dy = y + (destText.length - 1) * 11.5
   destLines.forEach(line => { doc.text(line, colX2, dy); dy += 11.5 })
-
   y = Math.max(ey, dy) + 14
 
-  // ══════════════════════════════════════════
-  // BANDEAU INFOS
-  // ══════════════════════════════════════════
+  // ── Bandeau infos (numero facture / date / statut) ──
   const infoH = 42
   doc.setFillColor(...LIGHT_BG)
   doc.roundedRect(M, y, contentW, infoH, 5, 5, 'F')
   const infoColW = contentW / 3
   const infos = [
-    ['N° DE PROFORMA', numero],
+    ['N° DE FACTURE', numeroFacture],
     ["DATE D'ÉMISSION", fmtDateLong()],
-    ['VALIDITÉ', '30 jours'],
+    ['STATUT', 'RÉGLÉE'],
   ]
   infos.forEach(([label, value], i) => {
     const x = M + 16 + i * infoColW
@@ -213,9 +200,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   })
   y += infoH + 18
 
-  // ══════════════════════════════════════════
-  // DETAIL DE LA PRESTATION
-  // ══════════════════════════════════════════
+  // ── Detail ──
   sectionLabel('Détail de la prestation', y)
   y += 16
 
@@ -239,7 +224,6 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.setDrawColor(...LINE)
   doc.setLineWidth(0.75)
   doc.rect(M, y, contentW, rowH)
-
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9.5)
   doc.setTextColor(...DARK)
@@ -248,7 +232,6 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.setFontSize(7.5)
   doc.setTextColor(...GRAY)
   doc.text('Voir prestations incluses ci-dessous', M + 10, y + 28)
-
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9.5)
   doc.setTextColor(...DARK)
@@ -257,9 +240,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.text(fmtEur(total), M + contentW - 10, y + 22, { align: 'right' })
   y += rowH + 14
 
-  // ══════════════════════════════════════════
-  // TOTAL
-  // ══════════════════════════════════════════
+  // ── Total ──
   const totalW = 230
   const totalH = 36
   doc.setFillColor(...MAROON)
@@ -273,12 +254,9 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.text(fmtEur(total), W - M - 14, y + 29, { align: 'right' })
   y += totalH + 20
 
-  // ══════════════════════════════════════════
-  // PRESTATIONS INCLUSES
-  // ══════════════════════════════════════════
+  // ── Prestations incluses ──
   sectionLabel('Prestations incluses dans ce montant', y)
   y += 15
-
   const boxPad = 10
   const lineH = 13.5
   const boxH = PRESTATIONS_INCLUSES.length * lineH + boxPad * 2
@@ -296,12 +274,9 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   })
   y += boxH + 16
 
-  // ══════════════════════════════════════════
-  // RIB
-  // ══════════════════════════════════════════
-  sectionLabel('Coordonnées bancaires pour règlement', y)
+  // ── RIB (rappel, paiement deja effectue) ──
+  sectionLabel('Réglée par virement bancaire', y)
   y += 15
-
   const ribRows = [['Banque', RIB.banque], ['IBAN', RIB.iban], ['BIC', RIB.bic], ['Titulaire', RIB.titulaire]]
   const ribLineH = 16.5
   const ribH = ribRows.length * ribLineH + 12
@@ -321,28 +296,19 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   })
   y += ribH + 16
 
-  // ══════════════════════════════════════════
-  // MENTION LEGALE
-  // ══════════════════════════════════════════
+  // ── Mention legale (facture definitive) ──
   doc.setFont('helvetica', 'italic')
   doc.setFontSize(7)
   doc.setTextColor(...GRAY)
   const mention = doc.splitTextToSize(
-    "Ce document est une facture proforma établie à titre indicatif pour faciliter l'autorisation interne du virement par les services financiers du client. Elle ne constitue pas une facture définitive au sens comptable et ne peut être utilisée comme justificatif de paiement. Une facture définitive sera émise après réception effective du règlement.",
+    `Facture définitive n° ${numeroFacture}, émise après réception effective du règlement. Ce document fait office de justificatif de paiement pour la participation à la COPAF 2026.`,
     contentW
   )
   doc.text(mention, M, y)
   y += mention.length * 9.5
 
-  // ── Securite anti-chevauchement : si le contenu depasse la zone
-  // reservee au pied de page, on ajoute une page plutot que de superposer.
-  if (y > FOOTER_TOP - 10) {
-    doc.addPage()
-  }
+  if (y > FOOTER_TOP - 10) doc.addPage()
 
-  // ══════════════════════════════════════════
-  // PIED DE PAGE (toujours en bas de la derniere page)
-  // ══════════════════════════════════════════
   const footerY = H - 48
   doc.setDrawColor(...LINE)
   doc.setLineWidth(0.75)
@@ -355,7 +321,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.text(`${EMETTEUR.tel1}  ·  ${EMETTEUR.tel2}`, W - M, footerY + 14, { align: 'right' })
 
   if (download) {
-    doc.save(`FACTURE_${numero}.pdf`)
+    doc.save(`${numeroFacture}.pdf`)
     return null
   }
   return doc
