@@ -15,6 +15,7 @@ import Partenariats from './pages/Partenariats'
 import ExpositionDigitale from './pages/ExpositionDigitale'
 import VisiterExposition from './pages/VisiterExposition'
 import VerifierDossier from './pages/VerifierDossier'
+import AdminProforma from './pages/AdminProforma'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -68,6 +69,18 @@ const AdminPage = () => (
   </AdminGate>
 )
 
+// ─── Page Facture Proforma, protegee par un mot de passe dedie au secretariat ──
+const AdminProformaPage = () => (
+  <AdminGate
+    password="PROFORMA2026"
+    storageKey="copaf_proforma_auth"
+    title="COPAF 2026"
+    subtitle="Génération des factures proforma"
+  >
+    <AdminProforma />
+  </AdminGate>
+)
+
 // ─── Application principale ───────────────────────────────────────────────────
 function App() {
   return (
@@ -80,6 +93,7 @@ function App() {
         <Route path="/partenariats"        element={<Partenariats />} />
         <Route path="/exposition-digitale" element={<ExpositionDigitale />} />
         <Route path="/admin"               element={<AdminPage />} />
+        <Route path="/admin/proforma"      element={<AdminProformaPage />} />
         <Route path="/visiter" element={<VisiterExposition />} />
       </Routes>
     </Router>

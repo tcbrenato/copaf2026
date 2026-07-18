@@ -1,24 +1,21 @@
 ﻿import { useState, useEffect } from 'react'
 
-const ADMIN_PASSWORD = '2026COPAF'
-const SESSION_KEY = 'copaf_admin_auth'
-
-export default function AdminGate({ children }) {
+export default function AdminGate({ children, password = '2026COPAF', storageKey = 'copaf_admin_auth', title = 'COPAF 2026', subtitle = 'Accès réservé à l\'administration' }) {
   const [authenticated, setAuthenticated] = useState(false)
   const [checked,        setChecked]       = useState(false)
-  const [password,       setPassword]      = useState('')
+  const [input,          setInput]         = useState('')
   const [error,          setError]         = useState('')
 
   useEffect(() => {
-    const saved = sessionStorage.getItem(SESSION_KEY)
+    const saved = sessionStorage.getItem(storageKey)
     if (saved === 'true') setAuthenticated(true)
     setChecked(true)
-  }, [])
+  }, [storageKey])
 
   const handleSubmit = e => {
     e.preventDefault()
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, 'true')
+    if (input === password) {
+      sessionStorage.setItem(storageKey, 'true')
       setAuthenticated(true)
       setError('')
     } else {
@@ -51,13 +48,13 @@ export default function AdminGate({ children }) {
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
         </div>
-        <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 4 }}>COPAF 2026</div>
-        <div style={{ fontSize: 13, color: '#64748b', marginBottom: 28 }}>Accès réservé à l'administration</div>
+        <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 4 }}>{title}</div>
+        <div style={{ fontSize: 13, color: '#64748b', marginBottom: 28 }}>{subtitle}</div>
 
         <input
           type="password"
-          value={password}
-          onChange={e => { setPassword(e.target.value); setError('') }}
+          value={input}
+          onChange={e => { setInput(e.target.value); setError('') }}
           placeholder="Mot de passe"
           autoFocus
           style={{
@@ -73,7 +70,7 @@ export default function AdminGate({ children }) {
           background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none', borderRadius: 12,
           color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
         }}>
-          Accéder au dashboard
+          Accéder
         </button>
       </form>
     </div>
