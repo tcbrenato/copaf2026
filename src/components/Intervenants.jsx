@@ -71,7 +71,7 @@ const intervenants = [
     nom: 'Rénato TCHOBO',
     titre: 'Expert en Transformation Digitale & Consultant en Solutions Numériques',
     organisation: 'CRF Perfection',
-    bio: "Rénato TCHOBO est Chief Digital & IT Officer chez CRF Perfection, où il pilote le développement web, la stratégie digitale et la transformation numérique des projets institutionnels et événementiels. Diplômé en Sciences du Langage et de la Communication de l'Université d'Abomey-Calavi et certifié Référent Digital par Simplon Bénin, il poursuit actuellement un Master en Marketing & Gestion des Projets Numériques à l'ESCEN, où il enseigne également le marketing digital. Consultant freelance en développement web et community management, il conçoit et déploie des plateformes numériques complètes — de la conception à la mise en production — pour des organisations basées à Cotonou et à l'international.",
+    bio: "Rénato TCHOBO est Chief Digital & IT Officer chez CRF Perfection, où il pilote le développement web, la stratégie digitale et la transformation numérique des projets institutionnels et événementiels. Consultant freelance en développement web et community management, il conçoit et déploie des plateformes numériques complètes — de la conception à la mise en production — pour des organisations basées à Cotonou et à l'international. Son expertise couvre la structuration de projets digitaux complexes, l'automatisation des processus et l'accompagnement stratégique de la transformation numérique.",
   },
 ]
 
@@ -257,10 +257,23 @@ const Intervenants = () => {
             width: 100%;
             max-width: 560px;
             max-height: 86vh;
-            overflow-y: auto;
+            overflow: hidden;
             position: relative;
             box-shadow: 0 24px 60px rgba(0,0,0,.2);
             animation: intervenant-slide-up .3s ease;
+            display: flex;
+            flex-direction: column;
+          }
+          .intervenant-modal-photo {
+            width: 100%;
+            height: clamp(180px, 32vh, 280px);
+            flex-shrink: 0;
+            position: relative;
+            background: #EBF3FF;
+          }
+          .intervenant-modal-body {
+            overflow-y: auto;
+            padding: 28px 32px 36px;
           }
           @keyframes intervenant-fade-in { from { opacity: 0; } to { opacity: 1; } }
           @keyframes intervenant-slide-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
@@ -282,12 +295,12 @@ const Intervenants = () => {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
 
-              <div style={{ width: '100%', aspectRatio: '16 / 9', position: 'relative', background: '#EBF3FF' }}>
+              <div className="intervenant-modal-photo">
                 {activeModal.photo ? (
                   <img
                     src={activeModal.photo}
                     alt={activeModal.nom}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', display: 'block' }}
                   />
                 ) : (
                   <div style={{
@@ -301,7 +314,7 @@ const Intervenants = () => {
                 )}
               </div>
 
-              <div style={{ padding: '28px 32px 36px' }}>
+              <div className="intervenant-modal-body">
                 <h3 style={{ fontSize: 24, fontWeight: 900, color: '#000e91', margin: '0 0 6px', letterSpacing: '-0.01em' }}>
                   {activeModal.nom}
                 </h3>
