@@ -41,28 +41,28 @@ const Ico = ({ name, size = 20, color = 'currentColor' }) => {
 
 // ─── DONNÉES ─────────────────────────────────────────────────────────────────
 const STATS = [
-  { num: '500+', label: 'Decideurs presents',  icon: 'users'    },
-  { num: '32',   label: 'Pays representes',    icon: 'map'      },
-  { num: '12',   label: 'Mois de visibilite',  icon: 'calendar' },
-  { num: '0 EUR',label: 'Frais de transport',  icon: 'zap'      },
+  { num: '500+', label: 'Décideurs présents',   icon: 'users'    },
+  { num: '32',   label: 'Pays représentés',     icon: 'map'      },
+  { num: '12',   label: 'Mois de visibilité',   icon: 'calendar' },
+  { num: '0 €',  label: 'Frais de transport',   icon: 'zap'      },
 ]
 
 const AVANTAGES = [
-  { icon: 'leaf',     title: 'Impact Carbone Zero',   desc: 'Aucun transport de materiel physique. Empreinte ecologique nulle.' },
-  { icon: 'calendar', title: 'Visibilite 365 jours',  desc: 'Votre stand reste en ligne un an apres la conference.' },
-  { icon: 'barChart', title: 'Data Precise',           desc: 'Rapport detaille des vues, clics et contacts inclus.' },
-  { icon: 'target',   title: 'Lead Gen Direct',        desc: 'Les decideurs vous contactent en un clic depuis la vitrine.' },
-  { icon: 'zap',      title: 'Zero Logistique',        desc: 'Concentrez-vous sur vos pitchs, nous gerons le reste.' },
+  { icon: 'leaf',     title: 'Impact Carbone Zéro',   desc: 'Aucun transport de matériel physique. Empreinte écologique nulle.' },
+  { icon: 'calendar', title: 'Visibilité 365 jours',  desc: 'Votre stand reste en ligne un an après la conférence.' },
+  { icon: 'barChart', title: 'Data Précise',          desc: 'Rapport détaillé des vues, clics et contacts inclus.' },
+  { icon: 'target',   title: 'Lead Gen Direct',       desc: 'Les décideurs vous contactent en un clic depuis la vitrine.' },
+  { icon: 'zap',      title: 'Zéro Logistique',       desc: 'Concentrez-vous sur vos pitchs, nous gérons le reste.' },
 ]
 
 const COMPARAISON = [
-  { critere: 'Cout transport & montage',  classique: '5 000 EUR – 20 000 EUR', digital: '0 EUR' },
-  { critere: 'Frais de douane',           classique: 'Imprevisibles',          digital: 'Aucun' },
-  { critere: 'Duree de visibilite',       classique: '2 – 3 jours',            digital: '12 mois' },
-  { critere: 'Mesure de performance',     classique: 'Impossible',             digital: 'Rapport PDF inclus' },
-  { critere: 'Acces aux decideurs',       classique: 'Sur place uniquement',   digital: 'Sur place + a distance' },
-  { critere: 'Accessible aux PME',        classique: 'Budget prohibitif',      digital: 'Des 500 EUR' },
-  { critere: 'Bilan carbone',             classique: 'Impact lourd',           digital: 'Impact zero' },
+  { critere: 'Coût transport & montage',  classique: '5 000 € – 20 000 €',   digital: '0 €' },
+  { critere: 'Frais de douane',           classique: 'Imprévisibles',        digital: 'Aucun' },
+  { critere: 'Durée de visibilité',       classique: '2 – 3 jours',          digital: '12 mois' },
+  { critere: 'Mesure de performance',     classique: 'Impossible',           digital: 'Rapport PDF inclus' },
+  { critere: 'Accès aux décideurs',       classique: 'Sur place uniquement', digital: 'Sur place + à distance' },
+  { critere: 'Accessible aux PME',        classique: 'Budget prohibitif',    digital: 'Dès 500 €' },
+  { critere: 'Bilan carbone',             classique: 'Impact lourd',         digital: 'Impact zéro' },
 ]
 
 const PILIERS = [
@@ -70,68 +70,68 @@ const PILIERS = [
     id: '01', color: '#0073F4', icon: 'globe',
     title: 'Vitrine Web Exclusive',
     short: 'Votre hub digital permanent sur le portail COPAF.',
-    full: "Des votre inscription, nous creons une page dediee hautement optimisee pour le SEO. Elle inclut votre presentation strategique, vos liens officiels et un formulaire de captation de leads direct.",
-    features: ['Indexation Google garantie', 'Formulaire de contact direct', 'Statistiques en temps reel'],
+    full: "Dès votre inscription, nous créons une page dédiée hautement optimisée pour le SEO. Elle inclut votre présentation stratégique, vos liens officiels et un formulaire de captation de leads direct.",
+    features: ['Indexation Google garantie', 'Formulaire de contact direct', 'Statistiques en temps réel'],
   },
   {
     id: '02', color: '#000E91', icon: 'tablet',
     title: 'Immersion Tablettes',
-    short: 'Vos solutions prechargees sur les outils des decideurs.',
-    full: "A Tanger Med, chaque delegue recoit une tablette tactile haut de gamme. Vos brochures et videos y sont integrees nativement pour une consultation fluide, meme sans connexion internet.",
-    features: ['Acces 100% Offline', 'Lecture video fluide', 'Experience tactile premium'],
+    short: 'Vos solutions préchargées sur les outils des participants confirmés.',
+    full: "À Casablanca, chaque participant confirmé reçoit une tablette tactile haut de gamme. Vos brochures et vidéos y sont intégrées nativement pour une consultation fluide, même sans connexion internet.",
+    features: ['Accès 100% Offline', 'Lecture vidéo fluide', 'Expérience tactile premium'],
   },
   {
     id: '03', color: '#0073F4', icon: 'mic',
     title: 'Session Pitch & Demo',
     short: 'Une prise de parole magistrale en auditorium.',
-    full: "Beneficiez d'un creneau strategique dans le programme officiel pour presenter vos innovations devant l'ensemble des delegations et autorites portuaires presentes.",
-    features: ['Auditorium de 500+ decideurs', 'Captation video HD offerte', 'QR Code interactif sur ecran'],
+    full: "Bénéficiez d'un créneau stratégique dans le programme officiel pour présenter vos innovations devant l'ensemble des délégations et autorités portuaires présentes.",
+    features: ['Auditorium de 500+ décideurs', 'Captation vidéo HD offerte', 'QR Code interactif sur écran'],
   },
   {
     id: '04', color: '#000E91', icon: 'archive',
-    title: 'Heritage Post-Event',
-    short: 'Une visibilite qui dure 12 mois apres Tanger Med.',
-    full: "L'exposition ne s'arrete pas a la cloture. Votre vitrine reste active pendant un an sur le site COPAF, servant de reference pour les futurs appels d'offres du secteur.",
-    features: ['Referencement annuel', 'Inclusion dans les Actes officiels', 'Reseautage continu'],
+    title: 'Héritage Post-Event',
+    short: 'Une visibilité qui dure 12 mois après Casablanca.',
+    full: "L'exposition ne s'arrête pas à la clôture. Votre vitrine reste active pendant un an sur le site COPAF, servant de référence pour les futurs appels d'offres du secteur.",
+    features: ['Référencement annuel', 'Inclusion dans les Actes officiels', 'Réseautage continu'],
   },
 ]
 
 const WORKFLOW = [
-  { num: '1', title: 'Inscription',     desc: 'Choix de formule et paiement securise.' },
-  { num: '2', title: 'Upload',          desc: 'Depot de logos, PDF et videos via votre espace prive.' },
-  { num: '3', title: 'Validation',      desc: 'Notre equipe publie votre vitrine et genere votre Smart Badge.' },
-  { num: '4', title: 'Live Tanger Med', desc: 'Pitch en auditorium + demos sur tablettes lors des pauses reseau.' },
-  { num: '5', title: 'Rapport PDF',     desc: 'Vues, contacts generes et telechargements detailles post-event.' },
+  { num: '1', title: 'Inscription',      desc: 'Choix de formule et paiement sécurisé.' },
+  { num: '2', title: 'Upload',           desc: 'Dépôt de logos, PDF et vidéos via votre espace privé.' },
+  { num: '3', title: 'Validation',       desc: 'Notre équipe publie votre vitrine et génère votre Smart Badge.' },
+  { num: '4', title: 'Live Casablanca',  desc: 'Pitch en auditorium + démos sur tablettes lors des pauses réseau.' },
+  { num: '5', title: 'Rapport PDF',      desc: 'Vues, contacts générés et téléchargements détaillés post-event.' },
 ]
 
 const PLANS = [
   {
-    id: 'ESSENTIELLE', color: '#475569', featured: false, price: '500', tag: 'Ideal PME',
-    features: ['Fiche portail officiel', 'Logo + Description', 'QR Code numerique', '1 Brochure PDF', 'Rapport de performance'],
+    id: 'ESSENTIELLE', color: '#475569', featured: false, price: '500', tag: 'Idéal PME',
+    features: ['Fiche portail officiel', 'Logo + Description', 'QR Code numérique', '1 Brochure PDF', 'Rapport de performance'],
   },
   {
     id: 'AVANCEE', color: '#0073F4', featured: true, price: '1 500', tag: 'Le plus choisi',
-    features: ['Tout Pack Essentielle', '3 Brochures PDF', 'Video de presentation HD', '1 Badge VIP inclus', 'Session Pitch 10 min', 'Rapport analytique complet'],
+    features: ['Tout Pack Essentielle', '3 Brochures PDF', 'Vidéo de présentation HD', '1 Badge VIP inclus', 'Session Pitch 10 min', 'Rapport analytique complet'],
   },
   {
     id: 'PREMIUM', color: '#000E91', featured: false, price: '3 000', tag: 'Impact maximum',
-    features: ['Tout Pack Avancee', 'Brochures illimitees', 'Pitch 15 min + Q&A', '2 Badges VIP inclus', 'Demonstration Live', 'Captation video HD', 'Matching decideurs prioritaire'],
+    features: ['Tout Pack Avancée', 'Brochures illimitées', 'Pitch 15 min + Q&A', '2 Badges VIP inclus', 'Démonstration Live', 'Captation vidéo HD', 'Matching décideurs prioritaire'],
   },
 ]
 
 const TEMOIGNAGES = [
-  { text: "Le rapport post-evenement nous a montre que notre video avait ete consultee par 3 directeurs de ports que nous n'aurions jamais rencontres physiquement. Un ROI impossible a obtenir avec un stand classique.", name: 'Mehdi Ouarrach', role: 'CEO, PortLogix Solutions', initials: 'MO', color: '#0073F4' },
-  { text: "Pour une PME comme nous, exposer a Tanger Med etait un reve inaccessible. Avec la formule Essentielle, nous avons eu la meme visibilite numerique que des groupes dix fois plus grands.", name: 'Aminata Diallo', role: 'Directrice, WestPort Tech', initials: 'AD', color: '#000E91' },
-  { text: "Le mode offline sur tablette a ete decisif. Le Wi-Fi saturait dans les couloirs, mais nos brochures fonctionnaient parfaitement. Nos concurrents etaient bloques.", name: 'Carlos Ferreira', role: 'VP Commercial, NavTech Iberica', initials: 'CF', color: '#475569' },
+  { text: "Le rapport post-événement nous a montré que notre vidéo avait été consultée par 3 directeurs de ports que nous n'aurions jamais rencontrés physiquement. Un ROI impossible à obtenir avec un stand classique.", name: 'Mehdi Ouarrach', role: 'CEO, PortLogix Solutions', initials: 'MO', color: '#0073F4' },
+  { text: "Pour une PME comme nous, exposer à Casablanca était un rêve inaccessible. Avec la formule Essentielle, nous avons eu la même visibilité numérique que des groupes dix fois plus grands.", name: 'Aminata Diallo', role: 'Directrice, WestPort Tech', initials: 'AD', color: '#000E91' },
+  { text: "Le mode offline sur tablette a été décisif. Le Wi-Fi saturait dans les couloirs, mais nos brochures fonctionnaient parfaitement. Nos concurrents étaient bloqués.", name: 'Carlos Ferreira', role: 'VP Commercial, NavTech Ibérica', initials: 'CF', color: '#475569' },
 ]
 
 const FAQS = [
-  { q: "Qui gere les tablettes sur place ?", a: "COPAF prend en charge l'integralite de la logistique : acquisition, prechargement, distribution aux delegues VIP et collecte en fin d'evenement." },
-  { q: "Comment fonctionne le mode offline ?", a: "Grace a la technologie Service Worker, tous vos fichiers sont telecharges avant l'evenement. Les delegues y acce dent instantanement meme sans Wi-Fi." },
-  { q: "Comment le rapport est-il produit ?", a: "Chaque delegue est authentifie via son badge QR. Chaque consultation, telechargement ou clic sur votre vitrine est trace nominalement." },
-  { q: "Ma vitrine reste-t-elle 12 mois en ligne ?", a: "Oui, sans frais supplementaires. Votre page reste indexee sur le portail COPAF et accessible via Google pendant 12 mois." },
-  { q: "Puis-je modifier mes contenus apres l'upload ?", a: "Oui, jusqu'a 7 jours avant l'evenement. Passe ce delai, les fichiers sont verrouilles pour le prechargement sur les tablettes." },
-  { q: "Quelle est la date limite d'inscription ?", a: "30 jours avant la conference. Il est conseille de s'inscrire au moins 60 jours a l'avance pour une vitrine SEO optimisee." },
+  { q: "Qui gère les tablettes sur place ?", a: "COPAF met à disposition des tablettes aux participants confirmés. Notre équipe assure l'intégralité de la logistique : acquisition, préchargement, distribution et collecte en fin d'événement." },
+  { q: "Comment fonctionne le mode offline ?", a: "Grâce à la technologie Service Worker, tous vos fichiers sont téléchargés avant l'événement. Les participants y accèdent instantanément même sans Wi-Fi." },
+  { q: "Comment le rapport est-il produit ?", a: "Chaque participant est authentifié via son badge QR. Chaque consultation, téléchargement ou clic sur votre vitrine est tracé nominalement." },
+  { q: "Ma vitrine reste-t-elle 12 mois en ligne ?", a: "Oui, sans frais supplémentaires. Votre page reste indexée sur le portail COPAF et accessible via Google pendant 12 mois." },
+  { q: "Puis-je modifier mes contenus après l'upload ?", a: "Oui, jusqu'à 7 jours avant l'événement. Passé ce délai, les fichiers sont verrouillés pour le préchargement sur les tablettes." },
+  { q: "Quelle est la date limite d'inscription ?", a: "30 jours avant la conférence. Il est conseillé de s'inscrire au moins 60 jours à l'avance pour une vitrine SEO optimisée." },
 ]
 
 // ─── BDD ─────────────────────────────────────────────────────────────────────
@@ -318,7 +318,7 @@ export default function ExpositionDigitale() {
       <Navbar />
 
       <button className={`float-cta ${floatVisible ? 'show' : ''}`} onClick={() => scrollTo('inscription')}>
-        Reserver ma place
+        Réserver ma place
         <Ico name="arrowRight" size={16} color="#fff" />
       </button>
 
@@ -335,7 +335,7 @@ export default function ExpositionDigitale() {
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(1px)' }} />
         <div style={{ maxWidth: 680, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <div className="fade-up" style={{ display: 'inline-block', padding: '7px 18px', background: 'rgba(0,115,244,.1)', color: '#0073F4', borderRadius: 100, fontSize: 10, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 24 }}>
-            TANGER MED &middot; MAROC &middot; 2026
+            CASABLANCA &middot; MAROC &middot; 2026
           </div>
           <h1 className="fade-up-1" style={{ fontSize: 'clamp(30px,7vw,62px)', fontWeight: 900, color: '#000E91', marginBottom: 20, lineHeight: 1.05, letterSpacing: '-0.03em' }}>
             L'Exposition{' '}
@@ -344,14 +344,14 @@ export default function ExpositionDigitale() {
             </span>
           </h1>
           <p className="fade-up-2" style={{ color: '#475569', fontSize: 'clamp(15px,2.5vw,18px)', lineHeight: 1.8, marginBottom: 40, maxWidth: 540, margin: '0 auto 40px' }}>
-            Votre technologie directement dans les mains des decideurs portuaires — sans stand, sans logistique, avec plus d'impact.
+            Votre technologie directement dans les mains des décideurs portuaires — sans stand, sans logistique, avec plus d'impact.
           </p>
           <div className="fade-up-3" style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn-primary" onClick={() => scrollTo('inscription')}>
-              Reserver ma place
+              Réserver ma place
               <Ico name="arrowRight" size={16} color="#fff" />
             </button>
-            <button className="btn-outline" onClick={() => scrollTo('piliers')}>Comment ca marche ?</button>
+            <button className="btn-outline" onClick={() => scrollTo('piliers')}>Comment ça marche ?</button>
           </div>
         </div>
       </section>
@@ -391,7 +391,7 @@ export default function ExpositionDigitale() {
           <table className="cmp-table">
             <thead>
               <tr style={{ borderBottom: '1.5px solid #e2e8f0' }}>
-                <th style={{ textAlign: 'left', color: '#64748b', padding: '16px 18px' }}>Critere</th>
+                <th style={{ textAlign: 'left', color: '#64748b', padding: '16px 18px' }}>Critère</th>
                 <th style={{ background: '#fef2f2', color: '#991b1b', textAlign: 'center', borderLeft: '1px solid #fecaca' }}>Stand Physique</th>
                 <th style={{ background: '#eff6ff', color: '#1e40af', textAlign: 'center', borderLeft: '1px solid #bfdbfe' }}>COPAF Digital</th>
               </tr>
@@ -427,7 +427,7 @@ export default function ExpositionDigitale() {
       </Section>
 
       <Section alt id="piliers">
-        <SectionHeader eyebrow="Le dispositif" title="4 piliers pour une presence maximale" sub="Cliquez sur chaque pilier pour decouvrir les details." />
+        <SectionHeader eyebrow="Le dispositif" title="4 piliers pour une présence maximale" sub="Cliquez sur chaque pilier pour découvrir les détails." />
         <div className="piliers-grid">
           {PILIERS.map(p => (
             <div key={p.id} className="pilier-card" onClick={() => setActiveModal(p)}>
@@ -449,7 +449,7 @@ export default function ExpositionDigitale() {
       </Section>
 
       <Section>
-        <SectionHeader eyebrow="Le parcours exposant" title="5 etapes, de l'inscription au rapport" />
+        <SectionHeader eyebrow="Le parcours exposant" title="5 étapes, de l'inscription au rapport" />
         <div style={{ maxWidth: 780, margin: '0 auto' }}>
           <div className="workflow">
             {WORKFLOW.map((w, i) => (
@@ -471,7 +471,7 @@ export default function ExpositionDigitale() {
       </Section>
 
       <Section alt id="tarifs">
-        <SectionHeader eyebrow="Nos formules" title="Choisissez votre niveau d'impact" sub="De la PME au leader mondial, un pack adapte a chaque strategie." />
+        <SectionHeader eyebrow="Nos formules" title="Choisissez votre niveau d'impact" sub="De la PME au leader mondial, un pack adapté à chaque stratégie." />
         <div className="pricing-grid">
           {PLANS.map(plan => (
             <div key={plan.id} style={{ background: '#fff', border: `1.5px solid ${plan.featured ? plan.color : '#e2e8f0'}`, borderTop: `5px solid ${plan.color}`, borderRadius: 22, padding: 'clamp(24px,4vw,38px)', textAlign: 'center', position: 'relative', boxShadow: plan.featured ? `0 16px 48px ${plan.color}22` : '0 2px 8px rgba(0,0,0,.04)', transform: plan.featured ? 'scale(1.03)' : 'none', transition: 'all .25s' }}>
@@ -526,7 +526,7 @@ export default function ExpositionDigitale() {
       </Section>
 
       <Section alt>
-        <SectionHeader eyebrow="Questions frequentes" title="Tout ce que vous devez savoir" />
+        <SectionHeader eyebrow="Questions fréquentes" title="Tout ce que vous devez savoir" />
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           {FAQS.map((faq, i) => (
             <div key={i} className="faq-item">
@@ -551,14 +551,14 @@ export default function ExpositionDigitale() {
                 <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,#0073F4,#000E91)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 12px 32px rgba(0,14,145,.3)' }}>
                   <Ico name="check" size={32} color="#fff" />
                 </div>
-                <h3 style={{ fontSize: 'clamp(18px,4vw,24px)', fontWeight: 900, color: '#0f172a', marginBottom: 10 }}>Demande recue !</h3>
-                <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.8 }}>Notre equipe COPAF vous contactera dans les <strong style={{ color: '#0073F4' }}>24 heures</strong> pour confirmer votre exposition.</p>
+                <h3 style={{ fontSize: 'clamp(18px,4vw,24px)', fontWeight: 900, color: '#0f172a', marginBottom: 10 }}>Demande reçue !</h3>
+                <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.8 }}>Notre équipe COPAF vous contactera dans les <strong style={{ color: '#0073F4' }}>24 heures</strong> pour confirmer votre exposition.</p>
               </div>
             ) : (
               <>
                 <div style={{ textAlign: 'center', marginBottom: 28 }}>
-                  <h2 style={{ fontSize: 'clamp(20px,4vw,28px)', fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>Reservez votre exposition</h2>
-                  <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.6 }}>Soumettez votre demande pour COPAF 2026. Notre equipe vous contacte sous 24h.</p>
+                  <h2 style={{ fontSize: 'clamp(20px,4vw,28px)', fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>Réservez votre exposition</h2>
+                  <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.6 }}>Soumettez votre demande pour COPAF 2026. Notre équipe vous contacte sous 24h.</p>
                 </div>
                 <form onSubmit={submitForm} noValidate>
                   <div className="form-row-2">
@@ -566,23 +566,23 @@ export default function ExpositionDigitale() {
                     <div><label style={lbl}>Secteur</label><input name="sector" value={formData.sector} onChange={handleField} placeholder="Ex : Logistique portuaire" style={inp('sector')} {...foc('sector')} /></div>
                   </div>
                   <div className="form-row-2">
-                    <div><label style={lbl}>Nom & Prenom *</label><input name="name" value={formData.name} onChange={handleField} required placeholder="Prenom Nom" style={inp('name')} {...foc('name')} autoComplete="name" /></div>
-                    <div><label style={lbl}>Poste</label><input name="role" value={formData.role} onChange={handleField} placeholder="Ex : Directeur General" style={inp('role')} {...foc('role')} /></div>
+                    <div><label style={lbl}>Nom & Prénom *</label><input name="name" value={formData.name} onChange={handleField} required placeholder="Prénom Nom" style={inp('name')} {...foc('name')} autoComplete="name" /></div>
+                    <div><label style={lbl}>Poste</label><input name="role" value={formData.role} onChange={handleField} placeholder="Ex : Directeur Général" style={inp('role')} {...foc('role')} /></div>
                   </div>
                   <div style={{ marginBottom: 14 }}><label style={lbl}>Email *</label><input type="email" name="email" value={formData.email} onChange={handleField} required placeholder="contact@entreprise.com" style={inp('email')} {...foc('email')} autoComplete="email" /></div>
-                  <div style={{ marginBottom: 14 }}><label style={lbl}>Telephone / WhatsApp</label><input type="tel" name="phone" value={formData.phone} onChange={handleField} placeholder="+212 600 000 000" style={inp('phone')} {...foc('phone')} autoComplete="tel" /></div>
+                  <div style={{ marginBottom: 14 }}><label style={lbl}>Téléphone / WhatsApp</label><input type="tel" name="phone" value={formData.phone} onChange={handleField} placeholder="+212 600 000 000" style={inp('phone')} {...foc('phone')} autoComplete="tel" /></div>
                   <div style={{ marginBottom: 14 }}>
-                    <label style={lbl}>Formule souhaitee *</label>
+                    <label style={lbl}>Formule souhaitée *</label>
                     <select value={selectedPlan} onChange={e => setSelectedPlan(e.target.value)} required style={{ ...inp('plan'), cursor: 'pointer', color: selectedPlan ? '#0f172a' : '#94a3b8' }} {...foc('plan')}>
-                      <option value="">-- Selectionnez une formule --</option>
-                      <option value="ESSENTIELLE">ESSENTIELLE — 500 EUR</option>
-                      <option value="AVANCEE">AVANCEE — 1 500 EUR</option>
-                      <option value="PREMIUM">PREMIUM — 3 000 EUR</option>
+                      <option value="">-- Sélectionnez une formule --</option>
+                      <option value="ESSENTIELLE">ESSENTIELLE — 500 €</option>
+                      <option value="AVANCEE">AVANCÉE — 1 500 €</option>
+                      <option value="PREMIUM">PREMIUM — 3 000 €</option>
                     </select>
                   </div>
                   <div style={{ marginBottom: 22 }}>
                     <label style={lbl}>Vos objectifs pour COPAF 2026</label>
-                    <textarea name="goals" value={formData.goals} onChange={handleField} rows={3} placeholder="Ex : Trouver des partenaires en Afrique de l'Ouest, presenter notre solution..." style={{ ...inp('goals'), resize: 'vertical', minHeight: 80 }} {...foc('goals')} />
+                    <textarea name="goals" value={formData.goals} onChange={handleField} rows={3} placeholder="Ex : Trouver des partenaires en Afrique de l'Ouest, présenter notre solution..." style={{ ...inp('goals'), resize: 'vertical', minHeight: 80 }} {...foc('goals')} />
                   </div>
                   {formError && (
                     <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#dc2626', marginBottom: 18 }}>
@@ -592,7 +592,7 @@ export default function ExpositionDigitale() {
                   <button type="submit" className="submit-btn" disabled={loading}>
                     {loading ? <><div className="spinner" />Envoi en cours...</> : <>Envoyer ma demande <Ico name="send" size={16} color="#fff" /></>}
                   </button>
-                  <p style={{ textAlign: 'center', fontSize: 12, color: '#94a3b8', marginTop: 14, lineHeight: 1.6 }}>Notre equipe vous repondra sous 24h ouvrées.</p>
+                  <p style={{ textAlign: 'center', fontSize: 12, color: '#94a3b8', marginTop: 14, lineHeight: 1.6 }}>Notre équipe vous répondra sous 24h ouvrées.</p>
                 </form>
               </>
             )}
@@ -601,7 +601,7 @@ export default function ExpositionDigitale() {
       </section>
 
       <footer style={{ background: '#0a0f2c', padding: 'clamp(20px,4vw,32px) clamp(16px,5vw,60px)', textAlign: 'center', fontSize: 11, color: 'rgba(255,255,255,.3)', letterSpacing: 1, textTransform: 'uppercase', lineHeight: 1.8 }}>
-        &copy; 2026 COPAF &mdash; Tanger Med &middot; Exposition 100% Digitale &middot; Tous droits reserves
+        &copy; 2026 COPAF &mdash; Casablanca &middot; Exposition 100% Digitale &middot; Tous droits réservés
       </footer>
 
       {activeModal && (
