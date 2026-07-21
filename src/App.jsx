@@ -6,6 +6,7 @@ import Programme from './components/Programme'
 import Modules from './components/Modules'
 import Intervenants from './components/Intervenants'
 import Inscription from './components/Inscription'
+import Contact from './components/Contact'
 import Footer from './components/Footer'
 import AdminDashboard from './components/AdminDashboard'
 import AdminGate from './components/AdminGate'
@@ -35,6 +36,7 @@ const MainSite = () => (
       <Modules />
       <Intervenants />
       <Inscription />
+      <Contact />
       <Footer />
     </main>
   </>

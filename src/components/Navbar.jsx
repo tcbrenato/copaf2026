@@ -76,9 +76,9 @@ const Navbar = () => {
   const handleContact = () => {
     closeMobileMenu()
     if (isHome) {
-      scrollTo('inscription')
+      scrollTo('contact')
     } else {
-      window.location.href = '/#inscription'
+      window.location.href = '/#contact'
     }
   }
 
