@@ -93,9 +93,9 @@ const Navbar = () => {
   }
 
   const conferenceLinks = [
-    { label: 'Programme',    id: 'programme' },
-    { label: 'Modules',      id: 'modules' },
-    { label: 'Intervenants', id: 'formateurs' },
+    { label: 'Programme',        id: 'programme' },
+    { label: 'Axes Thématiques', id: 'axes-thematiques' },
+    { label: 'Intervenants',     id: 'formateurs' },
   ]
 
   // ✅ CORRIGÉ : virgule mal placée supprimée

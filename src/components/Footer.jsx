@@ -161,10 +161,10 @@ const Footer = () => {
           }}>
             Navigation
           </div>
-          {['À Propos', 'Programme', 'Modules', 'Inscription'].map((link, i) => (
+          {['À Propos', 'Programme', 'Axes Thématiques', 'Inscription'].map((link, i) => (
             <div key={i} style={{ marginBottom: 12 }}>
               <a
-                href={`#${link.toLowerCase().replace('à ', '').replace(' ', '')}`}
+                href={`#${link.toLowerCase().replace('à ', '').replace(/\s+/g, '-')}`}
                 style={{
                   fontSize: 'clamp(13px, 1.8vw, 14px)',
                   color: 'rgba(255,255,255,0.5)',
