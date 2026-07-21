@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 const intervenants = [
   {
@@ -7,6 +7,7 @@ const intervenants = [
     nom: 'Expert Partenaire A',
     titre: 'À confirmer',
     organisation: 'À confirmer',
+    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
   },
   {
     initiales: 'PB',
@@ -14,6 +15,7 @@ const intervenants = [
     nom: 'Expert Partenaire B',
     titre: 'À confirmer',
     organisation: 'À confirmer',
+    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
   },
   {
     initiales: 'RA',
@@ -21,13 +23,7 @@ const intervenants = [
     nom: 'Expert Recruté A',
     titre: 'À confirmer',
     organisation: 'À confirmer',
-  },
-  {
-    initiales: 'RB',
-    photo: '/intervenant6.png',
-    nom: 'Expert Recruté B',
-    titre: 'À confirmer',
-    organisation: 'À confirmer',
+    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
   },
   {
     initiales: 'WO',
@@ -35,6 +31,39 @@ const intervenants = [
     nom: 'Dr. William ODAH',
     titre: 'Expert en Gouvernance Stratégique et Développement Portuaire',
     organisation: 'CRF Perfection',
+    bio: "Directeur Général de CRF Perfection, le Dr. William ODAH accompagne depuis de nombreuses années institutions et entreprises d'Afrique de l'Ouest dans leurs projets de gouvernance stratégique, de formation et de développement portuaire. Il intervient régulièrement auprès d'acteurs publics et privés du secteur maritime et logistique, avec une attention particulière portée à la structuration des organisations et au renforcement des compétences. Son expertise couvre la conduite du changement institutionnel, la formation des cadres et l'accompagnement stratégique des projets à fort enjeu portuaire.",
+  },
+  {
+    initiales: 'RB',
+    photo: '/intervenant6.png',
+    nom: 'Expert Recruté B',
+    titre: 'À confirmer',
+    organisation: 'À confirmer',
+    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
+  },
+  {
+    initiales: 'MB',
+    photo: '/marc.png',
+    nom: 'Marc Biegniébé',
+    titre: 'Directeur Général',
+    organisation: 'ANAXAR',
+    bio: "Marc Biegniébé est Directeur Général d'ANAXAR, entreprise de transport routier opérant sur les corridors reliant le port de Lomé aux pays de l'hinterland — Burkina Faso, Mali et Niger. Fort de plus de 10 ans d'expérience dans la chaîne logistique portuaire et transfrontalière, il intervient sur les enjeux de fluidité des corridors, de dédouanement et de digitalisation du transport en Afrique de l'Ouest.",
+  },
+  {
+    initiales: 'PC',
+    photo: '/intervenant7.png',
+    nom: 'Expert Partenaire C',
+    titre: 'À confirmer',
+    organisation: 'À confirmer',
+    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
+  },
+  {
+    initiales: 'RC',
+    photo: '/intervenant8.png',
+    nom: 'Expert Recruté C',
+    titre: 'À confirmer',
+    organisation: 'À confirmer',
+    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
   },
   {
     initiales: 'RT',
@@ -42,10 +71,13 @@ const intervenants = [
     nom: 'Rénato TCHOBO',
     titre: 'Expert en Transformation Digitale & Consultant en Solutions Numériques',
     organisation: 'CRF Perfection',
+    bio: "Rénato TCHOBO est Chief Digital & IT Officer chez CRF Perfection, où il pilote le développement web, la stratégie digitale et la transformation numérique des projets institutionnels et événementiels. Diplômé en Sciences du Langage et de la Communication de l'Université d'Abomey-Calavi et certifié Référent Digital par Simplon Bénin, il poursuit actuellement un Master en Marketing & Gestion des Projets Numériques à l'ESCEN, où il enseigne également le marketing digital. Consultant freelance en développement web et community management, il conçoit et déploie des plateformes numériques complètes — de la conception à la mise en production — pour des organisations basées à Cotonou et à l'international.",
   },
 ]
 
 const Intervenants = () => {
+  const [activeModal, setActiveModal] = useState(null)
+
   return (
     <section id="formateurs" style={{
       padding: 'clamp(80px, 10vw, 130px) clamp(20px, 5vw, 80px)',
@@ -101,7 +133,7 @@ const Intervenants = () => {
           gap: 28,
         }}>
           {intervenants.map((p, i) => (
-            <div key={i} className="intervenant-card">
+            <div key={i} className="intervenant-card" onClick={() => setActiveModal(p)} style={{ cursor: 'pointer' }}>
               <div
                 className="intervenant-card-inner"
                 onMouseEnter={e => {
@@ -156,8 +188,15 @@ const Intervenants = () => {
                 }}>
                   {p.titre}
                 </div>
-                <div style={{ fontSize: 12, color: '#888', letterSpacing: 0.3 }}>
+                <div style={{ fontSize: 12, color: '#888', letterSpacing: 0.3, marginBottom: 10 }}>
                   {p.organisation}
+                </div>
+                <div style={{
+                  fontSize: 12, fontWeight: 700, color: '#0073f4',
+                  display: 'flex', alignItems: 'center', gap: 6,
+                }}>
+                  Lire la biographie
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0073f4" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </div>
               </div>
               </div>
@@ -203,7 +242,82 @@ const Intervenants = () => {
           @keyframes intervenant-border-spin {
             to { transform: rotate(360deg); }
           }
+          .intervenant-modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(15,23,42,.55);
+            backdrop-filter: blur(6px);
+            z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+            animation: intervenant-fade-in .2s ease;
+          }
+          .intervenant-modal-box {
+            background: #fff;
+            border-radius: 22px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 86vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 24px 60px rgba(0,0,0,.2);
+            animation: intervenant-slide-up .3s ease;
+          }
+          @keyframes intervenant-fade-in { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes intervenant-slide-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
         `}</style>
+
+        {activeModal && (
+          <div className="intervenant-modal-overlay" onClick={() => setActiveModal(null)}>
+            <div className="intervenant-modal-box" onClick={e => e.stopPropagation()}>
+              <button
+                onClick={() => setActiveModal(null)}
+                style={{
+                  position: 'absolute', top: 16, right: 16, zIndex: 2,
+                  background: 'rgba(255,255,255,0.9)', border: 'none',
+                  width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(0,0,0,.15)',
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+
+              <div style={{ width: '100%', aspectRatio: '16 / 9', position: 'relative', background: '#EBF3FF' }}>
+                {activeModal.photo ? (
+                  <img
+                    src={activeModal.photo}
+                    alt={activeModal.nom}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '100%', height: '100%',
+                    background: 'linear-gradient(135deg, #000e91, #0073f4)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#FFFFFF', fontSize: 48, fontWeight: 700,
+                  }}>
+                    {activeModal.initiales}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ padding: '28px 32px 36px' }}>
+                <h3 style={{ fontSize: 24, fontWeight: 900, color: '#000e91', margin: '0 0 6px', letterSpacing: '-0.01em' }}>
+                  {activeModal.nom}
+                </h3>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#0073f4', marginBottom: 4 }}>
+                  {activeModal.titre}
+                </div>
+                <div style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>
+                  {activeModal.organisation}
+                </div>
+                <p style={{ fontSize: 14.5, color: '#334155', lineHeight: 1.8 }}>
+                  {activeModal.bio}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </section>
