@@ -1,5 +1,5 @@
 ﻿import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Navbar from './components/Navbar'
+import HeaderStack from './components/HeaderStack'
 import Hero from './components/Hero'
 import About from './components/About'
 import Programme from './components/Programme'
@@ -11,7 +11,6 @@ import Footer from './components/Footer'
 import AdminDashboard from './components/AdminDashboard'
 import AdminGate from './components/AdminGate'
 import Partners from './components/Partners'
-import FlashInfoTicker from './components/FlashInfoTicker'
 import { useAnalytics } from './useAnalytics'
 import Partenariats from './pages/Partenariats'
 import ExpositionDigitale from './pages/ExpositionDigitale'
@@ -26,11 +25,14 @@ const AnalyticsTracker = () => {
 }
 
 // ─── Page d'accueil principale ────────────────────────────────────────────────
+// NOTE : HeaderStack (Navbar + FlashInfoTicker) est fixed, donc le contenu qui
+// suit doit compenser sa hauteur totale (~ hauteur nav + ~44px du bandeau).
+// Ajuste ce paddingTop si le premier bloc visible (Hero) semble encore
+// legerement chevauche par le bandeau.
 const MainSite = () => (
   <>
-    <Navbar />
-    <FlashInfoTicker />
-    <main>
+    <HeaderStack />
+    <main style={{ paddingTop: 44 }}>
       <Hero />
       <Partners />
       <About />
@@ -47,9 +49,8 @@ const MainSite = () => (
 // ─── Page Inscription seule ───────────────────────────────────────────────────
 const InscriptionPage = () => (
   <>
-    <Navbar />
-    <FlashInfoTicker />
-    <div style={{ paddingTop: 80 }}>
+    <HeaderStack />
+    <div style={{ paddingTop: 124 }}>
       <Inscription />
     </div>
     <Footer />
@@ -59,9 +60,8 @@ const InscriptionPage = () => (
 // ─── Page Verification anti-fraude ────────────────────────────────────────────
 const VerifierPage = () => (
   <>
-    <Navbar />
-    <FlashInfoTicker />
-    <div style={{ paddingTop: 80 }}>
+    <HeaderStack />
+    <div style={{ paddingTop: 124 }}>
       <VerifierDossier />
     </div>
     <Footer />

@@ -129,8 +129,14 @@ const Navbar = () => {
 
   return (
     <>
+      {/*
+        NOTE : ce <nav> n'est plus en position:fixed — c'est desormais
+        HeaderStack.jsx (qui englobe Navbar + FlashInfoTicker) qui gere la
+        fixation en haut de l'ecran. Le nav reste donc en flux normal, mais
+        visuellement identique puisque HeaderStack est lui-meme fixed en haut.
+      */}
       <nav style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
+        position: 'relative', top: 0, left: 0, right: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: scrolled ? '10px 24px' : '16px 24px',
         background: '#000e91',
