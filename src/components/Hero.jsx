@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import BrochureDownloadButton from './BrochureDownloadButton'
 
 const images = [
   "/hero1.png",
@@ -220,6 +221,23 @@ const Hero = () => {
             >
               Voir le Programme
             </button>
+
+            {/* Telechargement brochure (capture email) — style adapte au fond sombre du Hero */}
+            <BrochureDownloadButton
+              label="Télécharger la brochure"
+              style={{
+                background: 'rgba(255,255,255,0.07)',
+                color: '#fff',
+                border: '1.5px solid rgba(255,255,255,0.30)',
+                padding: '11px 28px',
+                borderRadius: '10px',
+                fontWeight: 700,
+                fontSize: '13px',
+                letterSpacing: '1px',
+                textTransform: 'uppercase',
+                backdropFilter: 'blur(6px)',
+              }}
+            />
           </div>
         </div>
 
