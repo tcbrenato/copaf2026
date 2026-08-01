@@ -9,6 +9,7 @@ const partners = [
   { url: '/pac.png', name: 'PAC' },
   { url: '/portdouala.png', name: 'Port Autonome de Douala' },
   { url: '/portkribi.png', name: 'Port Autonome de Kribi' },
+  { url: '/sierraport.png', name: 'Sierra Leone Ports and Harbours Authority' },
 ]
 
 const Partners = () => {
