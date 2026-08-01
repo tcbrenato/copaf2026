@@ -11,6 +11,7 @@ import Footer from './components/Footer'
 import AdminDashboard from './components/AdminDashboard'
 import AdminGate from './components/AdminGate'
 import Partners from './components/Partners'
+import FlashInfoTicker from './components/FlashInfoTicker'
 import { useAnalytics } from './useAnalytics'
 import Partenariats from './pages/Partenariats'
 import ExpositionDigitale from './pages/ExpositionDigitale'
@@ -28,6 +29,7 @@ const AnalyticsTracker = () => {
 const MainSite = () => (
   <>
     <Navbar />
+    <FlashInfoTicker />
     <main>
       <Hero />
       <Partners />
@@ -46,6 +48,7 @@ const MainSite = () => (
 const InscriptionPage = () => (
   <>
     <Navbar />
+    <FlashInfoTicker />
     <div style={{ paddingTop: 80 }}>
       <Inscription />
     </div>
@@ -57,6 +60,7 @@ const InscriptionPage = () => (
 const VerifierPage = () => (
   <>
     <Navbar />
+    <FlashInfoTicker />
     <div style={{ paddingTop: 80 }}>
       <VerifierDossier />
     </div>
