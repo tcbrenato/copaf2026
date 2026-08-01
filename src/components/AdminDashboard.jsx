@@ -929,10 +929,21 @@ function SectionAnalytics() {
   }, [sessions])
   const maxDevice = deviceEntries[0]?.[1] || 1
 
-  // Répartition sources / referrers
+  // Répartition sources / referrers — priorite au parametre UTM (fiable,
+  // survit au nettoyage du referrer par LinkedIn) avant de retomber sur le
+  // referrer brut si aucun UTM n'est present sur la visite.
   const sourceEntries = useMemo(() => {
     const m = {}
-    pageViews.forEach(p => { const s = parseSource(p.referrer); m[s] = (m[s] || 0) + 1 })
+    const utmLabel = {
+      linkedin: 'LinkedIn', facebook: 'Facebook', instagram: 'Instagram',
+      whatsapp: 'WhatsApp', email: 'Email', newsletter: 'Newsletter',
+    }
+    pageViews.forEach(p => {
+      const s = p.utm_source
+        ? (utmLabel[p.utm_source.toLowerCase()] || p.utm_source)
+        : parseSource(p.referrer)
+      m[s] = (m[s] || 0) + 1
+    })
     return Object.entries(m).sort((a, b) => b[1] - a[1])
   }, [pageViews])
   const maxSource = sourceEntries[0]?.[1] || 1
