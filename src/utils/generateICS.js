@@ -3,19 +3,45 @@
 // Genere un fichier .ics telechargeable pour ajouter la COPAF 2026
 // au calendrier du participant (Google Calendar, Outlook, Apple Calendar).
 // Aucune dependance externe, aucun compte requis.
+//
+// NOTE : structure du fichier .ics strictement inchangee. Seul le texte
+// (titre, description, rappel) varie selon `lang` (fr|en).
 
 function toICSDate(date) {
   return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 }
 
+const TXT = {
+  fr: {
+    title: 'COPAF 2026 — Conférence des Ports Africains',
+    description: "Smart Port Africain : Intelligence Artificielle et cybersécurité au service de la performance.",
+    location: 'Port de Casablanca, Royaume du Maroc',
+    plusInfos: "Plus d'infos",
+    rappel: 'Rappel — COPAF 2026 dans 7 jours',
+  },
+  en: {
+    title: 'COPAF 2026 — Conference of African Ports',
+    description: 'Smart African Port: Artificial Intelligence and cybersecurity for enhanced performance.',
+    location: 'Port of Casablanca, Kingdom of Morocco',
+    plusInfos: 'More information',
+    rappel: 'Reminder — COPAF 2026 in 7 days',
+  },
+}
+
 export function generateICS({
   dossier,
-  title = 'COPAF 2026 — Conférence des Ports Africains',
-  description = "Smart Port Africain : Intelligence Artificielle et cybersécurité au service de la performance.",
-  location = 'Port de Casablanca, Royaume du Maroc',
+  lang = 'fr',
+  title,
+  description,
+  location,
   start = new Date('2026-09-15T09:00:00'),
   end = new Date('2026-09-17T17:30:00'),
 } = {}) {
+  const L = TXT[lang] || TXT.fr
+  const finalTitle = title || L.title
+  const finalDescription = description || L.description
+  const finalLocation = location || L.location
+
   const uid = `${dossier || 'copaf2026'}-${Date.now()}@copaf-ports.com`
   const now = toICSDate(new Date())
 
@@ -30,14 +56,14 @@ export function generateICS({
     `DTSTAMP:${now}`,
     `DTSTART:${toICSDate(start)}`,
     `DTEND:${toICSDate(end)}`,
-    `SUMMARY:${title}`,
-    `DESCRIPTION:${description}\\n\\nPlus d'infos : https://copaf-ports.com`,
-    `LOCATION:${location}`,
+    `SUMMARY:${finalTitle}`,
+    `DESCRIPTION:${finalDescription}\\n\\n${L.plusInfos} : https://copaf-ports.com`,
+    `LOCATION:${finalLocation}`,
     'STATUS:CONFIRMED',
     'BEGIN:VALARM',
     'TRIGGER:-P7D',
     'ACTION:DISPLAY',
-    'DESCRIPTION:Rappel — COPAF 2026 dans 7 jours',
+    `DESCRIPTION:${L.rappel}`,
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR',

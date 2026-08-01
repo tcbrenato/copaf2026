@@ -10,10 +10,87 @@ const CONTACT_PHONE = '+229 69 30 30 19'
 const OFFICIAL_IBAN = 'BJ66BJ083010010005027398097'
 
 const STATUT_LABEL = {
-  en_attente: { label: 'En cours de traitement', color: '#d97706', bg: '#fef3c7' },
-  reserve:    { label: 'Place réservée — en attente de règlement', color: '#2563eb', bg: '#dbeafe' },
-  confirme:   { label: 'Traité — documents disponibles', color: '#059669', bg: '#d1fae5' },
-  annule:     { label: 'Annulé', color: '#dc2626', bg: '#fee2e2' },
+  fr: {
+    en_attente: { label: 'Inscription bien reçue — en cours de traitement', color: '#d97706', bg: '#fef3c7' },
+    reserve:    { label: 'Place réservée — en attente de règlement', color: '#2563eb', bg: '#dbeafe' },
+    confirme:   { label: 'Traité — documents disponibles', color: '#059669', bg: '#d1fae5' },
+    annule:     { label: 'Annulé', color: '#dc2626', bg: '#fee2e2' },
+  },
+  en: {
+    en_attente: { label: 'Registration received — processing in progress', color: '#d97706', bg: '#fef3c7' },
+    reserve:    { label: 'Spot reserved — awaiting payment', color: '#2563eb', bg: '#dbeafe' },
+    confirme:   { label: 'Processed — documents available', color: '#059669', bg: '#d1fae5' },
+    annule:     { label: 'Cancelled', color: '#dc2626', bg: '#fee2e2' },
+  },
+}
+
+const TR = {
+  fr: {
+    langSwitch: 'FR · English',
+    kicker: 'Vérification & suivi de dossier',
+    title: 'Vérifiez vos informations COPAF 2026',
+    subtitle: "Entrez votre numéro de dossier ou collez l'IBAN reçu pour confirmer l'authenticité de votre demande, et accédez ensuite à votre espace personnel.",
+    searchPh: 'N° de dossier ou IBAN officiel...',
+    searchBtn: 'Vérifier',
+    genericError: 'Erreur lors de la vérification. Réessayez ou contactez-nous directement.',
+    ibanTitle: 'RIB Officiel Certifié & Authentique',
+    ibanText: (org) => <>L'IBAN que vous avez copié correspond exactement au compte bancaire officiel de la <strong>{org}</strong>. Vous pouvez procéder à votre virement en toute sécurité.</>,
+    receivedBannerTitle: 'Inscription bien reçue',
+    dossierVerifTitle: 'Dossier vérifié et authentique',
+    dossierVerifSub: 'Ce numéro correspond bien à une inscription COPAF 2026 réelle.',
+    recapLabels: { dossier: 'Dossier', titulaire: 'Titulaire', participants: 'Participants', statut: 'Statut', date: "Date d'inscription" },
+    espacePerso: 'Mon espace personnel',
+    espacePersoText: 'Confirmez l\'email utilisé lors de votre inscription pour accéder à votre badge numérique, vos documents et le suivi détaillé de votre dossier.',
+    emailPh: 'votre@email.com',
+    validerBtn: 'Valider',
+    emailNoMatch: "Cet email ne correspond pas au dossier renseigné. Vérifiez l'adresse utilisée lors de votre inscription.",
+    timelineSteps: ['Inscription reçue', 'Paiement', 'Confirmé'],
+    timelineAnnule: 'Dossier annulé',
+    badgeTip: 'Astuce : faites une capture d\'écran ou ajoutez cette page à votre écran d\'accueil pour un accès rapide le jour J.',
+    mesDocuments: 'Mes documents',
+    docRecap: 'Récapitulatif', docProforma: 'Facture proforma', docFactureDef: 'Facture définitive', docBadge: 'Badge (image)', docCalendar: 'Ajouter au calendrier',
+    badgeWaiting: 'Le badge sera disponible ici dès que votre paiement sera confirmé par notre équipe.',
+    notFoundTitle: "Cette référence n'existe pas dans notre base",
+    notFoundSub: "Ne procédez à aucun virement avant d'avoir vérifié l'authenticité de cette coordonnée.",
+    notFoundText: (phone) => <>Si un tiers vous a fourni cet IBAN ou ce numéro en prétendant représenter COPAF 2026, contactez-nous immédiatement au <strong>{phone}</strong> avant tout virement bancaire.</>,
+    bankTitle: 'Coordonnées bancaires officielles — les SEULES valables',
+    bankLabels: { banque: 'Banque', titulaire: 'Titulaire' },
+    fraudWarning: (phone) => <><strong>Nous ne changerons JAMAIS ces coordonnées bancaires</strong> par e-mail, SMS ou WhatsApp. Si une personne vous contacte avec un RIB différent en se faisant passer pour COPAF 2026, il s'agit d'une tentative de fraude. Vérifiez toujours sur <strong>copaf-ports.com/verifier</strong> avant tout virement, ou appelez-nous directement au <strong>{phone}</strong>.</>,
+    dateLocale: 'fr-FR',
+  },
+  en: {
+    langSwitch: 'EN · Français',
+    kicker: 'Verification & file tracking',
+    title: 'Verify your COPAF 2026 information',
+    subtitle: 'Enter your file reference number or paste the IBAN you received to confirm the authenticity of your request, then access your personal space.',
+    searchPh: 'File reference or official IBAN...',
+    searchBtn: 'Verify',
+    genericError: 'An error occurred during verification. Please try again or contact us directly.',
+    ibanTitle: 'Certified & Authentic Official Bank Details',
+    ibanText: (org) => <>The IBAN you copied matches exactly the official bank account of <strong>{org}</strong>. You can proceed with your transfer safely.</>,
+    receivedBannerTitle: 'Registration successfully received',
+    dossierVerifTitle: 'File verified and authentic',
+    dossierVerifSub: 'This reference number matches a real COPAF 2026 registration.',
+    recapLabels: { dossier: 'File', titulaire: 'Holder', participants: 'Participants', statut: 'Status', date: 'Registration date' },
+    espacePerso: 'My personal space',
+    espacePersoText: 'Confirm the email used during your registration to access your digital badge, your documents and detailed tracking of your file.',
+    emailPh: 'your@email.com',
+    validerBtn: 'Confirm',
+    emailNoMatch: 'This email does not match the provided file. Please check the address used during your registration.',
+    timelineSteps: ['Registration received', 'Payment', 'Confirmed'],
+    timelineAnnule: 'File cancelled',
+    badgeTip: 'Tip: take a screenshot or add this page to your home screen for quick access on the day.',
+    mesDocuments: 'My documents',
+    docRecap: 'Summary', docProforma: 'Proforma invoice', docFactureDef: 'Final invoice', docBadge: 'Badge (image)', docCalendar: 'Add to calendar',
+    badgeWaiting: 'Your badge will be available here as soon as your payment is confirmed by our team.',
+    notFoundTitle: 'This reference does not exist in our database',
+    notFoundSub: 'Do not proceed with any bank transfer before verifying the authenticity of this reference.',
+    notFoundText: (phone) => <>If someone provided you this IBAN or reference claiming to represent COPAF 2026, contact us immediately at <strong>{phone}</strong> before making any bank transfer.</>,
+    bankTitle: 'Official bank details — the ONLY valid ones',
+    bankLabels: { banque: 'Bank', titulaire: 'Account holder' },
+    fraudWarning: (phone) => <>We will <strong>NEVER change these bank details</strong> by email, SMS or WhatsApp. If someone contacts you with different bank details claiming to represent COPAF 2026, this is a fraud attempt. Always verify at <strong>copaf-ports.com/verifier</strong> before any transfer, or call us directly at <strong>{phone}</strong>.</>,
+    dateLocale: 'en-GB',
+  },
 }
 
 const Ico = ({ name, size = 20, color = 'currentColor' }) => {
@@ -30,23 +107,20 @@ const Ico = ({ name, size = 20, color = 'currentColor' }) => {
     receipt: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 2h16v20l-3-2-3 2-3-2-3 2-3-2-1 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/></svg>,
     calendar:<svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
     plus:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    globe:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
   }
   return icons[name] || null
 }
 
 // ── Timeline de progression ──
-function ProgressTimeline({ statut }) {
-  const steps = [
-    { key: 'inscrit',  label: 'Inscription reçue' },
-    { key: 'paiement', label: 'Paiement' },
-    { key: 'confirme', label: 'Confirmé' },
-  ]
+function ProgressTimeline({ statut, t }) {
+  const steps = t.timelineSteps.map((label, i) => ({ key: ['inscrit','paiement','confirme'][i], label }))
   const activeIndex = statut === 'confirme' ? 2 : statut === 'annule' ? -1 : 1
 
   if (statut === 'annule') {
     return (
       <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 12, padding: '12px 16px', fontSize: 13, color: '#991b1b', fontWeight: 600, textAlign: 'center' }}>
-        Dossier annulé
+        {t.timelineAnnule}
       </div>
     )
   }
@@ -79,7 +153,7 @@ function ProgressTimeline({ statut }) {
 }
 
 // ── Carte badge numerique (style wallet, sans compte Apple/Google requis) ──
-function DigitalBadgeCard({ data }) {
+function DigitalBadgeCard({ data, lang }) {
   return (
     <div style={{
       background: 'linear-gradient(135deg,#000E91,#0073F4)', borderRadius: 20, padding: 24,
@@ -89,7 +163,7 @@ function DigitalBadgeCard({ data }) {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
         <div>
           <div style={{ fontSize: 11, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700 }}>COPAF 2026</div>
-          <div style={{ fontSize: 10, opacity: 0.55 }}>Badge participant numérique</div>
+          <div style={{ fontSize: 10, opacity: 0.55 }}>{lang === 'en' ? 'Digital participant badge' : 'Badge participant numérique'}</div>
         </div>
         <Ico name="badge" size={22} color="rgba(255,255,255,.6)" />
       </div>
@@ -101,13 +175,17 @@ function DigitalBadgeCard({ data }) {
         borderTop: '1px solid rgba(255,255,255,.2)', paddingTop: 14,
       }}>
         <span style={{ fontSize: 11, fontFamily: 'monospace', letterSpacing: 1, opacity: 0.85 }}>{data.dossier}</span>
-        <span style={{ fontSize: 10, opacity: 0.6 }}>15–17 Sept. Casablanca</span>
+        <span style={{ fontSize: 10, opacity: 0.6 }}>15–17 {lang === 'en' ? 'Sept. Casablanca' : 'Sept. Casablanca'}</span>
       </div>
     </div>
   )
 }
 
 export default function VerifierDossier() {
+  const [lang, setLang] = useState('fr')
+  const t = TR[lang]
+  const STATUTS = STATUT_LABEL[lang]
+
   const [input,   setInput]   = useState('')
   const [loading, setLoading] = useState(false)
   const [result,  setResult]  = useState(undefined)
@@ -138,7 +216,7 @@ export default function VerifierDossier() {
       if (data && data.length > 0) setResult({ type: 'dossier', ...data[0] })
       else setResult(null)
     } catch (err) {
-      setError('Erreur lors de la vérification. Réessayez ou contactez-nous directement.')
+      setError(t.genericError)
       setResult(undefined)
     }
     setLoading(false)
@@ -161,7 +239,7 @@ export default function VerifierDossier() {
       if (err) throw new Error(err.message)
       setTrackResult(data && data.length > 0 ? data[0] : null)
     } catch (err) {
-      setTrackError('Erreur lors de la vérification. Réessayez ou contactez-nous directement.')
+      setTrackError(t.genericError)
       setTrackResult(undefined)
     }
     setTrackLoading(false)
@@ -175,14 +253,14 @@ export default function VerifierDossier() {
   const handleDownloadRecap = async () => {
     setGenLoading('recap')
     try {
-      await generateRecapPDF({ form: formData(), dossier: trackResult.dossier, nb: trackResult.participants, total: trackResult.montant, paiementMode: trackResult.paiement_mode })
+      await generateRecapPDF({ form: formData(), dossier: trackResult.dossier, nb: trackResult.participants, total: trackResult.montant, paiementMode: trackResult.paiement_mode, lang })
     } finally { setGenLoading('') }
   }
 
   const handleDownloadProforma = async () => {
     setGenLoading('proforma')
     try {
-      await generateProformaPDF({ form: formData(), dossier: trackResult.dossier, nb: trackResult.participants, total: trackResult.montant })
+      await generateProformaPDF({ form: formData(), dossier: trackResult.dossier, nb: trackResult.participants, total: trackResult.montant, lang })
     } finally { setGenLoading('') }
   }
 
@@ -190,7 +268,7 @@ export default function VerifierDossier() {
     if (!trackResult.numero_facture) return
     setGenLoading('facture')
     try {
-      await generateFactureDefinitivePDF({ form: formData(), dossier: trackResult.dossier, numeroFacture: trackResult.numero_facture, nb: trackResult.participants, total: trackResult.montant })
+      await generateFactureDefinitivePDF({ form: formData(), dossier: trackResult.dossier, numeroFacture: trackResult.numero_facture, nb: trackResult.participants, total: trackResult.montant, lang })
     } finally { setGenLoading('') }
   }
 
@@ -201,7 +279,7 @@ export default function VerifierDossier() {
     } finally { setGenLoading('') }
   }
 
-  const handleAddToCalendar = () => generateICS({ dossier: trackResult?.dossier })
+  const handleAddToCalendar = () => generateICS({ dossier: trackResult?.dossier, lang })
 
   return (
     <section style={{
@@ -213,20 +291,30 @@ export default function VerifierDossier() {
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner { width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite; }
+        .lang-switch{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:100px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;color:#0073F4;transition:all .2s}
+        .lang-switch:hover{border-color:#0073F4;background:#EBF3FF}
       `}</style>
 
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 20px' }}>
 
+        {/* SELECTEUR DE LANGUE */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+          <button className="lang-switch" type="button" onClick={() => setLang(l => l === 'fr' ? 'en' : 'fr')}>
+            <Ico name="globe" size={14} color="#0073F4" />
+            {t.langSwitch}
+          </button>
+        </div>
+
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#000E91', borderRadius: 100, padding: '8px 22px', marginBottom: 20 }}>
             <Ico name="shield" size={14} color="#0073F4" />
-            <span style={{ color: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase' }}>Vérification &amp; suivi de dossier</span>
+            <span style={{ color: '#fff', fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase' }}>{t.kicker}</span>
           </div>
           <h1 style={{ fontSize: 'clamp(24px,4.5vw,38px)', fontWeight: 900, color: '#0f172a', marginBottom: 12, lineHeight: 1.15 }}>
-            Vérifiez vos informations COPAF 2026
+            {t.title}
           </h1>
           <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7, maxWidth: 480, margin: '0 auto' }}>
-            Entrez votre numéro de dossier <strong>ou collez l'IBAN reçu</strong> pour confirmer l'authenticité de votre demande, et accédez ensuite à votre espace personnel.
+            {t.subtitle}
           </p>
         </div>
 
@@ -238,7 +326,7 @@ export default function VerifierDossier() {
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="N° de dossier ou IBAN officiel..."
+            placeholder={t.searchPh}
             style={{ flex: '1 1 220px', padding: '14px 16px', fontSize: 15, fontFamily: 'inherit', color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 12, outline: 'none', boxSizing: 'border-box' }}
           />
           <button type="submit" disabled={loading} style={{
@@ -249,7 +337,7 @@ export default function VerifierDossier() {
             opacity: loading ? 0.7 : 1, flexShrink: 0,
           }}>
             {loading ? <div className="spinner" /> : <Ico name="search" size={16} color="#fff" />}
-            Vérifier
+            {t.searchBtn}
           </button>
         </form>
 
@@ -266,9 +354,9 @@ export default function VerifierDossier() {
                 <Ico name="check" size={22} color="#059669" />
               </div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#065f46' }}>RIB Officiel Certifié &amp; Authentique</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#065f46' }}>{t.ibanTitle}</div>
                 <div style={{ fontSize: 13, color: '#047857', marginTop: 2, lineHeight: 1.4 }}>
-                  L'IBAN que vous avez copié correspond exactement au compte bancaire officiel de la <strong>COPAF 2026 (SGBE Bénin)</strong>. Vous pouvez procéder à votre virement en toute sécurité.
+                  {t.ibanText('COPAF 2026 (SGBE Bénin)')}
                 </div>
               </div>
             </div>
@@ -277,23 +365,33 @@ export default function VerifierDossier() {
 
         {result && result.type === 'dossier' && (
           <div style={{ background: '#fff', border: '1.5px solid #a7f3d0', borderRadius: 20, padding: 28, marginBottom: 24, boxShadow: '0 8px 32px rgba(5,150,105,.1)' }}>
+
+            {/* Bandeau "inscription bien reçue" toujours visible des qu'un dossier est trouve */}
+            <div style={{ background: (STATUTS[result.statut] || {}).bg || '#f1f5f9', border: `1px solid ${(STATUTS[result.statut] || {}).color || '#cbd5e1'}40`, borderRadius: 14, padding: '14px 18px', marginBottom: 20, display: 'flex', gap: 10, alignItems: 'center' }}>
+              <Ico name="check" size={18} color={(STATUTS[result.statut] || {}).color || '#059669'} />
+              <div>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: (STATUTS[result.statut] || {}).color || '#065f46' }}>{t.receivedBannerTitle}</div>
+                <div style={{ fontSize: 12.5, color: (STATUTS[result.statut] || {}).color || '#047857', marginTop: 1 }}>{(STATUTS[result.statut] || {}).label || result.statut}</div>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
               <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Ico name="check" size={22} color="#059669" />
               </div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Dossier vérifié et authentique</div>
-                <div style={{ fontSize: 13, color: '#64748b' }}>Ce numéro correspond bien à une inscription COPAF 2026 réelle.</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>{t.dossierVerifTitle}</div>
+                <div style={{ fontSize: 13, color: '#64748b' }}>{t.dossierVerifSub}</div>
               </div>
             </div>
 
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, padding: '16px 20px', marginBottom: 24 }}>
               {[
-                { l: 'Dossier',      v: result.dossier },
-                { l: 'Titulaire',    v: `${result.initiales} — ${result.organisation || 'N/A'}` },
-                { l: 'Participants', v: result.participants },
-                { l: 'Statut',       v: (STATUT_LABEL[result.statut] || {}).label || result.statut },
-                { l: "Date d'inscription", v: new Date(result.date_inscription).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) },
+                { l: t.recapLabels.dossier,      v: result.dossier },
+                { l: t.recapLabels.titulaire,    v: `${result.initiales} — ${result.organisation || 'N/A'}` },
+                { l: t.recapLabels.participants, v: result.participants },
+                { l: t.recapLabels.statut,       v: (STATUTS[result.statut] || {}).label || result.statut },
+                { l: t.recapLabels.date, v: new Date(result.date_inscription).toLocaleDateString(t.dateLocale, { day: '2-digit', month: 'long', year: 'numeric' }) },
               ].map((row, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: i < 4 ? '1px solid #eef2f7' : 'none', fontSize: 13.5 }}>
                   <span style={{ color: '#94a3b8', fontWeight: 600 }}>{row.l}</span>
@@ -305,17 +403,17 @@ export default function VerifierDossier() {
             {/* ── Espace personnel deverrouille par email ── */}
             <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: 22 }}>
               <div style={{ fontSize: 10, color: '#0073F4', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 10 }}>
-                Mon espace personnel
+                {t.espacePerso}
               </div>
               <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, marginBottom: 14 }}>
-                Confirmez l'email utilisé lors de votre inscription pour accéder à votre badge numérique, vos documents et le suivi détaillé de votre dossier.
+                {t.espacePersoText}
               </p>
 
               <form onSubmit={handleTrackSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
                 <input
                   type="email" required value={trackEmail}
                   onChange={e => setTrackEmail(e.target.value)}
-                  placeholder="votre@email.com"
+                  placeholder={t.emailPh}
                   style={{ flex: '1 1 200px', padding: '11px 14px', fontSize: 13.5, fontFamily: 'inherit', color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }}
                 />
                 <button type="submit" disabled={trackLoading} style={{
@@ -325,7 +423,7 @@ export default function VerifierDossier() {
                   fontFamily: 'inherit', opacity: trackLoading ? 0.7 : 1, flexShrink: 0,
                 }}>
                   {trackLoading ? <div className="spinner" style={{ width: 14, height: 14 }} /> : <Ico name="mail" size={14} color="#fff" />}
-                  Valider
+                  {t.validerBtn}
                 </button>
               </form>
 
@@ -333,7 +431,7 @@ export default function VerifierDossier() {
 
               {trackResult === null && (
                 <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 10, padding: '10px 14px', fontSize: 12.5, color: '#991b1b' }}>
-                  Cet email ne correspond pas au dossier renseigné. Vérifiez l'adresse utilisée lors de votre inscription.
+                  {t.emailNoMatch}
                 </div>
               )}
 
@@ -341,33 +439,32 @@ export default function VerifierDossier() {
                 <div style={{ marginTop: 10 }}>
                   {/* Timeline */}
                   <div style={{ marginBottom: 22 }}>
-                    <ProgressTimeline statut={trackResult.statut} />
+                    <ProgressTimeline statut={trackResult.statut} t={t} />
                   </div>
 
                   <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 100,
                     padding: '7px 16px', marginBottom: 20,
-                    background: (STATUT_LABEL[trackResult.statut] || {}).bg || '#f1f5f9',
-                    color: (STATUT_LABEL[trackResult.statut] || {}).color || '#334155',
+                    background: (STATUTS[trackResult.statut] || {}).bg || '#f1f5f9',
+                    color: (STATUTS[trackResult.statut] || {}).color || '#334155',
                     fontSize: 13, fontWeight: 700,
                   }}>
-                    {(STATUT_LABEL[trackResult.statut] || {}).label || trackResult.statut}
+                    {(STATUTS[trackResult.statut] || {}).label || trackResult.statut}
                   </div>
 
                   {/* Badge numerique visuel */}
                   {trackResult.statut === 'confirme' && (
                     <div style={{ marginBottom: 22 }}>
-                      <DigitalBadgeCard data={trackResult} />
+                      <DigitalBadgeCard data={trackResult} lang={lang} />
                       <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 10, textAlign: 'center', lineHeight: 1.6 }}>
-                        Astuce : faites une capture d'écran ou ajoutez cette page à votre écran d'accueil
-                        pour un accès rapide le jour J.
+                        {t.badgeTip}
                       </p>
                     </div>
                   )}
 
                   {/* Documents */}
                   <div style={{ fontSize: 10, color: '#0073F4', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 10 }}>
-                    Mes documents
+                    {t.mesDocuments}
                   </div>
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
                     <button onClick={handleDownloadRecap} disabled={genLoading === 'recap'} style={{
@@ -376,7 +473,7 @@ export default function VerifierDossier() {
                       color: '#000E91', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
                     }}>
                       {genLoading === 'recap' ? <div className="spinner" style={{ width: 13, height: 13, borderTopColor: '#000E91', borderColor: 'rgba(0,14,145,.3)' }} /> : <Ico name="download" size={14} color="#000E91" />}
-                      Récapitulatif
+                      {t.docRecap}
                     </button>
 
                     <button onClick={handleDownloadProforma} disabled={genLoading === 'proforma'} style={{
@@ -385,7 +482,7 @@ export default function VerifierDossier() {
                       color: '#96182A', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
                     }}>
                       {genLoading === 'proforma' ? <div className="spinner" style={{ width: 13, height: 13, borderTopColor: '#96182A', borderColor: 'rgba(150,24,42,.3)' }} /> : <Ico name="receipt" size={14} color="#96182A" />}
-                      Facture proforma
+                      {t.docProforma}
                     </button>
 
                     {trackResult.numero_facture && (
@@ -395,7 +492,7 @@ export default function VerifierDossier() {
                         color: '#92400e', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
                       }}>
                         {genLoading === 'facture' ? <div className="spinner" style={{ width: 13, height: 13, borderTopColor: '#92400e', borderColor: 'rgba(146,64,14,.3)' }} /> : <Ico name="receipt" size={14} color="#92400e" />}
-                        Facture définitive
+                        {t.docFactureDef}
                       </button>
                     )}
 
@@ -406,7 +503,7 @@ export default function VerifierDossier() {
                         color: '#065f46', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
                       }}>
                         {genLoading === 'badge' ? <div className="spinner" style={{ width: 13, height: 13, borderTopColor: '#065f46', borderColor: 'rgba(6,95,70,.3)' }} /> : <Ico name="badge" size={14} color="#065f46" />}
-                        Badge (image)
+                        {t.docBadge}
                       </button>
                     )}
 
@@ -416,13 +513,13 @@ export default function VerifierDossier() {
                       color: '#334155', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
                     }}>
                       <Ico name="calendar" size={14} color="#334155" />
-                      Ajouter au calendrier
+                      {t.docCalendar}
                     </button>
                   </div>
 
                   {trackResult.statut !== 'confirme' && (
                     <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 6, marginBottom: 0 }}>
-                      Le badge sera disponible ici dès que votre paiement sera confirmé par notre équipe.
+                      {t.badgeWaiting}
                     </p>
                   )}
                 </div>
@@ -438,13 +535,12 @@ export default function VerifierDossier() {
                 <Ico name="alert" size={22} color="#dc2626" />
               </div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: '#7f1d1d' }}>Cette référence n'existe pas dans notre base</div>
-                <div style={{ fontSize: 13, color: '#991b1b' }}>Ne procédez à aucun virement avant d'avoir vérifié l'authenticité de cette coordonnée.</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#7f1d1d' }}>{t.notFoundTitle}</div>
+                <div style={{ fontSize: 13, color: '#991b1b' }}>{t.notFoundSub}</div>
               </div>
             </div>
             <p style={{ fontSize: 13.5, color: '#7f1d1d', lineHeight: 1.7, margin: 0 }}>
-              Si un tiers vous a fourni cet IBAN ou ce numéro en prétendant représenter COPAF 2026, contactez-nous
-              immédiatement au <strong>{CONTACT_PHONE}</strong> avant tout virement bancaire.
+              {t.notFoundText(CONTACT_PHONE)}
             </p>
           </div>
         )}
@@ -454,13 +550,13 @@ export default function VerifierDossier() {
             <div style={{ width: 36, height: 36, borderRadius: 10, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Ico name="bank" size={18} color="#0073F4" />
             </div>
-            <div style={{ fontSize: 14.5, fontWeight: 800, color: '#0f172a' }}>Coordonnées bancaires officielles — les SEULES valables</div>
+            <div style={{ fontSize: 14.5, fontWeight: 800, color: '#0f172a' }}>{t.bankTitle}</div>
           </div>
           {[
-            { l: 'Banque',    v: 'SGBE Bénin', empha: false },
+            { l: t.bankLabels.banque,    v: 'SGBE Bénin', empha: false },
             { l: 'IBAN',      v: 'BJ66 BJ083 01001 00050273980 97', empha: true },
             { l: 'BIC',       v: 'SGBEBJ BX', empha: true },
-            { l: 'Titulaire', v: 'COPAF 2026', empha: false },
+            { l: t.bankLabels.titulaire, v: 'COPAF 2026', empha: false },
           ].map((item, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '11px 0', borderBottom: i < 3 ? '1px solid #f1f5f9' : 'none' }}>
               <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>{item.l}</span>
@@ -472,10 +568,7 @@ export default function VerifierDossier() {
         <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 16, padding: '18px 20px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
           <Ico name="alert" size={18} color="#d97706" />
           <p style={{ fontSize: 13, color: '#78350f', lineHeight: 1.75, margin: 0 }}>
-            <strong>Nous ne changerons JAMAIS ces coordonnées bancaires</strong> par e-mail, SMS ou WhatsApp.
-            Si une personne vous contacte avec un RIB différent en se faisant passer pour COPAF 2026, il s'agit
-            d'une tentative de fraude. Vérifiez toujours sur <strong>copaf-ports.com/verifier</strong> avant
-            tout virement, ou appelez-nous directement au <strong>{CONTACT_PHONE}</strong>.
+            {t.fraudWarning(CONTACT_PHONE)}
           </p>
         </div>
       </div>

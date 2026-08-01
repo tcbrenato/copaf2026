@@ -1,6 +1,9 @@
 // src/utils/generateProformaPDF.js
 //
 // Genere la FACTURE PROFORMA officielle CRF Perfection.
+//
+// NOTE : layout, positions, couleurs et dimensions strictement identiques
+// a la version originale. Seul le texte affiche varie selon `lang` (fr|en).
 
 import jsPDF from 'jspdf'
 
@@ -32,24 +35,89 @@ const RIB = {
   titulaire: 'COPAF 2026',
 }
 
-const PRESTATIONS_INCLUSES = [
-  "Accueil à l'aéroport et installation à l'hôtel",
-  "Navette Aéroport <-> Hôtel (aller-retour)",
-  "Hébergement 4 nuitées en Hôtel 4 étoiles",
-  "Petit-déjeuner & déjeuner pendant les 3 jours",
-  "Accès aux conférences, ateliers & networking",
-  "Visite guidée du port de Casablanca",
-  "Tablette pré-chargée avec études de cas",
-  "Attestation de participation",
-]
+const PRESTATIONS = {
+  fr: [
+    "Accueil à l'aéroport et installation à l'hôtel",
+    "Navette Aéroport <-> Hôtel (aller-retour)",
+    "Hébergement 4 nuitées en Hôtel 4 étoiles",
+    "Petit-déjeuner & déjeuner pendant les 3 jours",
+    "Accès aux conférences, ateliers & networking",
+    "Visite guidée du port de Casablanca",
+    "Tablette pré-chargée avec études de cas",
+    "Attestation de participation",
+  ],
+  en: [
+    'Airport welcome and hotel check-in',
+    'Airport <-> Hotel shuttle (round trip)',
+    '4-night stay in a 4-star hotel',
+    'Breakfast & lunch throughout the 3 days',
+    'Access to conferences, workshops & networking',
+    'Guided tour of the Port of Casablanca',
+    'Pre-loaded tablet with case studies',
+    'Certificate of attendance',
+  ],
+}
+
+const TXT = {
+  fr: {
+    tagline: 'Cabinet de Recherche et de Formation',
+    bandeau: 'FACTURE PROFORMA',
+    emetteur: 'ÉMETTEUR',
+    destinataire: 'DESTINATAIRE',
+    numProforma: 'N° DE PROFORMA',
+    dateEmission: "DATE D'ÉMISSION",
+    validite: 'VALIDITÉ',
+    validite30: '30 jours',
+    detailPrestation: 'Détail de la prestation',
+    colDescription: 'DESCRIPTION',
+    colQte: 'QTÉ',
+    colPu: 'P.U.',
+    colTotal: 'TOTAL',
+    ligneDesc: 'Frais de participation — COPAF 2026',
+    ligneSousDesc: 'Voir prestations incluses ci-dessous',
+    montantTotalTtc: 'MONTANT TOTAL TTC',
+    prestationsIncluses: 'Prestations incluses dans ce montant',
+    coordBancaires: 'Coordonnées bancaires pour règlement',
+    banque: 'Banque', iban: 'IBAN', bic: 'BIC', titulaire: 'Titulaire',
+    mention: "Ce document est une facture proforma établie à titre indicatif pour faciliter l'autorisation interne du virement par les services financiers du client. Elle ne constitue pas une facture définitive au sens comptable et ne peut être utilisée comme justificatif de paiement. Une facture définitive sera émise après réception effective du règlement.",
+    ifuLabel: 'IFU',
+    dateLocale: 'fr-FR',
+    numLocale: 'de-DE',
+  },
+  en: {
+    tagline: 'Research and Training Firm',
+    bandeau: 'PROFORMA INVOICE',
+    emetteur: 'ISSUER',
+    destinataire: 'RECIPIENT',
+    numProforma: 'PROFORMA NO.',
+    dateEmission: 'ISSUE DATE',
+    validite: 'VALIDITY',
+    validite30: '30 days',
+    detailPrestation: 'Service details',
+    colDescription: 'DESCRIPTION',
+    colQte: 'QTY',
+    colPu: 'UNIT PRICE',
+    colTotal: 'TOTAL',
+    ligneDesc: 'Participation fee — COPAF 2026',
+    ligneSousDesc: 'See included services below',
+    montantTotalTtc: 'TOTAL AMOUNT',
+    prestationsIncluses: 'Services included in this amount',
+    coordBancaires: 'Bank details for payment',
+    banque: 'Bank', iban: 'IBAN', bic: 'BIC', titulaire: 'Account holder',
+    mention: "This document is a proforma invoice issued for informational purposes to facilitate internal authorisation of the transfer by the client's financial department. It does not constitute a final invoice for accounting purposes and cannot be used as proof of payment. A final invoice will be issued upon actual receipt of payment.",
+    ifuLabel: 'Tax ID',
+    dateLocale: 'en-GB',
+    numLocale: 'en-US',
+  },
+}
 
 function fmtEur(n) {
   const num = Number(n) || 0
   return `${Number.isInteger(num) ? num : num.toFixed(2)} EUR`
 }
 
-function fmtDateLong(d = new Date()) {
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+function fmtDateLong(d = new Date(), lang = 'fr') {
+  return d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
 function loadImage(src) {
@@ -76,7 +144,9 @@ async function loadLogoCompressed(src, targetHeightPx = 220) {
   return { dataUrl: canvas.toDataURL('image/png'), ratio }
 }
 
-export async function generateProformaPDF({ form, dossier, nb, total, download = true, logoSrc = '/crflogo.png' }) {
+export async function generateProformaPDF({ form, dossier, nb, total, lang = 'fr', download = true, logoSrc = '/crflogo.png' }) {
+  const L = TXT[lang] || TXT.fr
+  const PRESTATIONS_INCLUSES = PRESTATIONS[lang] || PRESTATIONS.fr
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
   const W = doc.internal.pageSize.getWidth()
   const H = doc.internal.pageSize.getHeight()
@@ -123,7 +193,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.5)
   doc.setTextColor(...GRAY)
-  doc.text('Cabinet de Recherche et de Formation', M, 14 + logoH + 12)
+  doc.text(L.tagline, M, 14 + logoH + 12)
 
   const bannerW = 200
   const bannerH = 34
@@ -132,7 +202,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(14)
   doc.setTextColor(...WHITE)
-  doc.text('FACTURE PROFORMA', W - M - bannerW / 2, 20 + bannerH / 2 + 5, { align: 'center' })
+  doc.text(L.bandeau, W - M - bannerW / 2, 20 + bannerH / 2 + 5, { align: 'center' })
 
   y = Math.max(84, 14 + logoH + 22)
   doc.setDrawColor(...MAROON)
@@ -150,8 +220,8 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(7.5)
   doc.setTextColor(...GOLD)
-  doc.text('ÉMETTEUR', M, y)
-  doc.text('DESTINATAIRE', colX2, y)
+  doc.text(L.emetteur, M, y)
+  doc.text(L.destinataire, colX2, y)
   y += 13
 
   doc.setFont('helvetica', 'bold')
@@ -167,7 +237,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
     EMETTEUR.email,
     `${EMETTEUR.tel1}`,
     EMETTEUR.tel2,
-    `IFU : ${EMETTEUR.ifu || '—'}`,
+    `${L.ifuLabel} : ${EMETTEUR.ifu || '—'}`,
     EMETTEUR.rccm,
   ]
   const destLines = [
@@ -196,9 +266,9 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.roundedRect(M, y, contentW, infoH, 5, 5, 'F')
   const infoColW = contentW / 3
   const infos = [
-    ['N° DE PROFORMA', numero],
-    ["DATE D'ÉMISSION", fmtDateLong()],
-    ['VALIDITÉ', '30 jours'],
+    [L.numProforma, numero],
+    [L.dateEmission, fmtDateLong(new Date(), lang)],
+    [L.validite, L.validite30],
   ]
   infos.forEach(([label, value], i) => {
     const x = M + 16 + i * infoColW
@@ -216,7 +286,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   // ══════════════════════════════════════════
   // DETAIL DE LA PRESTATION
   // ══════════════════════════════════════════
-  sectionLabel('Détail de la prestation', y)
+  sectionLabel(L.detailPrestation, y)
   y += 16
 
   const colDesc = contentW * 0.48
@@ -228,10 +298,10 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
   doc.setTextColor(...WHITE)
-  doc.text('DESCRIPTION', M + 10, y + 14.5)
-  doc.text('QTÉ', M + colDesc + colQte / 2, y + 14.5, { align: 'center' })
-  doc.text('P.U.', M + colDesc + colQte + colPU / 2, y + 14.5, { align: 'center' })
-  doc.text('TOTAL', M + contentW - 10, y + 14.5, { align: 'right' })
+  doc.text(L.colDescription, M + 10, y + 14.5)
+  doc.text(L.colQte, M + colDesc + colQte / 2, y + 14.5, { align: 'center' })
+  doc.text(L.colPu, M + colDesc + colQte + colPU / 2, y + 14.5, { align: 'center' })
+  doc.text(L.colTotal, M + contentW - 10, y + 14.5, { align: 'right' })
   y += 22
 
   const rowH = 38
@@ -243,11 +313,11 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9.5)
   doc.setTextColor(...DARK)
-  doc.text('Frais de participation — COPAF 2026', M + 10, y + 16)
+  doc.text(L.ligneDesc, M + 10, y + 16)
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.5)
   doc.setTextColor(...GRAY)
-  doc.text('Voir prestations incluses ci-dessous', M + 10, y + 28)
+  doc.text(L.ligneSousDesc, M + 10, y + 28)
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9.5)
@@ -267,7 +337,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
   doc.setTextColor(220, 200, 150)
-  doc.text('MONTANT TOTAL TTC', W - M - totalW + 14, y + 16)
+  doc.text(L.montantTotalTtc, W - M - totalW + 14, y + 16)
   doc.setFontSize(14.5)
   doc.setTextColor(...WHITE)
   doc.text(fmtEur(total), W - M - 14, y + 29, { align: 'right' })
@@ -276,7 +346,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   // ══════════════════════════════════════════
   // PRESTATIONS INCLUSES
   // ══════════════════════════════════════════
-  sectionLabel('Prestations incluses dans ce montant', y)
+  sectionLabel(L.prestationsIncluses, y)
   y += 15
 
   const boxPad = 10
@@ -299,10 +369,10 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   // ══════════════════════════════════════════
   // RIB
   // ══════════════════════════════════════════
-  sectionLabel('Coordonnées bancaires pour règlement', y)
+  sectionLabel(L.coordBancaires, y)
   y += 15
 
-  const ribRows = [['Banque', RIB.banque], ['IBAN', RIB.iban], ['BIC', RIB.bic], ['Titulaire', RIB.titulaire]]
+  const ribRows = [[L.banque, RIB.banque], [L.iban, RIB.iban], [L.bic, RIB.bic], [L.titulaire, RIB.titulaire]]
   const ribLineH = 16.5
   const ribH = ribRows.length * ribLineH + 12
   doc.setFillColor(...BLUE_BG)
@@ -327,10 +397,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.setFont('helvetica', 'italic')
   doc.setFontSize(7)
   doc.setTextColor(...GRAY)
-  const mention = doc.splitTextToSize(
-    "Ce document est une facture proforma établie à titre indicatif pour faciliter l'autorisation interne du virement par les services financiers du client. Elle ne constitue pas une facture définitive au sens comptable et ne peut être utilisée comme justificatif de paiement. Une facture définitive sera émise après réception effective du règlement.",
-    contentW
-  )
+  const mention = doc.splitTextToSize(L.mention, contentW)
   doc.text(mention, M, y)
   y += mention.length * 9.5
 
@@ -350,7 +417,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, download =
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.5)
   doc.setTextColor(...GRAY)
-  doc.text('Cabinet de Recherche et de Formation Perfection', M, footerY + 14)
+  doc.text(L.tagline === 'Cabinet de Recherche et de Formation' ? 'Cabinet de Recherche et de Formation Perfection' : 'CRF Perfection — Research and Training Firm', M, footerY + 14)
   doc.text(EMETTEUR.email, M, footerY + 26)
   doc.text(`${EMETTEUR.tel1}  ·  ${EMETTEUR.tel2}`, W - M, footerY + 14, { align: 'right' })
 

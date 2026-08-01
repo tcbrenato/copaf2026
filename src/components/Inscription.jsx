@@ -8,7 +8,8 @@ import { useAnalytics } from '../useAnalytics'
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
 const PRIX_UNITAIRE = 3500
 const EMAILJS_SVC   = 'service_x07g4et'
-const EMAILJS_TPL   = 'template_7wrkmm1'
+const EMAILJS_TPL_FR = 'template_7wrkmm1'
+const EMAILJS_TPL_EN = 'template_y2q8tlq'
 const EMAILJS_KEY   = 'zBZAZxCfznICTKLJK'
 const WHATSAPP_NUM  = '22997672200'
 const CONTACT_EMAIL = 'inscriptions@copaf-ports.com'
@@ -40,104 +41,309 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
   return icons[name] || null
 }
 
+/* ============================================================
+   PAYS — value = identifiant stable (stocke en base, INCHANGE),
+   label = { fr, en } pour l'affichage selon la langue choisie.
+   ============================================================ */
 const PAYS = [
-  { value: 'Maroc',               label: 'Maroc' },
-  { value: 'Benin',               label: 'Benin' },
-  { value: 'Togo',                label: 'Togo' },
-  { value: "Cote d'Ivoire",       label: "Cote d'Ivoire" },
-  { value: 'Senegal',             label: 'Senegal' },
-  { value: 'Guinee',              label: 'Guinee' },
-  { value: 'Guinee-Bissau',       label: 'Guinee-Bissau' },
-  { value: 'Guinee Equatoriale',  label: 'Guinee Equatoriale' },
-  { value: 'Mauritanie',          label: 'Mauritanie' },
-  { value: 'Mali',                label: 'Mali' },
-  { value: 'Burkina Faso',        label: 'Burkina Faso' },
-  { value: 'Niger',               label: 'Niger' },
-  { value: 'Nigeria',             label: 'Nigeria' },
-  { value: 'Ghana',               label: 'Ghana' },
-  { value: 'Gambie',              label: 'Gambie' },
-  { value: 'Sierra Leone',        label: 'Sierra Leone' },
-  { value: 'Liberia',             label: 'Liberia' },
-  { value: 'Cameroun',            label: 'Cameroun' },
-  { value: 'Gabon',               label: 'Gabon' },
-  { value: 'Congo',               label: 'Congo (Brazzaville)' },
-  { value: 'RDC',                 label: 'RDC (Congo)' },
-  { value: 'Sao Tome-et-Principe',label: 'Sao Tome-et-Principe' },
-  { value: 'Tchad',               label: 'Tchad' },
-  { value: 'Angola',              label: 'Angola' },
-  { value: 'Cap-Vert',            label: 'Cap-Vert' },
-  { value: 'Afrique du Sud',      label: 'Afrique du Sud' },
-  { value: 'Namibie',             label: 'Namibie' },
-  { value: 'Mozambique',          label: 'Mozambique' },
-  { value: 'Madagascar',          label: 'Madagascar' },
-  { value: 'Maurice',             label: 'Maurice' },
-  { value: 'Algerie',             label: 'Algerie' },
-  { value: 'Tunisie',             label: 'Tunisie' },
-  { value: 'Libye',               label: 'Libye' },
-  { value: 'Egypte',              label: 'Egypte' },
-  { value: 'Kenya',               label: 'Kenya' },
-  { value: 'Tanzanie',            label: 'Tanzanie' },
-  { value: 'Djibouti',            label: 'Djibouti' },
-  { value: 'Ethiopie',            label: 'Ethiopie' },
-  { value: 'Rwanda',              label: 'Rwanda' },
-  { value: 'Ouganda',             label: 'Ouganda' },
-  { value: 'Emirats Arabes Unis', label: 'Emirats Arabes Unis' },
-  { value: 'Arabie Saoudite',     label: 'Arabie Saoudite' },
-  { value: 'Turquie',             label: 'Turquie' },
-  { value: 'Chine',               label: 'Chine' },
-  { value: 'Inde',                label: 'Inde' },
-  { value: 'France',              label: 'France' },
-  { value: 'Belgique',            label: 'Belgique' },
-  { value: 'Allemagne',           label: 'Allemagne' },
-  { value: 'Pays-Bas',            label: 'Pays-Bas' },
-  { value: 'Espagne',             label: 'Espagne' },
-  { value: 'Portugal',            label: 'Portugal' },
-  { value: 'Italie',              label: 'Italie' },
-  { value: 'Royaume-Uni',         label: 'Royaume-Uni' },
-  { value: 'Etats-Unis',          label: 'Etats-Unis' },
-  { value: 'Canada',              label: 'Canada' },
-  { value: 'Bresil',              label: 'Bresil' },
-  { value: 'Autre',               label: 'Autre pays' },
+  { value: 'Maroc',               label: { fr: 'Maroc',               en: 'Morocco' } },
+  { value: 'Benin',               label: { fr: 'Benin',               en: 'Benin' } },
+  { value: 'Togo',                label: { fr: 'Togo',                en: 'Togo' } },
+  { value: "Cote d'Ivoire",       label: { fr: "Cote d'Ivoire",       en: 'Ivory Coast' } },
+  { value: 'Senegal',             label: { fr: 'Senegal',             en: 'Senegal' } },
+  { value: 'Guinee',              label: { fr: 'Guinee',              en: 'Guinea' } },
+  { value: 'Guinee-Bissau',       label: { fr: 'Guinee-Bissau',       en: 'Guinea-Bissau' } },
+  { value: 'Guinee Equatoriale',  label: { fr: 'Guinee Equatoriale',  en: 'Equatorial Guinea' } },
+  { value: 'Mauritanie',          label: { fr: 'Mauritanie',          en: 'Mauritania' } },
+  { value: 'Mali',                label: { fr: 'Mali',                en: 'Mali' } },
+  { value: 'Burkina Faso',        label: { fr: 'Burkina Faso',        en: 'Burkina Faso' } },
+  { value: 'Niger',               label: { fr: 'Niger',               en: 'Niger' } },
+  { value: 'Nigeria',             label: { fr: 'Nigeria',             en: 'Nigeria' } },
+  { value: 'Ghana',               label: { fr: 'Ghana',               en: 'Ghana' } },
+  { value: 'Gambie',              label: { fr: 'Gambie',              en: 'The Gambia' } },
+  { value: 'Sierra Leone',        label: { fr: 'Sierra Leone',        en: 'Sierra Leone' } },
+  { value: 'Liberia',             label: { fr: 'Liberia',             en: 'Liberia' } },
+  { value: 'Cameroun',            label: { fr: 'Cameroun',            en: 'Cameroon' } },
+  { value: 'Gabon',               label: { fr: 'Gabon',               en: 'Gabon' } },
+  { value: 'Congo',               label: { fr: 'Congo (Brazzaville)', en: 'Congo (Brazzaville)' } },
+  { value: 'RDC',                 label: { fr: 'RDC (Congo)',         en: 'DR Congo' } },
+  { value: 'Sao Tome-et-Principe',label: { fr: 'Sao Tome-et-Principe',en: 'Sao Tome and Principe' } },
+  { value: 'Tchad',               label: { fr: 'Tchad',               en: 'Chad' } },
+  { value: 'Angola',              label: { fr: 'Angola',              en: 'Angola' } },
+  { value: 'Cap-Vert',            label: { fr: 'Cap-Vert',            en: 'Cape Verde' } },
+  { value: 'Afrique du Sud',      label: { fr: 'Afrique du Sud',      en: 'South Africa' } },
+  { value: 'Namibie',             label: { fr: 'Namibie',             en: 'Namibia' } },
+  { value: 'Mozambique',          label: { fr: 'Mozambique',          en: 'Mozambique' } },
+  { value: 'Madagascar',          label: { fr: 'Madagascar',          en: 'Madagascar' } },
+  { value: 'Maurice',             label: { fr: 'Maurice',             en: 'Mauritius' } },
+  { value: 'Algerie',             label: { fr: 'Algerie',             en: 'Algeria' } },
+  { value: 'Tunisie',             label: { fr: 'Tunisie',             en: 'Tunisia' } },
+  { value: 'Libye',               label: { fr: 'Libye',               en: 'Libya' } },
+  { value: 'Egypte',              label: { fr: 'Egypte',              en: 'Egypt' } },
+  { value: 'Kenya',               label: { fr: 'Kenya',               en: 'Kenya' } },
+  { value: 'Tanzanie',            label: { fr: 'Tanzanie',            en: 'Tanzania' } },
+  { value: 'Djibouti',            label: { fr: 'Djibouti',            en: 'Djibouti' } },
+  { value: 'Ethiopie',            label: { fr: 'Ethiopie',            en: 'Ethiopia' } },
+  { value: 'Rwanda',              label: { fr: 'Rwanda',              en: 'Rwanda' } },
+  { value: 'Ouganda',             label: { fr: 'Ouganda',             en: 'Uganda' } },
+  { value: 'Emirats Arabes Unis', label: { fr: 'Emirats Arabes Unis', en: 'United Arab Emirates' } },
+  { value: 'Arabie Saoudite',     label: { fr: 'Arabie Saoudite',     en: 'Saudi Arabia' } },
+  { value: 'Turquie',             label: { fr: 'Turquie',             en: 'Turkey' } },
+  { value: 'Chine',               label: { fr: 'Chine',               en: 'China' } },
+  { value: 'Inde',                label: { fr: 'Inde',                en: 'India' } },
+  { value: 'France',              label: { fr: 'France',              en: 'France' } },
+  { value: 'Belgique',            label: { fr: 'Belgique',            en: 'Belgium' } },
+  { value: 'Allemagne',           label: { fr: 'Allemagne',           en: 'Germany' } },
+  { value: 'Pays-Bas',            label: { fr: 'Pays-Bas',            en: 'Netherlands' } },
+  { value: 'Espagne',             label: { fr: 'Espagne',             en: 'Spain' } },
+  { value: 'Portugal',            label: { fr: 'Portugal',            en: 'Portugal' } },
+  { value: 'Italie',              label: { fr: 'Italie',              en: 'Italy' } },
+  { value: 'Royaume-Uni',         label: { fr: 'Royaume-Uni',         en: 'United Kingdom' } },
+  { value: 'Etats-Unis',          label: { fr: 'Etats-Unis',          en: 'United States' } },
+  { value: 'Canada',              label: { fr: 'Canada',              en: 'Canada' } },
+  { value: 'Bresil',              label: { fr: 'Bresil',              en: 'Brazil' } },
+  { value: 'Autre',               label: { fr: 'Autre pays',          en: 'Other country' } },
 ]
 
-const INCLUS_PARTICIPANT = [
-  "Accueil a l'aeroport et installation a l'hotel",
-  "Navette Aeroport <-> Hotel (aller-retour)",
-  "Hebergement 4 nuitees en Hotel 4 etoiles",
-  "Petit-dejeuner & dejeuner pendant les 3 jours",
-  "Acces aux conferences, ateliers & networking",
-  "Visite guidee du port de Casablanca",
-  "Tablette pre-chargee avec etudes de cas",
-  "Attestation de participation",
-]
+/* ============================================================
+   TRADUCTIONS — toutes les chaines statiques de l'interface.
+   ============================================================ */
+const TR = {
+  fr: {
+    langName: 'FR', langSwitchTo: 'English',
+    kicker: 'Rejoindre la COPAF 2026',
+    titleStep1a: 'Choisissez votre ', titleStep1b: 'participation',
+    titleStep2a: 'Formulaire ', titleStep2b: "d'inscription",
+    subtitleStep1: 'Selectionnez la categorie correspondant a votre profil.',
+    subtitleStep2: 'Remplissez le formulaire. Paiement securise par virement bancaire.',
+    tutoBtn: "Voir le tutoriel video : comment s'inscrire",
+    backBtn: '\u2190 Changer de categorie',
+    types: {
+      participant: { label:'Participant', sublabel:'Je participe a la conference', desc:'Ports, autorites portuaires, logisticiens, shippers et tout professionnel du maritime.', tag:'par personne', cta:"S'inscrire maintenant" },
+      sponsor:     { label:'Sponsor / Partenaire', sublabel:'Visibilite & partenariat', desc:'Sponsors Platine, Or, Argent, Bronze ou partenariat institutionnel, media, academique.', tag:'sponsors & partenaires', cta:'Voir les offres' },
+      exposant:    { label:'Exposant Digital', sublabel:'Vitrine digitale de vos solutions', desc:'Exposition 100% digitale sur le site COPAF et les tablettes distribuees aux participants.', tag:'digital - site + tablettes', cta:'Voir les formules' },
+    },
+    pageDediee: 'Page dediee \u2192',
+    voirInclus: 'Voir ce qui est inclus',
+    inclusTitle: 'Ce qui est inclus',
+    inclusTarif: 'Tarif Participant \u2014 3 500 EUR',
+    inclusList: [
+      "Accueil a l'aeroport et installation a l'hotel",
+      'Navette Aeroport <-> Hotel (aller-retour)',
+      'Hebergement 4 nuitees en Hotel 4 etoiles',
+      'Petit-dejeuner & dejeuner pendant les 3 jours',
+      'Acces aux conferences, ateliers & networking',
+      'Visite guidee du port de Casablanca',
+      'Tablette pre-chargee avec etudes de cas',
+      'Attestation de participation',
+    ],
+    formTitle: 'Vos informations',
+    fields: {
+      nom:'Nom *', prenom:'Prenom *', email:'Email *', telephone:'Telephone *',
+      organisation:'Organisation *', poste:'Poste *', pays:'Pays *', participants:'Nombre de participants',
+    },
+    ph: { nom:'Votre nom', prenom:'Votre prenom', email:'votre@email.com', telephone:'+229 01 XX XX XX', organisation:'Port / Entreprise', poste:'Votre fonction' },
+    paysPlaceholder: 'Selectionnez votre pays',
+    participantsOpt: n => `${n} participant${n>1?'s':''} - ${(n*PRIX_UNITAIRE).toLocaleString('fr-FR')} EUR`,
+    photoLabel: 'Photo (pour votre badge participant)',
+    photoChoose: 'Choisir une photo', photoChange: 'Changer la photo',
+    photoHint: "Facultatif a ce stade \u2014 utilisee pour generer votre badge une fois l'inscription confirmee. Format portrait recommande.",
+    messageLabel: 'Message / Besoins specifiques',
+    messagePh: 'Questions, besoins alimentaires, accessibilite...',
+    paiementLabel: 'Mode de paiement *',
+    paiementOpts: [
+      { value:'maintenant', title:'Payer maintenant', desc:'Virement sous 7 jours ouvrables' },
+      { value:'plus_tard',  title:'Reserver ma place', desc:'Paiement avant le 31 aout 2026' },
+    ],
+    avantValiderTitle: 'A savoir avant de valider',
+    avantValider1: 'Les inscriptions sont **fermes et definitives** : aucun remboursement, quel que soit le motif (un collegue peut vous remplacer avec notification 72h avant).',
+    avantValider2: 'Apres votre email de confirmation, contactez-nous par WhatsApp ou email pour finaliser le paiement.',
+    cgvLabel: "J'ai lu et j'accepte les ",
+    cgvLink: 'conditions generales de vente',
+    cgvSuffix: ' incluant la politique de non-remboursement.',
+    rgpdLabel: "J'accepte le traitement de mes donnees conformement a la ",
+    rgpdLink: 'politique de confidentialite',
+    rgpdSuffix: '.',
+    submitPay: 'Confirmer mon inscription', submitReserve: 'Reserver ma place', submitLoading: 'Envoi en cours...',
+    secureNote: 'Paiement 100% securise par virement bancaire. Aucune carte bancaire requise.',
+    successTitlePay: 'Inscription enregistree !', successTitleReserve: 'Place reservee !',
+    successThanks: (p,n) => <>Merci <strong style={{ color:'#0f172a' }}>{p} {n}</strong>.<br/>Un email de confirmation a ete envoye a </>,
+    downloadPdf: 'Telecharger mon recapitulatif (PDF)',
+    dossierLabel: 'Numero de dossier',
+    actionTitle: 'Action obligatoire - Contactez-nous pour finaliser',
+    actionText: 'Apres reception de votre email de confirmation, vous devez obligatoirement nous contacter par WhatsApp ou email pour valider votre inscription et recevoir les instructions de virement.',
+    prochainesTitle: 'Prochaines etapes',
+    steps: [
+      'Email de confirmation automatique envoye',
+      'Vous nous contactez par WhatsApp ou email',
+      'Reception des instructions de virement',
+      { pay:'Paiement sous 7 jours ouvrables', reserve:'Paiement avant le 31 aout 2026' },
+      'Badge et acces participant envoyes apres paiement',
+    ],
+    verifRib: 'Verifiez toujours le RIB avant de payer sur notre page dediee.',
+    verifNow: 'Verifier maintenant \u2192',
+    rappelTitle: 'Rappel :', rappelText: ' Les inscriptions sont fermes et definitives. Aucun remboursement ne sera effectue. En cas d\'empechement, vous pouvez vous faire remplacer par un collegue (notification 72h avant).',
+    recapTitle: 'Recapitulatif', recapParticipants: 'Participants', recapTarif: 'Tarif unitaire', recapTotal: 'Total',
+    virementTitle: 'Paiement par virement',
+    verifAuth: "Verifier l'authenticite de ce RIB",
+    aideTitle: "Besoin d'aide ?", waContact: 'Contacter sur WhatsApp',
+    nonRembTitle: 'Non remboursable',
+    nonRembText: 'Les inscriptions sont definitives. Consultez nos ',
+    nonRembCgv: 'CGV', nonRembSuffix: ' pour plus d\'informations.',
+    cgvModalTitle: 'Conditions Generales de Vente',
+    rgpdModalTitle: 'Politique de Confidentialite (RGPD)',
+    modalClose: "J'ai lu et compris",
+    cgvContent: [
+      { title:'1. Objet', text:"Les presentes conditions generales de vente regissent les inscriptions a la Conference des Ports Africains (COPAF 2026) organisee par CRF Perfection, prevue du 15 au 17 septembre 2026 a Tanger Med, Maroc." },
+      { title:'2. Inscription et confirmation', text:"Toute inscription n'est definitivement confirmee qu'apres reception du paiement integral. Apres reception du mail de confirmation automatique, le participant doit contacter l'organisation par WhatsApp au +229 01 97 67 22 00 ou par email a inscriptions@copaf-ports.com pour valider son inscription et recevoir les instructions de paiement." },
+      { title:'3. Tarifs et paiement', text:"Le tarif est fixe a 3 500 EUR par personne. Le paiement s'effectue exclusivement par virement bancaire. Le paiement doit etre effectue dans les 7 jours ouvrables suivant la confirmation d'inscription. En cas de reservation (paiement differe), le reglement doit intervenir avant le 31 aout 2026." },
+      { title:'4. Politique de non-remboursement', text:"Les inscriptions sont fermes et definitives. Aucun remboursement ne sera effectue, quelle que soit la raison de l'annulation (raison personnelle, professionnelle, medicale, force majeure, refus de visa, etc.). En cas d'empechement, le participant peut se faire remplacer par une autre personne de son organisation sous reserve de notification ecrite au moins 72h avant l'evenement." },
+      { title:"5. Annulation par l'organisateur", text:"En cas d'annulation de l'evenement par l'organisateur pour des raisons de force majeure, un avoir sera propose pour l'edition suivante. Aucun remboursement en numeraire ne sera effectue." },
+      { title:'6. Droits et obligations', text:"Le participant s'engage a respecter le reglement interieur de l'evenement et a se comporter de maniere professionnelle. L'organisateur se reserve le droit d'exclure tout participant ne respectant pas ces regles sans remboursement." },
+      { title:'7. Responsabilite', text:"L'organisateur ne saurait etre tenu responsable des frais de deplacement, d'hebergement ou de visa engages par les participants. Il est recommande de contracter une assurance annulation." },
+      { title:'8. Litiges', text:"En cas de litige, les parties s'engagent a rechercher une solution amiable. A defaut, les tribunaux competents de Cotonou, Benin, seront saisis." },
+    ],
+    rgpdContent: [
+      { title:'1. Responsable du traitement', text:"CRF Perfection, organisant la COPAF 2026, est responsable du traitement. Contact : inscriptions@copaf-ports.com" },
+      { title:'2. Donnees collectees', text:"Nous collectons : nom, prenom, email, telephone, organisation, poste, pays, et le cas echeant une photo pour le badge participant. Ces donnees sont collectees lors de votre inscription." },
+      { title:'3. Finalites', text:"Vos donnees servent a : la gestion de votre inscription, l'envoi des confirmations, la creation de votre badge, la communication sur les editions futures." },
+      { title:'4. Base legale', text:"Le traitement est fonde sur l'execution du contrat d'inscription (article 6.1.b du RGPD) et votre consentement explicite." },
+      { title:'5. Conservation', text:"Vos donnees sont conservees pendant 3 ans a compter de la date de l'evenement, sauf obligation legale contraire." },
+      { title:'6. Destinataires', text:"Vos donnees peuvent etre transmises aux partenaires organisant l'evenement dans la stricte limite necessaire. Elles ne sont jamais vendues." },
+      { title:'7. Vos droits', text:"Vous disposez des droits d'acces, de rectification, d'effacement, de limitation, d'opposition et de portabilite. Contactez-nous a inscriptions@copaf-ports.com." },
+      { title:'8. Securite', text:"Nous mettons en oeuvre toutes les mesures techniques et organisationnelles appropriees pour proteger vos donnees." },
+    ],
+    nonRembBanner: 'Politique de non-remboursement - Important',
+    nonRembBannerText: "Les inscriptions sont **fermes et definitives**. Aucun remboursement ne sera effectue quelle que soit la raison de l'annulation. En cas d'empechement, le participant peut etre remplace par un collegue avec notification 72h avant l'evenement.",
+    docOfficiel: 'Page dediee',
+    waMsgFinaliser: dossier => `Bonjour, j'ai recu la confirmation de mon inscription COPAF 2026. Dossier : ${dossier}. Je souhaite finaliser.`,
+    waMsgQuestion: `Bonjour, j'ai une question concernant mon inscription a la COPAF 2026.`,
+    emailSubject: dossier => `Finalisation inscription COPAF 2026 - ${dossier}`,
+    emailBody: dossier => `Bonjour, mon dossier est ${dossier}. Je souhaite finaliser mon inscription.`,
+    errorPrefix: 'Une erreur est survenue : ',
+  },
+  en: {
+    langName: 'EN', langSwitchTo: 'Francais',
+    kicker: 'Join COPAF 2026',
+    titleStep1a: 'Choose your ', titleStep1b: 'participation',
+    titleStep2a: 'Registration ', titleStep2b: 'form',
+    subtitleStep1: 'Select the category matching your profile.',
+    subtitleStep2: 'Fill in the form. Secure payment by bank transfer.',
+    tutoBtn: 'Watch the video tutorial: how to register',
+    backBtn: '\u2190 Change category',
+    types: {
+      participant: { label:'Participant', sublabel:'I am attending the conference', desc:'Ports, port authorities, logistics operators, shippers and all maritime professionals.', tag:'per person', cta:'Register now' },
+      sponsor:     { label:'Sponsor / Partner', sublabel:'Visibility & partnership', desc:'Platinum, Gold, Silver, Bronze sponsorships or institutional, media, academic partnership.', tag:'sponsors & partners', cta:'View offers' },
+      exposant:    { label:'Digital Exhibitor', sublabel:'A digital showcase for your solutions', desc:'100% digital exhibition on the COPAF website and on the tablets distributed to participants.', tag:'digital - website + tablets', cta:'View packages' },
+    },
+    pageDediee: 'Dedicated page \u2192',
+    voirInclus: "See what's included",
+    inclusTitle: "What's included",
+    inclusTarif: 'Participant rate \u2014 EUR 3,500',
+    inclusList: [
+      'Airport welcome and hotel check-in',
+      'Airport <-> Hotel shuttle (round trip)',
+      '4-night stay in a 4-star hotel',
+      'Breakfast & lunch throughout the 3 days',
+      'Access to conferences, workshops & networking',
+      'Guided tour of the Port of Casablanca',
+      'Pre-loaded tablet with case studies',
+      'Certificate of attendance',
+    ],
+    formTitle: 'Your information',
+    fields: {
+      nom:'Last name *', prenom:'First name *', email:'Email *', telephone:'Phone *',
+      organisation:'Organisation *', poste:'Position *', pays:'Country *', participants:'Number of participants',
+    },
+    ph: { nom:'Your last name', prenom:'Your first name', email:'your@email.com', telephone:'+229 01 XX XX XX', organisation:'Port / Company', poste:'Your role' },
+    paysPlaceholder: 'Select your country',
+    participantsOpt: n => `${n} participant${n>1?'s':''} - EUR ${(n*PRIX_UNITAIRE).toLocaleString('en-US')}`,
+    photoLabel: 'Photo (for your participant badge)',
+    photoChoose: 'Choose a photo', photoChange: 'Change photo',
+    photoHint: 'Optional at this stage \u2014 used to generate your badge once registration is confirmed. Portrait format recommended.',
+    messageLabel: 'Message / Specific needs',
+    messagePh: 'Questions, dietary needs, accessibility...',
+    paiementLabel: 'Payment method *',
+    paiementOpts: [
+      { value:'maintenant', title:'Pay now', desc:'Bank transfer within 7 business days' },
+      { value:'plus_tard',  title:'Reserve my spot', desc:'Payment before August 31, 2026' },
+    ],
+    avantValiderTitle: 'Before you confirm',
+    avantValider1: 'Registrations are **firm and final**: no refunds, whatever the reason (a colleague may replace you with 72h notice).',
+    avantValider2: 'After your confirmation email, contact us on WhatsApp or email to finalise payment.',
+    cgvLabel: 'I have read and accept the ',
+    cgvLink: 'terms and conditions of sale',
+    cgvSuffix: ', including the no-refund policy.',
+    rgpdLabel: 'I accept the processing of my data in accordance with the ',
+    rgpdLink: 'privacy policy',
+    rgpdSuffix: '.',
+    submitPay: 'Confirm my registration', submitReserve: 'Reserve my spot', submitLoading: 'Sending...',
+    secureNote: '100% secure payment by bank transfer. No credit card required.',
+    successTitlePay: 'Registration recorded!', successTitleReserve: 'Spot reserved!',
+    successThanks: (p,n) => <>Thank you <strong style={{ color:'#0f172a' }}>{p} {n}</strong>.<br/>A confirmation email has been sent to </>,
+    downloadPdf: 'Download my summary (PDF)',
+    dossierLabel: 'Reference number',
+    actionTitle: 'Action required - Contact us to finalise',
+    actionText: 'After receiving your confirmation email, you must contact us on WhatsApp or email to validate your registration and receive the transfer instructions.',
+    prochainesTitle: 'Next steps',
+    steps: [
+      'Automatic confirmation email sent',
+      'You contact us on WhatsApp or email',
+      'You receive the transfer instructions',
+      { pay:'Payment within 7 business days', reserve:'Payment before August 31, 2026' },
+      'Badge and participant access sent after payment',
+    ],
+    verifRib: 'Always check the bank details before paying, on our dedicated page.',
+    verifNow: 'Verify now \u2192',
+    rappelTitle: 'Reminder:', rappelText: ' Registrations are firm and final. No refunds will be issued. In case of impediment, you may be replaced by a colleague (72h notice required).',
+    recapTitle: 'Summary', recapParticipants: 'Participants', recapTarif: 'Unit rate', recapTotal: 'Total',
+    virementTitle: 'Payment by bank transfer',
+    verifAuth: 'Verify the authenticity of these bank details',
+    aideTitle: 'Need help?', waContact: 'Contact us on WhatsApp',
+    nonRembTitle: 'Non-refundable',
+    nonRembText: 'Registrations are final. See our ',
+    nonRembCgv: 'terms', nonRembSuffix: ' for more information.',
+    cgvModalTitle: 'Terms and Conditions of Sale',
+    rgpdModalTitle: 'Privacy Policy (GDPR)',
+    modalClose: 'I have read and understood',
+    cgvContent: [
+      { title:'1. Purpose', text:'These terms and conditions of sale govern registrations for the Conference of African Ports (COPAF 2026), organised by CRF Perfection, to be held from 15 to 17 September 2026 in Tanger Med, Morocco.' },
+      { title:'2. Registration and confirmation', text:'A registration is only definitively confirmed upon receipt of full payment. After receiving the automatic confirmation email, the participant must contact the organisation via WhatsApp at +229 01 97 67 22 00 or by email at inscriptions@copaf-ports.com to validate their registration and receive payment instructions.' },
+      { title:'3. Rates and payment', text:'The rate is set at EUR 3,500 per person. Payment is made exclusively by bank transfer. Payment must be made within 7 business days of registration confirmation. For deferred (reserved) payments, settlement must occur before 31 August 2026.' },
+      { title:'4. No-refund policy', text:'Registrations are firm and final. No refund will be issued, whatever the reason for cancellation (personal, professional, medical, force majeure, visa refusal, etc.). In case of impediment, the participant may be replaced by another person from their organisation, subject to written notice at least 72h before the event.' },
+      { title:'5. Cancellation by the organiser', text:'Should the organiser cancel the event for reasons of force majeure, a credit will be offered for the next edition. No cash refund will be issued.' },
+      { title:'6. Rights and obligations', text:'The participant agrees to comply with the event rules and to behave professionally. The organiser reserves the right to exclude any participant who fails to comply with these rules, without refund.' },
+      { title:'7. Liability', text:'The organiser cannot be held responsible for travel, accommodation or visa costs incurred by participants. Cancellation insurance is recommended.' },
+      { title:'8. Disputes', text:'In the event of a dispute, the parties agree to seek an amicable solution. Failing that, the competent courts of Cotonou, Benin, shall have jurisdiction.' },
+    ],
+    rgpdContent: [
+      { title:'1. Data controller', text:'CRF Perfection, organiser of COPAF 2026, is the data controller. Contact: inscriptions@copaf-ports.com' },
+      { title:'2. Data collected', text:'We collect: last name, first name, email, phone, organisation, position, country, and where applicable a photo for the participant badge. This data is collected during registration.' },
+      { title:'3. Purposes', text:'Your data is used to: manage your registration, send confirmations, create your badge, and communicate about future editions.' },
+      { title:'4. Legal basis', text:'Processing is based on the performance of the registration contract (Article 6.1.b GDPR) and your explicit consent.' },
+      { title:'5. Retention', text:'Your data is kept for 3 years from the date of the event, unless otherwise required by law.' },
+      { title:'6. Recipients', text:'Your data may be shared with partners organising the event, strictly as necessary. It is never sold.' },
+      { title:'7. Your rights', text:'You have the right to access, rectify, erase, restrict, object to and port your data. Contact us at inscriptions@copaf-ports.com.' },
+      { title:'8. Security', text:'We implement all appropriate technical and organisational measures to protect your data.' },
+    ],
+    nonRembBanner: 'No-refund policy - Important',
+    nonRembBannerText: 'Registrations are **firm and final**. No refund will be issued regardless of the reason for cancellation. In case of impediment, the participant may be replaced by a colleague, with 72h notice before the event.',
+    docOfficiel: 'Dedicated page',
+    waMsgFinaliser: dossier => `Hello, I have received the confirmation of my COPAF 2026 registration. File: ${dossier}. I would like to finalise it.`,
+    waMsgQuestion: 'Hello, I have a question about my COPAF 2026 registration.',
+    emailSubject: dossier => `Finalising COPAF 2026 registration - ${dossier}`,
+    emailBody: dossier => `Hello, my reference is ${dossier}. I would like to finalise my registration.`,
+    errorPrefix: 'An error occurred: ',
+  },
+}
 
-const TYPES = [
-  { id:'participant', icon:'badge',   label:'Participant',        sublabel:'Je participe a la conference',       desc:'Ports, autorites portuaires, logisticiens, shippers et tout professionnel du maritime.', prix:'3 500 EUR', tag:'par personne',         cta:"S'inscrire maintenant", redirect:false,  color:'#0073F4', bg:'#EBF3FF' },
-  { id:'sponsor',     icon:'diamond', label:'Sponsor / Partenaire', sublabel:'Visibilite & partenariat',         desc:'Sponsors Platine, Or, Argent, Bronze ou partenariat institutionnel, media, academique.',  prix:'A partir de 8\u00A0000 EUR', tag:'sponsors & partenaires', cta:'Voir les offres',      redirect:true,   redirectTo:'/partenariats',        color:'#000E91', bg:'rgba(0,14,145,0.06)' },
-  { id:'exposant',    icon:'monitor', label:'Exposant Digital',   sublabel:'Vitrine digitale de vos solutions',  desc:'Exposition 100% digitale sur le site COPAF et les tablettes distribuees aux participants.', prix:'A partir de 500 EUR',  tag:'digital - site + tablettes', cta:'Voir les formules',    redirect:true,   redirectTo:'/exposition-digitale', color:'#0891b2', bg:'rgba(8,145,178,0.06)' },
-]
-
-const CGV_CONTENT = [
-  { title:'1. Objet', text:"Les presentes conditions generales de vente regissent les inscriptions a la Conference des Ports Africains (COPAF 2026) organisee par CRF Perfection, prevue du 15 au 17 septembre 2026 a Tanger Med, Maroc." },
-  { title:'2. Inscription et confirmation', text:"Toute inscription n'est definitivement confirmee qu'apres reception du paiement integral. Apres reception du mail de confirmation automatique, le participant doit contacter l'organisation par WhatsApp au +229 01 97 67 22 00 ou par email a inscriptions@copaf-ports.com pour valider son inscription et recevoir les instructions de paiement." },
-  { title:'3. Tarifs et paiement', text:"Le tarif est fixe a 3 500 EUR par personne. Le paiement s'effectue exclusivement par virement bancaire. Le paiement doit etre effectue dans les 7 jours ouvrables suivant la confirmation d'inscription. En cas de reservation (paiement differe), le reglement doit intervenir avant le 31 aout 2026." },
-  { title:'4. Politique de non-remboursement', text:"Les inscriptions sont fermes et definitives. Aucun remboursement ne sera effectue, quelle que soit la raison de l'annulation (raison personnelle, professionnelle, medicale, force majeure, refus de visa, etc.). En cas d'empechement, le participant peut se faire remplacer par une autre personne de son organisation sous reserve de notification ecrite au moins 72h avant l'evenement." },
-  { title:'5. Annulation par l\'organisateur', text:"En cas d'annulation de l'evenement par l'organisateur pour des raisons de force majeure, un avoir sera propose pour l'edition suivante. Aucun remboursement en numeraire ne sera effectue." },
-  { title:'6. Droits et obligations', text:"Le participant s'engage a respecter le reglement interieur de l'evenement et a se comporter de maniere professionnelle. L'organisateur se reserve le droit d'exclure tout participant ne respectant pas ces regles sans remboursement." },
-  { title:'7. Responsabilite', text:"L'organisateur ne saurait etre tenu responsable des frais de deplacement, d'hebergement ou de visa engages par les participants. Il est recommande de contracter une assurance annulation." },
-  { title:'8. Litiges', text:"En cas de litige, les parties s'engagent a rechercher une solution amiable. A defaut, les tribunaux competents de Cotonou, Benin, seront saisis." },
-]
-
-const RGPD_CONTENT = [
-  { title:'1. Responsable du traitement', text:"CRF Perfection, organisant la COPAF 2026, est responsable du traitement. Contact : inscriptions@copaf-ports.com" },
-  { title:'2. Donnees collectees', text:"Nous collectons : nom, prenom, email, telephone, organisation, poste, pays, et le cas echeant une photo pour le badge participant. Ces donnees sont collectees lors de votre inscription." },
-  { title:'3. Finalites', text:"Vos donnees servent a : la gestion de votre inscription, l'envoi des confirmations, la creation de votre badge, la communication sur les editions futures." },
-  { title:'4. Base legale', text:"Le traitement est fonde sur l'execution du contrat d'inscription (article 6.1.b du RGPD) et votre consentement explicite." },
-  { title:'5. Conservation', text:"Vos donnees sont conservees pendant 3 ans a compter de la date de l'evenement, sauf obligation legale contraire." },
-  { title:'6. Destinataires', text:"Vos donnees peuvent etre transmises aux partenaires organisant l'evenement dans la stricte limite necessaire. Elles ne sont jamais vendues." },
-  { title:'7. Vos droits', text:"Vous disposez des droits d'acces, de rectification, d'effacement, de limitation, d'opposition et de portabilite. Contactez-nous a inscriptions@copaf-ports.com." },
-  { title:'8. Securite', text:"Nous mettons en oeuvre toutes les mesures techniques et organisationnelles appropriees pour proteger vos donnees." },
-]
+const TYPE_IDS = ['participant', 'sponsor', 'exposant']
+const TYPE_META = {
+  participant: { icon:'badge',   prix:'3 500 EUR', redirect:false, color:'#0073F4', bg:'#EBF3FF' },
+  sponsor:     { icon:'diamond', prix:'A partir de 8\u00A0000 EUR', redirect:true, redirectTo:'/partenariats', color:'#000E91', bg:'rgba(0,14,145,0.06)' },
+  exposant:    { icon:'monitor', prix:'A partir de 500 EUR', redirect:true, redirectTo:'/exposition-digitale', color:'#0891b2', bg:'rgba(8,145,178,0.06)' },
+}
+const TYPE_PRIX_EN = { participant:'EUR 3,500', sponsor:'From EUR 8,000', exposant:'From EUR 500' }
 
 const genDossier = () => `COPAF2026-${Math.floor(Math.random() * 90000) + 10000}`
 
@@ -157,12 +363,12 @@ async function upsertContact(form) {
   return data.id
 }
 
-async function createInscription(contactId, form, nb, montant, paiementMode, dossier, photoUrl) {
-  const { error } = await supabase.from('inscriptions').insert([{ contact_id:contactId, dossier, participants:nb, montant, paiement_status:paiementMode==='maintenant'?'en_attente':'reserve', paiement_mode:paiementMode, message:form.message, photo_url:photoUrl }])
+async function createInscription(contactId, form, nb, montant, paiementMode, dossier, photoUrl, lang) {
+  const { error } = await supabase.from('inscriptions').insert([{ contact_id:contactId, dossier, participants:nb, montant, paiement_status:paiementMode==='maintenant'?'en_attente':'reserve', paiement_mode:paiementMode, message:form.message, photo_url:photoUrl, langue:lang }])
   if (error) throw new Error(error.message)
 }
 
-function ModalInclus({ onClose }) {
+function ModalInclus({ onClose, t }) {
   return (
     <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(15,23,42,.55)', backdropFilter:'blur(4px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
       <div onClick={e => e.stopPropagation()} style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:480, boxShadow:'0 24px 60px rgba(0,0,0,.2)', overflow:'hidden' }}>
@@ -172,8 +378,8 @@ function ModalInclus({ onClose }) {
               <Ico name="check" size={18} color="#0073F4" />
             </div>
             <div>
-              <div style={{ fontSize:16, fontWeight:800, color:'#0f172a' }}>Ce qui est inclus</div>
-              <div style={{ fontSize:12, color:'#0073F4', fontWeight:600 }}>Tarif Participant — 3 500 EUR</div>
+              <div style={{ fontSize:16, fontWeight:800, color:'#0f172a' }}>{t.inclusTitle}</div>
+              <div style={{ fontSize:12, color:'#0073F4', fontWeight:600 }}>{t.inclusTarif}</div>
             </div>
           </div>
           <button onClick={onClose} style={{ background:'#f1f5f9', border:'none', width:32, height:32, borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
@@ -181,8 +387,8 @@ function ModalInclus({ onClose }) {
           </button>
         </div>
         <div style={{ padding:'20px 28px 28px' }}>
-          {INCLUS_PARTICIPANT.map((item, i) => (
-            <div key={i} style={{ display:'flex', gap:12, alignItems:'flex-start', marginBottom: i < INCLUS_PARTICIPANT.length - 1 ? 14 : 0 }}>
+          {t.inclusList.map((item, i) => (
+            <div key={i} style={{ display:'flex', gap:12, alignItems:'flex-start', marginBottom: i < t.inclusList.length - 1 ? 14 : 0 }}>
               <div style={{ width:22, height:22, borderRadius:7, background:'#EBF3FF', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
                 <Ico name="check" size={12} color="#0073F4" />
               </div>
@@ -195,10 +401,10 @@ function ModalInclus({ onClose }) {
   )
 }
 
-function ModalDocument({ type, onClose }) {
+function ModalDocument({ type, onClose, t }) {
   const isCgv   = type === 'cgv'
-  const content = isCgv ? CGV_CONTENT : RGPD_CONTENT
-  const title   = isCgv ? 'Conditions Generales de Vente' : 'Politique de Confidentialite (RGPD)'
+  const content = isCgv ? t.cgvContent : t.rgpdContent
+  const title   = isCgv ? t.cgvModalTitle : t.rgpdModalTitle
 
   return (
     <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(15,23,42,.55)', backdropFilter:'blur(4px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
@@ -231,8 +437,8 @@ function ModalDocument({ type, onClose }) {
               <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
                 <Ico name="ban" size={18} color="#dc2626" />
                 <div>
-                  <div style={{ fontSize:13, fontWeight:700, color:'#dc2626', marginBottom:6 }}>Politique de non-remboursement - Important</div>
-                  <p style={{ fontSize:13, color:'#7f1d1d', lineHeight:1.7, margin:0 }}>Les inscriptions sont <strong>fermes et definitives</strong>. Aucun remboursement ne sera effectue quelle que soit la raison de l'annulation. En cas d'empechement, le participant peut etre remplace par un collegue avec notification 72h avant l'evenement.</p>
+                  <div style={{ fontSize:13, fontWeight:700, color:'#dc2626', marginBottom:6 }}>{t.nonRembBanner}</div>
+                  <p style={{ fontSize:13, color:'#7f1d1d', lineHeight:1.7, margin:0 }}>{t.nonRembBannerText.replace(/\*\*/g,'')}</p>
                 </div>
               </div>
             </div>
@@ -241,7 +447,7 @@ function ModalDocument({ type, onClose }) {
 
         <div style={{ padding:'16px 28px', borderTop:'1px solid #f1f5f9', flexShrink:0 }}>
           <button onClick={onClose} style={{ width:'100%', padding:'12px', background:'linear-gradient(135deg,#0073F4,#000E91)', border:'none', borderRadius:12, color:'#fff', fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
-            J'ai lu et compris
+            {t.modalClose}
           </button>
         </div>
       </div>
@@ -252,6 +458,9 @@ function ModalDocument({ type, onClose }) {
 export default function Inscription() {
   const navigate = useNavigate()
   const { trackFormStart, trackConversion } = useAnalytics()
+  const [lang,         setLang]        = useState('fr')
+  const t = TR[lang]
+
   const [etape,        setEtape]        = useState(1)
   const [form,         setForm]         = useState({ nom:'', prenom:'', email:'', telephone:'', organisation:'', poste:'', pays:'', participants:'1', message:'' })
   const [paiementMode, setPaiementMode] = useState('maintenant')
@@ -272,7 +481,7 @@ export default function Inscription() {
   const total = nb * PRIX_UNITAIRE
 
   const handleChange     = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-  const handleTypeSelect = type => { if (type.redirect) navigate(type.redirectTo); else { trackFormStart('inscription'); setEtape(2) } }
+  const handleTypeSelect = typeId => { const meta = TYPE_META[typeId]; if (meta.redirect) navigate(meta.redirectTo); else { trackFormStart('inscription'); setEtape(2) } }
 
   const handlePhotoChange = e => {
     const file = e.target.files?.[0]
@@ -287,13 +496,15 @@ export default function Inscription() {
     try {
       const photoUrl = await uploadPhoto(photoFile, dossier)
       const contactId = await upsertContact(form)
-      await createInscription(contactId, form, nb, total, paiementMode, dossier, photoUrl)
-      fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:total,dossier,paiement:paiementMode}) }).catch(()=>{})
-      await emailjs.send(EMAILJS_SVC, EMAILJS_TPL, { prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation, poste:form.poste, pays:form.pays, participants:form.participants, montant:`${total.toLocaleString('fr-FR')} EUR`, tarif:`${PRIX_UNITAIRE.toLocaleString('fr-FR')} EUR/pers.`, dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee', paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'' }, EMAILJS_KEY)
+      await createInscription(contactId, form, nb, total, paiementMode, dossier, photoUrl, lang)
+      fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:total,dossier,paiement:paiementMode,langue:lang}) }).catch(()=>{})
+      const templateId = lang === 'en' ? EMAILJS_TPL_EN : EMAILJS_TPL_FR
+      const locale = lang === 'en' ? 'en-US' : 'fr-FR'
+      await emailjs.send(EMAILJS_SVC, templateId, { prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation, poste:form.poste, pays:form.pays, participants:form.participants, montant:`${total.toLocaleString(locale)} EUR`, tarif:`${PRIX_UNITAIRE.toLocaleString(locale)} EUR/pers.`, dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee', paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'', langue:lang }, EMAILJS_KEY)
       setDossierNum(dossier); setSubmitted(true)
-      generateRecapPDF({ form, dossier, nb, total, paiementMode })
+      generateRecapPDF({ form, dossier, nb, total, paiementMode, lang })
       trackConversion('inscription', paiementMode, total)
-    } catch(err) { setErrorMsg('Une erreur est survenue : ' + err.message) }
+    } catch(err) { setErrorMsg(t.errorPrefix + err.message) }
     setLoading(false)
   }
 
@@ -341,10 +552,12 @@ export default function Inscription() {
         .submit-btn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
         .step-dot{width:8px;height:8px;border-radius:50%;transition:all .3s}
         .cta-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s;text-decoration:none;border:none;font-family:inherit}
+        .lang-switch{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:100px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;color:#0073F4;transition:all .2s}
+        .lang-switch:hover{border-color:#0073F4;background:#EBF3FF}
         @media(max-width:768px){input,select,textarea{font-size:16px !important}}
       `}</style>
 
-      {modal && <ModalDocument type={modal} onClose={() => setModal(null)} />}
+      {modal && <ModalDocument type={modal} onClose={() => setModal(null)} t={t} />}
 
       {showVideo && (
         <div onClick={() => setShowVideo(false)} style={{ position:'fixed', inset:0, background:'rgba(15,23,42,.7)', backdropFilter:'blur(4px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
@@ -357,24 +570,34 @@ export default function Inscription() {
         </div>
       )}
 
-      {showInclus && <ModalInclus onClose={() => setShowInclus(false)} />}
+      {showInclus && <ModalInclus onClose={() => setShowInclus(false)} t={t} />}
 
       <section id="inscription" style={{ padding:'clamp(64px,10vw,120px) 0', background:'linear-gradient(180deg,#f0f6ff 0%,#f8faff 100%)', fontFamily:"'Plus Jakarta Sans',sans-serif", position:'relative', minHeight:'100vh', overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:'radial-gradient(circle at 10% 15%,rgba(0,115,244,.08) 0%,transparent 50%),radial-gradient(circle at 90% 85%,rgba(0,14,145,.06) 0%,transparent 50%)' }} />
 
         <div style={{ position:'relative', maxWidth:1100, margin:'0 auto', padding:'0 clamp(16px,5vw,48px)', minWidth:0 }}>
 
+          {/* SELECTEUR DE LANGUE */}
+          <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:8 }}>
+            <button className="lang-switch" onClick={() => setLang(l => l === 'fr' ? 'en' : 'fr')} type="button">
+              <Ico name="globe" size={14} color="#0073F4" />
+              {lang === 'fr' ? 'FR \u00B7 English' : 'EN \u00B7 Fran\u00E7ais'}
+            </button>
+          </div>
+
           {/* HEADER */}
           <div className="fade-up" style={{ textAlign:'center', marginBottom:'clamp(40px,6vw,72px)' }}>
             <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'#000E91', borderRadius:100, padding:'8px 22px', marginBottom:24 }}>
               <span style={{ width:7, height:7, borderRadius:'50%', background:'#0073F4', flexShrink:0 }} />
-              <span style={{ color:'#fff', fontSize:11, fontWeight:700, letterSpacing:3, textTransform:'uppercase' }}>Rejoindre la COPAF 2026</span>
+              <span style={{ color:'#fff', fontSize:11, fontWeight:700, letterSpacing:3, textTransform:'uppercase' }}>{t.kicker}</span>
             </div>
             <h2 style={{ fontSize:'clamp(24px,5vw,54px)', fontWeight:900, color:'#0f172a', marginBottom:16, lineHeight:1.1, letterSpacing:'-0.03em' }}>
-              {etape===1 ? <>Choisissez votre <span style={{ background:'linear-gradient(135deg,#0073F4,#000E91)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>participation</span></> : <>Formulaire <span style={{ background:'linear-gradient(135deg,#0073F4,#000E91)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>d'inscription</span></>}
+              {etape===1
+                ? <>{t.titleStep1a}<span style={{ background:'linear-gradient(135deg,#0073F4,#000E91)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{t.titleStep1b}</span></>
+                : <>{t.titleStep2a}<span style={{ background:'linear-gradient(135deg,#0073F4,#000E91)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{t.titleStep2b}</span></>}
             </h2>
             <p style={{ fontSize:'clamp(14px,2vw,17px)', color:'#64748b', maxWidth:500, margin:'0 auto', lineHeight:1.8 }}>
-              {etape===1 ? 'Selectionnez la categorie correspondant a votre profil.' : 'Remplissez le formulaire. Paiement securise par virement bancaire.'}
+              {etape===1 ? t.subtitleStep1 : t.subtitleStep2}
             </p>
             {etape===1 && (
               <button onClick={() => setShowVideo(true)} style={{
@@ -386,7 +609,7 @@ export default function Inscription() {
                 onMouseEnter={e => {e.currentTarget.style.borderColor='#0073F4'; e.currentTarget.style.background='#EBF3FF'}}
                 onMouseLeave={e => {e.currentTarget.style.borderColor='#e2e8f0'; e.currentTarget.style.background='#fff'}}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="#0073F4"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Voir le tutoriel video : comment s'inscrire
+                {t.tutoBtn}
               </button>
             )}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginTop:20 }}>
@@ -396,7 +619,7 @@ export default function Inscription() {
               <button onClick={() => setEtape(1)} style={{ background:'none', border:'1.5px solid #e2e8f0', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, color:'#475569', fontSize:13, fontWeight:600, padding:'8px 18px', borderRadius:100, marginTop:16, fontFamily:'inherit', transition:'all .2s' }}
                 onMouseEnter={e => {e.currentTarget.style.borderColor='#0073F4';e.currentTarget.style.color='#0073F4'}}
                 onMouseLeave={e => {e.currentTarget.style.borderColor='#e2e8f0';e.currentTarget.style.color='#475569'}}>
-                &larr; Changer de categorie
+                {t.backBtn}
               </button>
             )}
           </div>
@@ -404,40 +627,45 @@ export default function Inscription() {
           {/* ETAPE 1 */}
           {etape===1 && (
             <div className="cards-grid">
-              {TYPES.map((type, idx) => (
-                <div key={type.id} className={`type-card fade-up-${idx+1}${idx===2?' card-last':''}`} onClick={() => handleTypeSelect(type)}>
-                  <div style={{ position:'absolute', top:0, left:0, right:0, height:4, background:`linear-gradient(90deg,${type.color},${type.color}99)`, borderRadius:'18px 18px 0 0' }} />
-                  {type.redirect && <div style={{ position:'absolute', top:16, right:16, background:type.bg, border:`1px solid ${type.color}30`, borderRadius:100, padding:'3px 10px', fontSize:10, color:type.color, fontWeight:700 }}>Page dediee &rarr;</div>}
-                  <div style={{ width:52, height:52, borderRadius:15, background:type.bg, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18, marginTop:8, border:`1px solid ${type.color}20` }}>
-                    <Ico name={type.icon} size={24} color={type.color} />
+              {TYPE_IDS.map((typeId, idx) => {
+                const meta = TYPE_META[typeId]
+                const tt   = t.types[typeId]
+                const prix = lang === 'fr' ? meta.prix : TYPE_PRIX_EN[typeId]
+                return (
+                  <div key={typeId} className={`type-card fade-up-${idx+1}${idx===2?' card-last':''}`} onClick={() => handleTypeSelect(typeId)}>
+                    <div style={{ position:'absolute', top:0, left:0, right:0, height:4, background:`linear-gradient(90deg,${meta.color},${meta.color}99)`, borderRadius:'18px 18px 0 0' }} />
+                    {meta.redirect && <div style={{ position:'absolute', top:16, right:16, background:meta.bg, border:`1px solid ${meta.color}30`, borderRadius:100, padding:'3px 10px', fontSize:10, color:meta.color, fontWeight:700 }}>{t.pageDediee}</div>}
+                    <div style={{ width:52, height:52, borderRadius:15, background:meta.bg, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:18, marginTop:8, border:`1px solid ${meta.color}20` }}>
+                      <Ico name={meta.icon} size={24} color={meta.color} />
+                    </div>
+                    <div style={{ fontSize:18, fontWeight:800, color:'#0f172a', marginBottom:4 }}>{tt.label}</div>
+                    <div style={{ fontSize:12, fontWeight:600, color:meta.color, marginBottom:14 }}>{tt.sublabel}</div>
+                    <p style={{ fontSize:13.5, color:'#64748b', lineHeight:1.7, marginBottom:20 }}>{tt.desc}</p>
+                    <div style={{ background:meta.bg, borderRadius:12, padding:'12px 16px', marginBottom:typeId==='participant'?10:18, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                      <span style={{ fontSize:20, fontWeight:900, color:'#0f172a' }}>{prix}</span>
+                      <span style={{ fontSize:11, color:'#94a3b8', fontWeight:600 }}>{tt.tag}</span>
+                    </div>
+                    {typeId === 'participant' && (
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); setShowInclus(true) }}
+                        style={{
+                          display:'flex', alignItems:'center', gap:6, background:'none', border:'none',
+                          padding:0, marginBottom:18, cursor:'pointer', fontFamily:'inherit',
+                          fontSize:12, fontWeight:700, color:'#0073F4', textDecoration:'underline',
+                        }}
+                      >
+                        <Ico name="check" size={13} color="#0073F4" />
+                        {t.voirInclus}
+                      </button>
+                    )}
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'13px 18px', background:`linear-gradient(135deg,${meta.color},${meta.color}cc)`, borderRadius:12, color:'#fff', fontSize:13, fontWeight:700 }}>
+                      <span>{tt.cta}</span>
+                      <Ico name="arrow" size={16} color="#fff" />
+                    </div>
                   </div>
-                  <div style={{ fontSize:18, fontWeight:800, color:'#0f172a', marginBottom:4 }}>{type.label}</div>
-                  <div style={{ fontSize:12, fontWeight:600, color:type.color, marginBottom:14 }}>{type.sublabel}</div>
-                  <p style={{ fontSize:13.5, color:'#64748b', lineHeight:1.7, marginBottom:20 }}>{type.desc}</p>
-                  <div style={{ background:type.bg, borderRadius:12, padding:'12px 16px', marginBottom:type.id==='participant'?10:18, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <span style={{ fontSize:20, fontWeight:900, color:'#0f172a' }}>{type.prix}</span>
-                    <span style={{ fontSize:11, color:'#94a3b8', fontWeight:600 }}>{type.tag}</span>
-                  </div>
-                  {type.id === 'participant' && (
-                    <button
-                      type="button"
-                      onClick={e => { e.stopPropagation(); setShowInclus(true) }}
-                      style={{
-                        display:'flex', alignItems:'center', gap:6, background:'none', border:'none',
-                        padding:0, marginBottom:18, cursor:'pointer', fontFamily:'inherit',
-                        fontSize:12, fontWeight:700, color:'#0073F4', textDecoration:'underline',
-                      }}
-                    >
-                      <Ico name="check" size={13} color="#0073F4" />
-                      Voir ce qui est inclus
-                    </button>
-                  )}
-                  <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'13px 18px', background:`linear-gradient(135deg,${type.color},${type.color}cc)`, borderRadius:12, color:'#fff', fontSize:13, fontWeight:700 }}>
-                    <span>{type.cta}</span>
-                    <Ico name="arrow" size={16} color="#fff" />
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
 
@@ -453,22 +681,22 @@ export default function Inscription() {
                     <div style={{ width:80, height:80, borderRadius:'50%', background:'linear-gradient(135deg,#0073F4,#000E91)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 24px', boxShadow:'0 12px 40px rgba(0,115,244,.35)' }}>
                       <Ico name="check" size={36} color="#fff" />
                     </div>
-                    <h3 style={{ fontSize:'clamp(18px,3vw,26px)', fontWeight:900, color:'#0f172a', marginBottom:8 }}>{paiementMode==='maintenant'?'Inscription enregistree !':'Place reservee !'}</h3>
-                    <p style={{ fontSize:14, color:'#64748b', marginBottom:24, lineHeight:1.8 }}>Merci <strong style={{ color:'#0f172a' }}>{form.prenom} {form.nom}</strong>.<br/>Un email de confirmation a ete envoye a <strong style={{ color:'#0073F4' }}>{form.email}</strong>.</p>
+                    <h3 style={{ fontSize:'clamp(18px,3vw,26px)', fontWeight:900, color:'#0f172a', marginBottom:8 }}>{paiementMode==='maintenant'?t.successTitlePay:t.successTitleReserve}</h3>
+                    <p style={{ fontSize:14, color:'#64748b', marginBottom:24, lineHeight:1.8 }}>{t.successThanks(form.prenom, form.nom)}<strong style={{ color:'#0073F4' }}>{form.email}</strong>.</p>
 
                     <div style={{ background:'linear-gradient(135deg,#000E91,#0073F4)', borderRadius:16, padding:'20px 32px', display:'inline-block', marginBottom:16, boxShadow:'0 10px 32px rgba(0,14,145,.25)' }}>
-                      <div style={{ fontSize:10, color:'rgba(255,255,255,.55)', letterSpacing:2.5, textTransform:'uppercase', marginBottom:8 }}>Numero de dossier</div>
+                      <div style={{ fontSize:10, color:'rgba(255,255,255,.55)', letterSpacing:2.5, textTransform:'uppercase', marginBottom:8 }}>{t.dossierLabel}</div>
                       <div style={{ fontSize:'clamp(18px,4vw,26px)', fontWeight:900, color:'#fff', letterSpacing:2 }}>{dossierNum}</div>
                     </div>
 
                     <div style={{ marginBottom:28 }}>
                       <button
-                        onClick={() => generateRecapPDF({ form, dossier: dossierNum, nb, total, paiementMode })}
+                        onClick={() => generateRecapPDF({ form, dossier: dossierNum, nb, total, paiementMode, lang })}
                         className="cta-btn"
                         style={{ background:'#EBF3FF', color:'#000E91', border:'1.5px solid #bfdbfe', margin:'0 auto' }}
                       >
                         <Ico name="file" size={18} color="#000E91" />
-                        Telecharger mon recapitulatif (PDF)
+                        {t.downloadPdf}
                       </button>
                     </div>
 
@@ -477,16 +705,16 @@ export default function Inscription() {
                       <div style={{ display:'flex', gap:10, alignItems:'flex-start', marginBottom:16 }}>
                         <Ico name="alert" size={20} color="#d97706" />
                         <div>
-                          <div style={{ fontSize:14, fontWeight:800, color:'#92400e', marginBottom:4 }}>Action obligatoire - Contactez-nous pour finaliser</div>
-                          <p style={{ fontSize:13, color:'#78350f', lineHeight:1.7, margin:0 }}>Apres reception de votre email de confirmation, vous devez <strong>obligatoirement nous contacter</strong> par WhatsApp ou email pour valider votre inscription et recevoir les instructions de virement.</p>
+                          <div style={{ fontSize:14, fontWeight:800, color:'#92400e', marginBottom:4 }}>{t.actionTitle}</div>
+                          <p style={{ fontSize:13, color:'#78350f', lineHeight:1.7, margin:0 }}>{t.actionText}</p>
                         </div>
                       </div>
                       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-                        <a href={`https://wa.me/${WHATSAPP_NUM}?text=Bonjour, j'ai recu la confirmation de mon inscription COPAF 2026. Dossier : ${dossierNum}. Je souhaite finaliser.`} target="_blank" rel="noopener noreferrer" className="cta-btn" style={{ background:'#25D366', color:'#fff' }}>
+                        <a href={`https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(t.waMsgFinaliser(dossierNum))}`} target="_blank" rel="noopener noreferrer" className="cta-btn" style={{ background:'#25D366', color:'#fff' }}>
                           <Ico name="whatsapp" size={18} color="#fff" />
                           WhatsApp
                         </a>
-                        <a href={`mailto:${CONTACT_EMAIL}?subject=Finalisation inscription COPAF 2026 - ${dossierNum}&body=Bonjour, mon dossier est ${dossierNum}. Je souhaite finaliser mon inscription.`} className="cta-btn" style={{ background:'#EBF3FF', color:'#000E91', border:'1.5px solid #bfdbfe' }}>
+                        <a href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(t.emailSubject(dossierNum))}&body=${encodeURIComponent(t.emailBody(dossierNum))}`} className="cta-btn" style={{ background:'#EBF3FF', color:'#000E91', border:'1.5px solid #bfdbfe' }}>
                           <Ico name="mail" size={18} color="#000E91" />
                           Email
                         </a>
@@ -495,13 +723,13 @@ export default function Inscription() {
 
                     {/* Etapes suivantes */}
                     <div style={{ background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:14, padding:'16px 20px', textAlign:'left', marginBottom:16 }}>
-                      <div style={{ fontSize:10, color:'#0073F4', fontWeight:700, letterSpacing:2.5, textTransform:'uppercase', marginBottom:14 }}>Prochaines etapes</div>
+                      <div style={{ fontSize:10, color:'#0073F4', fontWeight:700, letterSpacing:2.5, textTransform:'uppercase', marginBottom:14 }}>{t.prochainesTitle}</div>
                       {[
-                        {icon:'mail',     text:'Email de confirmation automatique envoye'},
-                        {icon:'whatsapp', text:'Vous nous contactez par WhatsApp ou email'},
-                        {icon:'bank',     text:'Reception des instructions de virement'},
-                        {icon:'card',     text:paiementMode==='maintenant'?'Paiement sous 7 jours ouvrables':'Paiement avant le 31 aout 2026'},
-                        {icon:'badge',    text:'Badge et acces participant envoyes apres paiement'},
+                        {icon:'mail',     text:t.steps[0]},
+                        {icon:'whatsapp', text:t.steps[1]},
+                        {icon:'bank',     text:t.steps[2]},
+                        {icon:'card',     text:paiementMode==='maintenant'?t.steps[3].pay:t.steps[3].reserve},
+                        {icon:'badge',    text:t.steps[4]},
                       ].map((step,i,arr) => (
                         <div key={i} style={{ display:'flex', gap:10, alignItems:'center', padding:'8px 0', borderBottom:i<arr.length-1?'1px solid #f1f5f9':'none' }}>
                           <div style={{ width:28, height:28, borderRadius:8, background:'#EBF3FF', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
@@ -516,59 +744,59 @@ export default function Inscription() {
                     <div style={{ background:'#EBF3FF', border:'1.5px solid #bfdbfe', borderRadius:12, padding:'14px 16px', display:'flex', gap:10, alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', textAlign:'left', marginBottom:16 }}>
                       <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
                         <Ico name="shield" size={16} color="#0073F4" />
-                        <p style={{ fontSize:12.5, color:'#1e40af', lineHeight:1.6, margin:0 }}>Verifiez toujours le RIB avant de payer sur notre page dediee.</p>
+                        <p style={{ fontSize:12.5, color:'#1e40af', lineHeight:1.6, margin:0 }}>{t.verifRib}</p>
                       </div>
-                      <a href="/verifier" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, fontWeight:700, color:'#0073F4', textDecoration:'underline', whiteSpace:'nowrap' }}>Verifier maintenant &rarr;</a>
+                      <a href="/verifier" target="_blank" rel="noopener noreferrer" style={{ fontSize:12, fontWeight:700, color:'#0073F4', textDecoration:'underline', whiteSpace:'nowrap' }}>{t.verifNow}</a>
                     </div>
 
                     {/* Rappel non-remboursement */}
                     <div style={{ background:'#fef2f2', border:'1px solid #fca5a5', borderRadius:12, padding:'14px 16px', display:'flex', gap:10, alignItems:'flex-start', textAlign:'left' }}>
                       <Ico name="ban" size={16} color="#dc2626" />
-                      <p style={{ fontSize:12.5, color:'#7f1d1d', lineHeight:1.65, margin:0 }}><strong>Rappel :</strong> Les inscriptions sont fermes et definitives. Aucun remboursement ne sera effectue. En cas d'empechement, vous pouvez vous faire remplacer par un collegue (notification 72h avant).</p>
+                      <p style={{ fontSize:12.5, color:'#7f1d1d', lineHeight:1.65, margin:0 }}><strong>{t.rappelTitle}</strong>{t.rappelText}</p>
                     </div>
                   </div>
 
                 ) : (
                   /* FORMULAIRE */
                   <form onSubmit={handleSubmit} noValidate style={{ minWidth:0 }}>
-                    <h3 style={{ fontSize:20, fontWeight:800, color:'#0f172a', marginBottom:28, textAlign:'center' }}>Vos informations</h3>
+                    <h3 style={{ fontSize:20, fontWeight:800, color:'#0f172a', marginBottom:28, textAlign:'center' }}>{t.formTitle}</h3>
 
                     <div className="field-row">
-                      {[{name:'nom',label:'Nom *',ph:'Votre nom'},{name:'prenom',label:'Prenom *',ph:'Votre prenom'}].map(f => (
-                        <div key={f.name}><label style={lbl}>{f.label}</label><input name={f.name} type="text" required value={form[f.name]} onChange={handleChange} placeholder={f.ph} style={inp(f.name)} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')} /></div>
+                      {[{name:'nom',ph:t.ph.nom},{name:'prenom',ph:t.ph.prenom}].map(f => (
+                        <div key={f.name}><label style={lbl}>{t.fields[f.name]}</label><input name={f.name} type="text" required value={form[f.name]} onChange={handleChange} placeholder={f.ph} style={inp(f.name)} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')} /></div>
                       ))}
                     </div>
 
                     <div className="field-row">
-                      {[{name:'email',label:'Email *',ph:'votre@email.com',type:'email'},{name:'telephone',label:'Telephone *',ph:'+229 01 XX XX XX',type:'tel'}].map(f => (
-                        <div key={f.name}><label style={lbl}>{f.label}</label><input name={f.name} type={f.type} required value={form[f.name]} onChange={handleChange} placeholder={f.ph} style={inp(f.name)} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')} /></div>
+                      {[{name:'email',ph:t.ph.email,type:'email'},{name:'telephone',ph:t.ph.telephone,type:'tel'}].map(f => (
+                        <div key={f.name}><label style={lbl}>{t.fields[f.name]}</label><input name={f.name} type={f.type} required value={form[f.name]} onChange={handleChange} placeholder={f.ph} style={inp(f.name)} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')} /></div>
                       ))}
                     </div>
 
                     <div className="field-row">
-                      {[{name:'organisation',label:'Organisation *',ph:'Port / Entreprise'},{name:'poste',label:'Poste *',ph:'Votre fonction'}].map(f => (
-                        <div key={f.name}><label style={lbl}>{f.label}</label><input name={f.name} type="text" required value={form[f.name]} onChange={handleChange} placeholder={f.ph} style={inp(f.name)} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')} /></div>
+                      {[{name:'organisation',ph:t.ph.organisation},{name:'poste',ph:t.ph.poste}].map(f => (
+                        <div key={f.name}><label style={lbl}>{t.fields[f.name]}</label><input name={f.name} type="text" required value={form[f.name]} onChange={handleChange} placeholder={f.ph} style={inp(f.name)} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')} /></div>
                       ))}
                     </div>
 
                     <div className="field-row">
                       <div>
-                        <label style={lbl}>Pays *</label>
+                        <label style={lbl}>{t.fields.pays}</label>
                         <select name="pays" required value={form.pays} onChange={handleChange} style={{ ...inp('pays'), cursor:'pointer', color:form.pays?'#0f172a':'#94a3b8' }} onFocus={() => setFocused('pays')} onBlur={() => setFocused('')}>
-                          <option value="" disabled>Selectionnez votre pays</option>
-                          {PAYS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                          <option value="" disabled>{t.paysPlaceholder}</option>
+                          {PAYS.map(p => <option key={p.value} value={p.value}>{p.label[lang]}</option>)}
                         </select>
                       </div>
                       <div>
-                        <label style={lbl}>Nombre de participants</label>
+                        <label style={lbl}>{t.fields.participants}</label>
                         <select name="participants" value={form.participants} onChange={handleChange} style={{ ...inp('participants'), cursor:'pointer' }} onFocus={() => setFocused('participants')} onBlur={() => setFocused('')}>
-                          {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} participant{n>1?'s':''} - {(n*PRIX_UNITAIRE).toLocaleString('fr-FR')} EUR</option>)}
+                          {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{t.participantsOpt(n)}</option>)}
                         </select>
                       </div>
                     </div>
 
                     <div style={{ marginBottom:22 }}>
-                      <label style={lbl}>Photo (pour votre badge participant)</label>
+                      <label style={lbl}>{t.photoLabel}</label>
                       <div style={{ display:'flex', alignItems:'center', gap:14 }}>
                         <div style={{
                           width:64, height:64, borderRadius:12, flexShrink:0,
@@ -583,31 +811,32 @@ export default function Inscription() {
                           borderRadius:12, fontSize:13, fontWeight:600, color:'#334155',
                         }}>
                           <Ico name="user" size={15} color="#0073F4" />
-                          {photoPreview ? 'Changer la photo' : 'Choisir une photo'}
+                          {photoPreview ? t.photoChange : t.photoChoose}
                           <input type="file" accept="image/*" onChange={handlePhotoChange} style={{ display:'none' }} />
                         </label>
                       </div>
                       <p style={{ fontSize:11.5, color:'#94a3b8', marginTop:8, lineHeight:1.5 }}>
-                        Facultatif a ce stade — utilisee pour generer votre badge une fois l'inscription confirmee. Format portrait recommande.
+                        {t.photoHint}
                       </p>
                     </div>
 
                     <div style={{ marginBottom:22 }}>
-                      <label style={lbl}>Message / Besoins specifiques</label>
-                      <textarea name="message" rows={3} value={form.message} onChange={handleChange} placeholder="Questions, besoins alimentaires, accessibilite..." style={{ ...inp('message'), resize:'vertical', minHeight:80 }} onFocus={() => setFocused('message')} onBlur={() => setFocused('')} />
+                      <label style={lbl}>{t.messageLabel}</label>
+                      <textarea name="message" rows={3} value={form.message} onChange={handleChange} placeholder={t.messagePh} style={{ ...inp('message'), resize:'vertical', minHeight:80 }} onFocus={() => setFocused('message')} onBlur={() => setFocused('')} />
                     </div>
 
                     {/* Mode paiement */}
                     <div style={{ marginBottom:18 }}>
-                      <label style={lbl}>Mode de paiement *</label>
+                      <label style={lbl}>{t.paiementLabel}</label>
                       <div className="pay-grid">
-                        {[{value:'maintenant',icon:'card',title:'Payer maintenant',desc:'Virement sous 7 jours ouvrables'},{value:'plus_tard',icon:'calendar',title:'Reserver ma place',desc:'Paiement avant le 31 aout 2026'}].map(opt => {
+                        {t.paiementOpts.map(opt => {
                           const active = paiementMode===opt.value
+                          const icon = opt.value === 'maintenant' ? 'card' : 'calendar'
                           return (
                             <button key={opt.value} type="button" onClick={() => setPaiementMode(opt.value)} style={{ background:active?'#EBF3FF':'#f8fafc', border:`2px solid ${active?'#0073F4':'#e2e8f0'}`, borderRadius:14, padding:'14px 16px', cursor:'pointer', textAlign:'left', fontFamily:'inherit', transition:'all .2s', display:'flex', flexDirection:'column', gap:8, minHeight:75 }}>
                               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                                 <div style={{ width:32, height:32, borderRadius:8, background:active?'#fff':'#e2e8f0', display:'flex', alignItems:'center', justifyContent:'center', transition:'all .2s' }}>
-                                  <Ico name={opt.icon} size={16} color={active?'#0073F4':'#64748b'} />
+                                  <Ico name={icon} size={16} color={active?'#0073F4':'#64748b'} />
                                 </div>
                                 <span style={{ fontSize:13, fontWeight:700, color:active?'#000E91':'#334155' }}>{opt.title}</span>
                               </div>
@@ -622,9 +851,9 @@ export default function Inscription() {
                     <div style={{ background:'#fffbeb', border:'1.5px solid #fcd34d', borderRadius:14, padding:'16px 18px', marginBottom:22, display:'flex', gap:10, alignItems:'flex-start' }}>
                       <Ico name="info" size={18} color="#d97706" />
                       <div>
-                        <div style={{ fontSize:12, fontWeight:700, color:'#92400e', marginBottom:6 }}>A savoir avant de valider</div>
-                        <p style={{ fontSize:12, color:'#78350f', lineHeight:1.65, margin:'0 0 6px' }}>Les inscriptions sont <strong>fermes et definitives</strong> : aucun remboursement, quel que soit le motif (un collegue peut vous remplacer avec notification 72h avant).</p>
-                        <p style={{ fontSize:12, color:'#78350f', lineHeight:1.65, margin:0 }}>Apres votre email de confirmation, contactez-nous par WhatsApp ou email pour finaliser le paiement.</p>
+                        <div style={{ fontSize:12, fontWeight:700, color:'#92400e', marginBottom:6 }}>{t.avantValiderTitle}</div>
+                        <p style={{ fontSize:12, color:'#78350f', lineHeight:1.65, margin:'0 0 6px' }}>{t.avantValider1.replace(/\*\*/g,'')}</p>
+                        <p style={{ fontSize:12, color:'#78350f', lineHeight:1.65, margin:0 }}>{t.avantValider2}</p>
                       </div>
                     </div>
 
@@ -632,11 +861,11 @@ export default function Inscription() {
                     <div style={{ marginBottom:24 }}>
                       <label className="check-row">
                         <input type="checkbox" checked={cgv} onChange={e => setCgv(e.target.checked)} required />
-                        <span>J'ai lu et j'accepte les{' '}<button type="button" className="doc-link" onClick={() => setModal('cgv')}>conditions generales de vente</button>{' '}incluant la politique de non-remboursement.</span>
+                        <span>{t.cgvLabel}<button type="button" className="doc-link" onClick={() => setModal('cgv')}>{t.cgvLink}</button>{t.cgvSuffix}</span>
                       </label>
                       <label className="check-row">
                         <input type="checkbox" checked={rgpd} onChange={e => setRgpd(e.target.checked)} required />
-                        <span>J'accepte le traitement de mes donnees conformement a la{' '}<button type="button" className="doc-link" onClick={() => setModal('rgpd')}>politique de confidentialite</button>.</span>
+                        <span>{t.rgpdLabel}<button type="button" className="doc-link" onClick={() => setModal('rgpd')}>{t.rgpdLink}</button>{t.rgpdSuffix}</span>
                       </label>
                     </div>
 
@@ -648,12 +877,12 @@ export default function Inscription() {
                     )}
 
                     <button type="submit" className="submit-btn" disabled={loading || !cgv || !rgpd}>
-                      {loading ? <><div className="spinner" /> Envoi en cours...</> : <>{paiementMode==='maintenant'?'Confirmer mon inscription':'Reserver ma place'} <Ico name="arrow" size={16} color="#fff" /></>}
+                      {loading ? <><div className="spinner" /> {t.submitLoading}</> : <>{paiementMode==='maintenant'?t.submitPay:t.submitReserve} <Ico name="arrow" size={16} color="#fff" /></>}
                     </button>
 
                     <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginTop:14 }}>
                       <Ico name="lock" size={13} color="#94a3b8" />
-                      <p style={{ fontSize:12, color:'#94a3b8', margin:0 }}>Paiement 100% securise par virement bancaire. Aucune carte bancaire requise.</p>
+                      <p style={{ fontSize:12, color:'#94a3b8', margin:0 }}>{t.secureNote}</p>
                     </div>
                   </form>
                 )}
@@ -663,15 +892,15 @@ export default function Inscription() {
               <div className="sidebar" style={{ minWidth:0, display:'flex', flexDirection:'column', gap:16 }}>
 
                 <div style={{ background:'#fff', border:'1.5px solid #e2e8f0', borderRadius:20, padding:'24px 20px', boxShadow:'0 4px 20px rgba(0,14,145,.06)' }}>
-                  <div style={{ fontSize:10, color:'#0073F4', fontWeight:700, letterSpacing:2.5, textTransform:'uppercase', marginBottom:16 }}>Recapitulatif</div>
-                  {[{l:'Participants',v:nb},{l:'Tarif unitaire',v:`${PRIX_UNITAIRE.toLocaleString('fr-FR')} EUR`}].map((r,i) => (
+                  <div style={{ fontSize:10, color:'#0073F4', fontWeight:700, letterSpacing:2.5, textTransform:'uppercase', marginBottom:16 }}>{t.recapTitle}</div>
+                  {[{l:t.recapParticipants,v:nb},{l:t.recapTarif,v:`${PRIX_UNITAIRE.toLocaleString(lang==='fr'?'fr-FR':'en-US')} EUR`}].map((r,i) => (
                     <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', fontSize:14, color:'#64748b', padding:'10px 0', borderBottom:'1px solid #f1f5f9', gap:8 }}>
                       <span>{r.l}</span><strong style={{ color:'#0f172a' }}>{r.v}</strong>
                     </div>
                   ))}
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:14, padding:'14px 16px', background:'linear-gradient(135deg,#000E91,#0073F4)', borderRadius:12 }}>
-                    <span style={{ color:'rgba(255,255,255,.7)', fontSize:13, fontWeight:600 }}>Total</span>
-                    <span style={{ fontSize:22, fontWeight:900, color:'#fff' }}>{total.toLocaleString('fr-FR')} EUR</span>
+                    <span style={{ color:'rgba(255,255,255,.7)', fontSize:13, fontWeight:600 }}>{t.recapTotal}</span>
+                    <span style={{ fontSize:22, fontWeight:900, color:'#fff' }}>{total.toLocaleString(lang==='fr'?'fr-FR':'en-US')} EUR</span>
                   </div>
                 </div>
 
@@ -680,9 +909,9 @@ export default function Inscription() {
                     <div style={{ width:34, height:34, borderRadius:10, background:'#EBF3FF', display:'flex', alignItems:'center', justifyContent:'center' }}>
                       <Ico name="bank" size={18} color="#0073F4" />
                     </div>
-                    <div style={{ fontSize:13, fontWeight:700, color:'#0f172a' }}>Paiement par virement</div>
+                    <div style={{ fontSize:13, fontWeight:700, color:'#0f172a' }}>{t.virementTitle}</div>
                   </div>
-                  {[{l:'Banque',v:'SGBE Benin'},{l:'IBAN',v:'BJ66 BJ083 01001 00050273980 97'},{l:'BIC',v:'SGBEBJ BX'},{l:'Titulaire',v:'COPAF 2026'}].map((item,i) => (
+                  {[{l:lang==='fr'?'Banque':'Bank',v:'SGBE Benin'},{l:'IBAN',v:'BJ66 BJ083 01001 00050273980 97'},{l:'BIC',v:'SGBEBJ BX'},{l:lang==='fr'?'Titulaire':'Account holder',v:'COPAF 2026'}].map((item,i) => (
                     <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, padding:'8px 0', borderBottom:i<3?'1px solid #f1f5f9':'none' }}>
                       <span style={{ fontSize:12, color:'#94a3b8', fontWeight:600, flexShrink:0 }}>{item.l}</span>
                       <span style={{ fontSize:12, color:'#0f172a', fontWeight:700, textAlign:'right', wordBreak:'break-all' }}>{item.v}</span>
@@ -694,36 +923,36 @@ export default function Inscription() {
                     borderRadius: 10, color: '#0073F4', fontSize: 12, fontWeight: 700, textDecoration: 'none',
                   }}>
                     <Ico name="shield" size={13} color="#0073F4" />
-                    Verifier l'authenticite de ce RIB
+                    {t.verifAuth}
                   </a>
                 </div>
 
                 <div style={{ background:'#EBF3FF', border:'1.5px solid #bfdbfe', borderRadius:20, padding:'20px' }}>
-                  <div style={{ fontSize:10, color:'#000E91', fontWeight:700, letterSpacing:2, textTransform:'uppercase', marginBottom:14 }}>Besoin d'aide ?</div>
+                  <div style={{ fontSize:10, color:'#000E91', fontWeight:700, letterSpacing:2, textTransform:'uppercase', marginBottom:14 }}>{t.aideTitle}</div>
                   {[{icon:'phone',text:'+229 01 97 67 22 00'},{icon:'mail',text:'inscriptions@copaf-ports.com'},{icon:'globe',text:'www.copaf-ports.com'}].map((item,i) => (
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, color:'#1e40af', fontWeight:500, marginBottom:i<2?10:0 }}>
                       <Ico name={item.icon} size={15} color="#0073F4" />
                       <span style={{ wordBreak:'break-word', overflowWrap:'break-word' }}>{item.text}</span>
                     </div>
                   ))}
-                  <a href={`https://wa.me/${WHATSAPP_NUM}?text=Bonjour, j'ai une question concernant mon inscription a la COPAF 2026.`} target="_blank" rel="noopener noreferrer"
+                  <a href={`https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(t.waMsgQuestion)}`} target="_blank" rel="noopener noreferrer"
                     style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginTop:14, padding:'11px', background:'#25D366', borderRadius:12, color:'#fff', fontSize:13, fontWeight:700, textDecoration:'none', transition:'opacity .2s' }}
                     onMouseEnter={e => e.currentTarget.style.opacity='0.9'}
                     onMouseLeave={e => e.currentTarget.style.opacity='1'}>
                     <Ico name="whatsapp" size={16} color="#fff" />
-                    Contacter sur WhatsApp
+                    {t.waContact}
                   </a>
                 </div>
 
                 <div style={{ background:'#fef2f2', border:'1.5px solid #fca5a5', borderRadius:16, padding:'16px' }}>
                   <div style={{ display:'flex', gap:8, alignItems:'flex-start', marginBottom:8 }}>
                     <Ico name="ban" size={16} color="#dc2626" />
-                    <div style={{ fontSize:11, fontWeight:700, color:'#dc2626', textTransform:'uppercase', letterSpacing:.5 }}>Non remboursable</div>
+                    <div style={{ fontSize:11, fontWeight:700, color:'#dc2626', textTransform:'uppercase', letterSpacing:.5 }}>{t.nonRembTitle}</div>
                   </div>
                   <p style={{ fontSize:12, color:'#7f1d1d', lineHeight:1.65, margin:0 }}>
-                    Les inscriptions sont definitives. Consultez nos{' '}
-                    <button type="button" className="doc-link" style={{ fontSize:12, color:'#dc2626' }} onClick={() => setModal('cgv')}>CGV</button>
-                    {' '}pour plus d'informations.
+                    {t.nonRembText}
+                    <button type="button" className="doc-link" style={{ fontSize:12, color:'#dc2626' }} onClick={() => setModal('cgv')}>{t.nonRembCgv}</button>
+                    {t.nonRembSuffix}
                   </p>
                 </div>
               </div>
