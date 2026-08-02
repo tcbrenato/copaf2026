@@ -1,9 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import Navbar from '../components/Navbar'
 
 // ─── SHEET URL ────────────────────────────────────────────────────────────────
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
+
+// ─── ROUTE VERS LA PAGE "VISITER L'EXPOSITION" ─────────────────────────────────
+// À ajuster si la route réelle diffère dans le routeur de l'app.
+const VISITER_ROUTE = '/visiter-exposition'
 
 // ─── ICONES SVG ──────────────────────────────────────────────────────────────
 const Ico = ({ name, size = 20, color = 'currentColor' }) => {
@@ -35,6 +40,7 @@ const Ico = ({ name, size = 20, color = 'currentColor' }) => {
     trending:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>,
     wifi:       <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 16 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>,
     monitor:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>,
+    eye:        <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
   }
   return icons[name] || null
 }
@@ -119,12 +125,6 @@ const PLANS = [
   },
 ]
 
-const TEMOIGNAGES = [
-  { text: "Le rapport post-événement nous a montré que notre vidéo avait été consultée par 3 directeurs de ports que nous n'aurions jamais rencontrés physiquement. Un ROI impossible à obtenir avec un stand classique.", name: 'Mehdi Ouarrach', role: 'CEO, PortLogix Solutions', initials: 'MO', color: '#0073F4' },
-  { text: "Pour une PME comme nous, exposer à Casablanca était un rêve inaccessible. Avec la formule Essentielle, nous avons eu la même visibilité numérique que des groupes dix fois plus grands.", name: 'Aminata Diallo', role: 'Directrice, WestPort Tech', initials: 'AD', color: '#000E91' },
-  { text: "Le mode offline sur tablette a été décisif. Le Wi-Fi saturait dans les couloirs, mais nos brochures fonctionnaient parfaitement. Nos concurrents étaient bloqués.", name: 'Carlos Ferreira', role: 'VP Commercial, NavTech Ibérica', initials: 'CF', color: '#475569' },
-]
-
 const FAQS = [
   { q: "Qui gère les tablettes sur place ?", a: "COPAF met à disposition des tablettes aux participants confirmés. Notre équipe assure l'intégralité de la logistique : acquisition, préchargement, distribution et collecte en fin d'événement." },
   { q: "Comment fonctionne le mode offline ?", a: "Grâce à la technologie Service Worker, tous vos fichiers sont téléchargés avant l'événement. Les participants y accèdent instantanément même sans Wi-Fi." },
@@ -180,6 +180,7 @@ function SectionHeader({ eyebrow, title, sub }) {
 
 // ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────────────────
 export default function ExpositionDigitale() {
+  const navigate = useNavigate()
   const [activeModal,  setActiveModal]  = useState(null)
   const [selectedPlan, setSelectedPlan] = useState('')
   const [openFaq,      setOpenFaq]      = useState(null)
@@ -272,11 +273,9 @@ export default function ExpositionDigitale() {
 
         .piliers-grid   { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
         .pricing-grid   { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px; }
-        .temo-grid      { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px; }
         .avantages-grid { display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px; }
         @media(max-width:1000px){ .pricing-grid { grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); } }
         @media(max-width:900px) { .avantages-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-        @media(max-width:700px) { .temo-grid { grid-template-columns:minmax(0,1fr); } }
         @media(max-width:640px) { .pricing-grid { grid-template-columns:minmax(0,1fr); } .cmp-table { display:none; } .cmp-mobile { display:flex !important; } }
         @media(max-width:540px) { .piliers-grid,.avantages-grid { grid-template-columns:minmax(0,1fr); } }
 
@@ -351,7 +350,12 @@ export default function ExpositionDigitale() {
               Réserver ma place
               <Ico name="arrowRight" size={16} color="#fff" />
             </button>
-            <button className="btn-outline" onClick={() => scrollTo('piliers')}>Comment ça marche ?</button>
+            <button className="btn-outline" onClick={() => navigate(VISITER_ROUTE)}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Ico name="eye" size={15} color="#0f172a" />
+                Visiter l'exposition
+              </span>
+            </button>
           </div>
         </div>
       </section>
@@ -499,27 +503,6 @@ export default function ExpositionDigitale() {
                 Choisir {plan.id}
                 <Ico name="arrowRight" size={15} color="#fff" />
               </button>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section>
-        <SectionHeader eyebrow="Ils nous font confiance" title="Ce que disent nos participants" />
-        <div className="temo-grid">
-          {TEMOIGNAGES.map((t, i) => (
-            <div key={i} style={{ background: '#f8faff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: 'clamp(20px,3vw,28px)' }}>
-              <div style={{ display: 'flex', gap: 2, marginBottom: 14 }}>
-                {[...Array(5)].map((_, j) => <Ico key={j} name="star" size={14} color="#f59e0b" />)}
-              </div>
-              <p style={{ fontSize: 13.5, color: '#334155', lineHeight: 1.75, marginBottom: 20, fontStyle: 'italic' }}>"{t.text}"</p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 42, height: 42, borderRadius: '50%', background: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 13, color: '#fff', flexShrink: 0 }}>{t.initials}</div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a' }}>{t.name}</div>
-                  <div style={{ fontSize: 12, color: '#64748b' }}>{t.role}</div>
-                </div>
-              </div>
             </div>
           ))}
         </div>
