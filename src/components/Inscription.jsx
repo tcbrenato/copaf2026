@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import emailjs from '@emailjs/browser'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
+import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { useAnalytics } from '../useAnalytics'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
@@ -158,6 +159,12 @@ const TR = {
     avantValiderTitle: 'A savoir avant de valider',
     avantValider1: 'Les inscriptions sont **fermes et definitives** : aucun remboursement, quel que soit le motif (un collegue peut vous remplacer avec notification 72h avant).',
     avantValider2: 'Apres votre email de confirmation, contactez-nous par WhatsApp ou email pour finaliser le paiement.',
+    securityTitle: '🔒 Sécurité de vos paiements',
+    securityText: (
+      <>Avant tout virement, vérifiez toujours nos coordonnées bancaires officielles sur notre page sécurisée{' '}
+      <a href="/verifier" target="_blank" rel="noopener noreferrer" style={{ color:'#991b1b', fontWeight:700 }}>copaf-ports.com/verifier</a>.
+      Toute demande de virement vers un RIB non listé sur cette page doit être considérée comme suspecte.</>
+    ),
     cgvLabel: "J'ai lu et j'accepte les ",
     cgvLink: 'conditions generales de vente',
     cgvSuffix: ' incluant la politique de non-remboursement.',
@@ -271,6 +278,12 @@ const TR = {
     avantValiderTitle: 'Before you confirm',
     avantValider1: 'Registrations are **firm and final**: no refunds, whatever the reason (a colleague may replace you with 72h notice).',
     avantValider2: 'After your confirmation email, contact us on WhatsApp or email to finalise payment.',
+    securityTitle: '🔒 Payment security',
+    securityText: (
+      <>Before making any transfer, always verify our official bank details on our secure page{' '}
+      <a href="/verifier" target="_blank" rel="noopener noreferrer" style={{ color:'#991b1b', fontWeight:700 }}>copaf-ports.com/verifier</a>.
+      Any transfer request to a bank account not listed on this page should be considered suspicious.</>
+    ),
     cgvLabel: 'I have read and accept the ',
     cgvLink: 'terms and conditions of sale',
     cgvSuffix: ', including the no-refund policy.',
@@ -502,7 +515,8 @@ export default function Inscription() {
       const locale = lang === 'en' ? 'en-US' : 'fr-FR'
       await emailjs.send(EMAILJS_SVC, templateId, { prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation, poste:form.poste, pays:form.pays, participants:form.participants, montant:`${total.toLocaleString(locale)} EUR`, tarif:`${PRIX_UNITAIRE.toLocaleString(locale)} EUR/pers.`, dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee', paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'', langue:lang }, EMAILJS_KEY)
       setDossierNum(dossier); setSubmitted(true)
-      generateRecapPDF({ form, dossier, nb, total, paiementMode, lang })
+      await generateProformaPDF({ form, dossier, nb, total, lang })
+      await generateRecapPDF({ form, dossier, nb, total, paiementMode, lang })
       trackConversion('inscription', paiementMode, total)
     } catch(err) { setErrorMsg(t.errorPrefix + err.message) }
     setLoading(false)
@@ -854,6 +868,14 @@ export default function Inscription() {
                         <div style={{ fontSize:12, fontWeight:700, color:'#92400e', marginBottom:6 }}>{t.avantValiderTitle}</div>
                         <p style={{ fontSize:12, color:'#78350f', lineHeight:1.65, margin:'0 0 6px' }}>{t.avantValider1.replace(/\*\*/g,'')}</p>
                         <p style={{ fontSize:12, color:'#78350f', lineHeight:1.65, margin:0 }}>{t.avantValider2}</p>
+                      </div>
+                    </div>
+
+                    <div style={{ background:'#fef2f2', border:'1.5px solid #fecaca', borderRadius:14, padding:'16px 18px', marginBottom:18, display:'flex', gap:10, alignItems:'flex-start' }}>
+                      <Ico name="shield" size={18} color="#991b1b" />
+                      <div>
+                        <div style={{ fontSize:12, fontWeight:700, color:'#991b1b', marginBottom:6 }}>{t.securityTitle}</div>
+                        <div style={{ fontSize:12, color:'#7f1d1d', lineHeight:1.7 }}>{t.securityText}</div>
                       </div>
                     </div>
 

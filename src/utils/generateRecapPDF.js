@@ -46,7 +46,7 @@ const TXT = {
   fr: {
     organisateurLabel: EVENT.organisateur.toUpperCase(),
     documentOfficiel: 'DOCUMENT OFFICIEL',
-    bandeauTitre: "CONFIRMATION D'INSCRIPTION",
+    bandeauTitre: "ATTESTATION D'INSCRIPTION",
     statutAttente: 'EN ATTENTE DE RÈGLEMENT',
     statutReserve: 'PLACE RÉSERVÉE',
     objet: 'Objet : Confirmation de votre inscription',
@@ -93,7 +93,7 @@ const TXT = {
   en: {
     organisateurLabel: EVENT.organisateur.toUpperCase(),
     documentOfficiel: 'OFFICIAL DOCUMENT',
-    bandeauTitre: 'REGISTRATION CONFIRMATION',
+    bandeauTitre: 'CERTIFICATE OF REGISTRATION',
     statutAttente: 'PAYMENT PENDING',
     statutReserve: 'SPOT RESERVED',
     objet: 'Subject: Confirmation of your registration',
