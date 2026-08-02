@@ -7,8 +7,7 @@ import Navbar from '../components/Navbar'
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
 
 // ─── ROUTE VERS LA PAGE "VISITER L'EXPOSITION" ─────────────────────────────────
-// À ajuster si la route réelle diffère dans le routeur de l'app.
-const VISITER_ROUTE = '/visiter-exposition'
+const VISITER_ROUTE = '/visiter'
 
 // ─── ICONES SVG ──────────────────────────────────────────────────────────────
 const Ico = ({ name, size = 20, color = 'currentColor' }) => {
