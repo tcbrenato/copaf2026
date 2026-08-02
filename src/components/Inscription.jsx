@@ -511,12 +511,51 @@ export default function Inscription() {
       const contactId = await upsertContact(form)
       await createInscription(contactId, form, nb, total, paiementMode, dossier, photoUrl, lang)
       fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:total,dossier,paiement:paiementMode,langue:lang}) }).catch(()=>{})
+
+      // ── Generation des 2 documents (Attestation + Proforma) ──
+      // download:false => on recupere l'objet jsPDF sans declencher le
+      // telechargement automatique, pour pouvoir a la fois le sauvegarder
+      // nous-memes (comportement existant conserve, telechargement local)
+      // ET l'uploader vers Supabase Storage pour obtenir un lien stable a
+      // inserer dans l'email (EmailJS ne gere pas les pieces jointes
+      // generees dynamiquement, il faut donc un lien).
+      let attestationUrl = ''
+      let proformaUrl = ''
+      try {
+        const attestationDoc = await generateRecapPDF({ form, dossier, nb, total, paiementMode, lang, download: false })
+        attestationDoc.save(`COPAF2026-Attestation-${dossier}.pdf`)
+        const attestationBlob = attestationDoc.output('blob')
+        const attestationPath = `${dossier}-attestation-${lang}.pdf`
+        await supabase.storage.from('documents-inscription').upload(attestationPath, attestationBlob, { upsert: true, contentType: 'application/pdf' })
+        attestationUrl = supabase.storage.from('documents-inscription').getPublicUrl(attestationPath).data.publicUrl
+
+        const proformaDoc = await generateProformaPDF({ form, dossier, nb, total, lang, download: false })
+        const proformaBlob = proformaDoc.output('blob')
+        const proformaPath = `${dossier}-proforma-${lang}.pdf`
+        await supabase.storage.from('documents-inscription').upload(proformaPath, proformaBlob, { upsert: true, contentType: 'application/pdf' })
+        proformaUrl = supabase.storage.from('documents-inscription').getPublicUrl(proformaPath).data.publicUrl
+      } catch (uploadErr) {
+        console.error('Erreur generation/upload documents:', uploadErr)
+        // Repli : si l'upload echoue, on tente au moins le telechargement
+        // direct habituel pour que le participant reparte avec son document.
+        try { generateRecapPDF({ form, dossier, nb, total, paiementMode, lang }) } catch {}
+      }
+
+      // L'envoi de l'email se fait APRES la generation/upload des documents,
+      // pour que les liens {{attestation_url}} et {{proforma_url}} soient
+      // deja disponibles au moment ou EmailJS construit le message.
       const templateId = lang === 'en' ? EMAILJS_TPL_EN : EMAILJS_TPL_FR
       const locale = lang === 'en' ? 'en-US' : 'fr-FR'
-      await emailjs.send(EMAILJS_SVC, templateId, { prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation, poste:form.poste, pays:form.pays, participants:form.participants, montant:`${total.toLocaleString(locale)} EUR`, tarif:`${PRIX_UNITAIRE.toLocaleString(locale)} EUR/pers.`, dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee', paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'', langue:lang }, EMAILJS_KEY)
+      await emailjs.send(EMAILJS_SVC, templateId, {
+        prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation,
+        poste:form.poste, pays:form.pays, participants:form.participants,
+        montant:`${total.toLocaleString(locale)} EUR`, tarif:`${PRIX_UNITAIRE.toLocaleString(locale)} EUR/pers.`,
+        dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee',
+        paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'',
+        langue:lang, attestation_url: attestationUrl, proforma_url: proformaUrl,
+      }, EMAILJS_KEY)
+
       setDossierNum(dossier); setSubmitted(true)
-      await generateProformaPDF({ form, dossier, nb, total, lang })
-      await generateRecapPDF({ form, dossier, nb, total, paiementMode, lang })
       trackConversion('inscription', paiementMode, total)
     } catch(err) { setErrorMsg(t.errorPrefix + err.message) }
     setLoading(false)
