@@ -45,7 +45,7 @@ const DOC_LABELS = { proforma: 'Facture proforma', recap: 'Récapitulatif', badg
 // Génère un id local unique pour chaque ligne participant (React key + suivi des éditions)
 const newParticipantRow = () => ({
   _id: `p_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-  prenom: '', nom: '', fonction: '', tarif: 3500,
+  prenom: '', nom: '', fonction: '', tarif: 3500, dossier: '',
 })
 
 export default function AdminProforma() {
@@ -66,6 +66,13 @@ export default function AdminProforma() {
   const [delegationName, setDelegationName] = useState('')
   const [participantsListe, setParticipantsListe] = useState([])
   const [groupSaving, setGroupSaving] = useState(false)
+  const [importPays, setImportPays] = useState('')
+  const [importPort, setImportPort] = useState('')
+  const [paysOptions, setPaysOptions] = useState([])
+  const [portOptions, setPortOptions] = useState([])
+  const [importResults, setImportResults] = useState([])
+  const [importSelected, setImportSelected] = useState(new Set())
+  const [importLoading, setImportLoading] = useState(false)
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(''), 3500) }
 
@@ -82,6 +89,26 @@ export default function AdminProforma() {
     setData(d => (d ? { ...d, participants: nb, montant: total } : d))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGroup, participantsListe])
+
+  useEffect(() => {
+    if (!isGroup || paysOptions.length > 0) return
+    ;(async () => {
+      const { data: rows } = await supabase.from('contacts').select('pays').not('pays', 'is', null)
+      const uniques = [...new Set((rows || []).map(r => r.pays).filter(Boolean))].sort((a, b) => a.localeCompare(b))
+      setPaysOptions(uniques)
+    })()
+  }, [isGroup, paysOptions.length])
+
+  useEffect(() => {
+    if (!importPays) { setPortOptions([]); return }
+    ;(async () => {
+      const { data: rows } = await supabase
+        .from('contacts').select('organisation')
+        .eq('pays', importPays).not('organisation', 'is', null)
+      const uniques = [...new Set((rows || []).map(r => r.organisation).filter(Boolean))].sort((a, b) => a.localeCompare(b))
+      setPortOptions(uniques)
+    })()
+  }, [importPays])
 
   const loadRecents = async () => {
     const { data: rows } = await supabase
@@ -133,7 +160,11 @@ export default function AdminProforma() {
     // Reinit / restauration de la fiche groupée
     const liste = Array.isArray(row.participants_liste) ? row.participants_liste : []
     setDelegationName(row.delegation_nom || '')
-    setParticipantsListe(liste.map(p => ({ _id: p._id || newParticipantRow()._id, prenom: p.prenom || '', nom: p.nom || '', fonction: p.fonction || '', tarif: p.tarif ?? 3500 })))
+    setParticipantsListe(liste.map(p => ({
+      _id: p._id || newParticipantRow()._id,
+      prenom: p.prenom || '', nom: p.nom || '', fonction: p.fonction || '', tarif: p.tarif ?? 3500,
+      dossier: p.dossier ?? '',
+    })))
     setIsGroup(!!row.delegation_nom || liste.length > 1)
 
     await loadHistorique(row.dossier)
@@ -202,6 +233,50 @@ export default function AdminProforma() {
     loadRecents()
   }
 
+  const handleSearchImport = async () => {
+    if (!importPays) { showToast('Choisissez un pays'); return }
+    setImportLoading(true)
+    let query = supabase
+      .from('inscriptions')
+      .select('dossier, paiement_status, contacts!inner(nom, prenom, organisation, poste, pays, email, telephone)')
+      .eq('contacts.pays', importPays)
+      .neq('dossier', data.dossier)
+      .limit(50)
+    if (importPort) query = query.eq('contacts.organisation', importPort)
+
+    const { data: rows, error: err } = await query
+    setImportLoading(false)
+    if (err) { showToast('Erreur : ' + err.message); return }
+
+    const dejaAjoutes = new Set(participantsListe.map(p => p.dossier).filter(Boolean))
+    setImportResults((rows || []).filter(r => !dejaAjoutes.has(r.dossier)))
+    setImportSelected(new Set())
+  }
+
+  const toggleImportSelect = dossier => setImportSelected(s => {
+    const next = new Set(s)
+    next.has(dossier) ? next.delete(dossier) : next.add(dossier)
+    return next
+  })
+
+  const handleAddImportSelected = () => {
+    const toAdd = importResults
+      .filter(r => importSelected.has(r.dossier))
+      .map(r => ({
+        _id: newParticipantRow()._id,
+        prenom: r.contacts?.prenom || '',
+        nom: r.contacts?.nom || '',
+        fonction: r.contacts?.poste || '',
+        tarif: 3500,
+        dossier: r.dossier,
+      }))
+    if (toAdd.length === 0) { showToast('Sélectionnez au moins une personne'); return }
+    setParticipantsListe(list => [...list, ...toAdd])
+    setImportResults(list => list.filter(r => !importSelected.has(r.dossier)))
+    setImportSelected(new Set())
+    showToast(`${toAdd.length} participant(s) ajouté(s)`)
+  }
+
   const handleGenerateProforma = async () => {
     setGenLoading('proforma')
     try {
@@ -214,7 +289,7 @@ export default function AdminProforma() {
     setGenLoading('recap')
     try {
       const participantsForPdf = isGroup && participantsListe.length > 1
-        ? participantsListe.map(p => ({ ...p, dossier: data.dossier }))
+        ? participantsListe.map(p => ({ ...p, dossier: p.dossier || data.dossier }))
         : []
       await generateRecapPDF({
         form: formData(),
@@ -448,23 +523,70 @@ export default function AdminProforma() {
                   />
                 </div>
 
+                <div style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 12, padding: 14, marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+                    Importer des participants déjà inscrits
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+                    <select value={importPays} onChange={e => { setImportPays(e.target.value); setImportPort(''); setImportResults([]) }} style={{ ...smallInputStyle, flex: '1 1 160px' }}>
+                      <option value="">Pays...</option>
+                      {paysOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                    <select value={importPort} onChange={e => setImportPort(e.target.value)} disabled={!importPays} style={{ ...smallInputStyle, flex: '1 1 200px' }}>
+                      <option value="">Tous les ports / organisations</option>
+                      {portOptions.map(o => <option key={o} value={o}>{o}</option>)}
+                    </select>
+                    <button onClick={handleSearchImport} disabled={importLoading || !importPays} style={actionBtn('#EBF3FF', NAVY, '#bfdbfe')}>
+                      <Ico name="search" size={13} color={NAVY} />
+                      {importLoading ? 'Recherche...' : 'Rechercher'}
+                    </button>
+                  </div>
+
+                  {importResults.length > 0 && (
+                    <>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 220, overflowY: 'auto', marginBottom: 10 }}>
+                        {importResults.map(r => (
+                          <label key={r.dossier} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 8px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer' }}>
+                            <input type="checkbox" checked={importSelected.has(r.dossier)} onChange={() => toggleImportSelect(r.dossier)} />
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ fontSize: 12.5, fontWeight: 700, color: '#0f172a' }}>{r.contacts?.prenom} {r.contacts?.nom}</div>
+                              <div style={{ fontSize: 11, color: '#94a3b8' }}>{r.contacts?.organisation} · {r.dossier}</div>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                      <button onClick={handleAddImportSelected} style={actionBtn('#d1fae5', '#065f46', '#6ee7b7')}>
+                        <Ico name="plus" size={13} color="#065f46" />
+                        Ajouter la sélection ({importSelected.size})
+                      </button>
+                    </>
+                  )}
+                </div>
+
                 <label style={labelStyle}>Participants</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
                   {/* En-têtes */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 110px 32px', gap: 8, padding: '0 2px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 110px 110px 32px', gap: 8, padding: '0 2px' }}>
                     <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Prénom</span>
                     <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Nom</span>
                     <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Fonction</span>
                     <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Tarif (EUR)</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Dossier</span>
                     <span />
                   </div>
 
                   {participantsListe.map(p => (
-                    <div key={p._id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 110px 32px', gap: 8, alignItems: 'center' }}>
+                    <div key={p._id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 110px 110px 32px', gap: 8, alignItems: 'center' }}>
                       <input style={smallInputStyle} value={p.prenom} onChange={e => updateParticipantRow(p._id, 'prenom', e.target.value)} placeholder="Prénom" />
                       <input style={smallInputStyle} value={p.nom} onChange={e => updateParticipantRow(p._id, 'nom', e.target.value)} placeholder="Nom" />
                       <input style={smallInputStyle} value={p.fonction} onChange={e => updateParticipantRow(p._id, 'fonction', e.target.value)} placeholder="Fonction" />
                       <input type="number" min="0" style={smallInputStyle} value={p.tarif} onChange={e => updateParticipantRow(p._id, 'tarif', e.target.value)} />
+                      <input
+                        style={smallInputStyle}
+                        value={p.dossier}
+                        onChange={e => updateParticipantRow(p._id, 'dossier', e.target.value)}
+                        placeholder={data.dossier}
+                      />
                       <button
                         onClick={() => removeParticipantRow(p._id)}
                         title="Supprimer"
