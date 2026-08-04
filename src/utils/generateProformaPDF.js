@@ -1,6 +1,6 @@
 // src/utils/generateProformaPDF.js
 //
-// Genere la FACTURE PROFORMA officielle CRF Perfection.
+// Genere la FACTURE PROFORMA officielle CRF Perfection / COPAF 2026.
 //
 // NOTE : layout, positions, couleurs et dimensions strictement identiques
 // a la version originale. Seul le texte affiche varie selon `lang` (fr|en).
@@ -21,7 +21,8 @@ const WHITE     = [255, 255, 255]
 const EMETTEUR = {
   nom: 'CRF PERFECTION',
   adresse: 'Cotonou, Bénin',
-  email: 'contactcrfperfection@gmail.com',
+  email: 'contact@copaf-ports.com',
+  emailAlt: 'contactcrfperfection@gmail.com',
   tel1: '+229 0169 30 30 19',
   tel2: '+1 (240) 978-4155',
   ifu: '87015034851',
@@ -130,8 +131,6 @@ function loadImage(src) {
   })
 }
 
-// Recompresse l'image via un canvas a une taille raisonnable, pour eviter
-// d'embarquer un fichier source haute-resolution (plusieurs Mo) dans le PDF.
 async function loadLogoCompressed(src, targetHeightPx = 220) {
   const img = await loadImage(src)
   const ratio = img.width / img.height
@@ -156,7 +155,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, lang = 'fr
 
   const numero = `PF-${dossier}`
   const prixU = nb > 0 ? total / nb : total
-  const FOOTER_TOP = H - 62 // limite haute reservee au pied de page
+  const FOOTER_TOP = H - 62
 
   const sectionLabel = (text, yy) => {
     doc.setFont('helvetica', 'bold')
@@ -169,7 +168,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, lang = 'fr
   }
 
   // ══════════════════════════════════════════
-  // EN-TETE — logo reel charge depuis /crflogo.png
+  // EN-TETE
   // ══════════════════════════════════════════
   let logoH = 0
   try {
@@ -179,12 +178,11 @@ export async function generateProformaPDF({ form, dossier, nb, total, lang = 'fr
     const logoW = logoH * ratio
     doc.addImage(dataUrl, 'PNG', M, 14, logoW, logoH)
   } catch {
-    // Repli si le logo ne charge pas : texte stylise
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(20)
     doc.setTextColor(...MAROON)
     doc.text('CRF', M, 44)
-    const crfW = doc.getTextWidth('CRF ', 'helvetica', 20)
+    const crfW = doc.getTextWidth('CRF ')
     doc.setTextColor(...GOLD)
     doc.text('Perfection', M + crfW, 44)
     logoH = 30
@@ -235,6 +233,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, lang = 'fr
   const emetteurLines = [
     EMETTEUR.adresse,
     EMETTEUR.email,
+    EMETTEUR.emailAlt,
     `${EMETTEUR.tel1}`,
     EMETTEUR.tel2,
     `${L.ifuLabel} : ${EMETTEUR.ifu || '—'}`,
@@ -248,15 +247,15 @@ export async function generateProformaPDF({ form, dossier, nb, total, lang = 'fr
   ]
 
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8.5)
+  doc.setFontSize(8)
   doc.setTextColor(...GRAY)
   let ey = y
-  emetteurLines.forEach(line => { doc.text(line, M, ey); ey += 11.5 })
+  emetteurLines.forEach(line => { doc.text(line, M, ey); ey += 10.5 })
 
   let dy = y + (destText.length - 1) * 11.5
   destLines.forEach(line => { doc.text(line, colX2, dy); dy += 11.5 })
 
-  y = Math.max(ey, dy) + 14
+  y = Math.max(ey, dy) + 10
 
   // ══════════════════════════════════════════
   // BANDEAU INFOS
@@ -281,7 +280,7 @@ export async function generateProformaPDF({ form, dossier, nb, total, lang = 'fr
     doc.setTextColor(...MAROON)
     doc.text(value, x, y + 32)
   })
-  y += infoH + 18
+  y += infoH + 16
 
   // ══════════════════════════════════════════
   // DETAIL DE LA PRESTATION
@@ -325,90 +324,87 @@ export async function generateProformaPDF({ form, dossier, nb, total, lang = 'fr
   doc.text(String(nb), M + colDesc + colQte / 2, y + 22, { align: 'center' })
   doc.text(fmtEur(prixU), M + colDesc + colQte + colPU / 2, y + 22, { align: 'center' })
   doc.text(fmtEur(total), M + contentW - 10, y + 22, { align: 'right' })
-  y += rowH + 14
+  y += rowH + 12
 
   // ══════════════════════════════════════════
   // TOTAL
   // ══════════════════════════════════════════
   const totalW = 230
-  const totalH = 36
+  const totalH = 34
   doc.setFillColor(...MAROON)
   doc.roundedRect(W - M - totalW, y, totalW, totalH, 5, 5, 'F')
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
   doc.setTextColor(220, 200, 150)
-  doc.text(L.montantTotalTtc, W - M - totalW + 14, y + 16)
-  doc.setFontSize(14.5)
+  doc.text(L.montantTotalTtc, W - M - totalW + 14, y + 15)
+  doc.setFontSize(14)
   doc.setTextColor(...WHITE)
-  doc.text(fmtEur(total), W - M - 14, y + 29, { align: 'right' })
-  y += totalH + 20
+  doc.text(fmtEur(total), W - M - 14, y + 27, { align: 'right' })
+  y += totalH + 14
 
   // ══════════════════════════════════════════
   // PRESTATIONS INCLUSES
   // ══════════════════════════════════════════
   sectionLabel(L.prestationsIncluses, y)
-  y += 15
+  y += 14
 
-  const boxPad = 10
-  const lineH = 13.5
+  const boxPad = 8
+  const lineH = 12.5
   const boxH = PRESTATIONS_INCLUSES.length * lineH + boxPad * 2
   doc.setFillColor(...GREEN_BG)
   doc.roundedRect(M, y, contentW, boxH, 5, 5, 'F')
-  let py = y + boxPad + 9
+  let py = y + boxPad + 8
   PRESTATIONS_INCLUSES.forEach(item => {
     doc.setFillColor(...GREEN_TXT)
     doc.circle(M + 16, py - 3, 1.8, 'F')
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8.5)
+    doc.setFontSize(8)
     doc.setTextColor(...DARK)
     doc.text(item, M + 26, py)
     py += lineH
   })
-  y += boxH + 16
+  y += boxH + 14
 
   // ══════════════════════════════════════════
   // RIB
   // ══════════════════════════════════════════
   sectionLabel(L.coordBancaires, y)
-  y += 15
+  y += 14
 
   const ribRows = [[L.banque, RIB.banque], [L.iban, RIB.iban], [L.bic, RIB.bic], [L.titulaire, RIB.titulaire]]
-  const ribLineH = 16.5
-  const ribH = ribRows.length * ribLineH + 12
+  const ribLineH = 15
+  const ribH = ribRows.length * ribLineH + 10
   doc.setFillColor(...BLUE_BG)
   doc.roundedRect(M, y, contentW, ribH, 5, 5, 'F')
-  let ry = y + 19
+  let ry = y + 16
   ribRows.forEach(([label, value]) => {
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8.5)
+    doc.setFontSize(8)
     doc.setTextColor(...GRAY)
     doc.text(label, M + 16, ry)
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(9)
+    doc.setFontSize(8.5)
     doc.setTextColor(...MAROON)
     doc.text(value, W - M - 16, ry, { align: 'right' })
     ry += ribLineH
   })
-  y += ribH + 16
+  y += ribH + 12
 
   // ══════════════════════════════════════════
   // MENTION LEGALE
   // ══════════════════════════════════════════
   doc.setFont('helvetica', 'italic')
-  doc.setFontSize(7)
+  doc.setFontSize(6.5)
   doc.setTextColor(...GRAY)
   const mention = doc.splitTextToSize(L.mention, contentW)
   doc.text(mention, M, y)
-  y += mention.length * 9.5
 
-  // ── Securite anti-chevauchement : si le contenu depasse la zone
-  // reservee au pied de page, on ajoute une page plutot que de superposer.
   if (y > FOOTER_TOP - 10) {
     doc.addPage()
   }
 
   // ══════════════════════════════════════════
-  // PIED DE PAGE (toujours en bas de la derniere page)
+  // PIED DE PAGE
   // ══════════════════════════════════════════
   const footerY = H - 48
   doc.setDrawColor(...LINE)
@@ -417,8 +413,8 @@ export async function generateProformaPDF({ form, dossier, nb, total, lang = 'fr
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.5)
   doc.setTextColor(...GRAY)
-  doc.text(L.tagline === 'Cabinet de Recherche et de Formation' ? 'Cabinet de Recherche et de Formation Perfection' : 'CRF Perfection — Research and Training Firm', M, footerY + 14)
-  doc.text(EMETTEUR.email, M, footerY + 26)
+  doc.text('CRF Perfection — contact@copaf-ports.com', M, footerY + 14)
+  doc.text(EMETTEUR.emailAlt, M, footerY + 26)
   doc.text(`${EMETTEUR.tel1}  ·  ${EMETTEUR.tel2}`, W - M, footerY + 14, { align: 'right' })
 
   if (download) {
