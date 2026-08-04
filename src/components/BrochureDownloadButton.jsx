@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../supabase'
 
-const BROCHURE_URL = '/brochure-copaf-2026.pdf'
+const BROCHURE_URL_FR = '/brochure-copaf-2026-fr.pdf'
+const BROCHURE_URL_EN = '/brochure-copaf-2026-en.pdf'
 
 const Ico = ({ name, size = 18, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
@@ -15,12 +17,14 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
 }
 
 function BrochureModal({ onClose }) {
+  const { t, i18n } = useTranslation()
   const [nom, setNom] = useState('')
   const [email, setEmail] = useState('')
   const [organisation, setOrganisation] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+  const brochureUrl = i18n.language?.startsWith('en') ? BROCHURE_URL_EN : BROCHURE_URL_FR
 
   const handleSubmit = async e => {
     e.preventDefault()
@@ -34,13 +38,13 @@ function BrochureModal({ onClose }) {
       if (err) throw new Error(err.message)
 
       const a = document.createElement('a')
-      a.href = BROCHURE_URL
-      a.download = 'Brochure_COPAF_2026.pdf'
+      a.href = brochureUrl
+      a.download = `Brochure_COPAF_2026_${i18n.language?.startsWith('en') ? 'en' : 'fr'}.pdf`
       a.click()
 
       setDone(true)
     } catch (err) {
-      setError("Une erreur est survenue. Réessayez, ou téléchargez directement : ")
+      setError(t('brochure.error'))
     }
     setLoading(false)
   }
@@ -54,8 +58,8 @@ function BrochureModal({ onClose }) {
               <Ico name="file" size={20} color="#0073F4" />
             </div>
             <div>
-              <div style={{ fontSize: 17, fontWeight: 800, color: '#0f172a' }}>Télécharger la brochure</div>
-              <div style={{ fontSize: 12, color: '#64748b' }}>Programme complet COPAF 2026</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: '#0f172a' }}>{t('brochure.modalTitle')}</div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>{t('brochure.modalSubtitle')}</div>
             </div>
           </div>
           <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -69,29 +73,28 @@ function BrochureModal({ onClose }) {
               <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg,#0073F4,#000E91)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <Ico name="check" size={26} color="#fff" />
               </div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>Téléchargement lancé !</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>{t('brochure.successTitle')}</div>
               <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6, margin: '0 0 16px' }}>
-                Si le fichier ne s'est pas ouvert automatiquement, cliquez ci-dessous.
+                {t('brochure.successBody')}
               </p>
-              <a href={BROCHURE_URL} download="Brochure_COPAF_2026.pdf" style={{
+              <a href={brochureUrl} download={`Brochure_COPAF_2026_${i18n.language?.startsWith('en') ? 'en' : 'fr'}.pdf`} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 20px',
                 background: '#EBF3FF', color: '#000E91', borderRadius: 10, fontWeight: 700,
                 fontSize: 13, textDecoration: 'none',
               }}>
                 <Ico name="download" size={15} color="#000E91" />
-                Télécharger à nouveau
+                {t('brochure.downloadAgain')}
               </a>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
               <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.65, margin: '0 0 20px' }}>
-                Renseignez vos coordonnées pour recevoir immédiatement la brochure détaillée
-                (programme, axes thématiques, modalités, tarifs).
+                {t('brochure.formIntro')}
               </p>
 
               <div style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: '#64748b', marginBottom: 6 }}>Nom complet *</label>
-                <input required value={nom} onChange={e => setNom(e.target.value)} placeholder="Votre nom" style={{
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: '#64748b', marginBottom: 6 }}>{t('brochure.labelName')}</label>
+                <input required value={nom} onChange={e => setNom(e.target.value)} placeholder={t('brochure.placeholderName')} style={{
                   width: '100%', padding: '12px 14px', fontSize: 14, fontFamily: 'inherit',
                   color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0',
                   borderRadius: 10, outline: 'none', boxSizing: 'border-box',
@@ -99,8 +102,8 @@ function BrochureModal({ onClose }) {
               </div>
 
               <div style={{ marginBottom: 14 }}>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: '#64748b', marginBottom: 6 }}>Email professionnel *</label>
-                <input required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="vous@organisation.com" style={{
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: '#64748b', marginBottom: 6 }}>{t('brochure.labelEmail')}</label>
+                <input required type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('brochure.placeholderEmail')} style={{
                   width: '100%', padding: '12px 14px', fontSize: 14, fontFamily: 'inherit',
                   color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0',
                   borderRadius: 10, outline: 'none', boxSizing: 'border-box',
@@ -108,8 +111,8 @@ function BrochureModal({ onClose }) {
               </div>
 
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: '#64748b', marginBottom: 6 }}>Organisation (facultatif)</label>
-                <input value={organisation} onChange={e => setOrganisation(e.target.value)} placeholder="Port / Entreprise" style={{
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', color: '#64748b', marginBottom: 6 }}>{t('brochure.labelOrganization')}</label>
+                <input value={organisation} onChange={e => setOrganisation(e.target.value)} placeholder={t('brochure.placeholderOrganization')} style={{
                   width: '100%', padding: '12px 14px', fontSize: 14, fontFamily: 'inherit',
                   color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0',
                   borderRadius: 10, outline: 'none', boxSizing: 'border-box',
@@ -118,7 +121,7 @@ function BrochureModal({ onClose }) {
 
               {error && (
                 <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 10, padding: '10px 14px', fontSize: 12.5, color: '#dc2626', marginBottom: 16 }}>
-                  {error}<a href={BROCHURE_URL} download style={{ color: '#dc2626', fontWeight: 700 }}>cliquez ici</a>.
+                  {error}<a href={brochureUrl} download style={{ color: '#dc2626', fontWeight: 700 }}>{t('brochure.downloadAgain')}</a>.
                 </div>
               )}
 
@@ -129,11 +132,11 @@ function BrochureModal({ onClose }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit',
               }}>
                 <Ico name="download" size={16} color="#fff" />
-                {loading ? 'Un instant...' : 'Recevoir la brochure'}
+                {loading ? t('brochure.submitLoading') : t('brochure.submit')}
               </button>
 
               <p style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 12, textAlign: 'center', lineHeight: 1.5 }}>
-                Vos coordonnées servent uniquement à vous informer sur la COPAF 2026. Aucune revente à des tiers.
+                {t('brochure.note')}
               </p>
             </form>
           )}
@@ -146,8 +149,10 @@ function BrochureModal({ onClose }) {
 // Bouton réutilisable — deux variantes sobres :
 // "outline"  → fond clair, pour sections claires (par défaut)
 // "ghost"    → texte souligné transparent, pour fonds sombres comme le Hero
-export default function BrochureDownloadButton({ label = 'Télécharger la brochure', variant = 'outline', className = '' }) {
+export default function BrochureDownloadButton({ label, variant = 'outline', className = '' }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
+  const labelText = label || t('brochure.button')
 
   return (
     <>
@@ -156,7 +161,7 @@ export default function BrochureDownloadButton({ label = 'Télécharger la broch
         className={`brochure-btn brochure-btn--${variant} ${className}`}
       >
         {variant === 'outline' && <Ico name="file" size={16} />}
-        {label}
+        {labelText}
       </button>
 
       <style>{`

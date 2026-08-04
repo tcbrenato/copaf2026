@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 const Ico = ({ name, size = 22, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
   const icons = {
@@ -13,120 +15,140 @@ const Ico = ({ name, size = 22, color = 'currentColor' }) => {
 
 const CONTACTS = [
   {
-    icon: 'mail', label: 'Email Officiel', value: 'contact@copaf-ports.com',
-    href: 'mailto:contact@copaf-ports.com?subject=Question COPAF 2026',
-    cta: 'Écrire un email', color: '#0073F4', bg: '#EBF3FF',
+    icon: 'mail', value: 'contact@copaf-ports.com',
+    hrefTemplate: 'mailto:contact@copaf-ports.com?subject=',
+    color: '#0073F4', bg: '#EBF3FF',
   },
   {
-    icon: 'mail', label: 'Email CRF Perfection', value: 'contact@crfperfection.pro',
-    href: 'mailto:contact@crfperfection.pro?subject=Question COPAF 2026',
-    cta: 'Écrire un email', color: '#0073F4', bg: '#EBF3FF',
+    icon: 'mail', value: 'contact@crfperfection.pro',
+    hrefTemplate: 'mailto:contact@crfperfection.pro?subject=',
+    color: '#0073F4', bg: '#EBF3FF',
   },
   {
-    icon: 'whatsapp', label: 'WhatsApp', value: '+229 0169 30 30 19',
-    href: "https://wa.me/22901693030?text=Bonjour, j'ai une question concernant la COPAF 2026.",
-    cta: 'Discuter sur WhatsApp', color: '#25D366', bg: 'rgba(37,211,102,0.1)',
+    icon: 'whatsapp', value: '+229 0169 30 30 19',
+    hrefTemplate: 'https://wa.me/22901693030?text=',
+    color: '#25D366', bg: 'rgba(37,211,102,0.1)',
   },
   {
-    icon: 'phone', label: 'Téléphone', value: '+1 (240) 978-4155',
+    icon: 'phone', value: '+1 (240) 978-4155',
     href: 'tel:+12409784155',
-    cta: 'Appeler', color: '#000E91', bg: 'rgba(0,14,145,0.06)',
+    color: '#000E91', bg: 'rgba(0,14,145,0.06)',
   },
 ]
 
-const Contact = () => (
-  <section id="contact" style={{
-    padding: 'clamp(64px, 10vw, 110px) clamp(20px, 5vw, 60px)',
-    background: '#f8faff',
-    fontFamily: "'Roboto', sans-serif",
-  }}>
-    <style>{`@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');`}</style>
+const Contact = () => {
+  const { t } = useTranslation()
+  const cards = t('contact.cards', { returnObjects: true })
+  const contactItems = CONTACTS.map((item) => {
+    if (item.href) return item
+    return {
+      ...item,
+      href: item.hrefTemplate + encodeURIComponent(item.icon === 'whatsapp' ? t('contact.whatsappMessage') : t('contact.emailSubject')),
+    }
+  })
 
-    <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+  return (
+    <section id="contact" style={{
+      padding: 'clamp(64px, 10vw, 110px) clamp(20px, 5vw, 60px)',
+      background: '#f8faff',
+      fontFamily: "'Roboto', sans-serif",
+    }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');`}</style>
 
-      {/* HEADER */}
-      <div style={{ textAlign: 'center', marginBottom: 'clamp(40px, 6vw, 64px)' }}>
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          background: '#000E91', borderRadius: 100, padding: '7px 20px', marginBottom: 20,
-        }}>
-          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0073F4' }} />
-          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', color: '#fff' }}>Contact</span>
-        </div>
-        <h2 style={{
-          fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 900,
-          color: '#000E91', margin: '0 0 16px', lineHeight: 1.15, letterSpacing: '-0.02em',
-        }}>
-          Une question ? Contactez-nous
-        </h2>
-        <p style={{ fontSize: 'clamp(14px, 1.8vw, 16px)', color: '#64748b', maxWidth: 520, margin: '0 auto', lineHeight: 1.8 }}>
-          Notre équipe vous répond rapidement, par le canal qui vous convient le mieux.
-        </p>
-      </div>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-      {/* CARTES CONTACT */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 20, marginBottom: 40 }}>
-        {CONTACTS.map((c, i) => (
-          <a key={i} href={c.href} target={c.icon === 'whatsapp' ? '_blank' : undefined} rel="noopener noreferrer"
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-              background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20,
-              padding: '32px 24px', textDecoration: 'none', transition: 'all 0.25s ease',
-              boxShadow: '0 4px 16px rgba(0,14,145,.05)',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 16px 32px rgba(0,14,145,.12)' }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,14,145,.05)' }}
-          >
-            <div style={{
-              width: 56, height: 56, borderRadius: 16, background: c.bg,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18,
-            }}>
-              <Ico name={c.icon} size={26} color={c.color} />
-            </div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 6 }}>
-              {c.label}
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', marginBottom: 16 }}>
-              {c.value}
-            </div>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px',
-              background: c.bg, borderRadius: 100, color: c.color, fontSize: 12.5, fontWeight: 700,
-            }}>
-              {c.cta}
-            </div>
-          </a>
-        ))}
-      </div>
-
-      {/* BLOC BAS : localisation + verification */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 20 }}>
-        <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: '28px 26px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Ico name="pin" size={20} color="#0073F4" />
+        {/* HEADER */}
+        <div style={{ textAlign: 'center', marginBottom: 'clamp(40px, 6vw, 64px)' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: '#000E91', borderRadius: 100, padding: '7px 20px', marginBottom: 20,
+          }}>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0073F4' }} />
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', color: '#fff' }}>{t('contact.eyebrow')}</span>
           </div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>CRF Perfection — présence régionale</div>
-            <div style={{ fontSize: 13.5, color: '#64748b', lineHeight: 1.7 }}>Bénin · Côte d'Ivoire · Togo · États-Unis</div>
-          </div>
+          <h2 style={{
+            fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 900,
+            color: '#000E91', margin: '0 0 16px', lineHeight: 1.15, letterSpacing: '-0.02em',
+          }}>
+            {t('contact.title')}
+          </h2>
+          <p style={{ fontSize: 'clamp(14px, 1.8vw, 16px)', color: '#64748b', maxWidth: 520, margin: '0 auto', lineHeight: 1.8 }}>
+            {t('contact.subtitle')}
+          </p>
         </div>
 
-        <div style={{ background: '#EBF3FF', border: '1.5px solid #bfdbfe', borderRadius: 20, padding: '28px 26px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-          <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Ico name="shield" size={20} color="#0073F4" />
+        {/* CARTES CONTACT */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: 20, marginBottom: 40 }}>
+          {contactItems.map((c, i) => {
+            const card = cards[i] || {}
+            return (
+              <a key={i} href={c.href} target={c.icon === 'whatsapp' ? '_blank' : undefined} rel="noopener noreferrer"
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
+                  background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20,
+                  padding: '32px 24px', textDecoration: 'none', transition: 'all 0.25s ease',
+                  boxShadow: '0 4px 16px rgba(0,14,145,.05)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 16px 32px rgba(0,14,145,.12)' }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,14,145,.05)' }}
+              >
+                <div style={{
+                  width: 56, height: 56, borderRadius: 16, background: c.bg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18,
+                }}>
+                  <Ico name={c.icon} size={26} color={c.color} />
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 6 }}>
+                  {card.label || c.label}
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', marginBottom: 16 }}>
+                  {c.value}
+                </div>
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 18px',
+                  background: c.bg, borderRadius: 100, color: c.color, fontSize: 12.5, fontWeight: 700,
+                }}>
+                  {card.cta || c.cta}
+                </div>
+              </a>
+            )
+          })}
+        </div>
+
+        {/* BLOC BAS : localisation + verification */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 20 }}>
+          <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: '28px 26px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Ico name="pin" size={20} color="#0073F4" />
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>{t('contact.sectionOneTitle')}</div>
+              <div style={{ fontSize: 13.5, color: '#64748b', lineHeight: 1.7 }}>{t('contact.sectionOneText')}</div>
+            </div>
           </div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#000E91', marginBottom: 6 }}>Vérifiez toujours nos coordonnées bancaires</div>
-            <div style={{ fontSize: 13.5, color: '#1e40af', lineHeight: 1.7 }}>
-              Avant tout virement, confirmez le RIB officiel sur{' '}
-              <a href="/verifier" style={{ color: '#000E91', fontWeight: 700, textDecoration: 'underline' }}>copaf-ports.com/verifier</a>.
+
+          <div style={{ background: '#EBF3FF', border: '1.5px solid #bfdbfe', borderRadius: 20, padding: '28px 26px', display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Ico name="shield" size={20} color="#0073F4" />
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#000E91', marginBottom: 6 }}>{t('contact.sectionTwoTitle')}</div>
+              <div style={{ fontSize: 13.5, color: '#1e40af', lineHeight: 1.7 }}>
+                {t('contact.sectionTwoText').split('copaf-ports.com/verifier').map((part, i, arr) => (
+                  <span key={i}>
+                    {part}
+                    {i < arr.length - 1 && (
+                      <a href="/verifier" style={{ color: '#000E91', fontWeight: 700, textDecoration: 'underline' }}>copaf-ports.com/verifier</a>
+                    )}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-    </div>
-  </section>
-)
+    </section>
+  )
+}
 
 export default Contact

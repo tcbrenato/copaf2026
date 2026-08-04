@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import BrochureDownloadButton from './BrochureDownloadButton'
 
 const images = [
@@ -22,15 +23,11 @@ const scrollToSection = (id) => {
   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-const STATS = [
-  { value: '50+',  label: 'Ports membres' },
-  { value: '30+',  label: 'Pays représentés' },
-  { value: '200+', label: 'Participants' },
-]
-
 const Hero = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [currentImg, setCurrentImg] = useState(0)
+  const stats = t('hero.stats', { returnObjects: true })
   const [fade, setFade] = useState(true)
   const [statsIn, setStatsIn] = useState(false)
 
@@ -113,17 +110,17 @@ const Hero = () => {
             color: '#fff',
             letterSpacing: '-1.3px',
           }}>
-            Conférence des{' '}
+            {t('hero.titlePart1')}{' '}
             <span style={{
               background: 'linear-gradient(90deg, #4DA6FF, #00C8FF)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
             }}>
-              Ports Africains
+              {t('hero.titlePart2')}
             </span>
             <br />
-            <span style={{ opacity: 0.85, fontSize: '0.65em', letterSpacing: '-0.5px', fontWeight: 700 }}>COPAF 2026</span>
+            <span style={{ opacity: 0.85, fontSize: '0.65em', letterSpacing: '-0.5px', fontWeight: 700 }}>{t('hero.kicker')}</span>
           </h1>
 
           <p className="hero-subtitle" style={{
@@ -133,9 +130,7 @@ const Hero = () => {
             lineHeight: 1.65,
             marginBottom: '32px',
           }}>
-            Trois jours de réflexion scientifique et d'échanges stratégiques réunissant experts,
-            décideurs et institutions portuaires autour de « Smart Port Africain : IA et cybersécurité
-            au service de la performance ».
+            {t('hero.subtitle')}
           </p>
 
           {/* Stats — plus fines, moins imposantes */}
@@ -147,7 +142,7 @@ const Hero = () => {
             transform: statsIn ? 'translateY(0)' : 'translateY(10px)',
             transition: 'all 0.6s ease',
           }}>
-            {STATS.map(({ value, label }) => (
+            {stats.map(({ value, label }) => (
               <div key={label}>
                 <div style={{ fontSize: '22px', fontWeight: 900, color: '#fff', lineHeight: 1 }}>
                   {value}
@@ -162,14 +157,14 @@ const Hero = () => {
           {/* Buttons */}
           <div className="hero-buttons" style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
             <button onClick={handleInscription} className="hero-cta">
-              S'inscrire Maintenant
+              {t('hero.registerButton')}
             </button>
 
             <button onClick={() => scrollToSection('programme')} className="hero-link">
-              Voir le programme →
+              {t('hero.programmeButton')}
             </button>
 
-            <BrochureDownloadButton label="Télécharger la brochure" variant="ghost" />
+            <BrochureDownloadButton label={t('hero.downloadButton')} variant="ghost" />
           </div>
         </div>
 

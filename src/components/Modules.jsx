@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from 'react-i18next'
 
 const icons = {
   compass: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>,
@@ -20,76 +21,17 @@ const categorieBadge = {
   Recruté:    { bg: '#FFF4E8', color: '#A35F00' },
 }
 
-const AXES = [
-  {
-    num: "01",
-    jour: "Jour 1",
-    date: "15 Sept.",
-    titre: "IA & Vision Stratégique",
-    sousTitre: "Comprendre le paysage technologique et identifier les opportunités",
-    icon: icons.compass,
-    color: "#0073f4",
-    bg: "rgba(0,115,244,0.08)",
-    level: "Stratégique",
-    duration: "6h",
-    activites: [
-      { type: "Plénière", titre: "L'IA au cœur de la révolution du Smart Port", desc: "Panorama mondial et spécificités africaines.", intervenant: "Expert Partenaire A", categorie: "Partenaire" },
-      { type: "Panel d'apprentissage organisationnel", titre: "Automatisation des opérations portuaires par l'Intelligence Artificielle", desc: "", intervenant: "TCHOBO Rénato", categorie: "Maison" },
-      { type: "Atelier d'étude de cas", titre: "Études de cas, succès et échecs des projets IA", desc: "Dans les ports africains et mondiaux.", intervenant: "Expert Partenaire A", categorie: "Partenaire" },
-      { type: "Table ronde de réflexion", titre: "Diagnostic de maturité digitale", desc: "De votre autorité portuaire.", intervenant: "Dr. William ODAH", categorie: "Maison" },
-    ],
-  },
-  {
-    num: "02",
-    jour: "Jour 2",
-    date: "16 Sept.",
-    titre: "Excellence Opérationnelle & Sécurité",
-    sousTitre: "Voir comment l'IA transforme le terrain (quais, terminaux, accès)",
-    icon: icons.shield,
-    color: "#a78bfa",
-    bg: "rgba(167,139,250,0.08)",
-    level: "Expert",
-    duration: "6h",
-    activites: [
-      { type: "Plénière", titre: "Opérations nautiques", desc: "Prédiction des arrivées (ETA) et gestion intelligente des postes à quai.", intervenant: "Expert Recruté A", categorie: "Recruté" },
-      { type: "Panel d'apprentissage organisationnel", titre: "Fluidité de l'Hinterland", desc: "Algorithmes de gestion des flux de camions et réduction de la congestion urbaine.", intervenant: "Expert Recruté A", categorie: "Recruté" },
-      { type: "Atelier d'étude de cas", titre: "Sécurité & Sûreté", desc: "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", intervenant: "Expert Recruté B", categorie: "Recruté" },
-      { type: "Table ronde de réflexion", titre: "Cybersécurité portuaire", desc: "Comment protéger un port connecté contre les menaces criminelles.", intervenant: "Expert Recruté B", categorie: "Recruté" },
-    ],
-  },
-  {
-    num: "03",
-    jour: "Jour 3",
-    date: "17 Sept.",
-    titre: "Gouvernance Data-Driven & Feuille de Route",
-    sousTitre: "Préparer l'après-formation & optimiser le management du changement",
-    icon: icons.gauge,
-    color: "#10b981",
-    bg: "rgba(16,185,129,0.08)",
-    level: "Avancé",
-    duration: "7h",
-    activites: [
-      { type: "Plénière", titre: "Modèle économique de l'IA", desc: "Calculer le ROI d'un projet technologique portuaire.", intervenant: "Expert Partenaire B", categorie: "Partenaire" },
-      { type: "Panel d'apprentissage organisationnel", titre: "Gouvernance de la donnée", desc: "Créer une culture Data-Driven et recruter les talents nécessaires.", intervenant: "TCHOBO Rénato", categorie: "Maison" },
-      { type: "Atelier d'étude de cas", titre: "Pilotage en temps réel", desc: "Aide à la décision via des tableaux de bord prédictifs avancés.", intervenant: "Dr. William ODAH", categorie: "Maison" },
-      { type: "Table ronde de réflexion", titre: "KPIs portuaires intelligents", desc: "Pour une compétitivité continentale renforcée.", intervenant: "Expert Partenaire B", categorie: "Partenaire" },
-    ],
-  },
-];
-
-const objectifs = [
-  { num: "01", text: "Comprendre les fondamentaux de l'IA et de la data science appliquée aux ports" },
-  { num: "02", text: "Concevoir et structurer un projet IA adapté à la gestion portuaire africaine" },
-  { num: "03", text: "Utiliser les données prédictives pour anticiper les flux logistiques" },
-  { num: "04", text: "Intégrer l'IA dans la gestion opérationnelle quotidienne des terminaux" },
-  { num: "05", text: "Identifier les gisements de productivité : temps d'attente, maintenance, congestion" },
-  { num: "06", text: "Maîtriser la gouvernance de la donnée et la cybersécurité portuaire" },
-  { num: "07", text: "Positionner le port comme maillon performant des corridors de commerce africains" },
-];
-
 const AxesThematiques = () => {
+  const { t } = useTranslation()
   const [activeAxe, setActiveAxe] = useState(null);
   const [hovered, setHovered] = useState(null);
+  const axesData = t('modules.axes', { returnObjects: true })
+  const outcomes = t('modules.outcomes', { returnObjects: true })
+  const axesMeta = [
+    { icon: icons.compass, color: '#0073f4', bg: 'rgba(0,115,244,0.08)' },
+    { icon: icons.shield, color: '#a78bfa', bg: 'rgba(167,139,250,0.08)' },
+    { icon: icons.gauge, color: '#10b981', bg: 'rgba(16,185,129,0.08)' },
+  ]
 
   return (
     <section id="axes-thematiques" style={{
@@ -117,40 +59,42 @@ const AxesThematiques = () => {
             background: C.navy, borderRadius: 100, padding: "7px 20px", marginBottom: 20,
           }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.blue }} />
-            <span style={{ color: "#fff", fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase" }}>Axes Thématiques</span>
+            <span style={{ color: "#fff", fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase" }}>{t('modules.eyebrow')}</span>
           </div>
           <h2 style={{ fontSize: "clamp(24px, 4.5vw, 44px)", fontWeight: 900, color: C.navy, margin: "0 0 12px", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
-            3 Jours, 3 Axes au cœur de la{" "}
-            <span style={{ background: `linear-gradient(135deg, ${C.blue}, ${C.navyLight})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>COPAF 2026</span>
+            {t('modules.titlePart1')}{' '}
+            <span style={{ background: `linear-gradient(135deg, ${C.blue}, ${C.navyLight})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{t('modules.titlePart2')}</span>
           </h2>
           <p style={{ fontSize: "clamp(13px, 1.8vw, 16px)", color: "#64748b", maxWidth: 480, margin: "0 auto", lineHeight: 1.7 }}>
-            Cliquez sur un jour pour découvrir sa plénière, son panel, son atelier et sa table ronde.
+            {t('modules.subtitle')}
           </p>
         </div>
 
         {/* CARTES JOUR */}
         <div className="axes-grid">
-          {AXES.map((axe, i) => {
+          {axesData.map((axe, i) => {
             const isHover = hovered === i;
+            const meta = axesMeta[i] || {}
+            const axeWithMeta = { ...axe, icon: meta.icon, color: meta.color, bg: meta.bg }
             return (
               <div key={i} className="axe-card"
-                onClick={() => setActiveAxe(axe)}
+                onClick={() => setActiveAxe(axeWithMeta)}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
                 style={{
                   background: "#fff", borderRadius: 20, padding: "clamp(24px, 3.5vw, 32px)",
                   cursor: "pointer", position: "relative", overflow: "hidden",
                   border: `1.5px solid ${C.navyAlpha10}`,
-                  boxShadow: isHover ? `0 20px 44px ${axe.color}30` : "0 4px 16px rgba(0,14,145,0.05)",
+                  boxShadow: isHover ? `0 20px 44px ${meta.color}30` : "0 4px 16px rgba(0,14,145,0.05)",
                 }}
               >
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: axe.color }} />
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: meta.color }} />
                 <div style={{
                   width: 56, height: 56, borderRadius: 16, marginBottom: 18,
-                  background: axe.bg, border: `1px solid ${axe.color}30`,
-                  display: "flex", alignItems: "center", justifyContent: "center", color: axe.color,
-                }}>{axe.icon}</div>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: axe.color, marginBottom: 6 }}>
+                  background: meta.bg, border: `1px solid ${meta.color}30`,
+                  display: "flex", alignItems: "center", justifyContent: "center", color: meta.color,
+                }}>{meta.icon}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: meta.color, marginBottom: 6 }}>
                   {axe.jour} · {axe.date}
                 </div>
                 <div style={{ fontSize: "clamp(16px, 2.3vw, 19px)", fontWeight: 900, color: C.navy, lineHeight: 1.25, marginBottom: 10 }}>
@@ -158,9 +102,9 @@ const AxesThematiques = () => {
                 </div>
                 <p style={{ fontSize: 13, color: "#64748b", lineHeight: 1.6, marginBottom: 20 }}>{axe.sousTitre}</p>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: axe.color, background: axe.bg, borderRadius: 20, padding: "4px 10px" }}>4 activités</span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: axe.color }}>
-                    Voir le détail {icons.arrow}
+                  <span style={{ fontSize: 11, fontWeight: 700, color: meta.color, background: meta.bg, borderRadius: 20, padding: "4px 10px" }}>{t('modules.activitiesCount')}</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: meta.color }}>
+                    {t('modules.viewDetails')} {icons.arrow}
                   </span>
                 </div>
               </div>
@@ -176,12 +120,12 @@ const AxesThematiques = () => {
         }}>
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <h3 style={{ fontSize: "clamp(18px, 2.8vw, 26px)", fontWeight: 900, color: C.navy, marginBottom: 8 }}>
-              Ce que vous allez <span style={{ color: C.blue }}>maîtriser</span>
+              {t('modules.ceQueVousAllez')}
             </h3>
-            <p style={{ fontSize: 13.5, color: "#64748b", margin: 0 }}>À l'issue de la COPAF 2026, chaque participant sera en mesure de :</p>
+            <p style={{ fontSize: 13.5, color: "#64748b", margin: 0 }}>{t('modules.kept')}</p>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: 12 }}>
-            {objectifs.map((o, i) => (
+            {outcomes.map((o, i) => (
               <div key={i} style={{
                 display: "flex", gap: 12, alignItems: "flex-start",
                 padding: "14px 16px", background: "#fff", borderRadius: 12, border: "1px solid #E2E8F0",
@@ -271,11 +215,11 @@ const AxesThematiques = () => {
               </div>
 
               <div style={{ fontSize: 10, color: activeAxe.color, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>
-                Les 4 activités du jour
+                {t('modules.modalActivitiesTitle')}
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {activeAxe.activites.map((act, k) => {
+                {activeAxe.activities.map((act, k) => {
                   const cat = categorieBadge[act.categorie] || categorieBadge.Partenaire;
                   return (
                     <div key={k} style={{
@@ -312,7 +256,7 @@ const AxesThematiques = () => {
                 color: "#fff", border: "none", padding: 14, borderRadius: 12,
                 fontFamily: "inherit", fontWeight: 700, fontSize: 13,
                 letterSpacing: 1, textTransform: "uppercase", cursor: "pointer",
-              }}>Fermer</button>
+              }}>{t('modules.modalClose')}</button>
             </div>
           </div>
         </div>

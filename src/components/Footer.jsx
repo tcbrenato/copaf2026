@@ -1,7 +1,10 @@
+import { useTranslation } from 'react-i18next'
+
 const Footer = () => {
+  const { t } = useTranslation()
   const contacts = [
     {
-      text: "Bénin · Côte d'Ivoire · Togo · USA",
+      text: t('contact.sectionOneText'),
       icon: (
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
@@ -104,25 +107,24 @@ const Footer = () => {
             fontSize: 'clamp(22px, 4vw, 28px)',
             fontWeight: 700, letterSpacing: 4, marginBottom: 8, color: '#FFFFFF'
           }}>
-            COPAF <span style={{ color: '#0073f4' }}>2026</span>
+            {t('footer.title')} <span style={{ color: '#0073f4' }}>2026</span>
           </div>
           <div style={{
             fontSize: 12, color: '#0073f4',
             letterSpacing: 2, textTransform: 'uppercase', marginBottom: 18,
             fontWeight: 600,
           }}>
-            La Performance des Ports Africains
+            {t('footer.tagline')}
           </div>
           <p style={{
             fontSize: 'clamp(12px, 1.8vw, 14px)',
             color: 'rgba(255,255,255,0.45)', lineHeight: 1.8,
             maxWidth: 320, margin: '0 auto',
           }}>
-            Conférence des Ports Africains.
-            Une rencontre stratégique pour façonner l'avenir portuaire africain.
+            {t('footer.description')}
           </p>
           <div style={{ marginTop: 20, fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
-            Organisé par <span style={{ color: '#0073f4', fontWeight: 700 }}>CRF Perfection</span>
+            {t('footer.organizer')}
           </div>
 
           {/* Réseaux sociaux */}
@@ -168,9 +170,9 @@ const Footer = () => {
             fontSize: 11, color: '#0073f4', fontWeight: 700,
             letterSpacing: 3, textTransform: 'uppercase', marginBottom: 22
           }}>
-            Navigation
+            {t('footer.navigationTitle')}
           </div>
-          {['À Propos', 'Programme', 'Axes Thématiques', 'Inscription'].map((link, i) => (
+          {t('footer.navLinks', { returnObjects: true }).map((link, i) => (
             <div key={i} style={{ marginBottom: 12 }}>
               <a
                 href={`#${link.toLowerCase().replace('à ', '').replace(/\s+/g, '-')}`}
@@ -201,7 +203,7 @@ const Footer = () => {
             fontSize: 11, color: '#0073f4', fontWeight: 700,
             letterSpacing: 3, textTransform: 'uppercase', marginBottom: 22
           }}>
-            Contact
+            {t('footer.contactTitle')}
           </div>
           {contacts.map((c, i) => (
             <div key={i} style={{
@@ -238,13 +240,12 @@ const Footer = () => {
         gap: 8,
       }}>
         <div style={{ fontSize: 'clamp(11px, 1.6vw, 13px)', color: 'rgba(255,255,255,0.3)' }}>
-          © 2026 COPAF — CRF Perfection. Tous droits réservés.
+          {t('footer.copyright')}
         </div>
         <div style={{ fontSize: 'clamp(11px, 1.6vw, 13px)', color: 'rgba(255,255,255,0.3)' }}>
-          Casablanca, Maroc · 15–17 Septembre 2026
+          {t('footer.location')}
         </div>
       </div>
-
     </footer>
   )
 }

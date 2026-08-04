@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const partners = [
   { url: 'https://i.ibb.co/7dNZJQN5/agpaoc-0.jpg', name: 'AGPAOC' },
@@ -13,6 +14,7 @@ const partners = [
 ]
 
 const Partners = () => {
+  const { t } = useTranslation()
   const trackRef = useRef(null)
   const items = [...partners, ...partners, ...partners]
 
@@ -88,7 +90,7 @@ const Partners = () => {
             color: '#0073F4',
             marginBottom: '12px',
           }}>
-            Partenariats Stratégiques
+            {t('partners.eyebrow')}
           </p>
           <h2 style={{
             fontFamily: "'Inter', sans-serif",
@@ -98,7 +100,7 @@ const Partners = () => {
             margin: 0,
             lineHeight: 1.2,
           }}>
-            Ils soutiennent la COPAF 2026
+            {t('partners.title')}
           </h2>
           <div style={{
             width: '50px',

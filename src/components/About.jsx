@@ -1,75 +1,34 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Mic, GraduationCap, Handshake, Ship,
   Landmark, BarChart3, Laptop, Settings,
   Anchor, Microscope, Compass, Globe,
 } from 'lucide-react'
 
-const STATS = [
-  { number: '200+', label: 'Participants Attendus' },
-  { number: '54',   label: 'Nations Africaines' },
-  { number: '50+',  label: 'Conférenciers Experts' },
-  { number: '3',    label: 'Jours Intensifs' },
-]
-
-const OBJECTIFS = [
-  {
-    num: '01',
-    title: 'Partager l\'Expertise de Haut Niveau',
-    desc: 'Institutionnaliser une plateforme d\'échange sur les meilleures pratiques et accroître la performance des cadres portuaires africains.',
-  },
-  {
-    num: '02',
-    title: 'Renforcer le Réseau Décisionnel',
-    desc: 'Fédérer les leaders et décideurs maritimes africains pour favoriser la synergie continentale et l\'émergence de partenariats stratégiques durables.',
-  },
-  {
-    num: '03',
-    title: 'Vivre une Immersion Technologique et Opérationnelle',
-    desc: 'Découvrir par l\'exemple les solutions concrètes en matière de Smart Port, d\'IA et d\'automatisation logistique.',
-  },
-  {
-    num: '04',
-    title: 'Accélérer la Compétitivité Continentale',
-    desc: 'Transformer les acquis techniques et relationnels en leviers de croissance pour porter la part de l\'Afrique dans le commerce maritime mondial.',
-  },
-]
-
-const FORMATS = [
-  {
-    icon: Mic,
-    title: 'Conférences Plénières',
-    desc: 'Keynotes d\'experts internationaux sur la digitalisation, l\'IA et la cybersécurité portuaire.',
-  },
-  {
-    icon: GraduationCap,
-    title: 'Sessions de Formation Immersive',
-    desc: 'Ateliers techniques pour les cadres et directeurs, alliant théorie et études de cas portuaires appliquées.',
-  },
-  {
-    icon: Handshake,
-    title: 'Networking & B2B',
-    desc: 'Espaces dédiés aux échanges entre acteurs portuaires et fournisseurs de solutions technologiques.',
-  },
-  {
-    icon: Ship,
-    title: 'Visites de Terrain',
-    desc: 'Immersion guidée dans les installations d\'un premier hub portuaire pour s\'approprier les solutions Smart Port.',
-  },
-]
-
-const PUBLIC = [
-  { icon: Landmark,    role: 'Directeurs Généraux', sub: 'Autorités Portuaires', tag: 'Leadership stratégique' },
-  { icon: BarChart3,   role: 'Directeurs Stratégie', sub: 'et Développement', tag: 'Planification & gouvernance' },
-  { icon: Laptop,      role: 'DSI', sub: 'Systèmes d\'Information', tag: 'Transformation digitale' },
-  { icon: Settings,    role: 'Responsables Terminaux', sub: 'et Opérations', tag: 'Excellence opérationnelle' },
-  { icon: Anchor,      role: 'La Capitainerie', sub: 'Sécurité maritime', tag: 'Réglementation & sûreté' },
-  { icon: Microscope,  role: 'Responsables Innovation', sub: 'et Technologie', tag: 'Déploiement Smart Port' },
-  { icon: Compass,     role: 'Autres Directeurs', sub: 'et Cadres Portuaires', tag: 'Pilotage opérationnel' },
-  { icon: Globe,       role: 'Acteurs du Secteur', sub: 'Portuaire et Paraportuaire', tag: 'Écosystème logistique' },
-]
+// Correspondance nom d'icône (stocké en texte dans les JSON de traduction) → composant réel
+const ICON_MAP = {
+  mic: Mic,
+  graduationCap: GraduationCap,
+  handshake: Handshake,
+  ship: Ship,
+  landmark: Landmark,
+  barChart3: BarChart3,
+  laptop: Laptop,
+  settings: Settings,
+  anchor: Anchor,
+  microscope: Microscope,
+  compass: Compass,
+  globe: Globe,
+}
 
 const About = () => {
+  const { t } = useTranslation()
+  const stats = t('about.stats', { returnObjects: true })
+  const objectifs = t('about.objectives', { returnObjects: true })
+  const formats = t('about.formats', { returnObjects: true })
+  const publics = t('about.publics', { returnObjects: true })
+
   return (
     <section id="about" style={{
       padding: 'clamp(60px, 10vw, 120px) 0',
@@ -117,7 +76,7 @@ const About = () => {
           }}>
             <div style={{ width: 8, height: 8, background: '#0073F4', borderRadius: '50%' }} />
             <span style={{ color: '#0073F4', fontSize: '11px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase' }}>
-              Vision Stratégique 2026
+              {t('about.kicker')}
             </span>
           </div>
 
@@ -126,19 +85,15 @@ const About = () => {
             fontWeight: 900, color: '#000E91',
             marginBottom: '20px', lineHeight: 1.1, letterSpacing: '-0.02em',
           }}>
-            La Conférence des{' '}
-            <span style={{ color: '#0073F4' }}>Ports Africains</span>
+            {t('about.titlePart1')}{' '}
+            <span style={{ color: '#0073F4' }}>{t('about.titlePart2')}</span>
           </h2>
 
           <p style={{
             fontSize: 'clamp(15px, 1.6vw, 18px)', color: '#4A5568',
             maxWidth: '680px', margin: '0 auto', lineHeight: 1.75,
           }}>
-            Propulser la part des ports africains{' '}
-            <strong style={{ color: '#000E91' }}>au-delà de 3 %</strong> dans le commerce
-            mondial d'ici 2030 : telle est l'ambition de la COPAF. En s'appuyant sur le
-            modèle Smart Port et la digitalisation, l'événement érige la performance
-            opérationnelle en levier de souveraineté et de résilience pour le continent.
+            {t('about.description')}
           </p>
         </div>
 
@@ -154,11 +109,11 @@ const About = () => {
           marginBottom: 'clamp(60px, 8vw, 100px)',
           border: '1px solid rgba(0,14,145,0.07)',
         }}>
-          {STATS.map((s, i) => (
+          {stats.map((s, i) => (
             <div key={i} className="stat-item" style={{
               padding: 'clamp(30px, 5vw, 50px) 20px',
               textAlign: 'center',
-              borderRight: i < STATS.length - 1 ? '1px solid #EDF2F7' : 'none',
+              borderRight: i < stats.length - 1 ? '1px solid #EDF2F7' : 'none',
             }}>
               <div style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', fontWeight: 900, color: '#0073F4', marginBottom: '8px' }}>
                 {s.number}
@@ -174,10 +129,10 @@ const About = () => {
         <div style={{ marginBottom: 'clamp(60px, 8vw, 100px)' }}>
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h3 style={{ fontSize: 'clamp(22px, 3vw, 36px)', fontWeight: 900, color: '#000E91', marginBottom: '12px' }}>
-              Objectifs de la Conférence
+              {t('about.objectivesTitle')}
             </h3>
             <p style={{ fontSize: '16px', color: '#718096', margin: 0 }}>
-              Quatre ambitions au service de la performance portuaire africaine.
+              {t('about.objectivesSubtitle')}
             </p>
           </div>
 
@@ -186,7 +141,7 @@ const About = () => {
             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
             gap: '24px',
           }}>
-            {OBJECTIFS.map((o, i) => (
+            {objectifs.map((o, i) => (
               <div key={i} className="card-feature" style={{
                 background: 'rgba(255,255,255,0.95)',
                 backdropFilter: 'blur(8px)',
@@ -224,10 +179,10 @@ const About = () => {
         <div style={{ marginBottom: 'clamp(60px, 8vw, 100px)' }}>
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <h3 style={{ fontSize: 'clamp(22px, 3vw, 36px)', fontWeight: 900, color: '#000E91', marginBottom: '12px' }}>
-              Grands Axes de la Conférence
+              {t('about.formatsTitle')}
             </h3>
             <p style={{ fontSize: '16px', color: '#718096', margin: 0 }}>
-              Des formats variés pour une expérience immersive et opérationnelle.
+              {t('about.formatsSubtitle')}
             </p>
           </div>
 
@@ -236,8 +191,8 @@ const About = () => {
             gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
             gap: '20px',
           }}>
-            {FORMATS.map((f, i) => {
-              const Icon = f.icon
+            {formats.map((f, i) => {
+              const Icon = ICON_MAP[f.icon] || Laptop
               return (
                 <div key={i} className="card-feature" style={{
                   background: 'rgba(255,255,255,0.95)',
@@ -282,10 +237,10 @@ const About = () => {
 
           <div style={{ textAlign: 'center', marginBottom: '48px', position: 'relative' }}>
             <h3 style={{ fontSize: 'clamp(22px, 3vw, 36px)', fontWeight: 900, color: '#fff', marginBottom: '12px', lineHeight: 1.2 }}>
-              Public <span style={{ color: '#4DA6FF' }}>Cible</span>
+              {t('about.publicTitle')} <span style={{ color: '#4DA6FF' }}>{t('about.publicAccent')}</span>
             </h3>
             <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 'clamp(14px, 1.4vw, 16px)', margin: 0 }}>
-              Un événement conçu pour les décideurs et experts du secteur portuaire.
+              {t('about.publicSubtitle')}
             </p>
           </div>
 
@@ -295,8 +250,8 @@ const About = () => {
             gap: '16px',
             position: 'relative',
           }}>
-            {PUBLIC.map((p, i) => {
-              const Icon = p.icon
+            {publics.map((p, i) => {
+              const Icon = ICON_MAP[p.icon] || Globe
               return (
                 <div key={i} className="pillar-card" style={{
                   background: 'rgba(255,255,255,0.05)',

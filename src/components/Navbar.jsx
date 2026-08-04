@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import LanguageSwitcher from './LanguageSwitcher'
 
 const Navbar = () => {
   const [scrolled,              setScrolled]              = useState(false)
+  const { t } = useTranslation()
   const [menuOpen,              setMenuOpen]              = useState(false)
   const [dropdownOpen,          setDropdownOpen]          = useState(false)
   const [conferenceOpen,        setConferenceOpen]        = useState(false)
@@ -16,21 +19,6 @@ const Navbar = () => {
 
   const navigate = useNavigate()
   const isHome   = window.location.pathname === '/'
-
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', fn)
-    return () => window.removeEventListener('scroll', fn)
-  }, [])
-
-  useEffect(() => {
-    const fn = e => {
-      if (dropdownRef.current   && !dropdownRef.current.contains(e.target))   setDropdownOpen(false)
-      if (conferenceRef.current && !conferenceRef.current.contains(e.target)) setConferenceOpen(false)
-    }
-    document.addEventListener('mousedown', fn)
-    return () => document.removeEventListener('mousedown', fn)
-  }, [])
 
   useEffect(() => {
     const fn = () => {
@@ -93,16 +81,16 @@ const Navbar = () => {
   }
 
   const conferenceLinks = [
-    { label: 'Programme',        id: 'programme' },
-    { label: 'Axes Thématiques', id: 'axes-thematiques' },
-    { label: 'Intervenants',     id: 'formateurs' },
+    { label: t('navbar.programme'),        id: 'programme' },
+    { label: t('navbar.axes'),             id: 'axes-thematiques' },
+    { label: t('navbar.intervenants'),     id: 'formateurs' },
   ]
 
   // ✅ CORRIGÉ : virgule mal placée supprimée
   const dropdownLinks = [
-    { label: 'Partenariats',        href: '/partenariats' },
-    { label: 'Exposition Digitale', href: '/exposition-digitale' },
-    { label: 'Visiter',             href: '/visiter' },
+    { label: t('navbar.partnerships'),        href: '/partenariats' },
+    { label: t('navbar.digitalExposition'), href: '/exposition-digitale' },
+    { label: t('navbar.visit'),             href: '/visiter' },
   ]
 
   const isDropdownActive = dropdownLinks.some(l => window.location.pathname === l.href)
@@ -191,7 +179,7 @@ const Navbar = () => {
             <li><button style={btnBase} onClick={() => handleSection('about')}
               onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
               onMouseLeave={e => { e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
-              À Propos
+              {t('navbar.about')}
             </button></li>
           )}
 
@@ -230,7 +218,7 @@ const Navbar = () => {
             <li><button style={btnBase} onClick={handleContact}
               onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
               onMouseLeave={e => { e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
-              Contact
+              {t('navbar.contact')}
             </button></li>
           )}
 
@@ -239,7 +227,7 @@ const Navbar = () => {
             <button style={{ ...btnBase, display: 'flex', alignItems: 'center', gap: 5, color: isDropdownActive ? '#0073f4' : '#FFFFFF' }}
               onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
               onMouseLeave={e => { e.currentTarget.style.color = isDropdownActive ? '#0073f4' : '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
-              Partenaires
+              {t('navbar.partnerships')}
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
                 style={{ transition: 'transform 0.25s', transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                 <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -264,17 +252,20 @@ const Navbar = () => {
           </li>
         </ul>
 
-        <div className="nav-cta">
-          <button onClick={handleInscription} style={{
-            background: '#FFFFFF', color: '#000e91', border: 'none',
-            padding: '11px 22px', borderRadius: 6, fontFamily: 'Roboto, sans-serif',
-            fontWeight: 700, fontSize: 12, letterSpacing: 1.5,
-            textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.3s',
-          }}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <LanguageSwitcher />
+          <div className="nav-cta">
+            <button onClick={handleInscription} style={{
+              background: '#FFFFFF', color: '#000e91', border: 'none',
+              padding: '11px 22px', borderRadius: 6, fontFamily: 'Roboto, sans-serif',
+              fontWeight: 700, fontSize: 12, letterSpacing: 1.5,
+              textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.3s',
+            }}
             onMouseEnter={e => { e.currentTarget.style.background = '#0073f4'; e.currentTarget.style.color = '#FFFFFF' }}
             onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#000e91' }}>
-            S'inscrire
+            {t('inscription.cta')}
           </button>
+        </div>
         </div>
 
         <button className="burger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu"
@@ -301,12 +292,12 @@ const Navbar = () => {
 
         <div style={{ padding: '0 24px' }}>
           {!isHome && (
-            <a href="/" style={mobileItemStyle()}>← Accueil</a>
+            <a href="/" style={mobileItemStyle()}>← {t('navbar.home')}</a>
           )}
 
           {isHome && (
             <button onClick={() => handleSection('about')} style={{ ...mobileItemStyle(), background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
-              À Propos
+              {t('navbar.about')}
             </button>
           )}
 
@@ -318,7 +309,7 @@ const Navbar = () => {
                 background: 'none', border: 'none', padding: 0,
                 borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'inherit',
               }}>
-                <span>Conférence</span>
+                <span>{t('navbar.conference')}</span>
                 <svg width="12" height="12" viewBox="0 0 10 10" fill="none"
                   style={{ transition: 'transform 0.25s', transform: mobileConferenceOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}>
                   <path d="M2 3.5L5 6.5L8 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -339,7 +330,7 @@ const Navbar = () => {
 
           {isHome && (
             <button onClick={handleContact} style={{ ...mobileItemStyle(), background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
-              Contact
+              {t('navbar.contact')}
             </button>
           )}
 
@@ -350,7 +341,7 @@ const Navbar = () => {
               background: 'none', border: 'none', padding: 0,
               borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'inherit',
             }}>
-              <span>Partenaires</span>
+              <span>{t('navbar.partnerships')}</span>
               <svg width="12" height="12" viewBox="0 0 10 10" fill="none"
                 style={{ transition: 'transform 0.25s', transform: mobilePartenairesOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}>
                 <path d="M2 3.5L5 6.5L8 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -373,7 +364,7 @@ const Navbar = () => {
             fontWeight: 700, fontSize: 14, letterSpacing: 2,
             textTransform: 'uppercase', cursor: 'pointer',
           }}>
-            S'inscrire Maintenant
+            {t('inscription.cta')}
           </button>
         </div>
       </div>

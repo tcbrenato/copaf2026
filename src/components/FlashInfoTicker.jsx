@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 // Liste des ports/autorités déjà inscrites à la COPAF 2026 (mise à jour manuelle
 // à chaque nouvelle inscription confirmée). Chaque logo doit exister dans /public.
@@ -9,6 +10,7 @@ const registeredPorts = [
 ]
 
 const FlashInfoTicker = () => {
+  const { t } = useTranslation()
   const trackRef = useRef(null)
   const items = [...registeredPorts, ...registeredPorts, ...registeredPorts]
 
@@ -45,7 +47,7 @@ const FlashInfoTicker = () => {
             color: '#fff', textTransform: 'uppercase', whiteSpace: 'nowrap',
             fontFamily: "'Inter', sans-serif",
           }}>
-            Ports déjà inscrits
+            {t('flashInfoTicker.title')}
           </span>
         </div>
 
