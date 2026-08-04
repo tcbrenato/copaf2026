@@ -31,6 +31,9 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
     receipt:<svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 2h16v20l-3-2-3 2-3-2-3 2-3-2-1 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/></svg>,
     clock:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
     save:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>,
+    plus:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    trash:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
+    users:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
   }
   return icons[name] || null
 }
@@ -38,6 +41,12 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
 const fmtDateTime = d => new Date(d).toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
 const DOC_LABELS = { proforma: 'Facture proforma', recap: 'Récapitulatif', badge: 'Badge', facture_definitive: 'Facture définitive' }
+
+// Génère un id local unique pour chaque ligne participant (React key + suivi des éditions)
+const newParticipantRow = () => ({
+  _id: `p_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+  prenom: '', nom: '', fonction: '', tarif: 3500,
+})
 
 export default function AdminProforma() {
   const [dossierInput, setDossierInput] = useState('')
@@ -52,11 +61,27 @@ export default function AdminProforma() {
   const [toast, setToast] = useState('')
   const [lang, setLang] = useState('fr') // langue des documents générés (fr | en)
 
+  // ── Inscription groupée (délégation) ──
+  const [isGroup, setIsGroup] = useState(false)
+  const [delegationName, setDelegationName] = useState('')
+  const [participantsListe, setParticipantsListe] = useState([])
+  const [groupSaving, setGroupSaving] = useState(false)
+
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(''), 3500) }
 
   useEffect(() => {
     loadRecents()
   }, [])
+
+  // Recalcule automatiquement le nombre de participants et le montant global
+  // à partir de la liste, tant que le mode groupé est actif.
+  useEffect(() => {
+    if (!isGroup || !data) return
+    const nb = participantsListe.length
+    const total = participantsListe.reduce((sum, p) => sum + (Number(p.tarif) || 0), 0)
+    setData(d => (d ? { ...d, participants: nb, montant: total } : d))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGroup, participantsListe])
 
   const loadRecents = async () => {
     const { data: rows } = await supabase
@@ -80,7 +105,7 @@ export default function AdminProforma() {
     setLoading(true); setError(''); setData(null)
     const { data: rows, error: err } = await supabase
       .from('inscriptions')
-      .select('dossier, participants, montant, paiement_status, note_interne, numero_facture, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
+      .select('dossier, participants, montant, paiement_status, note_interne, numero_facture, delegation_nom, participants_liste, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
       .eq('dossier', dossier.trim())
       .limit(1)
 
@@ -104,6 +129,13 @@ export default function AdminProforma() {
       telephone: row.contacts?.telephone || '',
     })
     setLang('fr') // reinit à chaque nouvelle recherche ; ajuster ici si detection auto souhaitée
+
+    // Reinit / restauration de la fiche groupée
+    const liste = Array.isArray(row.participants_liste) ? row.participants_liste : []
+    setDelegationName(row.delegation_nom || '')
+    setParticipantsListe(liste.map(p => ({ _id: p._id || newParticipantRow()._id, prenom: p.prenom || '', nom: p.nom || '', fonction: p.fonction || '', tarif: p.tarif ?? 3500 })))
+    setIsGroup(!!row.delegation_nom || liste.length > 1)
+
     await loadHistorique(row.dossier)
     setLoading(false)
   }
@@ -126,6 +158,50 @@ export default function AdminProforma() {
     poste: data.poste, pays: data.pays, email: data.email, telephone: data.telephone,
   })
 
+  // ── Gestion de la liste de participants (délégation) ──
+  const addParticipantRow = () => setParticipantsListe(list => [...list, newParticipantRow()])
+  const removeParticipantRow = _id => setParticipantsListe(list => list.filter(p => p._id !== _id))
+  const updateParticipantRow = (_id, field, value) =>
+    setParticipantsListe(list => list.map(p => (p._id === _id ? { ...p, [field]: value } : p)))
+
+  const handleToggleGroup = () => {
+    setIsGroup(g => {
+      const next = !g
+      if (next && participantsListe.length === 0) {
+        // Pré-remplit avec le contact principal + une ligne vide, pour démarrer rapidement
+        setParticipantsListe([
+          { ...newParticipantRow(), prenom: data.prenom, nom: data.nom, fonction: data.poste },
+          newParticipantRow(),
+        ])
+      }
+      return next
+    })
+  }
+
+  const handleSaveGroupe = async () => {
+    if (!delegationName.trim()) { showToast('Veuillez indiquer le nom de la délégation'); return }
+    if (participantsListe.length === 0) { showToast('Ajoutez au moins un participant'); return }
+
+    setGroupSaving(true)
+    const nb = participantsListe.length
+    const total = participantsListe.reduce((sum, p) => sum + (Number(p.tarif) || 0), 0)
+    const { error: err } = await supabase
+      .from('inscriptions')
+      .update({
+        delegation_nom: delegationName.trim(),
+        participants_liste: participantsListe,
+        participants: nb,
+        montant: total,
+      })
+      .eq('dossier', data.dossier)
+    setGroupSaving(false)
+
+    if (err) { showToast('Erreur : ' + err.message); return }
+    setData(d => ({ ...d, participants: nb, montant: total }))
+    showToast('Délégation enregistrée')
+    loadRecents()
+  }
+
   const handleGenerateProforma = async () => {
     setGenLoading('proforma')
     try {
@@ -137,7 +213,19 @@ export default function AdminProforma() {
   const handleGenerateRecap = async () => {
     setGenLoading('recap')
     try {
-      await generateRecapPDF({ form: formData(), dossier: data.dossier, nb: Number(data.participants) || 1, total: Number(data.montant) || 0, paiementMode: data.statut === 'reserve' ? 'plus_tard' : 'maintenant', lang })
+      const participantsForPdf = isGroup && participantsListe.length > 1
+        ? participantsListe.map(p => ({ ...p, dossier: data.dossier }))
+        : []
+      await generateRecapPDF({
+        form: formData(),
+        dossier: data.dossier,
+        nb: Number(data.participants) || 1,
+        total: Number(data.montant) || 0,
+        participants: participantsForPdf,
+        delegationName: isGroup ? delegationName : '',
+        paiementMode: data.statut === 'reserve' ? 'plus_tard' : 'maintenant',
+        lang,
+      })
       await logDocument(data.dossier, 'recap')
     } finally { setGenLoading('') }
   }
@@ -189,12 +277,15 @@ export default function AdminProforma() {
     color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0',
     borderRadius: 10, outline: 'none', boxSizing: 'border-box',
   }
+  const smallInputStyle = { ...inputStyle, padding: '8px 10px', fontSize: 13 }
   const labelStyle = { display: 'block', fontSize: 11, fontWeight: 700, color: '#64748b', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }
   const actionBtn = (bg, color, border) => ({
     display: 'flex', alignItems: 'center', gap: 8, padding: '11px 16px',
     background: bg, border: `1.5px solid ${border}`, borderRadius: 10, color,
     fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
   })
+
+  const totalGroupe = participantsListe.reduce((sum, p) => sum + (Number(p.tarif) || 0), 0)
 
   return (
     <div style={{ maxWidth: 780, margin: '0 auto', padding: '32px 20px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -293,9 +384,20 @@ export default function AdminProforma() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-              <div><label style={labelStyle}>Participants</label><input type="number" min="1" style={inputStyle} value={data.participants} onChange={e => handleField('participants', e.target.value)} /></div>
-              <div><label style={labelStyle}>Montant (EUR)</label><input type="number" min="0" style={inputStyle} value={data.montant} onChange={e => handleField('montant', e.target.value)} /></div>
+              <div>
+                <label style={labelStyle}>Participants</label>
+                <input type="number" min="1" style={inputStyle} value={data.participants} onChange={e => handleField('participants', e.target.value)} disabled={isGroup} />
+              </div>
+              <div>
+                <label style={labelStyle}>Montant (EUR)</label>
+                <input type="number" min="0" style={inputStyle} value={data.montant} onChange={e => handleField('montant', e.target.value)} disabled={isGroup} />
+              </div>
             </div>
+            {isGroup && (
+              <p style={{ fontSize: 11, color: '#94a3b8', marginTop: -8, marginBottom: 14 }}>
+                Champs calculés automatiquement à partir de la liste de la délégation ci-dessous.
+              </p>
+            )}
 
             {/* Statut */}
             <div style={{ marginBottom: 4 }}>
@@ -316,6 +418,85 @@ export default function AdminProforma() {
                 {statutSaving ? 'Enregistrement...' : 'Enregistrer le statut'}
               </button>
             </div>
+          </div>
+
+          {/* Inscription groupée / délégation */}
+          <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: isGroup ? 16 : 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Ico name="users" size={16} color={NAVY} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', letterSpacing: 1, textTransform: 'uppercase' }}>Inscription groupée (délégation)</span>
+              </div>
+              <button onClick={handleToggleGroup} style={{
+                padding: '7px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                fontFamily: 'inherit', border: `1.5px solid ${isGroup ? NAVY : '#e2e8f0'}`,
+                background: isGroup ? '#EBF3FF' : '#fff', color: isGroup ? NAVY : '#64748b',
+              }}>
+                {isGroup ? 'Activée' : 'Activer'}
+              </button>
+            </div>
+
+            {isGroup && (
+              <>
+                <div style={{ marginBottom: 14 }}>
+                  <label style={labelStyle}>Nom de la délégation</label>
+                  <input
+                    style={inputStyle}
+                    placeholder="Ex : Port Autonome de Cotonou"
+                    value={delegationName}
+                    onChange={e => setDelegationName(e.target.value)}
+                  />
+                </div>
+
+                <label style={labelStyle}>Participants</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+                  {/* En-têtes */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 110px 32px', gap: 8, padding: '0 2px' }}>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Prénom</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Nom</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Fonction</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Tarif (EUR)</span>
+                    <span />
+                  </div>
+
+                  {participantsListe.map(p => (
+                    <div key={p._id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 110px 32px', gap: 8, alignItems: 'center' }}>
+                      <input style={smallInputStyle} value={p.prenom} onChange={e => updateParticipantRow(p._id, 'prenom', e.target.value)} placeholder="Prénom" />
+                      <input style={smallInputStyle} value={p.nom} onChange={e => updateParticipantRow(p._id, 'nom', e.target.value)} placeholder="Nom" />
+                      <input style={smallInputStyle} value={p.fonction} onChange={e => updateParticipantRow(p._id, 'fonction', e.target.value)} placeholder="Fonction" />
+                      <input type="number" min="0" style={smallInputStyle} value={p.tarif} onChange={e => updateParticipantRow(p._id, 'tarif', e.target.value)} />
+                      <button
+                        onClick={() => removeParticipantRow(p._id)}
+                        title="Supprimer"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <Ico name="trash" size={15} color="#dc2626" />
+                      </button>
+                    </div>
+                  ))}
+
+                  {participantsListe.length === 0 && (
+                    <div style={{ fontSize: 12, color: '#94a3b8', padding: '8px 2px' }}>Aucun participant. Cliquez sur "Ajouter un participant".</div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginTop: 4 }}>
+                  <button onClick={addParticipantRow} style={actionBtn('#f1f5f9', '#334155', '#e2e8f0')}>
+                    <Ico name="plus" size={14} color="#334155" />
+                    Ajouter un participant
+                  </button>
+
+                  <div style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>
+                    Total : {totalGroupe.toLocaleString('de-DE')} EUR &nbsp;·&nbsp; {participantsListe.length} participant{participantsListe.length > 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                <button onClick={handleSaveGroupe} disabled={groupSaving} style={{ ...actionBtn('#EBF3FF', NAVY, '#bfdbfe'), marginTop: 14 }}>
+                  <Ico name="save" size={14} color={NAVY} />
+                  {groupSaving ? 'Enregistrement...' : 'Enregistrer la délégation'}
+                </button>
+              </>
+            )}
           </div>
 
           {/* Note interne */}
@@ -360,7 +541,7 @@ export default function AdminProforma() {
 
               <button onClick={handleGenerateRecap} disabled={genLoading === 'recap'} style={actionBtn('#EBF3FF', NAVY, '#bfdbfe')}>
                 <Ico name="file" size={15} color={NAVY} />
-                {genLoading === 'recap' ? 'Génération...' : 'Récapitulatif'}
+                {genLoading === 'recap' ? 'Génération...' : (isGroup ? 'Facture groupée (récap)' : 'Récapitulatif')}
               </button>
 
               {data.statut === 'confirme' && (
@@ -377,6 +558,11 @@ export default function AdminProforma() {
                 </>
               )}
             </div>
+            {isGroup && participantsListe.length > 1 && (
+              <p style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 10, marginBottom: 0 }}>
+                Le PDF "Récapitulatif" affichera automatiquement le tableau détaillé des {participantsListe.length} participants de la délégation.
+              </p>
+            )}
             {data.statut !== 'confirme' && (
               <p style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 10, marginBottom: 0 }}>
                 Le badge et la facture définitive seront disponibles une fois le statut passé à "Confirmé".
