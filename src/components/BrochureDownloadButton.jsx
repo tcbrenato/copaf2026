@@ -1,11 +1,6 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
 
-// ============================================================
-// URL de la brochure a servir apres soumission du formulaire.
-// Doit pointer vers un fichier statique dans /public.
-// Remplace par le chemin de la version finale (FR ou EN) une fois prete.
-// ============================================================
 const BROCHURE_URL = '/brochure-copaf-2026.pdf'
 
 const Ico = ({ name, size = 18, color = 'currentColor' }) => {
@@ -38,7 +33,6 @@ function BrochureModal({ onClose }) {
       }])
       if (err) throw new Error(err.message)
 
-      // Declenche le telechargement du PDF
       const a = document.createElement('a')
       a.href = BROCHURE_URL
       a.download = 'Brochure_COPAF_2026.pdf'
@@ -46,7 +40,7 @@ function BrochureModal({ onClose }) {
 
       setDone(true)
     } catch (err) {
-      setError("Une erreur est survenue. Reessayez, ou telechargez directement : ")
+      setError("Une erreur est survenue. Réessayez, ou téléchargez directement : ")
     }
     setLoading(false)
   }
@@ -149,24 +143,64 @@ function BrochureModal({ onClose }) {
   )
 }
 
-// Bouton reutilisable a placer n'importe ou sur le site (Hero, section Programme, etc.)
-export default function BrochureDownloadButton({ label = 'Télécharger la brochure', style = {} }) {
+// Bouton réutilisable — deux variantes sobres :
+// "outline"  → fond clair, pour sections claires (par défaut)
+// "ghost"    → texte souligné transparent, pour fonds sombres comme le Hero
+export default function BrochureDownloadButton({ label = 'Télécharger la brochure', variant = 'outline', className = '' }) {
   const [open, setOpen] = useState(false)
 
   return (
     <>
-      <button onClick={() => setOpen(true)} style={{
-        display: 'inline-flex', alignItems: 'center', gap: 10, padding: '13px 26px',
-        background: '#fff', color: '#000E91', border: '1.5px solid #bfdbfe',
-        borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer',
-        fontFamily: "'Plus Jakarta Sans', sans-serif", transition: 'all .2s',
-        ...style,
-      }}
-        onMouseEnter={e => { e.currentTarget.style.background = '#EBF3FF'; e.currentTarget.style.borderColor = '#0073F4' }}
-        onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#bfdbfe' }}>
-        <Ico name="file" size={17} color="#000E91" />
+      <button
+        onClick={() => setOpen(true)}
+        className={`brochure-btn brochure-btn--${variant} ${className}`}
+      >
+        {variant === 'outline' && <Ico name="file" size={16} />}
         {label}
       </button>
+
+      <style>{`
+        .brochure-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          border: none;
+          cursor: pointer;
+          font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+
+        /* Variante claire — sections sur fond blanc */
+        .brochure-btn--outline {
+          padding: 12px 22px;
+          background: #fff;
+          color: #000E91;
+          border: 1.5px solid #dbe6f7;
+          border-radius: 10px;
+          font-weight: 700;
+          font-size: 13.5px;
+        }
+        .brochure-btn--outline:hover {
+          background: #F4F8FF;
+          border-color: #0073F4;
+        }
+
+        /* Variante ghost — texte souligné, pour le Hero sur fond sombre */
+        .brochure-btn--ghost {
+          padding: 0;
+          background: none;
+          color: rgba(255,255,255,0.85);
+          font-weight: 700;
+          font-size: 13px;
+          letter-spacing: 0.4px;
+          text-decoration: underline;
+          text-underline-offset: 4px;
+        }
+        .brochure-btn--ghost:hover {
+          color: #fff;
+        }
+      `}</style>
 
       {open && <BrochureModal onClose={() => setOpen(false)} />}
     </>
