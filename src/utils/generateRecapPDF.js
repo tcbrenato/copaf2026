@@ -9,7 +9,7 @@
 import jsPDF from 'jspdf'
 import QRCode from 'qrcode'
 
-const NAVY     = [0, 14, 145]     // #000E91
+const NAVY     = [0, 14, 145]    // #000E91
 const BLUE     = [0, 115, 244]    // #0073F4
 const GRAY     = [100, 116, 139]
 const DARK     = [15, 23, 42]
@@ -34,7 +34,8 @@ const RIB = {
 
 const CONTACT = {
   structure: 'CRF Perfection',
-  email: 'contactcrfperfection@gmail.com',
+  email: 'contact@copaf-ports.com',
+  emailAlt: 'contactcrfperfection@gmail.com',
   tel1: '+229 0169 30 30 19',
   tel2: '+1 (240) 978-4155',
   whatsapp: '+229 69 30 30 19',
@@ -155,7 +156,7 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   const pageHeight = doc.internal.pageSize.getHeight()
   
   const M = 34               
-  const P = M + 22           
+  const P = M + 22             
   const contentW = pageWidth - P * 2
   const now = new Date()
 
@@ -210,8 +211,6 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.setTextColor(255, 255, 255)
   doc.text(L.bandeauTitre, P + 12, y + 18.5)
 
-
-
   const statutLabel = paiementMode === 'maintenant' ? L.statutAttente : L.statutReserve
   const statutColor = paiementMode === 'maintenant' ? [217, 119, 6] : [37, 99, 235]
   doc.setFont('helvetica', 'bold')
@@ -244,7 +243,7 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.text(intro, P, y)
   y += intro.length * 13 + 18
 
-  // ── Récapitulatif (Date fixe réglementaire pour éviter tout litige) ──
+  // ── Récapitulatif ──
   const montantLabel = L.montantSuffix(fmtEur(total))
 
   const recap = [
@@ -309,8 +308,6 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.setTextColor(...DARK)
   doc.text(`${L.banque} : ${RIB.banque}`, P + 14, y + 6)
   doc.text(`${L.titulaire} : ${RIB.titulaire}`, P + contentW / 2 + 10, y + 6)
-  
-
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10)
@@ -323,7 +320,6 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.setTextColor(...RED)
   doc.text(L.alertRib1, P + 14, y + 40)
   
-  // URL de vérification cliquable
   const textWidthPre = doc.getTextWidth(L.alertRib1)
   doc.setTextColor(...BLUE)
   doc.setFont('helvetica', 'bold')
@@ -379,7 +375,6 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.setTextColor(...DARK)
   doc.text(L.faitA(fmtDateLong(now, lang)), P, y)
   
-  // QR Code interactif (genere localement, sans dependance a une API externe)
   let qrBase64 = null
   try {
     qrBase64 = await QRCode.toDataURL(verificationUrl, {
@@ -392,8 +387,6 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   }
   const qrSize = 52
   const qrX = P + 130
-
-
 
   if (qrBase64) {
     doc.addImage(qrBase64, 'PNG', qrX, y - 10, qrSize, qrSize)
@@ -448,8 +441,6 @@ export async function generateRecapPDF({ form, dossier, nb, total, paiementMode,
   doc.setTextColor(...GRAY)
   doc.text(L.equipe(CONTACT.structure), sigX, y + 12)
   doc.text(CONTACT.site, sigX, y + 24)
-
-
 
   // ── Pied de page ──
   const fy = pageHeight - M - 26
