@@ -15,6 +15,12 @@ const STATUT_OPTIONS = [
   { value: 'annule',     label: 'Annulé',     color: '#dc2626', bg: '#fee2e2' },
 ]
 
+// Langues disponibles pour la génération des documents (proforma, récap, facture)
+const LANG_OPTIONS = [
+  { value: 'fr', label: 'Français', flag: '🇫🇷' },
+  { value: 'en', label: 'English',  flag: '🇬🇧' },
+]
+
 const Ico = ({ name, size = 18, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
   const icons = {
@@ -44,6 +50,7 @@ export default function AdminProforma() {
   const [noteSaving, setNoteSaving] = useState(false)
   const [historique, setHistorique] = useState([])
   const [toast, setToast] = useState('')
+  const [lang, setLang] = useState('fr') // langue des documents générés (fr | en)
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(''), 3500) }
 
@@ -96,6 +103,7 @@ export default function AdminProforma() {
       email: row.contacts?.email || '',
       telephone: row.contacts?.telephone || '',
     })
+    setLang('fr') // reinit à chaque nouvelle recherche ; ajuster ici si detection auto souhaitée
     await loadHistorique(row.dossier)
     setLoading(false)
   }
@@ -109,7 +117,7 @@ export default function AdminProforma() {
   const handleField = (field, value) => setData(d => ({ ...d, [field]: value }))
 
   const logDocument = async (dossier, type) => {
-    await supabase.from('documents_generes').insert([{ dossier, type }])
+    await supabase.from('documents_generes').insert([{ dossier, type, langue: lang }])
     loadHistorique(dossier)
   }
 
@@ -121,7 +129,7 @@ export default function AdminProforma() {
   const handleGenerateProforma = async () => {
     setGenLoading('proforma')
     try {
-      await generateProformaPDF({ form: formData(), dossier: data.dossier, nb: Number(data.participants) || 1, total: Number(data.montant) || 0 })
+      await generateProformaPDF({ form: formData(), dossier: data.dossier, nb: Number(data.participants) || 1, total: Number(data.montant) || 0, lang })
       await logDocument(data.dossier, 'proforma')
     } finally { setGenLoading('') }
   }
@@ -129,7 +137,7 @@ export default function AdminProforma() {
   const handleGenerateRecap = async () => {
     setGenLoading('recap')
     try {
-      await generateRecapPDF({ form: formData(), dossier: data.dossier, nb: Number(data.participants) || 1, total: Number(data.montant) || 0, paiementMode: data.statut === 'reserve' ? 'plus_tard' : 'maintenant' })
+      await generateRecapPDF({ form: formData(), dossier: data.dossier, nb: Number(data.participants) || 1, total: Number(data.montant) || 0, paiementMode: data.statut === 'reserve' ? 'plus_tard' : 'maintenant', lang })
       await logDocument(data.dossier, 'recap')
     } finally { setGenLoading('') }
   }
@@ -137,7 +145,7 @@ export default function AdminProforma() {
   const handleGenerateBadge = async () => {
     setGenLoading('badge')
     try {
-      await generateBadge({ nomPrenom: `${data.prenom} ${data.nom}`, fonction: data.poste || '', dossier: data.dossier, photoSrc: null })
+      await generateBadge({ nomPrenom: `${data.prenom} ${data.nom}`, fonction: data.poste || '', dossier: data.dossier, photoSrc: null, lang })
       await logDocument(data.dossier, 'badge')
     } finally { setGenLoading('') }
   }
@@ -153,7 +161,7 @@ export default function AdminProforma() {
         await supabase.from('inscriptions').update({ numero_facture: numero, facture_definitive_date: new Date().toISOString() }).eq('dossier', data.dossier)
         setData(d => ({ ...d, numeroFacture: numero }))
       }
-      await generateFactureDefinitivePDF({ form: formData(), dossier: data.dossier, numeroFacture: numero, nb: Number(data.participants) || 1, total: Number(data.montant) || 0 })
+      await generateFactureDefinitivePDF({ form: formData(), dossier: data.dossier, numeroFacture: numero, nb: Number(data.participants) || 1, total: Number(data.montant) || 0, lang })
       await logDocument(data.dossier, 'facture_definitive')
     } catch (err) {
       showToast('Erreur : ' + err.message)
@@ -328,7 +336,22 @@ export default function AdminProforma() {
 
           {/* Documents */}
           <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 14 }}>Documents</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', letterSpacing: 1, textTransform: 'uppercase' }}>Documents</div>
+
+              {/* Sélecteur de langue des documents */}
+              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginRight: 2 }}>Langue :</span>
+                {LANG_OPTIONS.map(opt => (
+                  <button key={opt.value} onClick={() => setLang(opt.value)} style={{
+                    padding: '6px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    fontFamily: 'inherit', border: `1.5px solid ${lang === opt.value ? NAVY : '#e2e8f0'}`,
+                    background: lang === opt.value ? '#EBF3FF' : '#fff', color: lang === opt.value ? NAVY : '#64748b',
+                  }}>{opt.flag} {opt.label}</button>
+                ))}
+              </div>
+            </div>
+
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button onClick={handleGenerateProforma} disabled={genLoading === 'proforma'} style={actionBtn('#fdf2f4', MAROON, '#f3c9d0')}>
                 <Ico name="file" size={15} color={MAROON} />
