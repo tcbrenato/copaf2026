@@ -220,6 +220,19 @@
     "eyebrow": "Strategic Partnerships",
     "title": "They support COPAF 2026"
   },
+  "intervenants": {
+    "eyebrow": "COPAF 2026",
+    "title": "Speakers",
+    "subtitle": "Experts gathered to share their expertise on port issues in Africa.",
+    "readBio": "Read biography",
+    "toConfirm": "To be confirmed",
+    "bioComingSoon": "Biography coming soon. This speaker will be announced shortly.",
+    "odahTitre": "Expert in Strategic Governance and Port Development",
+    "odahBio": "As Managing Director of CRF Perfection, Dr. William ODAH has spent many years supporting institutions and businesses across West Africa in their strategic governance, training and port development projects. He regularly works with public and private stakeholders in the maritime and logistics sector, with particular attention to organisational structuring and skills development. His expertise covers institutional change management, executive training and strategic support for high-stakes port projects.",
+    "biegniebeBio": "Marc Biegniébé is Managing Director of ANAXAR, a road transport company operating along the corridors linking the Port of Lomé to hinterland countries — Burkina Faso, Mali and Niger. With over 10 years of experience in port and cross-border logistics, he works on corridor fluidity, customs clearance and the digitalisation of transport in West Africa.",
+    "tchoboTitre": "Digital Transformation Expert & Digital Solutions Consultant",
+    "tchoboBio": "Rénato TCHOBO is Chief Digital & IT Officer at CRF Perfection, where he leads web development, digital strategy and the digital transformation of institutional and event-related projects. A freelance consultant in web development and community management, he designs and deploys complete digital platforms — from concept to production — for organisations based in Cotonou and internationally. His expertise covers structuring complex digital projects, process automation and strategic support for digital transformation."
+  },
   "modules": {
     "eyebrow": "Thematic Axes",
     "titlePart1": "3 Days, 3 Axes at the heart of",

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const icons = {
   compass: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>,
@@ -33,54 +34,37 @@ const C = {
   blueAlpha15: 'rgba(0,115,244,0.15)', blueAlpha30: 'rgba(0,115,244,0.30)',
 }
 
-// Style des badges "Expert affecté" selon la catégorie (Maison / Partenaire / Recruté)
-const categorieBadge = {
-  Maison:    { bg: '#E8ECFF', color: '#000E91' },
-  Partenaire:{ bg: '#EBF3FF', color: '#0073F4' },
-  Recruté:   { bg: '#FFF4E8', color: '#A35F00' },
-}
-
-const jours = [
-  {
-    jour: 'Jour 1', date: '15 Sept.', titre: 'IA & Vision Stratégique',
-    objectif: 'Comprendre le paysage technologique et identifier les opportunités',
-    icon: icons.compass, accent: C.blue, accentBg: C.bluePale, accentBorder: C.blueMid,
-    sessions: [
-      { heure: '09h00 – 10h30', type: 'Plénière', titre: "Conférence d'ouverture", desc: "L'IA au cœur de la révolution du Smart Port. Panorama mondial et spécificités africaines.", icon: icons.mic, points: ["Panorama mondial des ports intelligents", "Spécificités du contexte africain", "Feuille de route de la conférence"], intervenant: 'Expert Partenaire A', categorie: 'Partenaire' },
-      { heure: '11h00 – 12h30', type: "Panel d'apprentissage organisationnel", titre: 'Démystification technique', desc: 'Comprendre la Data, le Machine Learning et la Vision par Ordinateur sans jargon.', icon: icons.cpu, points: ["Data & Big Data expliqués simplement", "Machine Learning sans code", "Vision par Ordinateur appliquée aux ports"], intervenant: 'TCHOBO Rénato', categorie: 'Maison' },
-      { heure: '14h00 – 15h30', type: "Atelier d'étude de cas", titre: 'Études de cas', desc: 'Succès et échecs des projets IA dans les ports africains et mondiaux.', icon: icons.chart, points: ["Cas concrets de déploiement IA en Afrique", "Leçons tirées des expériences internationales", "Facteurs clés de succès identifiés"], intervenant: 'Expert Partenaire A', categorie: 'Partenaire' },
-      { heure: '16h00 – 17h30', type: 'Table ronde de réflexion', titre: 'Atelier de réflexion', desc: 'Diagnostic de maturité digitale de votre autorité portuaire.', icon: icons.search, points: ["Grille d'auto-évaluation digitale", "Cartographie des gaps technologiques", "Priorisation des chantiers urgents"], intervenant: 'Dr. William ODAH', categorie: 'Maison' },
-    ]
-  },
-  {
-    jour: 'Jour 2', date: '16 Sept.', titre: 'Excellence Opérationnelle & Sécurité',
-    objectif: "Voir comment l'IA transforme le terrain (quais, terminaux, accès)",
-    icon: icons.gear, accent: C.navy, accentBg: 'rgba(0,14,145,0.06)', accentBorder: 'rgba(0,14,145,0.2)',
-    sessions: [
-      { heure: '09h00 – 10h30', type: 'Plénière', titre: 'Opérations nautiques', desc: 'Prédiction des arrivées (ETA) et gestion intelligente des postes à quai.', icon: icons.anchor, points: ["Algorithmes de prédiction ETA", "Optimisation des postes à quai", "Réduction des temps d'attente"], intervenant: 'Expert Recruté A', categorie: 'Recruté' },
-      { heure: '11h00 – 12h30', type: "Panel d'apprentissage organisationnel", titre: "Fluidité de l'Hinterland", desc: 'Algorithmes de gestion des flux de camions et réduction de la congestion urbaine.', icon: icons.truck, points: ["Gestion intelligente des flux camions", "Réduction de la congestion urbaine", "Coordination avec les douanes"], intervenant: 'Expert Recruté A', categorie: 'Recruté' },
-      { heure: '14h00 – 15h30', type: "Atelier d'étude de cas", titre: 'Sécurité & Sûreté', desc: "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", icon: icons.lock, points: ["Analyse automatisée des scanners", "Vidéosurveillance intelligente", "Alertes en temps réel"], intervenant: 'Expert Recruté B', categorie: 'Recruté' },
-      { heure: '16h00 – 17h30', type: 'Table ronde de réflexion', titre: 'Cybersécurité portuaire', desc: 'Comment protéger un port connecté contre les menaces étatiques et criminelles.', icon: icons.shield, points: ["Cartographie des menaces cyber", "Protocoles de protection OT/IT", "Gestion des incidents et réponse"], intervenant: 'Expert Recruté B', categorie: 'Recruté' },
-    ]
-  },
-  {
-    jour: 'Jour 3', date: '17 Sept.', titre: 'Gouvernance, ROI & Feuille de Route',
-    objectif: "Préparer l'après-formation : financer et piloter le changement",
-    icon: icons.map, accent: C.blueLight, accentBg: 'rgba(51,145,246,0.08)', accentBorder: 'rgba(51,145,246,0.25)',
-    sessions: [
-      { heure: '09h00 – 10h30', type: 'Plénière', titre: "Modèle économique de l'IA", desc: "Calculer le ROI d'un projet technologique portuaire.", icon: icons.dollar, points: ["Méthodes de calcul du ROI tech", "Modèles de financement disponibles", "Présentation aux instances dirigeantes"], intervenant: 'Expert Partenaire B', categorie: 'Partenaire' },
-      { heure: '11h00 – 12h30', type: "Panel d'apprentissage organisationnel", titre: 'Gouvernance de la donnée', desc: 'Créer une culture Data-Driven et recruter les talents nécessaires.', icon: icons.users, points: ["Mise en place d'une Data Governance", "Stratégie de recrutement tech", "Conduite du changement organisationnel"], intervenant: 'TCHOBO Rénato', categorie: 'Maison' },
-      { heure: '14h00 – 15h30', type: "Atelier d'étude de cas", titre: 'Atelier Action Plan', desc: "Élaboration d'une feuille de route de transformation digitale personnalisée.", icon: icons.clipboard, points: ["Template de feuille de route", "Priorisation sur 12 / 24 / 36 mois", "KPIs de suivi de transformation"], intervenant: 'Dr. William ODAH', categorie: 'Maison' },
-      { heure: '16h00 – 17h00', type: 'Table ronde de réflexion', titre: 'Table ronde finale', desc: "Signature d'un manifeste pour la coopération technologique entre ports africains.", icon: icons.handshake, points: ["Présentation des plans d'action", "Réseau de coopération inter-ports", "Signature du manifeste COPAF 2026"], intervenant: 'Expert Partenaire B', categorie: 'Partenaire' },
-    ]
-  },
+// Métadonnées visuelles par jour (icône, accent) — pas traduisibles, mappées par index
+const joursMeta = [
+  { icon: icons.compass, accent: C.blue, accentBg: C.bluePale, accentBorder: C.blueMid },
+  { icon: icons.gear, accent: C.navy, accentBg: 'rgba(0,14,145,0.06)', accentBorder: 'rgba(0,14,145,0.2)' },
+  { icon: icons.map, accent: C.blueLight, accentBg: 'rgba(51,145,246,0.08)', accentBorder: 'rgba(51,145,246,0.25)' },
 ]
 
+// Icônes de session par (jour, position) — pas traduisibles, mappées par index
+const sessionIconsByDay = [
+  [icons.mic, icons.cpu, icons.chart, icons.search],
+  [icons.anchor, icons.truck, icons.lock, icons.shield],
+  [icons.dollar, icons.users, icons.clipboard, icons.handshake],
+]
+
+const categorieBadgeMap = {
+  'Maison':      { bg: '#E8ECFF', color: '#000E91' },
+  'In-house':    { bg: '#E8ECFF', color: '#000E91' },
+  'Partenaire':  { bg: '#EBF3FF', color: '#0073F4' },
+  'Partner':     { bg: '#EBF3FF', color: '#0073F4' },
+  'Recruté':     { bg: '#FFF4E8', color: '#A35F00' },
+  'Recruited':   { bg: '#FFF4E8', color: '#A35F00' },
+}
+
 const Programme = () => {
+  const { t } = useTranslation()
   const [activeJour, setActiveJour] = useState(0)
   const [activeSession, setActiveSession] = useState(null)
   const [hoveredSession, setHoveredSession] = useState(null)
-  const jour = jours[activeJour]
+
+  const days = t('programme.days', { returnObjects: true })
+  const jour = { ...days[activeJour], ...joursMeta[activeJour] }
 
   return (
     <section id="programme" style={{
@@ -107,7 +91,6 @@ const Programme = () => {
         .modal-animate { animation: modalIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards; }
       `}</style>
 
-      {/* Overlay pour lisibilité sur bg2.png */}
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.88)', zIndex: 1, pointerEvents: 'none' }} />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(20px, 5vw, 60px)', position: 'relative', zIndex: 2 }}>
@@ -119,32 +102,33 @@ const Programme = () => {
             background: C.navy, borderRadius: 100, padding: '7px 22px', marginBottom: 24,
           }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.blue }} />
-            <span style={{ color: C.white, fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>Chronogramme</span>
+            <span style={{ color: C.white, fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>{t('programme.kicker')}</span>
           </div>
 
           <h2 style={{
             fontSize: 'clamp(30px, 5vw, 52px)', fontWeight: 900,
             color: C.navy, lineHeight: 1.1, margin: '0 0 16px', letterSpacing: '-0.02em',
           }}>
-            3 Jours de{' '}
+            {t('programme.titlePart1')}{' '}
             <span style={{
               background: `linear-gradient(135deg, ${C.blue}, ${C.navyLight})`,
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-            }}>Partages Intensifs</span>
+            }}>{t('programme.titlePart2')}</span>
           </h2>
 
           <p style={{
             fontSize: 'clamp(14px, 2vw, 17px)', color: C.navyLight,
             maxWidth: 540, margin: '0 auto', lineHeight: 1.8, fontWeight: 300, opacity: 0.7,
           }}>
-            Un programme structuré pour transformer votre approche de la gestion portuaire africaine
+            {t('programme.description')}
           </p>
         </div>
 
         {/* ── ONGLETS JOURS ── */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 40, flexWrap: 'wrap' }}>
-          {jours.map((j, i) => {
+          {days.map((j, i) => {
             const active = activeJour === i
+            const meta = joursMeta[i]
             return (
               <button key={i} className="prog-tab" onClick={() => setActiveJour(i)} style={{
                 display: 'flex', alignItems: 'center', gap: 12,
@@ -161,7 +145,7 @@ const Programme = () => {
                   background: active ? 'rgba(255,255,255,0.2)' : C.bluePale,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: active ? C.white : C.blue,
-                }}>{j.icon}</div>
+                }}>{meta.icon}</div>
                 <div style={{ textAlign: 'left', lineHeight: 1.3 }}>
                   <div style={{ fontSize: 10, opacity: 0.65, fontWeight: 400, letterSpacing: 1 }}>{j.date}</div>
                   <div>{j.jour}</div>
@@ -174,7 +158,6 @@ const Programme = () => {
         {/* ── BLOC JOUR ACTIF ── */}
         <div className="prog-animate" key={activeJour}>
 
-          {/* Header du jour */}
           <div style={{
             background: `linear-gradient(135deg, ${C.navy} 0%, ${C.navyLight} 60%, ${C.blue} 100%)`,
             borderRadius: '20px 20px 0 0',
@@ -209,7 +192,7 @@ const Programme = () => {
               borderRadius: 14, padding: '14px 24px', textAlign: 'center', flexShrink: 0, backdropFilter: 'blur(8px)',
             }}>
               <div style={{ fontSize: 28, fontWeight: 900, color: C.white, lineHeight: 1 }}>4</div>
-              <div style={{ fontSize: 10, color: C.blueMid, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, marginTop: 4 }}>Sessions</div>
+              <div style={{ fontSize: 10, color: C.blueMid, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, marginTop: 4 }}>{t('programme.statLabel')}</div>
             </div>
           </div>
 
@@ -221,10 +204,11 @@ const Programme = () => {
           }}>
             {jour.sessions.map((s, k) => {
               const hovered = hoveredSession === k
-              const catBadge = categorieBadge[s.categorie] || categorieBadge.Partenaire
+              const catBadge = categorieBadgeMap[s.categorie] || categorieBadgeMap['Partenaire']
+              const sIcon = sessionIconsByDay[activeJour][k]
               return (
                 <div key={k} className="prog-row"
-                  onClick={() => setActiveSession({ ...s, accent: jour.accent, jourTitre: jour.titre })}
+                  onClick={() => setActiveSession({ ...s, icon: sIcon, accent: jour.accent, jourTitre: jour.titre })}
                   onMouseEnter={() => setHoveredSession(k)}
                   onMouseLeave={() => setHoveredSession(null)}
                   style={{
@@ -237,7 +221,7 @@ const Programme = () => {
                   <div style={{ padding: 'clamp(20px, 3vw, 28px) clamp(14px, 2vw, 22px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
                     <div style={{ color: hovered ? C.blue : C.navy, display: 'flex' }}>{icons.clock}</div>
                     <div style={{ fontSize: 'clamp(10px, 1.4vw, 11px)', color: hovered ? C.blue : '#666', fontWeight: 700, textAlign: 'center', lineHeight: 1.5, letterSpacing: 0.3 }}>
-                      {s.heure.split('–').map((t, i) => <div key={i}>{t.trim()}</div>)}
+                      {s.heure.split('–').map((tm, i) => <div key={i}>{tm.trim()}</div>)}
                     </div>
                   </div>
 
@@ -250,7 +234,7 @@ const Programme = () => {
                       border: `1.5px solid ${hovered ? C.blue : C.blueMid}`,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       color: hovered ? C.white : C.blue, flexShrink: 0, transition: 'all 0.18s',
-                    }}>{s.icon}</div>
+                    }}>{sIcon}</div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: jour.accent, marginBottom: 4 }}>
@@ -284,9 +268,9 @@ const Programme = () => {
         {/* ── INFOS LOGISTIQUES ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16, marginTop: 40 }}>
           {[
-            { icon: icons.pin,   label: 'Lieu',    value: 'Casablanca, Maroc' },
-            { icon: icons.cal,   label: 'Dates',   value: '15 – 17 Septembre 2026' },
-            { icon: icons.globe, label: 'Langues', value: 'Français & Anglais (traduction simultanée)' },
+            { icon: icons.pin,   label: t('hero.card.location'), value: 'Casablanca, Maroc' },
+            { icon: icons.cal,   label: t('hero.card.dates'),    value: '15 – 17 Septembre 2026' },
+            { icon: icons.globe, label: t('navbar.digitalExposition') === 'Digital Exhibition' ? 'Languages' : 'Langues', value: 'Français & Anglais (traduction simultanée)' },
           ].map((info, i) => (
             <div key={i} className="prog-stat-card" style={{
               background: C.white, border: `1.5px solid ${C.navyAlpha10}`,
@@ -356,26 +340,17 @@ const Programme = () => {
                 <div style={{
                   display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 100, padding: '6px 16px',
                   fontSize: 13, fontWeight: 700,
-                  background: (categorieBadge[activeSession.categorie] || categorieBadge.Partenaire).bg,
-                  color: (categorieBadge[activeSession.categorie] || categorieBadge.Partenaire).color,
-                  border: `1px solid ${(categorieBadge[activeSession.categorie] || categorieBadge.Partenaire).color}30`,
+                  background: (categorieBadgeMap[activeSession.categorie] || categorieBadgeMap['Partenaire']).bg,
+                  color: (categorieBadgeMap[activeSession.categorie] || categorieBadgeMap['Partenaire']).color,
+                  border: `1px solid ${(categorieBadgeMap[activeSession.categorie] || categorieBadgeMap['Partenaire']).color}30`,
                 }}>
                   <span style={{ display: 'flex' }}>{icons.user}</span>
                   <span>{activeSession.intervenant}</span>
                 </div>
               </div>
               <p style={{ fontSize: 15, color: '#555', lineHeight: 1.85, marginBottom: 28, fontWeight: 300 }}>{activeSession.desc}</p>
-              <div style={{ background: '#FAFBFF', border: `1.5px solid ${C.navyAlpha10}`, borderRadius: 16, padding: '22px 24px' }}>
-                <div style={{ fontSize: 10, color: C.blue, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 18 }}>Points clés abordés</div>
-                {activeSession.points.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: i < activeSession.points.length - 1 ? 14 : 0 }}>
-                    <div style={{ width: 22, height: 22, borderRadius: 6, background: C.bluePale, border: `1px solid ${C.blueMid}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.blue, flexShrink: 0, marginTop: 1 }}>{icons.check}</div>
-                    <span style={{ fontSize: 14, color: C.navy, lineHeight: 1.65, fontWeight: 400 }}>{p}</span>
-                  </div>
-                ))}
-              </div>
               <button onClick={() => setActiveSession(null)} style={{
-                marginTop: 28, width: '100%',
+                marginTop: 8, width: '100%',
                 background: `linear-gradient(135deg, ${C.navy}, ${C.blue})`,
                 color: C.white, border: 'none', padding: '15px', borderRadius: 12,
                 fontFamily: 'inherit', fontWeight: 700, fontSize: 14,
@@ -383,7 +358,7 @@ const Programme = () => {
               }}
                 onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-              >Fermer</button>
+              >{t('modules.modalClose')}</button>
             </div>
           </div>
         </div>

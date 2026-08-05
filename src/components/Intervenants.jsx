@@ -1,45 +1,46 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const intervenants = [
   {
     initiales: 'PA',
     photo: '/intervenant3.png',
     nom: 'Expert Partenaire A',
-    titre: 'À confirmer',
-    organisation: 'À confirmer',
-    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
+    titreKey: 'toConfirm',
+    organisationKey: 'toConfirm',
+    bioKey: 'bioComingSoon',
   },
   {
     initiales: 'PB',
     photo: '/intervenant4.png',
     nom: 'Expert Partenaire B',
-    titre: 'À confirmer',
-    organisation: 'À confirmer',
-    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
+    titreKey: 'toConfirm',
+    organisationKey: 'toConfirm',
+    bioKey: 'bioComingSoon',
   },
   {
     initiales: 'RA',
     photo: '/intervenant5.png',
     nom: 'Expert Recruté A',
-    titre: 'À confirmer',
-    organisation: 'À confirmer',
-    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
+    titreKey: 'toConfirm',
+    organisationKey: 'toConfirm',
+    bioKey: 'bioComingSoon',
   },
   {
     initiales: 'WO',
     photo: '/intervenant2.png',
     nom: 'Dr. William ODAH',
-    titre: 'Expert en Gouvernance Stratégique et Développement Portuaire',
+    titreKey: 'odahTitre',
     organisation: 'CRF Perfection',
-    bio: "Directeur Général de CRF Perfection, le Dr. William ODAH accompagne depuis de nombreuses années institutions et entreprises d'Afrique de l'Ouest dans leurs projets de gouvernance stratégique, de formation et de développement portuaire. Il intervient régulièrement auprès d'acteurs publics et privés du secteur maritime et logistique, avec une attention particulière portée à la structuration des organisations et au renforcement des compétences. Son expertise couvre la conduite du changement institutionnel, la formation des cadres et l'accompagnement stratégique des projets à fort enjeu portuaire.",
+    bioKey: 'odahBio',
   },
   {
     initiales: 'RB',
     photo: '/intervenant6.png',
     nom: 'Expert Recruté B',
-    titre: 'À confirmer',
-    organisation: 'À confirmer',
-    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
+    titreKey: 'toConfirm',
+    organisationKey: 'toConfirm',
+    bioKey: 'bioComingSoon',
   },
   {
     initiales: 'MB',
@@ -47,36 +48,46 @@ const intervenants = [
     nom: 'Marc Biegniébé',
     titre: 'Directeur Général',
     organisation: 'ANAXAR',
-    bio: "Marc Biegniébé est Directeur Général d'ANAXAR, entreprise de transport routier opérant sur les corridors reliant le port de Lomé aux pays de l'hinterland — Burkina Faso, Mali et Niger. Fort de plus de 10 ans d'expérience dans la chaîne logistique portuaire et transfrontalière, il intervient sur les enjeux de fluidité des corridors, de dédouanement et de digitalisation du transport en Afrique de l'Ouest.",
+    bioKey: 'biegniebeBio',
   },
   {
     initiales: 'PC',
     photo: '/intervenant7.png',
     nom: 'Expert Partenaire C',
-    titre: 'À confirmer',
-    organisation: 'À confirmer',
-    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
+    titreKey: 'toConfirm',
+    organisationKey: 'toConfirm',
+    bioKey: 'bioComingSoon',
   },
   {
     initiales: 'RC',
     photo: '/intervenant8.png',
     nom: 'Expert Recruté C',
-    titre: 'À confirmer',
-    organisation: 'À confirmer',
-    bio: 'Biographie à venir. Cet intervenant sera annoncé prochainement.',
+    titreKey: 'toConfirm',
+    organisationKey: 'toConfirm',
+    bioKey: 'bioComingSoon',
   },
   {
     initiales: 'RT',
     photo: '/renatoint.png',
     nom: 'Rénato TCHOBO',
-    titre: 'Expert en Transformation Digitale & Consultant en Solutions Numériques',
+    titreKey: 'tchoboTitre',
     organisation: 'CRF Perfection',
-    bio: "Rénato TCHOBO est Chief Digital & IT Officer chez CRF Perfection, où il pilote le développement web, la stratégie digitale et la transformation numérique des projets institutionnels et événementiels. Consultant freelance en développement web et community management, il conçoit et déploie des plateformes numériques complètes — de la conception à la mise en production — pour des organisations basées à Cotonou et à l'international. Son expertise couvre la structuration de projets digitaux complexes, l'automatisation des processus et l'accompagnement stratégique de la transformation numérique.",
+    bioKey: 'tchoboBio',
   },
 ]
 
 const Intervenants = () => {
+  const { t } = useTranslation()
   const [activeModal, setActiveModal] = useState(null)
+
+  // Résout titre/organisation/bio : soit la valeur statique fixe (bios confirmées),
+  // soit une clé i18n à traduire (placeholders "À confirmer" / "Biographie à venir")
+  const resolve = (p) => ({
+    ...p,
+    titre: p.titre ?? t(`intervenants.${p.titreKey}`),
+    organisation: p.organisation ?? t(`intervenants.${p.organisationKey}`),
+    bio: p.bio ?? t(`intervenants.${p.bioKey}`),
+  })
 
   return (
     <section id="formateurs" style={{
@@ -106,7 +117,7 @@ const Intervenants = () => {
             fontSize: 11, fontWeight: 700, letterSpacing: 3,
             textTransform: 'uppercase', color: '#0073f4', marginBottom: 14,
           }}>
-            COPAF 2026
+            {t('intervenants.eyebrow')}
           </div>
           <h2 style={{
             fontSize: 'clamp(32px, 4vw, 52px)',
@@ -116,13 +127,13 @@ const Intervenants = () => {
             lineHeight: 1.1,
             letterSpacing: '-0.02em',
           }}>
-            Intervenants
+            {t('intervenants.title')}
           </h2>
           <p style={{
             fontSize: 16, color: '#555',
             maxWidth: 560, margin: '0 auto', lineHeight: 1.7,
           }}>
-            Des experts réunis pour partager leur expertise sur les enjeux portuaires en Afrique.
+            {t('intervenants.subtitle')}
           </p>
         </div>
 
@@ -132,76 +143,79 @@ const Intervenants = () => {
           gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
           gap: 28,
         }}>
-          {intervenants.map((p, i) => (
-            <div key={i} className="intervenant-card" onClick={() => setActiveModal(p)} style={{ cursor: 'pointer' }}>
-              <div
-                className="intervenant-card-inner"
-                onMouseEnter={e => {
-                  e.currentTarget.parentElement.style.transform = 'translateY(-5px)'
-                  e.currentTarget.parentElement.style.boxShadow = '0 16px 40px rgba(0,14,145,0.14)'
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.parentElement.style.transform = 'translateY(0)'
-                  e.currentTarget.parentElement.style.boxShadow = '0 4px 20px rgba(0,14,145,0.06)'
-                }}
-              >
-              {/* Photo carrée en grand format, pleine largeur */}
-              <div style={{ width: '100%', aspectRatio: '1 / 1', position: 'relative', background: '#EBF3FF' }}>
-                {p.photo ? (
-                  <img
-                    src={p.photo}
-                    alt={p.nom}
-                    style={{
+          {intervenants.map((raw, i) => {
+            const p = resolve(raw)
+            return (
+              <div key={i} className="intervenant-card" onClick={() => setActiveModal(p)} style={{ cursor: 'pointer' }}>
+                <div
+                  className="intervenant-card-inner"
+                  onMouseEnter={e => {
+                    e.currentTarget.parentElement.style.transform = 'translateY(-5px)'
+                    e.currentTarget.parentElement.style.boxShadow = '0 16px 40px rgba(0,14,145,0.14)'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.parentElement.style.transform = 'translateY(0)'
+                    e.currentTarget.parentElement.style.boxShadow = '0 4px 20px rgba(0,14,145,0.06)'
+                  }}
+                >
+                {/* Photo carrée en grand format, pleine largeur */}
+                <div style={{ width: '100%', aspectRatio: '1 / 1', position: 'relative', background: '#EBF3FF' }}>
+                  {p.photo ? (
+                    <img
+                      src={p.photo}
+                      alt={p.nom}
+                      style={{
+                        width: '100%', height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                  ) : (
+                    <div style={{
                       width: '100%', height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
-                    }}
-                  />
-                ) : (
-                  <div style={{
-                    width: '100%', height: '100%',
-                    background: 'linear-gradient(135deg, #000e91, #0073f4)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#FFFFFF', fontSize: 48, fontWeight: 700,
-                    letterSpacing: 1,
-                  }}>
-                    {p.initiales}
-                  </div>
-                )}
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 5, background: 'linear-gradient(90deg, #000e91, #0073f4)' }} />
-              </div>
+                      background: 'linear-gradient(135deg, #000e91, #0073f4)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      color: '#FFFFFF', fontSize: 48, fontWeight: 700,
+                      letterSpacing: 1,
+                    }}>
+                      {p.initiales}
+                    </div>
+                  )}
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 5, background: 'linear-gradient(90deg, #000e91, #0073f4)' }} />
+                </div>
 
-              <div style={{ padding: '24px 28px 30px' }}>
-                {/* Nom & titre */}
-                <h3 style={{
-                  fontSize: 22, fontWeight: 800,
-                  color: '#000e91', margin: '0 0 6px', lineHeight: 1.2,
-                  letterSpacing: '-0.01em',
-                }}>
-                  {p.nom}
-                </h3>
-                <div style={{
-                  fontSize: 13, fontWeight: 600,
-                  color: '#0073f4',
-                  letterSpacing: 0.3, lineHeight: 1.5,
-                  marginBottom: 8,
-                }}>
-                  {p.titre}
+                <div style={{ padding: '24px 28px 30px' }}>
+                  {/* Nom & titre */}
+                  <h3 style={{
+                    fontSize: 22, fontWeight: 800,
+                    color: '#000e91', margin: '0 0 6px', lineHeight: 1.2,
+                    letterSpacing: '-0.01em',
+                  }}>
+                    {p.nom}
+                  </h3>
+                  <div style={{
+                    fontSize: 13, fontWeight: 600,
+                    color: '#0073f4',
+                    letterSpacing: 0.3, lineHeight: 1.5,
+                    marginBottom: 8,
+                  }}>
+                    {p.titre}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#888', letterSpacing: 0.3, marginBottom: 10 }}>
+                    {p.organisation}
+                  </div>
+                  <div style={{
+                    fontSize: 12, fontWeight: 700, color: '#0073f4',
+                    display: 'flex', alignItems: 'center', gap: 6,
+                  }}>
+                    {t('intervenants.readBio')}
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0073f4" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: '#888', letterSpacing: 0.3, marginBottom: 10 }}>
-                  {p.organisation}
-                </div>
-                <div style={{
-                  fontSize: 12, fontWeight: 700, color: '#0073f4',
-                  display: 'flex', alignItems: 'center', gap: 6,
-                }}>
-                  Lire la biographie
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0073f4" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </div>
               </div>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <style>{`
