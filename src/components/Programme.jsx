@@ -22,26 +22,23 @@ const icons = {
   pin: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>,
   globe: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
   cal: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
-  check: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>,
   user: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
 }
 
 const C = {
-  navy: '#000E91', navyLight: '#0A1AAF', navyDeep: '#000770',
+  navy: '#000E91', navyLight: '#0A1AAF',
   blue: '#0073F4', blueLight: '#3391F6', bluePale: '#EBF3FF', blueMid: '#C2DCFD',
-  white: '#FFFFFF', offWhite: '#FFFFFF',
+  white: '#FFFFFF',
   navyAlpha10: 'rgba(0,14,145,0.10)', navyAlpha20: 'rgba(0,14,145,0.20)',
-  blueAlpha15: 'rgba(0,115,244,0.15)', blueAlpha30: 'rgba(0,115,244,0.30)',
+  blueAlpha30: 'rgba(0,115,244,0.30)',
 }
 
-// Métadonnées visuelles par jour (icône, accent) — pas traduisibles, mappées par index
 const joursMeta = [
-  { icon: icons.compass, accent: C.blue, accentBg: C.bluePale, accentBorder: C.blueMid },
-  { icon: icons.gear, accent: C.navy, accentBg: 'rgba(0,14,145,0.06)', accentBorder: 'rgba(0,14,145,0.2)' },
-  { icon: icons.map, accent: C.blueLight, accentBg: 'rgba(51,145,246,0.08)', accentBorder: 'rgba(51,145,246,0.25)' },
+  { icon: icons.compass, accent: C.blue },
+  { icon: icons.gear, accent: C.navy },
+  { icon: icons.map, accent: C.blueLight },
 ]
 
-// Icônes de session par (jour, position) — pas traduisibles, mappées par index
 const sessionIconsByDay = [
   [icons.mic, icons.cpu, icons.chart, icons.search],
   [icons.anchor, icons.truck, icons.lock, icons.shield],
@@ -49,12 +46,12 @@ const sessionIconsByDay = [
 ]
 
 const categorieBadgeMap = {
-  'Maison':      { bg: '#E8ECFF', color: '#000E91' },
-  'In-house':    { bg: '#E8ECFF', color: '#000E91' },
-  'Partenaire':  { bg: '#EBF3FF', color: '#0073F4' },
-  'Partner':     { bg: '#EBF3FF', color: '#0073F4' },
-  'Recruté':     { bg: '#FFF4E8', color: '#A35F00' },
-  'Recruited':   { bg: '#FFF4E8', color: '#A35F00' },
+  'Maison': { bg: '#E8ECFF', color: '#000E91' },
+  'In-house': { bg: '#E8ECFF', color: '#000E91' },
+  'Partenaire': { bg: '#EBF3FF', color: '#0073F4' },
+  'Partner': { bg: '#EBF3FF', color: '#0073F4' },
+  'Recruté': { bg: '#FFF4E8', color: '#A35F00' },
+  'Recruited': { bg: '#FFF4E8', color: '#A35F00' },
 }
 
 const Programme = () => {
@@ -80,23 +77,83 @@ const Programme = () => {
     }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap');
-        .prog-tab { transition: all 0.25s cubic-bezier(.4,0,.2,1) !important; }
+        .prog-tab { transition: all 0.25s cubic-bezier(.4,0,.2,1); }
         .prog-tab:hover { transform: translateY(-2px); }
-        .prog-row { transition: all 0.18s ease !important; }
-        .prog-stat-card { transition: all 0.2s ease !important; }
-        .prog-stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,115,244,0.18) !important; }
+        .prog-row { transition: all 0.18s ease; }
+        .prog-stat-card { transition: all 0.2s ease; }
+        .prog-stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,115,244,0.18); }
         @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .prog-animate { animation: fadeSlideUp 0.4s ease forwards; }
         @keyframes modalIn { from { opacity: 0; transform: scale(0.94) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .modal-animate { animation: modalIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards; }
+
+        /* Comportement Responsive adaptatif (Mobile vs Desktop) */
+        .prog-row-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .prog-time-col {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 16px 20px 0 20px;
+        }
+        .prog-content-col {
+          padding: 0 20px 20px 20px;
+        }
+        .prog-separator {
+          display: none;
+        }
+        .tabs-container {
+          display: flex;
+          justify-content: flex-start;
+          gap: 10px;
+          margin-bottom: 40px;
+          overflow-x: auto;
+          padding-bottom: 8px;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+        .tabs-container::-webkit-scrollbar { display: none; }
+
+        /* Bureau / Desktop (écrans >= 768px) */
+        @media(min-width: 768px) {
+          .tabs-container {
+            justify-content: center;
+            overflow-x: visible;
+          }
+          .prog-row-grid {
+            display: grid;
+            grid-template-columns: clamp(100px, 13vw, 140px) 1px 1fr;
+            flex-direction: row;
+            gap: 0;
+          }
+          .prog-time-col {
+            padding: clamp(20px, 3vw, 28px) clamp(14px, 2vw, 22px);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+          }
+          .prog-content-col {
+            padding: clamp(20px, 3vw, 28px) clamp(18px, 3vw, 32px);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+          }
+          .prog-separator {
+            display: block;
+          }
+        }
       `}</style>
 
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.88)', zIndex: 1, pointerEvents: 'none' }} />
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(20px, 5vw, 60px)', position: 'relative', zIndex: 2 }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(16px, 5vw, 60px)', position: 'relative', zIndex: 2 }}>
 
         {/* ── HEADER ── */}
-        <div style={{ textAlign: 'center', marginBottom: 'clamp(48px, 7vw, 72px)' }}>
+        <div style={{ textAlign: 'center', marginBottom: 'clamp(40px, 7vw, 72px)' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             background: C.navy, borderRadius: 100, padding: '7px 22px', marginBottom: 24,
@@ -106,7 +163,7 @@ const Programme = () => {
           </div>
 
           <h2 style={{
-            fontSize: 'clamp(30px, 5vw, 52px)', fontWeight: 900,
+            fontSize: 'clamp(28px, 5vw, 52px)', fontWeight: 900,
             color: C.navy, lineHeight: 1.1, margin: '0 0 16px', letterSpacing: '-0.02em',
           }}>
             {t('programme.titlePart1')}{' '}
@@ -125,14 +182,14 @@ const Programme = () => {
         </div>
 
         {/* ── ONGLETS JOURS ── */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 40, flexWrap: 'wrap' }}>
+        <div className="tabs-container">
           {days.map((j, i) => {
             const active = activeJour === i
             const meta = joursMeta[i]
             return (
               <button key={i} className="prog-tab" onClick={() => setActiveJour(i)} style={{
                 display: 'flex', alignItems: 'center', gap: 12,
-                padding: '14px 26px', borderRadius: 14,
+                padding: '14px 26px', borderRadius: 14, flexShrink: 0,
                 border: active ? 'none' : `1.5px solid ${C.navyAlpha20}`,
                 background: active ? `linear-gradient(135deg, ${C.navy} 0%, ${C.navyLight} 100%)` : C.white,
                 color: active ? C.white : C.navy,
@@ -161,21 +218,20 @@ const Programme = () => {
           <div style={{
             background: `linear-gradient(135deg, ${C.navy} 0%, ${C.navyLight} 60%, ${C.blue} 100%)`,
             borderRadius: '20px 20px 0 0',
-            padding: 'clamp(24px, 4vw, 36px) clamp(24px, 5vw, 44px)',
-            display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
+            padding: 'clamp(24px, 4vw, 36px) clamp(20px, 5vw, 44px)',
+            display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap',
             position: 'relative', overflow: 'hidden',
           }}>
             <div style={{ position: 'absolute', right: -30, top: -30, width: 200, height: 200, borderRadius: '50%', border: '40px solid rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', right: 60, bottom: -60, width: 150, height: 150, borderRadius: '50%', border: '30px solid rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
-
+            
             <div style={{
-              width: 64, height: 64, borderRadius: 18,
+              width: 56, height: 56, borderRadius: 16,
               background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               color: C.white, flexShrink: 0,
             }}>{jour.icon}</div>
 
-            <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ flex: 1, minWidth: 180 }}>
               <div style={{ fontSize: 11, color: C.blueMid, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 6 }}>
                 {jour.date} 2026
               </div>
@@ -212,52 +268,75 @@ const Programme = () => {
                   onMouseEnter={() => setHoveredSession(k)}
                   onMouseLeave={() => setHoveredSession(null)}
                   style={{
-                    display: 'grid', gridTemplateColumns: 'clamp(100px,13vw,140px) 1px 1fr',
                     background: hovered ? C.bluePale : (k % 2 === 0 ? C.white : '#FAFBFF'),
                     borderBottom: k < jour.sessions.length - 1 ? `1px solid ${C.navyAlpha10}` : 'none',
                     cursor: 'pointer',
                   }}
                 >
-                  <div style={{ padding: 'clamp(20px, 3vw, 28px) clamp(14px, 2vw, 22px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                    <div style={{ color: hovered ? C.blue : C.navy, display: 'flex' }}>{icons.clock}</div>
-                    <div style={{ fontSize: 'clamp(10px, 1.4vw, 11px)', color: hovered ? C.blue : '#666', fontWeight: 700, textAlign: 'center', lineHeight: 1.5, letterSpacing: 0.3 }}>
-                      {s.heure.split('–').map((tm, i) => <div key={i}>{tm.trim()}</div>)}
-                    </div>
-                  </div>
-
-                  <div style={{ background: hovered ? C.blueAlpha30 : C.navyAlpha10, transition: 'background 0.18s' }} />
-
-                  <div style={{ padding: 'clamp(20px, 3vw, 28px) clamp(18px, 3vw, 32px)', display: 'flex', alignItems: 'center', gap: 18 }}>
-                    <div style={{
-                      width: 48, height: 48, borderRadius: 14,
-                      background: hovered ? C.blue : C.bluePale,
-                      border: `1.5px solid ${hovered ? C.blue : C.blueMid}`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: hovered ? C.white : C.blue, flexShrink: 0, transition: 'all 0.18s',
-                    }}>{sIcon}</div>
-
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: jour.accent, marginBottom: 4 }}>
-                        {s.type}
+                  <div className="prog-row-grid">
+                    
+                    {/* Heure */}
+                    <div className="prog-time-col">
+                      <div style={{ color: hovered ? C.blue : C.navy, display: 'flex' }}>{icons.clock}</div>
+                      <div style={{ fontSize: 'clamp(11px, 1.4vw, 12px)', color: hovered ? C.blue : '#666', fontWeight: 700, textAlign: 'left', lineHeight: 1.4, letterSpacing: 0.3 }}>
+                        {s.heure}
                       </div>
-                      <div style={{ fontSize: 'clamp(14px, 2vw, 16px)', fontWeight: 700, color: C.navy, marginBottom: 5, letterSpacing: '-0.01em' }}>{s.titre}</div>
-                      <div style={{ fontSize: 'clamp(12px, 1.5vw, 13px)', color: '#888', lineHeight: 1.65, marginBottom: 8 }}>{s.desc}</div>
+                    </div>
+
+                    {/* Séparateur central */}
+                    <div className="prog-separator" style={{ background: hovered ? C.blueAlpha30 : C.navyAlpha10, transition: 'background 0.18s' }} />
+
+                    {/* Contenu */}
+                    <div className="prog-content-col">
                       <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 6,
-                        fontSize: 11, fontWeight: 700, color: catBadge.color,
-                        background: catBadge.bg, borderRadius: 20, padding: '3px 10px 3px 8px',
-                      }}>
-                        <span style={{ display: 'flex' }}>{icons.user}</span>
-                        {s.intervenant}
+                        width: 48, height: 48, borderRadius: 14,
+                        background: hovered ? C.blue : C.bluePale,
+                        border: `1.5px solid ${hovered ? C.blue : C.blueMid}`,
+                        display: 'none', // S'affichera uniquement sur desktop via media query si besoin, ou flex
+                        alignItems: 'center', justifyContent: 'center',
+                        color: hovered ? C.white : C.blue, flexShrink: 0, transition: 'all 0.18s',
+                      }} className="session-icon-box">{sIcon}</div>
+
+                      <div style={{ width: '100%' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 6 }}>
+                          <div style={{
+                            width: 42, height: 42, borderRadius: 12,
+                            background: hovered ? C.blue : C.bluePale,
+                            border: `1.5px solid ${hovered ? C.blue : C.blueMid}`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: hovered ? C.white : C.blue, flexShrink: 0, transition: 'all 0.18s',
+                          }}>{sIcon}</div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: jour.accent, marginBottom: 2 }}>
+                              {s.type}
+                            </div>
+                            <div style={{ fontSize: 'clamp(14px, 2vw, 16px)', fontWeight: 700, color: C.navy, letterSpacing: '-0.01em' }}>{s.titre}</div>
+                          </div>
+                        </div>
+
+                        <div style={{ fontSize: 'clamp(12px, 1.5vw, 13px)', color: '#777', lineHeight: 1.65, marginBottom: 10, paddingLeft: 56 }}>{s.desc}</div>
+                        
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 56 }}>
+                          <div style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 6,
+                            fontSize: 11, fontWeight: 700, color: catBadge.color,
+                            background: catBadge.bg, borderRadius: 20, padding: '3px 10px 3px 8px',
+                          }}>
+                            <span style={{ display: 'flex' }}>{icons.user}</span>
+                            {s.intervenant}
+                          </div>
+
+                          <div style={{
+                            width: 28, height: 28, borderRadius: '50%',
+                            background: hovered ? C.blue : C.bluePale,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            color: hovered ? C.white : C.blue, fontSize: 16, flexShrink: 0, transition: 'all 0.18s',
+                          }}>›</div>
+                        </div>
                       </div>
+
                     </div>
 
-                    <div style={{
-                      width: 32, height: 32, borderRadius: '50%',
-                      background: hovered ? C.blue : C.bluePale,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: hovered ? C.white : C.blue, fontSize: 18, flexShrink: 0, transition: 'all 0.18s',
-                    }}>›</div>
                   </div>
                 </div>
               )
@@ -268,9 +347,9 @@ const Programme = () => {
         {/* ── INFOS LOGISTIQUES ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16, marginTop: 40 }}>
           {[
-            { icon: icons.pin,   label: t('hero.card.location'), value: 'Casablanca, Maroc' },
-            { icon: icons.cal,   label: t('hero.card.dates'),    value: '15 – 17 Septembre 2026' },
-            { icon: icons.globe, label: t('navbar.digitalExposition') === 'Digital Exhibition' ? 'Languages' : 'Langues', value: 'Français & Anglais (traduction simultanée)' },
+            { icon: icons.pin, label: t('hero.card.location'), value: 'Casablanca, Maroc' },
+            { icon: icons.cal, label: t('hero.card.dates'), value: '15 – 17 Septembre 2026' },
+            { icon: icons.globe, label: 'Langues', value: 'Français & Anglais (traduction simultanée)' },
           ].map((info, i) => (
             <div key={i} className="prog-stat-card" style={{
               background: C.white, border: `1.5px solid ${C.navyAlpha10}`,
@@ -307,7 +386,6 @@ const Programme = () => {
               padding: '28px 32px', display: 'flex', justifyContent: 'space-between',
               alignItems: 'flex-start', gap: 16, position: 'relative', overflow: 'hidden',
             }}>
-              <div style={{ position: 'absolute', right: -20, top: -20, width: 140, height: 140, borderRadius: '50%', border: '28px solid rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                 <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.white, flexShrink: 0 }}>
                   {activeSession.icon}
@@ -325,10 +403,7 @@ const Programme = () => {
                 background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)',
                 color: C.white, width: 36, height: 36, borderRadius: '50%',
                 cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-              >{icons.close}</button>
+              }}>{icons.close}</button>
             </div>
 
             <div style={{ padding: '32px 32px 36px' }}>
@@ -350,15 +425,12 @@ const Programme = () => {
               </div>
               <p style={{ fontSize: 15, color: '#555', lineHeight: 1.85, marginBottom: 28, fontWeight: 300 }}>{activeSession.desc}</p>
               <button onClick={() => setActiveSession(null)} style={{
-                marginTop: 8, width: '100%',
+                width: '100%',
                 background: `linear-gradient(135deg, ${C.navy}, ${C.blue})`,
                 color: C.white, border: 'none', padding: '15px', borderRadius: 12,
                 fontFamily: 'inherit', fontWeight: 700, fontSize: 14,
-                letterSpacing: 1.5, textTransform: 'uppercase', cursor: 'pointer', transition: 'opacity 0.2s',
-              }}
-                onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
-                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-              >{t('modules.modalClose')}</button>
+                letterSpacing: 1.5, textTransform: 'uppercase', cursor: 'pointer',
+              }}>{t('modules.modalClose')}</button>
             </div>
           </div>
         </div>
