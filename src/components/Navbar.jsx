@@ -123,9 +123,10 @@ const Navbar = () => {
         fixation en haut de l'ecran. Le nav reste donc en flux normal, mais
         visuellement identique puisque HeaderStack est lui-meme fixed en haut.
       */}
-      <nav style={{
+      <nav className="navbar-root" style={{
         position: 'relative', top: 0, left: 0, right: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexWrap: 'nowrap', gap: 12,
         padding: scrolled ? '10px 24px' : '16px 24px',
         background: '#000e91',
         boxShadow: scrolled ? '0 10px 30px rgba(0,0,0,0.2)' : 'none',
@@ -134,35 +135,36 @@ const Navbar = () => {
       }}>
 
         {/* LOGOS */}
-        <div style={{
+        <div className="logo-block" style={{
           display: 'flex', alignItems: 'center', gap: 15,
           padding: '8px 20px', background: '#FFFFFF', borderRadius: 10,
-          boxShadow: '0 4px 15px rgba(0,0,0,0.1)', flexShrink: 0,
+          boxShadow: '0 4px 15px rgba(0,0,0,0.1)', flexShrink: 1,
+          minWidth: 0,
         }}>
-          <div style={{ display: 'flex' }}>
-            <img src="/logocrf.png" alt="CRF" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
+          <div style={{ display: 'flex', flexShrink: 0 }}>
+            <img className="logo-img" src="/logocrf.png" alt="CRF" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
           </div>
 
-          <div style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)' }} />
+          <div className="logo-divider" style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)', flexShrink: 0 }} />
 
-          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
+          <a href="/" className="logo-brand-link" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', minWidth: 0 }}
             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-            <img src="/logocopaf.png" alt="COPAF" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
-            <div>
-              <div style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 700, color: '#000e91', lineHeight: 1 }}>
+            <img className="logo-img" src="/logocopaf.png" alt="COPAF" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
+            <div className="copaf-text-block">
+              <div className="copaf-brand-text" style={{ fontFamily: 'Cormorant Garamond, serif', fontSize: 20, fontWeight: 700, color: '#000e91', lineHeight: 1, whiteSpace: 'nowrap' }}>
                 COPAF<span style={{ color: '#0073f4' }}>.</span>
               </div>
-              <div style={{ fontSize: 7, color: '#0073f4', letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, marginTop: 2 }}>
+              <div className="copaf-subtitle" style={{ fontSize: 7, color: '#0073f4', letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, marginTop: 2, whiteSpace: 'nowrap' }}>
                 COPAF 2026
               </div>
             </div>
           </a>
 
-          <div style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)' }} />
+          <div className="logo-divider" style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)', flexShrink: 0 }} />
 
-          <div style={{ display: 'flex' }}>
-            <img src="/logoagpaoc.png" alt="AGPAOC" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
+          <div style={{ display: 'flex', flexShrink: 0 }}>
+            <img className="logo-img" src="/logoagpaoc.png" alt="AGPAOC" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
           </div>
         </div>
 
@@ -252,7 +254,7 @@ const Navbar = () => {
           </li>
         </ul>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div className="nav-right" style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
           <LanguageSwitcher />
           <div className="nav-cta">
             <button onClick={handleInscription} style={{
@@ -269,7 +271,7 @@ const Navbar = () => {
         </div>
 
         <button className="burger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', flexDirection: 'column', gap: 5, padding: 4 }}>
+          style={{ background: 'none', border: 'none', cursor: 'pointer', flexDirection: 'column', gap: 5, padding: 4, flexShrink: 0 }}>
           <span style={{ width: 25, height: 2.5, background: '#FFFFFF', display: 'block', transition: 'all 0.3s', transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none' }} />
           <span style={{ width: 25, height: 2.5, background: '#FFFFFF', display: 'block', transition: 'all 0.3s', opacity: menuOpen ? 0 : 1 }} />
           <span style={{ width: 25, height: 2.5, background: '#FFFFFF', display: 'block', transition: 'all 0.3s', transform: menuOpen ? 'rotate(-45deg) translate(5px, -5px)' : 'none' }} />
@@ -378,7 +380,49 @@ const Navbar = () => {
         @media (max-width: 768px) {
           .nav-links { display: none !important; }
           .nav-cta   { display: none !important; }
-          .burger    { display: flex !important; }
+          .burger    {
+            display: flex !important;
+          }
+
+          /* Header plus compact sur mobile */
+          .navbar-root {
+            padding: 8px 10px !important;
+            gap: 6px !important;
+          }
+
+          /* Bloc logos réduit pour laisser la place au burger et au FR */
+          .logo-block {
+            gap: 6px !important;
+            padding: 5px 8px !important;
+            border-radius: 8px !important;
+          }
+          .logo-img {
+            height: 26px !important;
+          }
+          .logo-divider {
+            height: 18px !important;
+          }
+          /* On masque le sous-titre "COPAF 2026" et on réduit le nom pour gagner de la place */
+          .copaf-subtitle {
+            display: none !important;
+          }
+          .copaf-brand-text {
+            font-size: 13px !important;
+          }
+
+          .nav-right {
+            gap: 8px !important;
+          }
+        }
+
+        @media (max-width: 400px) {
+          /* Très petits écrans : on ne garde que les logos, sans le texte COPAF */
+          .copaf-text-block {
+            display: none !important;
+          }
+          .logo-img {
+            height: 22px !important;
+          }
         }
       `}</style>
     </>
