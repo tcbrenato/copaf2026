@@ -17,7 +17,7 @@
     "en": "EN"
   },
   "hero": {
-    "kicker": "Conférence des Ports Africains",
+    "kicker": "COPAF 2026",
     "titlePart1": "Conférence des",
     "titlePart2": "Ports Africains",
     "subtitle": "Trois jours de réflexion scientifique et d'échanges stratégiques réunissant experts, décideurs et institutions portuaires autour de « Smart Port Africain : IA et cybersécurité au service de la performance ».",
@@ -100,7 +100,12 @@
       { "role": "Responsables innovation", "sub": "et technologie", "tag": "Déploiement Smart Port" },
       { "role": "Autres directeurs", "sub": "et cadres portuaires", "tag": "Pilotage opérationnel" },
       { "role": "Acteurs du secteur", "sub": "Portuaire et paraportuaire", "tag": "Écosystème logistique" }
-    ]
+    ],
+    "formatsTitle": "Les formats du programme",
+    "formatsSubtitle": "Quatre formats pour apprendre, échanger et expérimenter",
+    "publicTitle": "Un événement pensé pour",
+    "publicAccent": "les décideurs portuaires",
+    "publicSubtitle": "Une audience qualifiée, des profils stratégiques et opérationnels"
   },
   "programme": {
     "kicker": "Chronogramme",
@@ -158,7 +163,7 @@
     ]
   },
   "footer": {
-    "title": "COPAF 2026",
+    "title": "COPAF",
     "tagline": "La Performance des Ports Africains",
     "description": "Conférence des Ports Africains. Une rencontre stratégique pour façonner l'avenir portuaire africain.",
     "organizer": "Organisé par CRF Perfection",
@@ -286,6 +291,7 @@
   },
   "inscription": {
     "kicker": "Rejoindre la COPAF 2026",
+    "cta": "S'inscrire",
     "stepTitle1": "Choisissez votre participation",
     "stepTitle2": "Formulaire d'inscription",
     "subtitle1": "Sélectionnez la catégorie correspondant à votre profil.",
