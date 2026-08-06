@@ -155,9 +155,6 @@ const TR = {
     orgPlaceholder: 'Selectionnez votre port / organisation',
     orgPlaceholderNoCountry: "Choisissez d'abord votre pays ci-dessus",
     participantsOpt: n => `${n} participant${n>1?'s':''} - ${(n*PRIX_UNITAIRE).toLocaleString('fr-FR')} EUR`,
-    photoLabel: 'Photo (pour votre badge participant)',
-    photoChoose: 'Choisir une photo', photoChange: 'Changer la photo',
-    photoHint: "Facultatif a ce stade \u2014 utilisee pour generer votre badge une fois l'inscription confirmee. Format portrait recommande.",
     messageLabel: 'Message / Besoins specifiques',
     messagePh: 'Questions, besoins alimentaires, accessibilite...',
     paiementLabel: 'Mode de paiement *',
@@ -221,7 +218,7 @@ const TR = {
     ],
     rgpdContent: [
       { title:'1. Responsable du traitement', text:"CRF Perfection, organisant la COPAF 2026, est responsable du traitement. Contact : inscriptions@copaf-ports.com" },
-      { title:'2. Donnees collectees', text:"Nous collectons : nom, prenom, email, telephone, organisation, poste, pays, et le cas echeant une photo pour le badge participant. Ces donnees sont collectees lors de votre inscription." },
+      { title:'2. Donnees collectees', text:"Nous collectons : nom, prenom, email, telephone, organisation, poste, pays. Ces donnees sont collectees lors de votre inscription." },
       { title:'3. Finalites', text:"Vos donnees servent a : la gestion de votre inscription, l'envoi des confirmations, la creation de votre badge, la communication sur les editions futures." },
       { title:'4. Base legale', text:"Le traitement est fonde sur l'execution du contrat d'inscription (article 6.1.b du RGPD) et votre consentement explicite." },
       { title:'5. Conservation', text:"Vos donnees sont conservees pendant 3 ans a compter de la date de l'evenement, sauf obligation legale contraire." },
@@ -276,9 +273,6 @@ const TR = {
     orgPlaceholder: 'Select your port / organisation',
     orgPlaceholderNoCountry: 'Choose your country above first',
     participantsOpt: n => `${n} participant${n>1?'s':''} - EUR ${(n*PRIX_UNITAIRE).toLocaleString('en-US')}`,
-    photoLabel: 'Photo (for your participant badge)',
-    photoChoose: 'Choose a photo', photoChange: 'Change photo',
-    photoHint: 'Optional at this stage \u2014 used to generate your badge once registration is confirmed. Portrait format recommended.',
     messageLabel: 'Message / Specific needs',
     messagePh: 'Questions, dietary needs, accessibility...',
     paiementLabel: 'Payment method *',
@@ -342,7 +336,7 @@ const TR = {
     ],
     rgpdContent: [
       { title:'1. Data controller', text:'CRF Perfection, organiser of COPAF 2026, is the data controller. Contact: inscriptions@copaf-ports.com' },
-      { title:'2. Data collected', text:'We collect: last name, first name, email, phone, organisation, position, country, and where applicable a photo for the participant badge. This data is collected during registration.' },
+      { title:'2. Data collected', text:'We collect: last name, first name, email, phone, organisation, position, country. This data is collected during registration.' },
       { title:'3. Purposes', text:'Your data is used to: manage your registration, send confirmations, create your badge, and communicate about future editions.' },
       { title:'4. Legal basis', text:'Processing is based on the performance of the registration contract (Article 6.1.b GDPR) and your explicit consent.' },
       { title:'5. Retention', text:'Your data is kept for 3 years from the date of the event, unless otherwise required by law.' },
@@ -371,24 +365,14 @@ const TYPE_PRIX_EN = { participant:'EUR 3,500', sponsor:'From EUR 8,000', exposa
 
 const genDossier = () => `COPAF2026-${Math.floor(Math.random() * 90000) + 10000}`
 
-async function uploadPhoto(file, dossier) {
-  if (!file) return null
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-  const path = `${dossier}.${ext}`
-  const { error } = await supabase.storage.from('badges-photos').upload(path, file, { upsert: true })
-  if (error) throw new Error("Erreur lors de l'envoi de la photo : " + error.message)
-  const { data } = supabase.storage.from('badges-photos').getPublicUrl(path)
-  return data.publicUrl
-}
-
 async function upsertContact(form) {
   const { data, error } = await supabase.from('contacts').upsert({ email:form.email, prenom:form.prenom, nom:form.nom, telephone:form.telephone, organisation:form.organisation, poste:form.poste, pays:form.pays, source:'inscription' }, { onConflict:'email' }).select('id').single()
   if (error) throw new Error(error.message)
   return data.id
 }
 
-async function createInscription(contactId, form, nb, montant, paiementMode, dossier, photoUrl, lang) {
-  const { error } = await supabase.from('inscriptions').insert([{ contact_id:contactId, dossier, participants:nb, montant, paiement_status:paiementMode==='maintenant'?'en_attente':'reserve', paiement_mode:paiementMode, message:form.message, photo_url:photoUrl, langue:lang }])
+async function createInscription(contactId, form, nb, montant, paiementMode, dossier, lang) {
+  const { error } = await supabase.from('inscriptions').insert([{ contact_id:contactId, dossier, participants:nb, montant, paiement_status:paiementMode==='maintenant'?'en_attente':'reserve', paiement_mode:paiementMode, message:form.message, langue:lang }])
   if (error) throw new Error(error.message)
 }
 
@@ -499,8 +483,6 @@ export default function Inscription() {
   const [modal,        setModal]        = useState(null)
   const [showVideo,    setShowVideo]    = useState(false)
   const [showInclus,   setShowInclus]   = useState(false)
-  const [photoFile,    setPhotoFile]    = useState(null)
-  const [photoPreview, setPhotoPreview] = useState('')
 
   const nb    = parseInt(form.participants) || 1
   const total = nb * PRIX_UNITAIRE
@@ -548,20 +530,12 @@ export default function Inscription() {
     })
   }
 
-  const handlePhotoChange = e => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setPhotoFile(file)
-    setPhotoPreview(URL.createObjectURL(file))
-  }
-
   const handleSubmit = async e => {
     e.preventDefault(); setLoading(true); setErrorMsg('')
     const dossier = genDossier()
     try {
-      const photoUrl = await uploadPhoto(photoFile, dossier)
       const contactId = await upsertContact(form)
-      await createInscription(contactId, form, nb, total, paiementMode, dossier, photoUrl, lang)
+      await createInscription(contactId, form, nb, total, paiementMode, dossier, lang)
       fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:total,dossier,paiement:paiementMode,langue:lang}) }).catch(()=>{})
 
       // ── Generation des 2 documents (Attestation + Proforma) ──
@@ -930,31 +904,6 @@ export default function Inscription() {
                           {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{t.participantsOpt(n)}</option>)}
                         </select>
                       </div>
-                    </div>
-
-                    <div style={{ marginBottom:22 }}>
-                      <label style={lbl}>{t.photoLabel}</label>
-                      <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-                        <div style={{
-                          width:64, height:64, borderRadius:12, flexShrink:0,
-                          background: photoPreview ? `url(${photoPreview}) center/cover` : '#f8fafc',
-                          border:'1.5px solid #e2e8f0', display:'flex', alignItems:'center', justifyContent:'center',
-                        }}>
-                          {!photoPreview && <Ico name="user" size={22} color="#cbd5e1" />}
-                        </div>
-                        <label style={{
-                          display:'inline-flex', alignItems:'center', gap:8, cursor:'pointer',
-                          padding:'11px 18px', background:'#f8fafc', border:'1.5px solid #e2e8f0',
-                          borderRadius:12, fontSize:13, fontWeight:600, color:'#334155',
-                        }}>
-                          <Ico name="user" size={15} color="#0073F4" />
-                          {photoPreview ? t.photoChange : t.photoChoose}
-                          <input type="file" accept="image/*" onChange={handlePhotoChange} style={{ display:'none' }} />
-                        </label>
-                      </div>
-                      <p style={{ fontSize:11.5, color:'#94a3b8', marginTop:8, lineHeight:1.5 }}>
-                        {t.photoHint}
-                      </p>
                     </div>
 
                     <div style={{ marginBottom:22 }}>
