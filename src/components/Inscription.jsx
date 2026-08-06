@@ -5,7 +5,7 @@ import emailjs from '@emailjs/browser'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { useAnalytics } from '../useAnalytics'
-import { PORTS_GROUPED, PORTS_AUTRE, PORTS_FLAT } from '../utils/portsData'
+import { PORTS_AUTRE, getOrgOptionsForCountry, findPortByValue } from '../utils/portsData'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
 const PRIX_UNITAIRE = 3500
@@ -71,12 +71,15 @@ const PAYS = [
   { value: 'RDC',                 label: { fr: 'RDC (Congo)',         en: 'DR Congo' } },
   { value: 'Sao Tome-et-Principe',label: { fr: 'Sao Tome-et-Principe',en: 'Sao Tome and Principe' } },
   { value: 'Tchad',               label: { fr: 'Tchad',               en: 'Chad' } },
+  { value: 'Republique Centrafricaine', label: { fr: 'Republique Centrafricaine', en: 'Central African Republic' } },
   { value: 'Angola',              label: { fr: 'Angola',              en: 'Angola' } },
   { value: 'Cap-Vert',            label: { fr: 'Cap-Vert',            en: 'Cape Verde' } },
   { value: 'Afrique du Sud',      label: { fr: 'Afrique du Sud',      en: 'South Africa' } },
   { value: 'Namibie',             label: { fr: 'Namibie',             en: 'Namibia' } },
   { value: 'Mozambique',          label: { fr: 'Mozambique',          en: 'Mozambique' } },
   { value: 'Madagascar',          label: { fr: 'Madagascar',          en: 'Madagascar' } },
+  { value: 'Comores',             label: { fr: 'Comores',             en: 'Comoros' } },
+  { value: 'Seychelles',          label: { fr: 'Seychelles',          en: 'Seychelles' } },
   { value: 'Maurice',             label: { fr: 'Maurice',             en: 'Mauritius' } },
   { value: 'Algerie',             label: { fr: 'Algerie',             en: 'Algeria' } },
   { value: 'Tunisie',             label: { fr: 'Tunisie',             en: 'Tunisia' } },
@@ -85,6 +88,9 @@ const PAYS = [
   { value: 'Kenya',               label: { fr: 'Kenya',               en: 'Kenya' } },
   { value: 'Tanzanie',            label: { fr: 'Tanzanie',            en: 'Tanzania' } },
   { value: 'Djibouti',            label: { fr: 'Djibouti',            en: 'Djibouti' } },
+  { value: 'Soudan',              label: { fr: 'Soudan',              en: 'Sudan' } },
+  { value: 'Somalie',             label: { fr: 'Somalie',             en: 'Somalia' } },
+  { value: 'Erythree',            label: { fr: 'Erythree',            en: 'Eritrea' } },
   { value: 'Ethiopie',            label: { fr: 'Ethiopie',            en: 'Ethiopia' } },
   { value: 'Rwanda',              label: { fr: 'Rwanda',              en: 'Rwanda' } },
   { value: 'Ouganda',             label: { fr: 'Ouganda',             en: 'Uganda' } },
@@ -147,6 +153,7 @@ const TR = {
     ph: { nom:'Votre nom', prenom:'Votre prenom', email:'votre@email.com', telephone:'+229 01 XX XX XX', organisation:'Port / Entreprise', poste:'Votre fonction' },
     paysPlaceholder: 'Selectionnez votre pays',
     orgPlaceholder: 'Selectionnez votre port / organisation',
+    orgPlaceholderNoCountry: "Choisissez d'abord votre pays ci-dessus",
     participantsOpt: n => `${n} participant${n>1?'s':''} - ${(n*PRIX_UNITAIRE).toLocaleString('fr-FR')} EUR`,
     photoLabel: 'Photo (pour votre badge participant)',
     photoChoose: 'Choisir une photo', photoChange: 'Changer la photo',
@@ -267,6 +274,7 @@ const TR = {
     ph: { nom:'Your last name', prenom:'Your first name', email:'your@email.com', telephone:'+229 01 XX XX XX', organisation:'Port / Company', poste:'Your role' },
     paysPlaceholder: 'Select your country',
     orgPlaceholder: 'Select your port / organisation',
+    orgPlaceholderNoCountry: 'Choose your country above first',
     participantsOpt: n => `${n} participant${n>1?'s':''} - EUR ${(n*PRIX_UNITAIRE).toLocaleString('en-US')}`,
     photoLabel: 'Photo (for your participant badge)',
     photoChoose: 'Choose a photo', photoChange: 'Change photo',
@@ -500,28 +508,40 @@ export default function Inscription() {
   const handleChange     = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   const handleTypeSelect = typeId => { const meta = TYPE_META[typeId]; if (meta.redirect) navigate(meta.redirectTo); else { trackFormStart('inscription'); setEtape(2) } }
 
-  // Selection dans le menu deroulant Organisation (liste des ports groupee
-  // par association regionale). Si "Autre" est choisi, form.organisation
-  // reste un champ texte libre saisi par l'utilisateur ; sinon on stocke le
-  // libelle localise du port/organisation choisi.
+  // Le pays pilote la liste des organisations proposees juste en dessous
+  // (evite un menu deroulant unique avec ~90 ports a parcourir). Changer de
+  // pays reinitialise la selection d'organisation, car les options ne sont
+  // plus les memes.
+  const orgOptions = getOrgOptionsForCountry(form.pays)
+
+  const handlePaysChange = e => {
+    const val = e.target.value
+    setForm(f => ({ ...f, pays: val, organisation: '' }))
+    setOrgSelect('')
+  }
+
+  // Selection dans le menu deroulant Organisation (filtre par pays). Si
+  // "Autre" est choisi, form.organisation reste un champ texte libre saisi
+  // par l'utilisateur ; sinon on stocke le libelle localise de l'entree
+  // choisie.
   const handleOrgSelect = e => {
     const val = e.target.value
     setOrgSelect(val)
     if (val === PORTS_AUTRE.value) {
       setForm(f => ({ ...f, organisation: '' }))
     } else {
-      const opt = PORTS_FLAT.find(o => o.value === val)
+      const opt = findPortByValue(val)
       setForm(f => ({ ...f, organisation: opt ? opt.label[lang] : '' }))
     }
   }
 
-  // Si la langue change apres selection d'un port (hors "Autre"), on
-  // re-synchronise le libelle stocke avec la nouvelle langue.
+  // Si la langue change apres selection d'une organisation (hors "Autre"),
+  // on re-synchronise le libelle stocke avec la nouvelle langue.
   const handleLangSwitch = () => {
     setLang(l => {
       const next = l === 'fr' ? 'en' : 'fr'
       if (orgSelect && orgSelect !== PORTS_AUTRE.value) {
-        const opt = PORTS_FLAT.find(o => o.value === orgSelect)
+        const opt = findPortByValue(orgSelect)
         if (opt) setForm(f => ({ ...f, organisation: opt.label[next] }))
       }
       return next
@@ -860,25 +880,35 @@ export default function Inscription() {
 
                     <div className="field-row">
                       <div>
+                        <label style={lbl}>{t.fields.pays}</label>
+                        <select name="pays" required value={form.pays} onChange={handlePaysChange} style={{ ...inp('pays'), cursor:'pointer', color:form.pays?'#0f172a':'#94a3b8' }} onFocus={() => setFocused('pays')} onBlur={() => setFocused('')}>
+                          <option value="" disabled>{t.paysPlaceholder}</option>
+                          {PAYS.map(p => <option key={p.value} value={p.value}>{p.label[lang]}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label style={lbl}>{t.fields.poste}</label>
+                        <input name="poste" type="text" required value={form.poste} onChange={handleChange} placeholder={t.ph.poste} style={inp('poste')} onFocus={() => setFocused('poste')} onBlur={() => setFocused('')} />
+                      </div>
+                    </div>
+
+                    <div className="field-row">
+                      <div>
                         <label style={lbl}>{t.fields.organisation}</label>
                         <select
                           name="orgSelect"
                           required
+                          disabled={!form.pays}
                           value={orgSelect}
                           onChange={handleOrgSelect}
-                          style={{ ...inp('orgSelect'), cursor:'pointer', color: orgSelect ? '#0f172a' : '#94a3b8' }}
+                          style={{ ...inp('orgSelect'), cursor: form.pays ? 'pointer' : 'not-allowed', opacity: form.pays ? 1 : 0.6, color: orgSelect ? '#0f172a' : '#94a3b8' }}
                           onFocus={() => setFocused('orgSelect')}
                           onBlur={() => setFocused('')}
                         >
-                          <option value="" disabled>{t.orgPlaceholder}</option>
-                          {PORTS_GROUPED.map(g => (
-                            <optgroup key={g.group.fr} label={g.group[lang]}>
-                              {g.options.map(o => (
-                                <option key={o.value} value={o.value}>{o.label[lang]}</option>
-                              ))}
-                            </optgroup>
+                          <option value="" disabled>{form.pays ? t.orgPlaceholder : t.orgPlaceholderNoCountry}</option>
+                          {orgOptions.map(o => (
+                            <option key={o.value} value={o.value}>{o.label[lang]}</option>
                           ))}
-                          <option value={PORTS_AUTRE.value}>{PORTS_AUTRE.label[lang]}</option>
                         </select>
                         {orgSelect === PORTS_AUTRE.value && (
                           <input
@@ -893,20 +923,6 @@ export default function Inscription() {
                             onBlur={() => setFocused('')}
                           />
                         )}
-                      </div>
-                      <div>
-                        <label style={lbl}>{t.fields.poste}</label>
-                        <input name="poste" type="text" required value={form.poste} onChange={handleChange} placeholder={t.ph.poste} style={inp('poste')} onFocus={() => setFocused('poste')} onBlur={() => setFocused('')} />
-                      </div>
-                    </div>
-
-                    <div className="field-row">
-                      <div>
-                        <label style={lbl}>{t.fields.pays}</label>
-                        <select name="pays" required value={form.pays} onChange={handleChange} style={{ ...inp('pays'), cursor:'pointer', color:form.pays?'#0f172a':'#94a3b8' }} onFocus={() => setFocused('pays')} onBlur={() => setFocused('')}>
-                          <option value="" disabled>{t.paysPlaceholder}</option>
-                          {PAYS.map(p => <option key={p.value} value={p.value}>{p.label[lang]}</option>)}
-                        </select>
                       </div>
                       <div>
                         <label style={lbl}>{t.fields.participants}</label>
