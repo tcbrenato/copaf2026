@@ -24,15 +24,15 @@ const AnalyticsTracker = () => {
   return null
 }
 
+// NOTE SUR L'ESPACEMENT : --copaf-header-h est mise a jour en continu par
+// HeaderStack.jsx (mesure reelle de sa hauteur). Le fallback (130px) ne sert
+// qu'avant le tout premier rendu, le temps que la variable se pose.
+
 // ─── Page d'accueil principale ────────────────────────────────────────────────
-// NOTE : HeaderStack (Navbar + FlashInfoTicker) est fixed, donc le contenu qui
-// suit doit compenser sa hauteur totale (~ hauteur nav + ~44px du bandeau).
-// Ajuste ce paddingTop si le premier bloc visible (Hero) semble encore
-// legerement chevauche par le bandeau.
 const MainSite = () => (
   <>
     <HeaderStack />
-    <main style={{ paddingTop: 44 }}>
+    <main style={{ paddingTop: 'var(--copaf-header-h, 130px)' }}>
       <Hero />
       <Partners />
       <About />
@@ -50,7 +50,7 @@ const MainSite = () => (
 const InscriptionPage = () => (
   <>
     <HeaderStack />
-    <div style={{ paddingTop: 124 }}>
+    <div style={{ paddingTop: 'var(--copaf-header-h, 130px)' }}>
       <Inscription />
     </div>
     <Footer />
@@ -61,7 +61,7 @@ const InscriptionPage = () => (
 const VerifierPage = () => (
   <>
     <HeaderStack />
-    <div style={{ paddingTop: 124 }}>
+    <div style={{ paddingTop: 'var(--copaf-header-h, 130px)' }}>
       <VerifierDossier />
     </div>
     <Footer />

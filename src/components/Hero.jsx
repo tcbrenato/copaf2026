@@ -57,14 +57,21 @@ const Hero = () => {
     <section
       id="hero"
       style={{
-        minHeight: '100vh',
+        // FIX "il faut scroller pour tout voir" : avant, ce padding-top
+        // (120-160px) redondait avec le paddingTop deja applique par <main>
+        // (voir App.jsx, var(--copaf-header-h)) pour compenser le bandeau
+        // fixe. Les deux s'additionnaient et minHeight:100vh en plus =>
+        // hauteur totale > un ecran. Ici on ne compense plus le header ici
+        // (c'est le role de <main>), et minHeight retire la hauteur du
+        // header pour que header + hero = exactement 100vh sur desktop.
+        minHeight: 'calc(100vh - var(--copaf-header-h, 130px))',
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         position: 'relative',
         overflow: 'hidden',
-        padding: 'clamp(120px, 12vw, 160px) 6% 56px',
+        padding: 'clamp(20px, 3vw, 40px) 6%',
       }}
     >
       {/* Background image */}
@@ -103,10 +110,10 @@ const Hero = () => {
 
           <h1 style={{
             fontFamily: "'Inter', 'Roboto', sans-serif",
-            fontSize: 'clamp(30px, 3.8vw, 48px)',
+            fontSize: 'clamp(28px, 3.4vw, 44px)',
             fontWeight: 900,
             lineHeight: 1.1,
-            marginBottom: '20px',
+            marginBottom: '18px',
             color: '#fff',
             letterSpacing: '-1.3px',
           }}>
@@ -127,8 +134,8 @@ const Hero = () => {
             fontSize: '15px',
             color: 'rgba(255,255,255,0.72)',
             maxWidth: '460px',
-            lineHeight: 1.65,
-            marginBottom: '32px',
+            lineHeight: 1.6,
+            marginBottom: '26px',
           }}>
             {t('hero.subtitle')}
           </p>
@@ -137,7 +144,7 @@ const Hero = () => {
           <div className="hero-stats" style={{
             display: 'flex',
             gap: '36px',
-            marginBottom: '32px',
+            marginBottom: '26px',
             opacity: statsIn ? 1 : 0,
             transform: statsIn ? 'translateY(0)' : 'translateY(10px)',
             transition: 'all 0.6s ease',
@@ -285,9 +292,19 @@ const Hero = () => {
         .hero-link:hover { opacity: 1; }
 
         @media (max-width: 900px) {
+          /* Sur mobile/tablette, le grid passe en 1 colonne (image + texte
+             empiles) : forcer 1 seul ecran devient irrealiste sans casser
+             la lisibilite. On repasse donc en hauteur naturelle ici, tout
+             en gardant le padding-top minimal (le header est deja compense
+             par <main>). */
+          #hero {
+            min-height: auto !important;
+            padding-top: clamp(16px, 4vw, 28px) !important;
+            padding-bottom: 32px !important;
+          }
           .hero-grid {
             grid-template-columns: 1fr !important;
-            gap: 44px !important;
+            gap: 36px !important;
           }
           .hero-left {
             display: flex;
@@ -300,7 +317,6 @@ const Hero = () => {
         }
 
         @media (max-width: 540px) {
-          #hero { padding-top: 110px !important; }
           .hero-buttons { flex-direction: column !important; align-items: center !important; gap: 16px !important; }
           .hero-cta { width: 100%; max-width: 300px; }
           .glass-badge { padding: 11px !important; }

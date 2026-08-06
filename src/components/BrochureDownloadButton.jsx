@@ -2,9 +2,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../supabase'
 
-const BROCHURE_URL_FR = '/brochure-copaf-2026-fr.pdf'
-const BROCHURE_URL_EN = '/brochure-copaf-2026-en.pdf'
-
 const Ico = ({ name, size = 18, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
   const icons = {
@@ -24,29 +21,42 @@ function BrochureModal({ onClose }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
-  const brochureUrl = i18n.language?.startsWith('en') ? BROCHURE_URL_EN : BROCHURE_URL_FR
+
+  const isEn = i18n.language && i18n.language.toLowerCase().startsWith('en')
+  const brochureUrl = isEn ? '/brochure-copaf-2026-en.pdf' : '/brochure-copaf-2026.pdf'
+  const brochureFilename = isEn ? 'brochure-copaf-2026-en.pdf' : 'brochure-copaf-2026.pdf'
 
   const handleSubmit = async e => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    
     try {
-      const { error: err } = await supabase.from('brochure_leads').insert([{
-        nom, email, organisation,
+      // Utilisation de upsert pour gérer proprement les e-mails déjà existants
+      const { error: err } = await supabase.from('brochure_leads').upsert([{
+        nom, 
+        email, 
+        organisation,
         source: 'site_brochure_button',
-      }])
+      }], { onConflict: 'email' })
+      
       if (err) throw new Error(err.message)
 
+      // Déclenchement du téléchargement
       const a = document.createElement('a')
       a.href = brochureUrl
-      a.download = `Brochure_COPAF_2026_${i18n.language?.startsWith('en') ? 'en' : 'fr'}.pdf`
+      a.download = brochureFilename
+      document.body.appendChild(a)
       a.click()
+      document.body.removeChild(a)
 
       setDone(true)
     } catch (err) {
-      setError(t('brochure.error'))
+      console.error("Erreur lead/téléchargement:", err)
+      setError(t('brochure.error') || "Une erreur est survenue lors de l'enregistrement.")
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
@@ -77,7 +87,7 @@ function BrochureModal({ onClose }) {
               <p style={{ fontSize: 13, color: '#64748b', lineHeight: 1.6, margin: '0 0 16px' }}>
                 {t('brochure.successBody')}
               </p>
-              <a href={brochureUrl} download={`Brochure_COPAF_2026_${i18n.language?.startsWith('en') ? 'en' : 'fr'}.pdf`} style={{
+              <a href={brochureUrl} download={brochureFilename} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 20px',
                 background: '#EBF3FF', color: '#000E91', borderRadius: 10, fontWeight: 700,
                 fontSize: 13, textDecoration: 'none',
@@ -121,7 +131,10 @@ function BrochureModal({ onClose }) {
 
               {error && (
                 <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 10, padding: '10px 14px', fontSize: 12.5, color: '#dc2626', marginBottom: 16 }}>
-                  {error}<a href={brochureUrl} download style={{ color: '#dc2626', fontWeight: 700 }}>{t('brochure.downloadAgain')}</a>.
+                  {error} <br/>
+                  <a href={brochureUrl} download={brochureFilename} style={{ color: '#dc2626', fontWeight: 700, textDecoration: 'underline' }}>
+                    {t('brochure.downloadAgain') || "Télécharger directement"}
+                  </a>
                 </div>
               )}
 
@@ -146,9 +159,6 @@ function BrochureModal({ onClose }) {
   )
 }
 
-// Bouton réutilisable — deux variantes sobres :
-// "outline"  → fond clair, pour sections claires (par défaut)
-// "ghost"    → texte souligné transparent, pour fonds sombres comme le Hero
 export default function BrochureDownloadButton({ label, variant = 'outline', className = '' }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
@@ -175,8 +185,6 @@ export default function BrochureDownloadButton({ label, variant = 'outline', cla
           transition: all 0.2s ease;
           white-space: nowrap;
         }
-
-        /* Variante claire — sections sur fond blanc */
         .brochure-btn--outline {
           padding: 12px 22px;
           background: #fff;
@@ -190,8 +198,6 @@ export default function BrochureDownloadButton({ label, variant = 'outline', cla
           background: #F4F8FF;
           border-color: #0073F4;
         }
-
-        /* Variante ghost — texte souligné, pour le Hero sur fond sombre */
         .brochure-btn--ghost {
           padding: 0;
           background: none;

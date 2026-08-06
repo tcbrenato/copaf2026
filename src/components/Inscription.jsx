@@ -5,6 +5,7 @@ import emailjs from '@emailjs/browser'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { useAnalytics } from '../useAnalytics'
+import { PORTS_GROUPED, PORTS_AUTRE, PORTS_FLAT } from '../utils/portsData'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
 const PRIX_UNITAIRE = 3500
@@ -145,6 +146,7 @@ const TR = {
     },
     ph: { nom:'Votre nom', prenom:'Votre prenom', email:'votre@email.com', telephone:'+229 01 XX XX XX', organisation:'Port / Entreprise', poste:'Votre fonction' },
     paysPlaceholder: 'Selectionnez votre pays',
+    orgPlaceholder: 'Selectionnez votre port / organisation',
     participantsOpt: n => `${n} participant${n>1?'s':''} - ${(n*PRIX_UNITAIRE).toLocaleString('fr-FR')} EUR`,
     photoLabel: 'Photo (pour votre badge participant)',
     photoChoose: 'Choisir une photo', photoChange: 'Changer la photo',
@@ -264,6 +266,7 @@ const TR = {
     },
     ph: { nom:'Your last name', prenom:'Your first name', email:'your@email.com', telephone:'+229 01 XX XX XX', organisation:'Port / Company', poste:'Your role' },
     paysPlaceholder: 'Select your country',
+    orgPlaceholder: 'Select your port / organisation',
     participantsOpt: n => `${n} participant${n>1?'s':''} - EUR ${(n*PRIX_UNITAIRE).toLocaleString('en-US')}`,
     photoLabel: 'Photo (for your participant badge)',
     photoChoose: 'Choose a photo', photoChange: 'Change photo',
@@ -476,6 +479,7 @@ export default function Inscription() {
 
   const [etape,        setEtape]        = useState(1)
   const [form,         setForm]         = useState({ nom:'', prenom:'', email:'', telephone:'', organisation:'', poste:'', pays:'', participants:'1', message:'' })
+  const [orgSelect,    setOrgSelect]    = useState('')
   const [paiementMode, setPaiementMode] = useState('maintenant')
   const [cgv,          setCgv]          = useState(false)
   const [rgpd,         setRgpd]         = useState(false)
@@ -495,6 +499,34 @@ export default function Inscription() {
 
   const handleChange     = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   const handleTypeSelect = typeId => { const meta = TYPE_META[typeId]; if (meta.redirect) navigate(meta.redirectTo); else { trackFormStart('inscription'); setEtape(2) } }
+
+  // Selection dans le menu deroulant Organisation (liste des ports groupee
+  // par association regionale). Si "Autre" est choisi, form.organisation
+  // reste un champ texte libre saisi par l'utilisateur ; sinon on stocke le
+  // libelle localise du port/organisation choisi.
+  const handleOrgSelect = e => {
+    const val = e.target.value
+    setOrgSelect(val)
+    if (val === PORTS_AUTRE.value) {
+      setForm(f => ({ ...f, organisation: '' }))
+    } else {
+      const opt = PORTS_FLAT.find(o => o.value === val)
+      setForm(f => ({ ...f, organisation: opt ? opt.label[lang] : '' }))
+    }
+  }
+
+  // Si la langue change apres selection d'un port (hors "Autre"), on
+  // re-synchronise le libelle stocke avec la nouvelle langue.
+  const handleLangSwitch = () => {
+    setLang(l => {
+      const next = l === 'fr' ? 'en' : 'fr'
+      if (orgSelect && orgSelect !== PORTS_AUTRE.value) {
+        const opt = PORTS_FLAT.find(o => o.value === orgSelect)
+        if (opt) setForm(f => ({ ...f, organisation: opt.label[next] }))
+      }
+      return next
+    })
+  }
 
   const handlePhotoChange = e => {
     const file = e.target.files?.[0]
@@ -632,7 +664,7 @@ export default function Inscription() {
 
           {/* SELECTEUR DE LANGUE */}
           <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:8 }}>
-            <button className="lang-switch" onClick={() => setLang(l => l === 'fr' ? 'en' : 'fr')} type="button">
+            <button className="lang-switch" onClick={handleLangSwitch} type="button">
               <Ico name="globe" size={14} color="#0073F4" />
               {lang === 'fr' ? 'FR \u00B7 English' : 'EN \u00B7 Fran\u00E7ais'}
             </button>
@@ -827,9 +859,45 @@ export default function Inscription() {
                     </div>
 
                     <div className="field-row">
-                      {[{name:'organisation',ph:t.ph.organisation},{name:'poste',ph:t.ph.poste}].map(f => (
-                        <div key={f.name}><label style={lbl}>{t.fields[f.name]}</label><input name={f.name} type="text" required value={form[f.name]} onChange={handleChange} placeholder={f.ph} style={inp(f.name)} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')} /></div>
-                      ))}
+                      <div>
+                        <label style={lbl}>{t.fields.organisation}</label>
+                        <select
+                          name="orgSelect"
+                          required
+                          value={orgSelect}
+                          onChange={handleOrgSelect}
+                          style={{ ...inp('orgSelect'), cursor:'pointer', color: orgSelect ? '#0f172a' : '#94a3b8' }}
+                          onFocus={() => setFocused('orgSelect')}
+                          onBlur={() => setFocused('')}
+                        >
+                          <option value="" disabled>{t.orgPlaceholder}</option>
+                          {PORTS_GROUPED.map(g => (
+                            <optgroup key={g.group.fr} label={g.group[lang]}>
+                              {g.options.map(o => (
+                                <option key={o.value} value={o.value}>{o.label[lang]}</option>
+                              ))}
+                            </optgroup>
+                          ))}
+                          <option value={PORTS_AUTRE.value}>{PORTS_AUTRE.label[lang]}</option>
+                        </select>
+                        {orgSelect === PORTS_AUTRE.value && (
+                          <input
+                            name="organisation"
+                            type="text"
+                            required
+                            value={form.organisation}
+                            onChange={handleChange}
+                            placeholder={t.ph.organisation}
+                            style={{ ...inp('organisation'), marginTop:10 }}
+                            onFocus={() => setFocused('organisation')}
+                            onBlur={() => setFocused('')}
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <label style={lbl}>{t.fields.poste}</label>
+                        <input name="poste" type="text" required value={form.poste} onChange={handleChange} placeholder={t.ph.poste} style={inp('poste')} onFocus={() => setFocused('poste')} onBlur={() => setFocused('')} />
+                      </div>
                     </div>
 
                     <div className="field-row">
