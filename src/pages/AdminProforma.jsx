@@ -34,6 +34,7 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
     plus:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
     trash:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
     users:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    user:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
   }
   return icons[name] || null
 }
@@ -61,6 +62,16 @@ export default function AdminProforma() {
   const [toast, setToast] = useState('')
   const [lang, setLang] = useState('fr') // langue des documents générés (fr | en)
 
+  // ── Recherche d'un participant par pays / organisation (mode individuel) ──
+  const [searchMode, setSearchMode] = useState('dossier') // 'dossier' | 'pays'
+  const [browsePays, setBrowsePays] = useState('')
+  const [browseOrg, setBrowseOrg] = useState('')
+  const [paysOptions, setPaysOptions] = useState([])
+  const [browseOrgOptions, setBrowseOrgOptions] = useState([])
+  const [browseResults, setBrowseResults] = useState([])
+  const [browseLoading, setBrowseLoading] = useState(false)
+  const [browseSearched, setBrowseSearched] = useState(false)
+
   // ── Inscription groupée (délégation) ──
   const [isGroup, setIsGroup] = useState(false)
   const [delegationName, setDelegationName] = useState('')
@@ -68,7 +79,6 @@ export default function AdminProforma() {
   const [groupSaving, setGroupSaving] = useState(false)
   const [importPays, setImportPays] = useState('')
   const [importPort, setImportPort] = useState('')
-  const [paysOptions, setPaysOptions] = useState([])
   const [portOptions, setPortOptions] = useState([])
   const [importResults, setImportResults] = useState([])
   const [importSelected, setImportSelected] = useState(new Set())
@@ -90,14 +100,27 @@ export default function AdminProforma() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGroup, participantsListe])
 
+  // Liste des pays disponibles (chargee une seule fois, utilisee a la fois
+  // par la recherche individuelle et par l'import de delegation).
   useEffect(() => {
-    if (!isGroup || paysOptions.length > 0) return
+    if (paysOptions.length > 0) return
     ;(async () => {
       const { data: rows } = await supabase.from('contacts').select('pays').not('pays', 'is', null)
       const uniques = [...new Set((rows || []).map(r => r.pays).filter(Boolean))].sort((a, b) => a.localeCompare(b))
       setPaysOptions(uniques)
     })()
-  }, [isGroup, paysOptions.length])
+  }, [paysOptions.length])
+
+  useEffect(() => {
+    if (!browsePays) { setBrowseOrgOptions([]); return }
+    ;(async () => {
+      const { data: rows } = await supabase
+        .from('contacts').select('organisation')
+        .eq('pays', browsePays).not('organisation', 'is', null)
+      const uniques = [...new Set((rows || []).map(r => r.organisation).filter(Boolean))].sort((a, b) => a.localeCompare(b))
+      setBrowseOrgOptions(uniques)
+    })()
+  }, [browsePays])
 
   useEffect(() => {
     if (!importPays) { setPortOptions([]); return }
@@ -175,6 +198,28 @@ export default function AdminProforma() {
     e.preventDefault()
     if (!dossierInput.trim()) return
     loadDossier(dossierInput)
+  }
+
+  const handleBrowseSearch = async () => {
+    if (!browsePays) { showToast('Choisissez un pays'); return }
+    setBrowseLoading(true)
+    setBrowseSearched(true)
+    let query = supabase
+      .from('inscriptions')
+      .select('dossier, paiement_status, participants, montant, contacts!inner(nom, prenom, organisation, poste, pays, email)')
+      .eq('contacts.pays', browsePays)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    if (browseOrg) query = query.eq('contacts.organisation', browseOrg)
+
+    const { data: rows, error: err } = await query
+    setBrowseLoading(false)
+    if (err) { showToast('Erreur : ' + err.message); return }
+    setBrowseResults(rows || [])
+  }
+
+  const handlePickBrowseResult = dossier => {
+    loadDossier(dossier)
   }
 
   const handleField = (field, value) => setData(d => ({ ...d, [field]: value }))
@@ -280,7 +325,16 @@ export default function AdminProforma() {
   const handleGenerateProforma = async () => {
     setGenLoading('proforma')
     try {
-      await generateProformaPDF({ form: formData(), dossier: data.dossier, nb: Number(data.participants) || 1, total: Number(data.montant) || 0, lang })
+      const groupeActif = isGroup && participantsListe.length > 1
+      await generateProformaPDF({
+        form: formData(),
+        dossier: data.dossier,
+        nb: Number(data.participants) || 1,
+        total: Number(data.montant) || 0,
+        lang,
+        participants: groupeActif ? participantsListe.map(p => ({ ...p, dossier: p.dossier || data.dossier })) : [],
+        delegationName: groupeActif ? delegationName : '',
+      })
       await logDocument(data.dossier, 'proforma')
     } finally { setGenLoading('') }
   }
@@ -360,6 +414,8 @@ export default function AdminProforma() {
     fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
   })
 
+  const STATUT_CFG = s => STATUT_OPTIONS.find(o => o.value === s) || STATUT_OPTIONS[0]
+
   const totalGroupe = participantsListe.reduce((sum, p) => sum + (Number(p.tarif) || 0), 0)
 
   return (
@@ -375,34 +431,116 @@ export default function AdminProforma() {
         </div>
       )}
 
-      {/* Recherche */}
-      <form onSubmit={handleSearch} style={{
-        background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20,
-        marginBottom: 16, display: 'flex', gap: 10, flexWrap: 'wrap', boxShadow: '0 4px 16px rgba(0,14,145,.05)',
-      }}>
-        <input
-          value={dossierInput}
-          onChange={e => setDossierInput(e.target.value)}
-          placeholder="Numéro de dossier (ex: COPAF2026-30561)"
-          style={{ ...inputStyle, flex: '1 1 220px' }}
-        />
-        <button type="submit" disabled={loading} style={{
-          display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-          background: NAVY, border: 'none', borderRadius: 10, color: '#fff',
-          fontWeight: 700, fontSize: 13.5, cursor: loading ? 'not-allowed' : 'pointer',
-          fontFamily: 'inherit', opacity: loading ? 0.7 : 1,
+      {/* Bascule mode de recherche */}
+      {!data && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <button onClick={() => setSearchMode('dossier')} style={{
+            padding: '8px 16px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+            fontFamily: 'inherit', border: `1.5px solid ${searchMode === 'dossier' ? NAVY : '#e2e8f0'}`,
+            background: searchMode === 'dossier' ? '#EBF3FF' : '#fff', color: searchMode === 'dossier' ? NAVY : '#64748b',
+          }}>Par numéro de dossier</button>
+          <button onClick={() => setSearchMode('pays')} style={{
+            padding: '8px 16px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+            fontFamily: 'inherit', border: `1.5px solid ${searchMode === 'pays' ? NAVY : '#e2e8f0'}`,
+            background: searchMode === 'pays' ? '#EBF3FF' : '#fff', color: searchMode === 'pays' ? NAVY : '#64748b',
+          }}>Par pays / organisation</button>
+        </div>
+      )}
+
+      {/* Recherche par dossier */}
+      {!data && searchMode === 'dossier' && (
+        <form onSubmit={handleSearch} style={{
+          background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20,
+          marginBottom: 16, display: 'flex', gap: 10, flexWrap: 'wrap', boxShadow: '0 4px 16px rgba(0,14,145,.05)',
         }}>
-          <Ico name="search" size={15} color="#fff" />
-          {loading ? 'Recherche...' : 'Rechercher'}
-        </button>
-      </form>
+          <input
+            value={dossierInput}
+            onChange={e => setDossierInput(e.target.value)}
+            placeholder="Numéro de dossier (ex: COPAF2026-30561)"
+            style={{ ...inputStyle, flex: '1 1 220px' }}
+          />
+          <button type="submit" disabled={loading} style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+            background: NAVY, border: 'none', borderRadius: 10, color: '#fff',
+            fontWeight: 700, fontSize: 13.5, cursor: loading ? 'not-allowed' : 'pointer',
+            fontFamily: 'inherit', opacity: loading ? 0.7 : 1,
+          }}>
+            <Ico name="search" size={15} color="#fff" />
+            {loading ? 'Recherche...' : 'Rechercher'}
+          </button>
+        </form>
+      )}
+
+      {/* Recherche par pays / organisation (selection individuelle) */}
+      {!data && searchMode === 'pays' && (
+        <div style={{
+          background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20,
+          marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)',
+        }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
+            <select
+              value={browsePays}
+              onChange={e => { setBrowsePays(e.target.value); setBrowseOrg(''); setBrowseResults([]); setBrowseSearched(false) }}
+              style={{ ...inputStyle, flex: '1 1 200px' }}
+            >
+              <option value="">Choisir un pays...</option>
+              {paysOptions.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <select
+              value={browseOrg}
+              onChange={e => setBrowseOrg(e.target.value)}
+              disabled={!browsePays}
+              style={{ ...inputStyle, flex: '1 1 220px', opacity: browsePays ? 1 : 0.6 }}
+            >
+              <option value="">Toutes les organisations</option>
+              {browseOrgOptions.map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
+            <button onClick={handleBrowseSearch} disabled={browseLoading || !browsePays} style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+              background: NAVY, border: 'none', borderRadius: 10, color: '#fff',
+              fontWeight: 700, fontSize: 13.5, cursor: (browseLoading || !browsePays) ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit', opacity: (browseLoading || !browsePays) ? 0.6 : 1,
+            }}>
+              <Ico name="search" size={15} color="#fff" />
+              {browseLoading ? 'Recherche...' : 'Rechercher'}
+            </button>
+          </div>
+
+          {browseSearched && !browseLoading && browseResults.length === 0 && (
+            <div style={{ fontSize: 12.5, color: '#94a3b8' }}>Aucune inscription trouvée pour ce filtre.</div>
+          )}
+
+          {browseResults.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 340, overflowY: 'auto' }}>
+              {browseResults.map(r => {
+                const cfg = STATUT_CFG(r.paiement_status)
+                return (
+                  <div key={r.dossier} onClick={() => handlePickBrowseResult(r.dossier)} style={{
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
+                    background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, cursor: 'pointer',
+                  }}>
+                    <div style={{ width: 30, height: 30, borderRadius: 8, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Ico name="user" size={14} color={NAVY} />
+                    </div>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{r.contacts?.prenom} {r.contacts?.nom}</div>
+                      <div style={{ fontSize: 11.5, color: '#94a3b8' }}>{r.contacts?.organisation} · {r.contacts?.poste} · {r.dossier}</div>
+                    </div>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: cfg.bg, color: cfg.color, flexShrink: 0 }}>{cfg.label}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Dossiers recents */}
-      {!data && recents.length > 0 && (
+      {!data && searchMode === 'dossier' && recents.length > 0 && (
         <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>Dossiers récents</div>
           {recents.map((r, i) => {
-            const cfg = STATUT_OPTIONS.find(s => s.value === r.paiement_status) || STATUT_OPTIONS[0]
+            const cfg = STATUT_CFG(r.paiement_status)
             return (
               <div key={i} onClick={() => loadDossier(r.dossier)} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
@@ -433,7 +571,7 @@ export default function AdminProforma() {
           <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, flexWrap: 'wrap', gap: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 1.5, textTransform: 'uppercase' }}>Dossier {data.dossier}</div>
-              <button onClick={() => { setData(null); setDossierInput('') }} style={{ background: 'none', border: 'none', fontSize: 12, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
+              <button onClick={() => { setData(null); setDossierInput(''); setBrowseResults([]); setBrowseSearched(false) }} style={{ background: 'none', border: 'none', fontSize: 12, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
                 &larr; Nouvelle recherche
               </button>
             </div>
@@ -513,8 +651,12 @@ export default function AdminProforma() {
 
             {isGroup && (
               <>
+                <p style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 0, marginBottom: 14, lineHeight: 1.6 }}>
+                  Regroupe des inscriptions de la <strong>même organisation</strong> (attention : "même pays" ne suffit pas — deux participants du même pays peuvent venir de structures différentes). La facture proforma groupée sera adressée à cette organisation.
+                </p>
+
                 <div style={{ marginBottom: 14 }}>
-                  <label style={labelStyle}>Nom de la délégation</label>
+                  <label style={labelStyle}>Nom de la délégation / organisation</label>
                   <input
                     style={inputStyle}
                     placeholder="Ex : Port Autonome de Cotonou"
@@ -533,7 +675,7 @@ export default function AdminProforma() {
                       {paysOptions.map(p => <option key={p} value={p}>{p}</option>)}
                     </select>
                     <select value={importPort} onChange={e => setImportPort(e.target.value)} disabled={!importPays} style={{ ...smallInputStyle, flex: '1 1 200px' }}>
-                      <option value="">Tous les ports / organisations</option>
+                      <option value="">Toutes les organisations</option>
                       {portOptions.map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                     <button onClick={handleSearchImport} disabled={importLoading || !importPays} style={actionBtn('#EBF3FF', NAVY, '#bfdbfe')}>
@@ -541,6 +683,9 @@ export default function AdminProforma() {
                       {importLoading ? 'Recherche...' : 'Rechercher'}
                     </button>
                   </div>
+                  <p style={{ fontSize: 11, color: '#94a3b8', marginTop: -4, marginBottom: 10 }}>
+                    Astuce : filtre d'abord par pays, puis choisis l'organisation exacte pour ne voir que les inscriptions de cette même structure.
+                  </p>
 
                   {importResults.length > 0 && (
                     <>
@@ -658,7 +803,7 @@ export default function AdminProforma() {
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button onClick={handleGenerateProforma} disabled={genLoading === 'proforma'} style={actionBtn('#fdf2f4', MAROON, '#f3c9d0')}>
                 <Ico name="file" size={15} color={MAROON} />
-                {genLoading === 'proforma' ? 'Génération...' : 'Facture proforma'}
+                {genLoading === 'proforma' ? 'Génération...' : (isGroup && participantsListe.length > 1 ? 'Proforma groupée' : 'Facture proforma')}
               </button>
 
               <button onClick={handleGenerateRecap} disabled={genLoading === 'recap'} style={actionBtn('#EBF3FF', NAVY, '#bfdbfe')}>
@@ -682,7 +827,7 @@ export default function AdminProforma() {
             </div>
             {isGroup && participantsListe.length > 1 && (
               <p style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 10, marginBottom: 0 }}>
-                Le PDF "Récapitulatif" affichera automatiquement le tableau détaillé des {participantsListe.length} participants de la délégation.
+                Les documents "Proforma groupée" et "Récapitulatif" afficheront automatiquement le détail des {participantsListe.length} participants de la délégation, adressé à "{delegationName || data.organisation}".
               </p>
             )}
             {data.statut !== 'confirme' && (
