@@ -17,6 +17,9 @@ import ExpositionDigitale from './pages/ExpositionDigitale'
 import VisiterExposition from './pages/VisiterExposition'
 import VerifierDossier from './pages/VerifierDossier'
 import AdminProforma from './pages/AdminProforma'
+import VoteSondage from './pages/VoteSondage'
+import AdminSondages from './pages/AdminSondages'
+import ResultatsSondage from './pages/ResultatsSondage'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -87,6 +90,18 @@ const AdminProformaPage = () => (
   </AdminGate>
 )
 
+// ─── Page Admin Sondages, protegee par un mot de passe dedie ──────────────────
+const AdminSondagesPage = () => (
+  <AdminGate
+    password="SONDAGES2026"
+    storageKey="copaf_sondages_auth"
+    title="COPAF 2026"
+    subtitle="Contrôle des sondages en direct"
+  >
+    <AdminSondages />
+  </AdminGate>
+)
+
 // ─── Application principale ───────────────────────────────────────────────────
 function App() {
   return (
@@ -100,6 +115,9 @@ function App() {
         <Route path="/exposition-digitale" element={<ExpositionDigitale />} />
         <Route path="/admin"               element={<AdminPage />} />
         <Route path="/admin/proforma"      element={<AdminProformaPage />} />
+        <Route path="/admin/sondages"      element={<AdminSondagesPage />} />
+        <Route path="/vote"                element={<VoteSondage />} />
+        <Route path="/sondage-live/:id"    element={<ResultatsSondage />} />
         <Route path="/visiter" element={<VisiterExposition />} />
       </Routes>
     </Router>
