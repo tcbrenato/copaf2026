@@ -1,24 +1,34 @@
 ﻿// src/utils/generateRecapPDF.js
 //
-// Génère le document officiel de CONFIRMATION D'INSCRIPTION / FACTURE COPAF 2026,
-// gérant les inscriptions individuelles ou groupées par port,
-// tenant obligatoirement sur UNE SEULE PAGE.
+// Genere le document officiel COPAF 2026, en DEUX SECTIONS clairement
+// separees dans le meme PDF (une seule page, individuel ou groupe) :
+//
+//  1. ATTESTATION D'INSCRIPTION — texte formel au nom du Comite
+//     d'Organisation COPAF 2026, qui certifie l'inscription.
+//  2. RECAPITULATIF D'INSCRIPTION — partie pratique : reference, montant,
+//     coordonnees bancaires, prochaines etapes, contact, QR code de
+//     verification.
+//
+// Un badge "OFFICIEL" encadre en bleu COPAF et la mention "Comite
+// d'Organisation COPAF 2026" apparaissent en en-tete.
 
 import jsPDF from 'jspdf'
 import QRCode from 'qrcode'
 
-const NAVY     = [0, 14, 145]    // #000E91
+const NAVY     = [0, 14, 145]     // #000E91
 const BLUE     = [0, 115, 244]    // #0073F4
 const GRAY     = [100, 116, 139]
 const DARK     = [15, 23, 42]
 const LIGHT_BG = [248, 250, 252]
+const BLUE_BG  = [235, 243, 255]
 const RED      = [190, 30, 30]
-const GREEN_WA = [37, 211, 102]  // Couleur WhatsApp officielle
+const GREEN_WA = [37, 211, 102]
 
 const EVENT = {
   nom: 'COPAF 2026',
   titreLong: { fr: 'Conférence des Ports Africains', en: 'Conference of African Ports' },
   dates: { fr: 'Du 15 au 17 Septembre 2026', en: '15 to 17 September 2026' },
+  datesSentence: { fr: 'du 15 au 17 septembre 2026', en: '15 to 17 September 2026' },
   lieu: { fr: 'Casablanca, Royaume du Maroc', en: 'Casablanca, Kingdom of Morocco' },
   organisateur: 'CRF Perfection',
 }
@@ -40,23 +50,28 @@ const CONTACT = {
   site: 'www.copaf-ports.com',
 }
 
-// ── Textes traduits (toutes les chaines affichees dans le PDF) ──
 const TXT = {
   fr: {
     organisateurLabel: EVENT.organisateur.toUpperCase(),
-    documentOfficiel: 'DOCUMENT OFFICIEL',
-    bandeauTitre: "ATTESTATION D'INSCRIPTION & FACTURE",
+    officielBadge: 'OFFICIEL',
+    comiteOrganisation: "COMITÉ D'ORGANISATION COPAF 2026",
+
+    // ── Section 1 : Attestation ──
+    attestationBandeau: "ATTESTATION D'INSCRIPTION",
+    attestationIndiv: (prenom, nom, organisation, titreLong, datesSentence, lieu) =>
+      `Le Comité d'Organisation de la COPAF 2026 atteste de la pré-inscription de M/Mme : ${prenom} ${nom}` +
+      `${organisation ? ` (venant de : ${organisation})` : ''} à la ${titreLong} (COPAF 2026), ` +
+      `qui se tiendra ${datesSentence} à ${lieu}.`,
+    attestationGroupe: (delegation, nb, titreLong, datesSentence, lieu) =>
+      `Le Comité d'Organisation de la COPAF 2026 atteste de la pré-inscription de la délégation de ${delegation}, ` +
+      `composée de ${nb} participants, à la ${titreLong} (COPAF 2026), qui se tiendra ${datesSentence} à ${lieu}.`,
+    attestationSignature: "Le Comité d'Organisation",
+
+    // ── Section 2 : Recapitulatif ──
+    recapBandeau: 'RÉCAPITULATIF D\'INSCRIPTION',
     statutAttente: 'EN ATTENTE DE RÈGLEMENT',
     statutReserve: 'PLACE RÉSERVÉE',
-    objet: 'Objet : Confirmation de votre inscription groupée',
-    bonjourIndiv: (p, n) => `Bonjour ${p} ${n},`,
-    bonjourGroupe: (delegation) => `Bonjour,`,
-    introGroupe: (titreLong, nom, delegation) =>
-      `Nous avons le plaisir de vous confirmer l'enregistrement des inscriptions de la délégation ${delegation} à la ${titreLong} (${nom}). Veuillez trouver ci-dessous le détail des participants et le récapitulatif financier.`,
-    introIndiv: (titreLong, nom) =>
-      `Nous avons le plaisir de vous confirmer que votre inscription à la ${titreLong} (${nom}) a bien été enregistrée.`,
-    
-    // En-têtes du tableau groupé
+
     tableHeader: {
       dossier: 'N° Dossier',
       participant: 'Participant',
@@ -65,10 +80,8 @@ const TXT = {
     },
 
     recapLabels: {
-      ref: "Référence principale",
+      ref: 'Référence principale',
       evenement: 'Événement',
-      dateDebut: 'Date de début',
-      lieu: 'Lieu',
       participants: 'Total participants',
       montant: 'Montant global dû',
     },
@@ -88,13 +101,9 @@ const TXT = {
     ],
     contactText: `Pour toute assistance administrative, contactez le secrétariat à l'adresse ${CONTACT.email} ou au ${CONTACT.tel1} / ${CONTACT.tel2}.`,
     waBouton: 'Nous contacter sur WhatsApp',
-    waMessage: (dossier) => `Bonjour, je vous contacte concernant l'inscription groupée COPAF 2026. Référence dossier : ${dossier}`,
+    waMessage: (dossier) => `Bonjour, je vous contacte concernant l'inscription COPAF 2026. Référence dossier : ${dossier}`,
     faitA: (date) => `Fait à Cotonou, le ${date}`,
-    qrHint: 'Cliquez ou scannez',
-    cachetOrg: 'CRF PERFECTION',
-    cachetDoc: 'DOCUMENT OFFICIEL',
-    cachetEvent: 'COPAF 2026',
-    cachetInscrit: (date) => `Inscrit le : ${date}`,
+    qrHint: 'Cliquez ou scannez pour vérifier',
     cordialement: 'Cordialement,',
     equipe: (structure) => `L'équipe ${structure}`,
     footer1: "Ce document est un récapitulatif informatif. L'inscription est confirmée après réception du paiement.",
@@ -102,18 +111,23 @@ const TXT = {
   },
   en: {
     organisateurLabel: EVENT.organisateur.toUpperCase(),
-    documentOfficiel: 'OFFICIAL DOCUMENT',
-    bandeauTitre: 'REGISTRATION CERTIFICATE & INVOICE',
+    officielBadge: 'OFFICIAL',
+    comiteOrganisation: 'COPAF 2026 ORGANISING COMMITTEE',
+
+    attestationBandeau: 'CERTIFICATE OF REGISTRATION',
+    attestationIndiv: (prenom, nom, organisation, titreLong, datesSentence, lieu) =>
+      `The Organising Committee of COPAF 2026 hereby certifies the pre-registration of Mr/Ms: ${prenom} ${nom}` +
+      `${organisation ? ` (from: ${organisation})` : ''} for the ${titreLong} (COPAF 2026), ` +
+      `to be held ${datesSentence} in ${lieu}.`,
+    attestationGroupe: (delegation, nb, titreLong, datesSentence, lieu) =>
+      `The Organising Committee of COPAF 2026 hereby certifies the pre-registration of the ${delegation} delegation, ` +
+      `comprising ${nb} participants, for the ${titreLong} (COPAF 2026), to be held ${datesSentence} in ${lieu}.`,
+    attestationSignature: 'The Organising Committee',
+
+    recapBandeau: 'REGISTRATION SUMMARY',
     statutAttente: 'PAYMENT PENDING',
     statutReserve: 'SPOT RESERVED',
-    objet: 'Subject: Confirmation of your group registration',
-    bonjourIndiv: (p, n) => `Dear ${p} ${n},`,
-    bonjourGroupe: (delegation) => `Hello,`,
-    introGroupe: (titreLong, nom, delegation) =>
-      `We are pleased to confirm the registration of the ${delegation} delegation for the ${titreLong} (${nom}). Please find below the participant details and financial summary.`,
-    introIndiv: (titreLong, nom) =>
-      `We are pleased to confirm that your registration for the ${titreLong} (${nom}) has been successfully recorded.`,
-    
+
     tableHeader: {
       dossier: 'File No.',
       participant: 'Participant',
@@ -124,8 +138,6 @@ const TXT = {
     recapLabels: {
       ref: 'Main reference',
       evenement: 'Event',
-      dateDebut: 'Start date',
-      lieu: 'Location',
       participants: 'Total participants',
       montant: 'Total amount due',
     },
@@ -145,13 +157,9 @@ const TXT = {
     ],
     contactText: `For any administrative assistance, please contact the secretariat at ${CONTACT.email} or at ${CONTACT.tel1} / ${CONTACT.tel2}.`,
     waBouton: 'Contact us on WhatsApp',
-    waMessage: (dossier) => `Hello, I am contacting you regarding the COPAF 2026 group registration. File reference: ${dossier}`,
+    waMessage: (dossier) => `Hello, I am contacting you regarding the COPAF 2026 registration. File reference: ${dossier}`,
     faitA: (date) => `Issued in Cotonou, on ${date}`,
-    qrHint: 'Click or scan',
-    cachetOrg: 'CRF PERFECTION',
-    cachetDoc: 'OFFICIAL DOCUMENT',
-    cachetEvent: 'COPAF 2026',
-    cachetInscrit: (date) => `Registered on: ${date}`,
+    qrHint: 'Click or scan to verify',
     cordialement: 'Best regards,',
     equipe: (structure) => `The ${structure} team`,
     footer1: 'This document is an informational summary. Registration is confirmed upon receipt of payment.',
@@ -160,7 +168,7 @@ const TXT = {
 }
 
 function fmtEur(n) {
-  return `${Number(n).toLocaleString('de-DE')} EUR` 
+  return `${Number(n).toLocaleString('de-DE')} EUR`
 }
 
 function fmtDateLong(d = new Date(), lang = 'fr') {
@@ -172,16 +180,21 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
   const pageWidth  = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
-  
-  const M = 34                 
-  const P = M + 22             
+
+  const M = 34
+  const P = M + 22
   const contentW = pageWidth - P * 2
   const now = new Date()
 
   const verificationUrl = `https://copaf-ports.com/verifier?iban=${encodeURIComponent(RIB.iban)}`
   const whatsappUrl = `https://wa.me/22969303019?text=${encodeURIComponent(L.waMessage(dossier))}`
+  const titreLong = EVENT.titreLong[lang] || EVENT.titreLong.fr
+  const dates = EVENT.dates[lang] || EVENT.dates.fr
+  const datesSentence = EVENT.datesSentence[lang] || EVENT.datesSentence.fr
+  const lieu = EVENT.lieu[lang] || EVENT.lieu.fr
+  const isGroup = participants && participants.length > 1
 
-  // ── Cadre extérieur ──
+  // ── Cadre exterieur ──
   doc.setDrawColor(...NAVY)
   doc.setLineWidth(1.4)
   doc.rect(M, M, pageWidth - M * 2, pageHeight - M * 2)
@@ -189,78 +202,113 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
   doc.setLineWidth(0.5)
   doc.rect(M + 5, M + 5, pageWidth - (M + 5) * 2, pageHeight - (M + 5) * 2)
 
-  let y = P + 12
+  let y = P + 10
 
-  // ── En-tête ──
+  // ══════════════════════════════════════════
+  // EN-TETE — organisateur, badge OFFICIEL, Comite d'Organisation
+  // ══════════════════════════════════════════
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9)
   doc.setTextColor(...GRAY)
   doc.text(L.organisateurLabel, P, y)
-  doc.text(L.documentOfficiel, pageWidth - P, y, { align: 'right' })
-  y += 7
+
+  // Badge OFFICIEL — rectangle encadre bleu COPAF
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8)
+  const badgeTextW = doc.getTextWidth(L.officielBadge)
+  const badgeW = badgeTextW + 20
+  const badgeH = 15
+  const badgeX = pageWidth - P - badgeW
+  const badgeY = y - 11
+  doc.setDrawColor(...BLUE)
+  doc.setLineWidth(1)
+  doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 3, 3, 'S')
+  doc.setTextColor(...BLUE)
+  doc.text(L.officielBadge, badgeX + badgeW / 2, badgeY + 10.5, { align: 'center' })
+
+  y += 10
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(6.5)
+  doc.setTextColor(...NAVY)
+  doc.text(L.comiteOrganisation, P, y)
+
+  y += 8
   doc.setDrawColor(...GRAY)
   doc.setLineWidth(0.4)
   doc.line(P, y, pageWidth - P, y)
-  y += 18
+  y += 16
 
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(15)
+  doc.setFontSize(14)
   doc.setTextColor(...NAVY)
-  doc.text(EVENT.titreLong[lang] || EVENT.titreLong.fr, P, y)
-  y += 15
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(11)
-  doc.setTextColor(...BLUE)
-  doc.text(EVENT.nom, P, y)
-  y += 12
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8.5)
-  doc.setTextColor(...GRAY)
-  doc.text(`${EVENT.dates[lang] || EVENT.dates.fr}  —  ${EVENT.lieu[lang] || EVENT.lieu.fr}`, P, y)
-  y += 18
-
-  // ── Bandeau titre du document ──
-  doc.setFillColor(...NAVY)
-  doc.rect(P, y, contentW, 24, 'F')
+  doc.text(titreLong, P, y)
+  y += 14
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(10.5)
+  doc.setTextColor(...BLUE)
+  doc.text(EVENT.nom, P, y)
+  y += 11
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(...GRAY)
+  doc.text(`${dates}  —  ${lieu}`, P, y)
+  y += 16
+
+  // ══════════════════════════════════════════
+  // SECTION 1 — ATTESTATION D'INSCRIPTION
+  // ══════════════════════════════════════════
+  doc.setFillColor(...NAVY)
+  doc.rect(P, y, contentW, 20, 'F')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9.5)
   doc.setTextColor(255, 255, 255)
-  doc.text(L.bandeauTitre, P + 10, y + 16)
+  doc.text(L.attestationBandeau, P + 10, y + 14)
+  y += 20
+
+  const attestationText = isGroup
+    ? L.attestationGroupe(delegationName || form.organisation || '—', nb, titreLong, datesSentence, lieu)
+    : L.attestationIndiv(form.prenom || '', form.nom || '', form.organisation || '', titreLong, datesSentence, lieu)
+
+  doc.setFillColor(...LIGHT_BG)
+  doc.setDrawColor(226, 232, 240)
+  doc.setLineWidth(0.5)
+  const attestationWrapped = doc.setFont('helvetica', 'normal').setFontSize(9).splitTextToSize(attestationText, contentW - 24)
+  const attestationBoxH = attestationWrapped.length * 12 + 26
+  doc.rect(P, y, contentW, attestationBoxH, 'FD')
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(...DARK)
+  doc.text(attestationWrapped, P + 12, y + 15)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8)
+  doc.setTextColor(...NAVY)
+  doc.text(`— ${L.attestationSignature}, COPAF 2026`, P + contentW - 12, y + attestationBoxH - 9, { align: 'right' })
+
+  y += attestationBoxH + 14
+
+  // ══════════════════════════════════════════
+  // SECTION 2 — RECAPITULATIF D'INSCRIPTION
+  // ══════════════════════════════════════════
+  doc.setFillColor(...BLUE)
+  doc.rect(P, y, contentW, 20, 'F')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9.5)
+  doc.setTextColor(255, 255, 255)
+  doc.text(L.recapBandeau, P + 10, y + 14)
 
   const statutLabel = paiementMode === 'maintenant' ? L.statutAttente : L.statutReserve
   const statutColor = paiementMode === 'maintenant' ? [217, 119, 6] : [37, 99, 235]
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(7)
+  doc.setFontSize(6.5)
   const statutWidth = doc.getTextWidth(statutLabel) + 14
   doc.setFillColor(...statutColor)
-  doc.roundedRect(P + contentW - statutWidth - 6, y + 4, statutWidth, 16, 5, 5, 'F')
+  doc.roundedRect(P + contentW - statutWidth - 6, y + 3, statutWidth, 14, 5, 5, 'F')
   doc.setTextColor(255, 255, 255)
-  doc.text(statutLabel, P + contentW - statutWidth - 6 + statutWidth / 2, y + 14.5, { align: 'center' })
-  y += 34
+  doc.text(statutLabel, P + contentW - statutWidth - 6 + statutWidth / 2, y + 12.5, { align: 'center' })
+  y += 28
 
-  // ── Objet & Introduction ──
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
-  doc.setTextColor(...DARK)
-  doc.text(L.objet, P, y)
-  y += 16
-
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setTextColor(...DARK)
-  
-  const isGroup = participants && participants.length > 1
-  const introText = isGroup 
-    ? L.introGroupe(EVENT.titreLong[lang] || EVENT.titreLong.fr, EVENT.nom, delegationName)
-    : L.introIndiv(EVENT.titreLong[lang] || EVENT.titreLong.fr, EVENT.nom)
-
-  const intro = doc.splitTextToSize(introText, contentW)
-  doc.text(intro, P, y)
-  y += intro.length * 11 + 14
-
-  // ── TABLEAU DES PARTICIPANTS (Si groupe) OU TABLEAU RÉCAPITULATIF (Si individuel) ──
   if (isGroup) {
-    // Entête du tableau des participants
     doc.setFillColor(...LIGHT_BG)
     doc.setDrawColor(226, 232, 240)
     doc.setLineWidth(0.5)
@@ -275,7 +323,6 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
     doc.text(L.tableHeader.tarif, P + contentW - 8, y + 12, { align: 'right' })
     y += 18
 
-    // Lignes des participants
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(8.5)
     participants.forEach((p, idx) => {
@@ -294,27 +341,24 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...DARK)
       doc.text(fmtEur(p.tarif || 3500), P + contentW - 8, rowY, { align: 'right' })
-      
+
       doc.setDrawColor(235, 240, 245)
       doc.line(P, y + 16, P + contentW, y + 16)
       y += 16
     })
 
-    // Ligne Total Global
     y += 4
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(9)
     doc.setTextColor(...NAVY)
-    doc.text(`Montant global dû (${nb} participants) :`, P + 8, y + 10)
+    doc.text(`${L.recapLabels.montant} (${nb}) :`, P + 8, y + 10)
     doc.text(fmtEur(total), P + contentW - 8, y + 10, { align: 'right' })
     y += 20
-
   } else {
-    // Cas Individuel classique (reste compact)
     const montantLabel = L.montantSuffix(fmtEur(total))
     const recap = [
       [L.recapLabels.ref, `N° ${dossier}`],
-      [L.recapLabels.evenement, `${EVENT.nom} — ${EVENT.titreLong[lang] || EVENT.titreLong.fr}`],
+      [L.recapLabels.evenement, `${EVENT.nom} — ${titreLong}`],
       [L.recapLabels.participants, String(nb)],
       [L.recapLabels.montant, montantLabel],
     ]
@@ -324,46 +368,43 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8.5)
       const lines = doc.splitTextToSize(String(value), contentW * 0.58)
-      const rowH = Math.max(16, lines.length * 10 + 6) 
+      const rowH = Math.max(16, lines.length * 10 + 6)
       totalTableH += rowH
       return { label, lines, rowH }
     })
 
     doc.setFillColor(...LIGHT_BG)
-    doc.rect(P, y - 2, contentW, totalTableH + 4, 'F')
+    doc.rect(P, y, contentW, totalTableH, 'F')
     doc.setDrawColor(226, 232, 240)
-    doc.rect(P, y - 2, contentW, totalTableH + 4)
+    doc.rect(P, y, contentW, totalTableH)
 
-    let currentY = y + 8
+    let currentY = y + 10
     preparedRecap.forEach((row, i) => {
-      if (i > 0) {
-        doc.line(P, currentY - 8, P + contentW, currentY - 8)
-      }
+      if (i > 0) doc.line(P, currentY - 8, P + contentW, currentY - 8)
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8.5)
       doc.setTextColor(...GRAY)
       doc.text(row.label, P + 10, currentY)
-      
       doc.setFont('helvetica', 'bold')
       doc.setTextColor(...DARK)
       doc.text(row.lines, P + contentW - 10, currentY, { align: 'right' })
       currentY += row.rowH
     })
-    y += totalTableH + 16
+    y += totalTableH + 14
   }
 
-  // ── Coordonnées bancaires ──
+  // ── Coordonnees bancaires ──
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9.5)
+  doc.setFontSize(9)
   doc.setTextColor(...NAVY)
   doc.text(L.coordBancairesTitre, P, y)
-  y += 10
-  
-  doc.setFillColor(235, 243, 255)
+  y += 9
+
+  doc.setFillColor(...BLUE_BG)
   doc.setDrawColor(191, 219, 254)
   doc.setLineWidth(0.6)
-  doc.rect(P, y - 6, contentW, 46, 'FD')
-  
+  doc.rect(P, y - 6, contentW, 44, 'FD')
+
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   doc.setTextColor(...DARK)
@@ -373,65 +414,64 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9)
   doc.setTextColor(...NAVY)
-  doc.text(`${L.ibanLabel} : ${RIB.iban}`, P + 10, y + 18)
-  doc.text(`${L.bic} : ${RIB.bic}`, P + contentW / 2 + 10, y + 18)
-  
+  doc.text(`${L.ibanLabel} : ${RIB.iban}`, P + 10, y + 17)
+  doc.text(`${L.bic} : ${RIB.bic}`, P + contentW / 2 + 10, y + 17)
+
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7.5)
+  doc.setFontSize(7)
   doc.setTextColor(...RED)
-  doc.text(L.alertRib1, P + 10, y + 32)
-  
+  doc.text(L.alertRib1, P + 10, y + 30)
   const textWidthPre = doc.getTextWidth(L.alertRib1)
   doc.setTextColor(...BLUE)
   doc.setFont('helvetica', 'bold')
-  doc.text(L.alertRibLink, P + 10 + textWidthPre, y + 32)
-  doc.link(P + 10 + textWidthPre, y + 25, doc.getTextWidth(L.alertRibLink), 10, { url: verificationUrl })
-  
-  y += 52
+  doc.text(L.alertRibLink, P + 10 + textWidthPre, y + 30)
+  doc.link(P + 10 + textWidthPre, y + 23, doc.getTextWidth(L.alertRibLink), 10, { url: verificationUrl })
 
-  // ── Prochaines étapes ──
+  y += 48
+
+  // ── Prochaines etapes ──
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
+  doc.setFontSize(8.5)
   doc.setTextColor(...NAVY)
   doc.text(L.prochainesEtapesTitre, P, y)
-  y += 12
+  y += 11
 
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
+  doc.setFontSize(7.5)
   doc.setTextColor(...DARK)
   L.etapes.forEach((line, i) => {
     const lines = doc.splitTextToSize(`${i + 1}. ${line}`, contentW - 4)
     doc.text(lines, P, y)
-    y += lines.length * 10 + 2
+    y += lines.length * 9.5 + 2
   })
-  y += 8
+  y += 6
 
   // ── Contact & WhatsApp ──
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
+  doc.setFontSize(7.5)
   doc.setTextColor(...GRAY)
   const contactLines = doc.splitTextToSize(L.contactText, contentW)
   doc.text(contactLines, P, y)
-  y += contactLines.length * 10 + 10
+  y += contactLines.length * 9.5 + 8
 
   const btnW = 150
-  const btnH = 20
+  const btnH = 19
   doc.setFillColor(...GREEN_WA)
   doc.roundedRect(P, y, btnW, btnH, 4, 4, 'F')
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
   doc.setTextColor(255, 255, 255)
-  doc.text(L.waBouton, P + btnW / 2, y + 13, { align: 'center' })
+  doc.text(L.waBouton, P + btnW / 2, y + 12.5, { align: 'center' })
   doc.link(P, y, btnW, btnH, { url: whatsappUrl })
-  
-  y += btnH + 16
 
-  // ── Signature, QR Code & Cachet ──
+  y += btnH + 14
+
+  // ── Date, QR code, signature ──
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(...DARK)
   doc.text(L.faitA(fmtDateLong(now, lang)), P, y)
-  
+
   let qrBase64 = null
   try {
     qrBase64 = await QRCode.toDataURL(verificationUrl, {
@@ -442,7 +482,7 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
   } catch {
     qrBase64 = null
   }
-  const qrSize = 44
+  const qrSize = 42
   const qrX = P + 120
 
   if (qrBase64) {
@@ -451,42 +491,9 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(5.5)
     doc.setTextColor(...GRAY)
-    doc.text(L.qrHint, qrX + qrSize/2, y + qrSize, { align: 'center' })
+    doc.text(L.qrHint, qrX + qrSize / 2, y - 8 + qrSize + 8, { align: 'center' })
   }
 
-  // Cachet numérique
-  const stampX = qrX + qrSize + 20
-  const stampY = y - 10
-  
-  doc.saveGraphicsState()
-  doc.setCurrentTransformationMatrix(new doc.Matrix(Math.cos(0.07), Math.sin(0.07), -Math.sin(0.07), Math.cos(0.07), stampX, stampY))
-  
-  doc.setDrawColor(...RED)
-  doc.setTextColor(...RED)
-  doc.setLineWidth(2) 
-  doc.roundedRect(0, 0, 116, 48, 8, 8, 'D')
-  doc.setLineWidth(0.5) 
-  doc.roundedRect(2.5, 2.5, 111, 43, 6, 6, 'D')
-  
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(7)
-  doc.text(L.cachetOrg, 58, 12, { align: 'center' })
-  
-  doc.setFont('times', 'bold') 
-  doc.setFontSize(10)
-  doc.text(L.cachetDoc, 58, 23.5, { align: 'center' })
-  
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(7.5)
-  doc.text(L.cachetEvent, 58, 34, { align: 'center' })
-  
-  doc.setFont('helvetica', 'italic')
-  doc.setFontSize(5.5)
-  doc.text(L.cachetInscrit(fmtDateLong(now, lang)), 58, 42, { align: 'center' })
-  
-  doc.restoreGraphicsState()
-
-  // Signature Droite
   const sigX = P + contentW - 110
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
@@ -499,23 +506,21 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
   doc.text(CONTACT.site, sigX, y + 21)
 
   // ── Pied de page ──
-  const fy = pageHeight - M - 22
+  const fy = pageHeight - M - 46
   doc.setDrawColor(226, 232, 240)
   doc.setLineWidth(0.4)
   doc.line(P, fy, pageWidth - P, fy)
-  
+
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(6.5)
   doc.setTextColor(...GRAY)
-  
-  doc.text(L.footer1, P, fy + 9)
-  doc.text(L.footer2(fmtDateLong(now, lang)), P, fy + 17)
-  
-  doc.text(`${EVENT.organisateur} · ${CONTACT.email}`, pageWidth - P, fy + 9, { align: 'right' })
-  doc.text(`${CONTACT.tel1} · ${CONTACT.tel2}`, pageWidth - P, fy + 17, { align: 'right' })
+  doc.text(L.footer1, P, fy + 10)
+  doc.text(L.footer2(fmtDateLong(now, lang)), P, fy + 20)
+  doc.text(`${EVENT.organisateur} · ${CONTACT.email}`, pageWidth - P, fy + 10, { align: 'right' })
+  doc.text(`${CONTACT.tel1} · ${CONTACT.tel2}`, pageWidth - P, fy + 20, { align: 'right' })
 
   if (download) {
-    doc.save(`COPAF2026-Facture-${dossier}.pdf`)
+    doc.save(`COPAF2026-Attestation-${dossier}.pdf`)
     return null
   }
   return doc
