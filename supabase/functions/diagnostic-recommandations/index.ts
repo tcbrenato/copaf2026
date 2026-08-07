@@ -103,7 +103,7 @@ Adresse-toi directement au port ("vous"). Sois precis et technique sans etre jar
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-5',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 750,
         messages: [{ role: 'user', content: prompt }],
       }),
@@ -116,7 +116,11 @@ Adresse-toi directement au port ("vous"). Sois precis et technique sans etre jar
     }
 
     const aiData = await aiResp.json()
-    const recommandations = aiData.content?.[0]?.text?.trim() || "Impossible de générer une analyse pour le moment."
+    const texteGenere = aiData.content?.[0]?.text?.trim()
+    if (!texteGenere) {
+      console.error('Reponse Anthropic sans texte exploitable:', JSON.stringify(aiData))
+    }
+    const recommandations = texteGenere || "Impossible de générer une analyse pour le moment."
 
     await supabase.from('diagnostics').update({ recommandations, updated_at: new Date().toISOString() }).eq('id', diagnosticId)
 
