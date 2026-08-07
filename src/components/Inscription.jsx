@@ -14,7 +14,7 @@ const EMAILJS_TPL_FR = 'template_7wrkmm1'
 const EMAILJS_TPL_EN = 'template_y2q8tlq'
 const EMAILJS_KEY   = 'zBZAZxCfznICTKLJK'
 const WHATSAPP_NUM  = '22997672200'
-const CONTACT_EMAIL = 'inscriptions@copaf-ports.com'
+const CONTACT_EMAIL = 'contact@copaf-ports.com'
 
 const Ico = ({ name, size = 18, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
@@ -208,7 +208,7 @@ const TR = {
     modalClose: "J'ai lu et compris",
     cgvContent: [
       { title:'1. Objet', text:"Les presentes conditions generales de vente regissent les inscriptions a la Conference des Ports Africains (COPAF 2026) organisee par CRF Perfection, prevue du 15 au 17 septembre 2026 a Tanger Med, Maroc." },
-      { title:'2. Inscription et confirmation', text:"Toute inscription n'est definitivement confirmee qu'apres reception du paiement integral. Apres reception du mail de confirmation automatique, le participant doit contacter l'organisation par WhatsApp au +229 01 97 67 22 00 ou par email a inscriptions@copaf-ports.com pour valider son inscription et recevoir les instructions de paiement." },
+      { title:'2. Inscription et confirmation', text:"Toute inscription n'est definitivement confirmee qu'apres reception du paiement integral. Apres reception du mail de confirmation automatique, le participant doit contacter l'organisation par WhatsApp au +229 0169 30 30 19 ou par email a contact@copaf-ports.com pour valider son inscription et recevoir les instructions de paiement." },
       { title:'3. Tarifs et paiement', text:"Le tarif est fixe a 3 500 EUR par personne. Le paiement s'effectue exclusivement par virement bancaire. Le paiement doit etre effectue dans les 7 jours ouvrables suivant la confirmation d'inscription. En cas de reservation (paiement differe), le reglement doit intervenir avant le 31 aout 2026." },
       { title:'4. Politique de non-remboursement', text:"Les inscriptions sont fermes et definitives. Aucun remboursement ne sera effectue, quelle que soit la raison de l'annulation (raison personnelle, professionnelle, medicale, force majeure, refus de visa, etc.). En cas d'empechement, le participant peut se faire remplacer par une autre personne de son organisation sous reserve de notification ecrite au moins 72h avant l'evenement." },
       { title:"5. Annulation par l'organisateur", text:"En cas d'annulation de l'evenement par l'organisateur pour des raisons de force majeure, un avoir sera propose pour l'edition suivante. Aucun remboursement en numeraire ne sera effectue." },
@@ -217,13 +217,13 @@ const TR = {
       { title:'8. Litiges', text:"En cas de litige, les parties s'engagent a rechercher une solution amiable. A defaut, les tribunaux competents de Cotonou, Benin, seront saisis." },
     ],
     rgpdContent: [
-      { title:'1. Responsable du traitement', text:"CRF Perfection, organisant la COPAF 2026, est responsable du traitement. Contact : inscriptions@copaf-ports.com" },
+      { title:'1. Responsable du traitement', text:"CRF Perfection, organisant la COPAF 2026, est responsable du traitement. Contact : contact@copaf-ports.com" },
       { title:'2. Donnees collectees', text:"Nous collectons : nom, prenom, email, telephone, organisation, poste, pays. Ces donnees sont collectees lors de votre inscription." },
       { title:'3. Finalites', text:"Vos donnees servent a : la gestion de votre inscription, l'envoi des confirmations, la creation de votre badge, la communication sur les editions futures." },
       { title:'4. Base legale', text:"Le traitement est fonde sur l'execution du contrat d'inscription (article 6.1.b du RGPD) et votre consentement explicite." },
       { title:'5. Conservation', text:"Vos donnees sont conservees pendant 3 ans a compter de la date de l'evenement, sauf obligation legale contraire." },
       { title:'6. Destinataires', text:"Vos donnees peuvent etre transmises aux partenaires organisant l'evenement dans la stricte limite necessaire. Elles ne sont jamais vendues." },
-      { title:'7. Vos droits', text:"Vous disposez des droits d'acces, de rectification, d'effacement, de limitation, d'opposition et de portabilite. Contactez-nous a inscriptions@copaf-ports.com." },
+      { title:'7. Vos droits', text:"Vous disposez des droits d'acces, de rectification, d'effacement, de limitation, d'opposition et de portabilite. Contactez-nous a contact@copaf-ports.com." },
       { title:'8. Securite', text:"Nous mettons en oeuvre toutes les mesures techniques et organisationnelles appropriees pour proteger vos donnees." },
     ],
     nonRembBanner: 'Politique de non-remboursement - Important',
@@ -326,7 +326,7 @@ const TR = {
     modalClose: 'I have read and understood',
     cgvContent: [
       { title:'1. Purpose', text:'These terms and conditions of sale govern registrations for the Conference of African Ports (COPAF 2026), organised by CRF Perfection, to be held from 15 to 17 September 2026 in Tanger Med, Morocco.' },
-      { title:'2. Registration and confirmation', text:'A registration is only definitively confirmed upon receipt of full payment. After receiving the automatic confirmation email, the participant must contact the organisation via WhatsApp at +229 01 97 67 22 00 or by email at inscriptions@copaf-ports.com to validate their registration and receive payment instructions.' },
+      { title:'2. Registration and confirmation', text:'A registration is only definitively confirmed upon receipt of full payment. After receiving the automatic confirmation email, the participant must contact the organisation via WhatsApp at +229 0169 30 30 19 or by email at contact@copaf-ports.com to validate their registration and receive payment instructions.' },
       { title:'3. Rates and payment', text:'The rate is set at EUR 3,500 per person. Payment is made exclusively by bank transfer. Payment must be made within 7 business days of registration confirmation. For deferred (reserved) payments, settlement must occur before 31 August 2026.' },
       { title:'4. No-refund policy', text:'Registrations are firm and final. No refund will be issued, whatever the reason for cancellation (personal, professional, medical, force majeure, visa refusal, etc.). In case of impediment, the participant may be replaced by another person from their organisation, subject to written notice at least 72h before the event.' },
       { title:'5. Cancellation by the organiser', text:'Should the organiser cancel the event for reasons of force majeure, a credit will be offered for the next edition. No cash refund will be issued.' },
@@ -335,13 +335,13 @@ const TR = {
       { title:'8. Disputes', text:'In the event of a dispute, the parties agree to seek an amicable solution. Failing that, the competent courts of Cotonou, Benin, shall have jurisdiction.' },
     ],
     rgpdContent: [
-      { title:'1. Data controller', text:'CRF Perfection, organiser of COPAF 2026, is the data controller. Contact: inscriptions@copaf-ports.com' },
+      { title:'1. Data controller', text:'CRF Perfection, organiser of COPAF 2026, is the data controller. Contact: contact@copaf-ports.com' },
       { title:'2. Data collected', text:'We collect: last name, first name, email, phone, organisation, position, country. This data is collected during registration.' },
       { title:'3. Purposes', text:'Your data is used to: manage your registration, send confirmations, create your badge, and communicate about future editions.' },
       { title:'4. Legal basis', text:'Processing is based on the performance of the registration contract (Article 6.1.b GDPR) and your explicit consent.' },
       { title:'5. Retention', text:'Your data is kept for 3 years from the date of the event, unless otherwise required by law.' },
       { title:'6. Recipients', text:'Your data may be shared with partners organising the event, strictly as necessary. It is never sold.' },
-      { title:'7. Your rights', text:'You have the right to access, rectify, erase, restrict, object to and port your data. Contact us at inscriptions@copaf-ports.com.' },
+      { title:'7. Your rights', text:'You have the right to access, rectify, erase, restrict, object to and port your data. Contact us at contact@copaf-ports.com.' },
       { title:'8. Security', text:'We implement all appropriate technical and organisational measures to protect your data.' },
     ],
     nonRembBanner: 'No-refund policy - Important',
@@ -1023,7 +1023,7 @@ export default function Inscription() {
 
                 <div style={{ background:'#EBF3FF', border:'1.5px solid #bfdbfe', borderRadius:20, padding:'20px' }}>
                   <div style={{ fontSize:10, color:'#000E91', fontWeight:700, letterSpacing:2, textTransform:'uppercase', marginBottom:14 }}>{t.aideTitle}</div>
-                  {[{icon:'phone',text:'+229 01 97 67 22 00'},{icon:'mail',text:'inscriptions@copaf-ports.com'},{icon:'globe',text:'www.copaf-ports.com'}].map((item,i) => (
+                  {[{icon:'phone',text:'+229 0169 30 30 19'},{icon:'mail',text:'contact@copaf-ports.com'},{icon:'globe',text:'www.copaf-ports.com'}].map((item,i) => (
                     <div key={i} style={{ display:'flex', alignItems:'center', gap:8, fontSize:13, color:'#1e40af', fontWeight:500, marginBottom:i<2?10:0 }}>
                       <Ico name={item.icon} size={15} color="#0073F4" />
                       <span style={{ wordBreak:'break-word', overflowWrap:'break-word' }}>{item.text}</span>
