@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts'
 import { supabase } from '../supabase'
@@ -29,27 +29,70 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
   return icons[name] || null
 }
 
+// ══════════════════════════════════════════
+// Ecran de chargement : radar qui oscille pendant l'analyse
+// ══════════════════════════════════════════
+function RadarLoader() {
+  const [data, setData] = useState(() =>
+    Object.values(AXES_LABELS).map(axis => ({ axis, valeur: Math.random() * 5, fullMark: 5 }))
+  )
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setData(prev => prev.map(d => ({ ...d, valeur: Math.random() * 5 })))
+    }, 550)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: '24px 10px', boxShadow: '0 4px 20px rgba(0,14,145,.06)' }}>
+      <div style={{ width: '100%', height: 340, opacity: 0.85 }}>
+        <ResponsiveContainer>
+          <RadarChart data={data} outerRadius="70%">
+            <PolarGrid stroke="#e2e8f0" />
+            <PolarAngleAxis dataKey="axis" tick={{ fontSize: 10.5, fill: '#94a3b8' }} />
+            <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} />
+            <Radar dataKey="valeur" stroke={BLUE} fill={BLUE} fillOpacity={0.3} strokeWidth={2} isAnimationActive={true} animationDuration={500} />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={{ textAlign: 'center', marginTop: 8 }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: BLUE, animation: 'copaf-pulse 1s ease-in-out infinite' }} />
+          <span style={{ fontSize: 13.5, color: '#64748b', fontWeight: 600 }}>Analyse de votre profil Smart Port en cours...</span>
+        </div>
+      </div>
+      <style>{`@keyframes copaf-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }`}</style>
+    </div>
+  )
+}
+
 export default function DiagnosticResultat() {
   const { id } = useParams()
   const [diag, setDiag] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [fetchDone, setFetchDone] = useState(false)
+  const [minDelayDone, setMinDelayDone] = useState(false)
   const [genLoading, setGenLoading] = useState(false)
   const [genError, setGenError] = useState('')
+  const timerStarted = useRef(false)
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.from('diagnostics').select('*').eq('id', id).single()
     if (!error) setDiag(data)
-    setLoading(false)
+    setFetchDone(true)
   }, [id])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+    if (!timerStarted.current) {
+      timerStarted.current = true
+      setTimeout(() => setMinDelayDone(true), 10000) // 10s d'animation minimum, effet suspense
+    }
+  }, [load])
 
   const genererRecommandations = async () => {
     setGenLoading(true); setGenError('')
     try {
-      // supabase.functions.invoke() reutilise automatiquement l'URL et la
-      // cle deja configurees dans src/supabase.js — pas besoin de variables
-      // d'environnement separees, donc pas de risque de mauvaise URL.
       const { data, error } = await supabase.functions.invoke('diagnostic-recommandations', {
         body: { diagnosticId: id },
       })
@@ -67,7 +110,22 @@ export default function DiagnosticResultat() {
   const wrap = { minHeight: '100vh', background: 'linear-gradient(180deg,#f0f6ff 0%,#f8faff 100%)', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '32px 16px' }
   const card = { maxWidth: 720, margin: '0 auto' }
 
-  if (loading) return <div style={wrap}><div style={{ ...card, textAlign: 'center', paddingTop: 100, color: '#64748b' }}>Chargement...</div></div>
+  const enChargement = !fetchDone || !minDelayDone
+
+  if (enChargement) {
+    return (
+      <div style={wrap}>
+        <div style={card}>
+          <div style={{ textAlign: 'center', marginBottom: 24 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 }}>COPAF 2026 · Diagnostic Smart Port</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>Calcul de votre profil...</div>
+          </div>
+          <RadarLoader />
+        </div>
+      </div>
+    )
+  }
+
   if (!diag) return <div style={wrap}><div style={{ ...card, textAlign: 'center', paddingTop: 100, color: '#dc2626' }}>Diagnostic introuvable.</div></div>
 
   const scores = diag.scores || {}
