@@ -23,6 +23,7 @@ import ResultatsSondage from './pages/ResultatsSondage'
 import DiagnosticSmartPort from './pages/DiagnosticSmartPort'
 import DiagnosticResultat from './pages/DiagnosticResultat'
 import AdminDiagnostics from './pages/AdminDiagnostics'
+import TabletteHub from './pages/TabletteHub'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -136,6 +137,7 @@ function App() {
         <Route path="/sondage-live/:id"       element={<ResultatsSondage />} />
         <Route path="/diagnostic"             element={<DiagnosticSmartPort />} />
         <Route path="/diagnostic/resultat/:id" element={<DiagnosticResultat />} />
+        <Route path="/tablette"                element={<TabletteHub />} />
         <Route path="/visiter" element={<VisiterExposition />} />
       </Routes>
     </Router>
