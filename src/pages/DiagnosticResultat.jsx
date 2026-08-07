@@ -131,6 +131,16 @@ export default function DiagnosticResultat() {
   const bgImage = { position: 'fixed', inset: 0, zIndex: -2, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.75) saturate(1.2)' }
   const bgOverlay = { position: 'fixed', inset: 0, zIndex: -1, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.55) 0%, rgba(9,13,22,0.78) 70%)' }
   const Fond = () => <><div style={bgImage} /><div style={bgOverlay} /></>
+  const BoutonMenu = () => (
+    <a href="/tablette" style={{
+      position: 'fixed', top: 18, left: 18, zIndex: 10, display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: '9px 16px', borderRadius: 20, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)',
+      border: '1px solid rgba(255,255,255,0.12)', color: '#cbd5e1', fontSize: 12.5, fontWeight: 700,
+      textDecoration: 'none', fontFamily: "'Plus Jakarta Sans',sans-serif",
+    }}>
+      ← Menu
+    </a>
+  )
   const card = { maxWidth: 720, margin: '0 auto' }
 
   const enChargement = !fetchDone || !minDelayDone
@@ -139,6 +149,7 @@ export default function DiagnosticResultat() {
     return (
       <div style={wrap}>
         <Fond />
+        <BoutonMenu />
         <div style={card}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'rgba(0, 115, 244, 0.1)', border: '1px solid rgba(0, 115, 244, 0.3)', borderRadius: 20, fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 14 }}>
@@ -155,6 +166,7 @@ export default function DiagnosticResultat() {
   if (!diag) return (
     <div style={wrap}>
       <Fond />
+        <BoutonMenu />
       <div style={{ ...card, textAlign: 'center', paddingTop: 100, color: '#f87171' }}>Diagnostic introuvable.</div>
     </div>
   )
@@ -170,6 +182,7 @@ export default function DiagnosticResultat() {
   return (
     <div style={wrap}>
       <Fond />
+        <BoutonMenu />
       <div style={card}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'rgba(0, 115, 244, 0.1)', border: '1px solid rgba(0, 115, 244, 0.3)', borderRadius: 20, fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 14 }}>

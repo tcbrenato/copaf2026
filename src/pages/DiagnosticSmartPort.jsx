@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
+import RetourMenu from '../components/RetourMenu'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -249,6 +250,16 @@ export default function DiagnosticSmartPort() {
   const bgImage = { position: 'fixed', inset: 0, zIndex: -2, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.75) saturate(1.2)' }
   const bgOverlay = { position: 'fixed', inset: 0, zIndex: -1, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.55) 0%, rgba(9,13,22,0.78) 70%)' }
   const Fond = () => <><div style={bgImage} /><div style={bgOverlay} /></>
+  const BoutonMenu = () => (
+    <a href="/tablette" style={{
+      position: 'fixed', top: 18, left: 18, zIndex: 10, display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: '9px 16px', borderRadius: 20, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)',
+      border: '1px solid rgba(255,255,255,0.12)', color: '#cbd5e1', fontSize: 12.5, fontWeight: 700,
+      textDecoration: 'none', fontFamily: "'Plus Jakarta Sans',sans-serif",
+    }}>
+      ← Menu
+    </a>
+  )
   const card = { width: '100%', maxWidth: 680 }
   const inputStyle = { width: '100%', padding: '14px 18px', fontSize: 14.5, fontFamily: 'inherit', background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 12, color: '#fff', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }
   const labelStyle = { display: 'block', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }
@@ -257,6 +268,8 @@ export default function DiagnosticSmartPort() {
     return (
       <div style={wrap}>
         <Fond />
+        <BoutonMenu />
+        <RetourMenu />
         <div style={card}>
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'rgba(0, 115, 244, 0.1)', border: '1px solid rgba(0, 115, 244, 0.3)', borderRadius: 20, fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 }}>
@@ -359,6 +372,8 @@ export default function DiagnosticSmartPort() {
     return (
       <div style={wrap}>
         <Fond />
+        <BoutonMenu />
+        <RetourMenu />
         <div style={{ ...card, maxWidth: 760 }}>
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>Avant de commencer</div>
@@ -413,6 +428,8 @@ export default function DiagnosticSmartPort() {
     return (
       <div style={wrap}>
         <Fond />
+        <BoutonMenu />
+        <RetourMenu />
         <div style={card}>
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8 }}>
@@ -480,6 +497,8 @@ export default function DiagnosticSmartPort() {
   return (
     <div style={wrap}>
       <Fond />
+        <BoutonMenu />
+      <RetourMenu />
       <div style={{ ...card, textAlign: 'center', paddingTop: 100 }}>
         {erreurSoumission ? (
           <p style={{ color: '#f87171', fontSize: 14 }}>{erreurSoumission}</p>

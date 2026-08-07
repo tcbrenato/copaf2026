@@ -87,13 +87,24 @@ export default function VoteSondage() {
 
   const wrap = { minHeight: '100vh', background: 'linear-gradient(180deg,#f0f6ff 0%,#f8faff 100%)', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '24px 16px' }
   const card = { maxWidth: 560, margin: '0 auto' }
+  const BoutonMenu = () => (
+    <a href="/tablette" style={{
+      position: 'fixed', top: 18, left: 18, zIndex: 10, display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: '9px 16px', borderRadius: 20, background: '#fff', border: '1.5px solid #e2e8f0',
+      color: '#334155', fontSize: 12.5, fontWeight: 700, textDecoration: 'none',
+      fontFamily: "'Plus Jakarta Sans',sans-serif", boxShadow: '0 4px 12px rgba(0,14,145,.08)',
+    }}>
+      ← Menu
+    </a>
+  )
 
   if (loading) {
-    return <div style={wrap}><div style={{ ...card, textAlign: 'center', paddingTop: 100, color: '#64748b' }}>Chargement...</div></div>
+    return <div style={wrap}><BoutonMenu /><div style={{ ...card, textAlign: 'center', paddingTop: 100, color: '#64748b' }}>Chargement...</div></div>
   }
 
   return (
     <div style={wrap}>
+      <BoutonMenu />
       <div style={card}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 }}>COPAF 2026</div>
