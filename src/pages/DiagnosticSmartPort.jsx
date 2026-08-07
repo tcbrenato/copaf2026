@@ -14,10 +14,10 @@ const ECHELLE = [
   { valeur: 5, nom: 'Très bon' },
 ]
 
-// ── Contenu partage avec l'Excel : definition + 6 niveaux par axe ──
+// ── Contenu partagé avec l'Excel : définition + 6 niveaux par axe ──
 const AXES = [
   {
-    id: 'infrastructure', nom: 'Infrastructure digitale & guichet unique', icone: '🖥️',
+    id: 'infrastructure', nom: 'Infrastructure digitale & guichet unique', icone: 'infrastructure',
     definition: "Mesure à quel point les démarches administratives (déclarations, autorisations, formalités) sont numérisées et centralisées dans un système unique, accessible en ligne.",
     niveaux: [
       "Aucune démarche n'est numérisée, tout se fait sur papier.",
@@ -29,7 +29,7 @@ const AXES = [
     ],
   },
   {
-    id: 'automatisation', nom: 'Automatisation des opérations physiques', icone: '⚙️',
+    id: 'automatisation', nom: 'Automatisation des opérations physiques', icone: 'automatisation',
     definition: "Évalue le niveau d'automatisation des équipements physiques du port — grues, portiques, véhicules de manutention — et leur degré d'autonomie.",
     niveaux: [
       "Toutes les opérations (grues, portiques, engins) sont manuelles.",
@@ -41,7 +41,7 @@ const AXES = [
     ],
   },
   {
-    id: 'tracabilite', nom: 'Traçabilité & partage de données', icone: '📡',
+    id: 'tracabilite', nom: 'Traçabilité & partage de données', icone: 'tracabilite',
     definition: "Mesure la capacité à suivre en temps réel la position et le statut des marchandises, et à partager cette information avec les clients et partenaires.",
     niveaux: [
       "Aucun suivi numérique, tout par téléphone ou papier.",
@@ -53,7 +53,7 @@ const AXES = [
     ],
   },
   {
-    id: 'ia', nom: 'Intelligence artificielle & aide à la décision', icone: '🧠',
+    id: 'ia', nom: 'Intelligence artificielle & aide à la décision', icone: 'ia',
     definition: "Évalue l'usage d'outils d'analyse de données et d'IA pour anticiper et optimiser les opérations (accostage, flux, maintenance) — au-delà de la simple collecte de données.",
     niveaux: [
       "Aucun outil d'aide à la décision, tout est intuitif.",
@@ -65,7 +65,7 @@ const AXES = [
     ],
   },
   {
-    id: 'cybersecurite', nom: 'Cybersécurité', icone: '🔒',
+    id: 'cybersecurite', nom: 'Cybersécurité', icone: 'cybersecurite',
     definition: "Mesure le niveau de protection des systèmes numériques contre les cyberattaques : politiques formalisées, contrôles réguliers, tests concrets.",
     niveaux: [
       "Aucune politique de cybersécurité formalisée.",
@@ -77,7 +77,7 @@ const AXES = [
     ],
   },
   {
-    id: 'surete', nom: 'Sûreté & sécurité opérationnelle', icone: '🛡️',
+    id: 'surete', nom: 'Sûreté & sécurité opérationnelle', icone: 'surete',
     definition: "Évalue les dispositifs de sûreté physique du site (contrôle d'accès, surveillance, gestion des risques) — distincts de la cybersécurité.",
     niveaux: [
       "Aucun dispositif de sûreté formalisé.",
@@ -89,7 +89,7 @@ const AXES = [
     ],
   },
   {
-    id: 'environnement', nom: 'Énergie & environnement', icone: '🌱',
+    id: 'environnement', nom: 'Énergie & environnement', icone: 'environnement',
     definition: "Mesure les efforts en matière de suivi environnemental et de transition énergétique — pollution, électrification, réduction de l'empreinte carbone.",
     niveaux: [
       "Aucun suivi environnemental, pas de démarche engagée.",
@@ -101,7 +101,7 @@ const AXES = [
     ],
   },
   {
-    id: 'synchromodalite', nom: 'Synchromodalité & intégration multimodale', icone: '🔀',
+    id: 'synchromodalite', nom: 'Synchromodalité & intégration multimodale', icone: 'synchromodalite',
     definition: "Évalue la capacité à coordonner les différents modes de transport (route, rail, fleuve) autour des opérations portuaires, au-delà du seul quai.",
     niveaux: [
       "Aucune coordination entre modes de transport (route, rail, fleuve).",
@@ -113,7 +113,7 @@ const AXES = [
     ],
   },
   {
-    id: 'competences', nom: 'Capacités organisationnelles & compétences', icone: '🎓',
+    id: 'competences', nom: 'Capacités organisationnelles & compétences', icone: 'competences',
     definition: "Mesure le niveau de formation et d'appropriation des outils digitaux par les équipes — le facteur humain derrière la technologie.",
     niveaux: [
       "Aucune formation digitale n'est proposée aux équipes.",
@@ -125,7 +125,7 @@ const AXES = [
     ],
   },
   {
-    id: 'parties_prenantes', nom: 'Engagement des parties prenantes', icone: '🤝',
+    id: 'parties_prenantes', nom: 'Engagement des parties prenantes', icone: 'parties_prenantes',
     definition: "Évalue la qualité de la concertation entre le port et son écosystème — douanes, transporteurs, clients, autorités — plutôt que des décisions prises en silo.",
     niveaux: [
       "Aucune concertation avec les partenaires/clients sur le digital.",
@@ -138,12 +138,23 @@ const AXES = [
   },
 ]
 
+// ── Vraies icônes SVG technologiques et professionnelles ──
 const Ico = ({ name, size = 20, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
   const icons = {
-    check: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+    check: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
     arrow: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
     info: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
+    infrastructure: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,
+    automatisation: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+    tracabilite: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>,
+    ia: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 0 1 7.54 16.63"/><path d="M12 12v9"/><path d="M12 2a10 10 0 0 0-7.54 16.63"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>,
+    cybersecurite: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+    surete: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    environnement: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 22s2-2 5-2 5 2 8 2 5-2 5-2V3s-2 2-5 2-5-2-8-2-5 2-5 2z"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+    synchromodalite: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>,
+    competences: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
+    parties_prenantes: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
   }
   return icons[name] || null
 }
@@ -216,7 +227,7 @@ export default function DiagnosticSmartPort() {
 
   const choisir = (axisId, valeur) => {
     setReponses(r => ({ ...r, [axisId]: valeur }))
-    setTimeout(() => setEtape(e => e + 1), 350)
+    setTimeout(() => setEtape(e => e + 1), 300)
   }
 
   const soumettre = async () => {
@@ -237,10 +248,10 @@ export default function DiagnosticSmartPort() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [etape])
 
-  const wrap = { minHeight: '100vh', background: 'linear-gradient(180deg,#f0f6ff 0%,#f8faff 100%)', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '32px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }
-  const card = { width: '100%', maxWidth: 660 }
-  const inputStyle = { width: '100%', padding: '13px 16px', fontSize: 14.5, fontFamily: 'inherit', border: '1.5px solid #e2e8f0', borderRadius: 12, outline: 'none', boxSizing: 'border-box' }
-  const labelStyle = { display: 'block', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }
+  const wrap = { minHeight: '100vh', background: '#090d16', backgroundImage: 'radial-gradient(circle at 50% 0%, #0d1b3e 0%, #090d16 70%)', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#f8fafc' }
+  const card = { width: '100%', maxWidth: 680 }
+  const inputStyle = { width: '100%', padding: '14px 18px', fontSize: 14.5, fontFamily: 'inherit', background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 12, color: '#fff', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }
+  const labelStyle = { display: 'block', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }
 
   // ══════════════════════════════════════════
   // ETAPE -1 : Identification directe
@@ -249,90 +260,98 @@ export default function DiagnosticSmartPort() {
     return (
       <div style={wrap}>
         <div style={card}>
-          <div style={{ textAlign: 'center', marginBottom: 28 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>COPAF 2026</div>
-            <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', marginBottom: 10 }}>Diagnostic Smart Port</div>
-            <p style={{ fontSize: 14.5, color: '#64748b', lineHeight: 1.6, maxWidth: 480, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'rgba(0, 115, 244, 0.1)', border: '1px solid rgba(0, 115, 244, 0.3)', borderRadius: 20, fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 }}>
+              COPAF 2026
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: '#fff', marginBottom: 12, letterSpacing: '-0.5px' }}>Diagnostic Smart Port</div>
+            <p style={{ fontSize: 14.5, color: '#94a3b8', lineHeight: 1.6, maxWidth: 500, margin: '0 auto' }}>
               Évaluez le niveau de maturité digitale de votre port sur 10 dimensions, et repartez avec des recommandations personnalisées.
             </p>
           </div>
 
           {/* Bascule entre les deux modes d'identification */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <div style={{ display: 'flex', gap: 8, background: 'rgba(255,255,255,0.03)', padding: 4, borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)', marginBottom: 20 }}>
             <button type="button" onClick={() => setIdentMode('dossier')} style={{
-              flex: 1, padding: '10px', borderRadius: 12, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
-              fontFamily: 'inherit', border: `1.5px solid ${identMode === 'dossier' ? BLUE : '#e2e8f0'}`,
-              background: identMode === 'dossier' ? '#EBF3FF' : '#fff', color: identMode === 'dossier' ? NAVY : '#64748b',
+              flex: 1, padding: '11px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+              fontFamily: 'inherit', border: 'none',
+              background: identMode === 'dossier' ? 'linear-gradient(135deg, #0073F4, #000E91)' : 'transparent',
+              color: identMode === 'dossier' ? '#fff' : '#94a3b8',
+              boxShadow: identMode === 'dossier' ? '0 4px 12px rgba(0,115,244,0.3)' : 'none',
+              transition: 'all 0.2s'
             }}>Par numéro de dossier</button>
             <button type="button" onClick={() => setIdentMode('directe')} style={{
-              flex: 1, padding: '10px', borderRadius: 12, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
-              fontFamily: 'inherit', border: `1.5px solid ${identMode === 'directe' ? BLUE : '#e2e8f0'}`,
-              background: identMode === 'directe' ? '#EBF3FF' : '#fff', color: identMode === 'directe' ? NAVY : '#64748b',
+              flex: 1, padding: '11px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
+              fontFamily: 'inherit', border: 'none',
+              background: identMode === 'directe' ? 'linear-gradient(135deg, #0073F4, #000E91)' : 'transparent',
+              color: identMode === 'directe' ? '#fff' : '#94a3b8',
+              boxShadow: identMode === 'directe' ? '0 4px 12px rgba(0,115,244,0.3)' : 'none',
+              transition: 'all 0.2s'
             }}>Mes informations directement</button>
           </div>
 
           {identMode === 'dossier' ? (
-            <form onSubmit={handleRechercheDossier} style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: 26, boxShadow: '0 4px 20px rgba(0,14,145,.06)' }}>
+            <form onSubmit={handleRechercheDossier} style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 20, padding: 30, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
               <label style={labelStyle}>Votre numéro de dossier ou votre email d'inscription</label>
               <input
                 value={recherche}
                 onChange={e => setRecherche(e.target.value)}
                 placeholder="COPAF2026-XXXXX ou votre@email.com"
-                style={{ ...inputStyle, marginBottom: 14 }}
+                style={{ ...inputStyle, marginBottom: 16 }}
               />
-              {erreurRecherche && <p style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 14 }}>{erreurRecherche}</p>}
+              {erreurRecherche && <p style={{ fontSize: 13, color: '#f87171', marginBottom: 16, lineHeight: 1.4 }}>{erreurRecherche}</p>}
               <button type="submit" disabled={chercheEnCours} style={{
-                width: '100%', padding: '15px', background: `linear-gradient(135deg,${BLUE},${NAVY})`, border: 'none',
+                width: '100%', padding: '16px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
                 borderRadius: 14, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 20px rgba(0,115,244,0.4)',
               }}>
-                {chercheEnCours ? 'Recherche...' : 'Continuer'} <Ico name="arrow" size={16} color="#fff" />
+                {chercheEnCours ? 'Recherche en cours...' : 'Continuer'} <Ico name="arrow" size={16} color="#fff" />
               </button>
             </form>
           ) : (
-          <form onSubmit={validerIdentification} style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: 26, boxShadow: '0 4px 20px rgba(0,14,145,.06)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-              <div>
-                <label style={labelStyle}>Prénom *</label>
-                <input style={inputStyle} value={form.prenom} onChange={e => handleFormChange('prenom', e.target.value)} placeholder="Votre prénom" />
+            <form onSubmit={validerIdentification} style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 20, padding: 30, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+                <div>
+                  <label style={labelStyle}>Prénom *</label>
+                  <input style={inputStyle} value={form.prenom} onChange={e => handleFormChange('prenom', e.target.value)} placeholder="Votre prénom" />
+                </div>
+                <div>
+                  <label style={labelStyle}>Nom *</label>
+                  <input style={inputStyle} value={form.nom} onChange={e => handleFormChange('nom', e.target.value)} placeholder="Votre nom" />
+                </div>
               </div>
-              <div>
-                <label style={labelStyle}>Nom *</label>
-                <input style={inputStyle} value={form.nom} onChange={e => handleFormChange('nom', e.target.value)} placeholder="Votre nom" />
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+                <div>
+                  <label style={labelStyle}>Téléphone</label>
+                  <input style={inputStyle} value={form.telephone} onChange={e => handleFormChange('telephone', e.target.value)} placeholder="+xxx xxx xxx xxx" />
+                </div>
+                <div>
+                  <label style={labelStyle}>Email</label>
+                  <input style={inputStyle} type="email" value={form.email} onChange={e => handleFormChange('email', e.target.value)} placeholder="votre@email.com" />
+                </div>
               </div>
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-              <div>
-                <label style={labelStyle}>Téléphone</label>
-                <input style={inputStyle} value={form.telephone} onChange={e => handleFormChange('telephone', e.target.value)} placeholder="+xxx xxx xxx xxx" />
+              <div style={{ marginBottom: 16 }}>
+                <label style={labelStyle}>Port / Organisation *</label>
+                <input style={inputStyle} value={form.organisation} onChange={e => handleFormChange('organisation', e.target.value)} placeholder="Ex : Port Autonome de Kribi" />
               </div>
-              <div>
-                <label style={labelStyle}>Email</label>
-                <input style={inputStyle} type="email" value={form.email} onChange={e => handleFormChange('email', e.target.value)} placeholder="votre@email.com" />
+
+              <div style={{ marginBottom: 24 }}>
+                <label style={labelStyle}>Pays *</label>
+                <input style={inputStyle} value={form.pays} onChange={e => handleFormChange('pays', e.target.value)} placeholder="Ex : Cameroun" />
               </div>
-            </div>
 
-            <div style={{ marginBottom: 14 }}>
-              <label style={labelStyle}>Port / Organisation *</label>
-              <input style={inputStyle} value={form.organisation} onChange={e => handleFormChange('organisation', e.target.value)} placeholder="Ex : Port Autonome de Kribi" />
-            </div>
+              {erreurForm && <p style={{ fontSize: 13, color: '#f87171', marginBottom: 16, lineHeight: 1.4 }}>{erreurForm}</p>}
 
-            <div style={{ marginBottom: 20 }}>
-              <label style={labelStyle}>Pays *</label>
-              <input style={inputStyle} value={form.pays} onChange={e => handleFormChange('pays', e.target.value)} placeholder="Ex : Cameroun" />
-            </div>
-
-            {erreurForm && <p style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 14 }}>{erreurForm}</p>}
-
-            <button type="submit" style={{
-              width: '100%', padding: '15px', background: `linear-gradient(135deg,${BLUE},${NAVY})`, border: 'none',
-              borderRadius: 14, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            }}>
-              Continuer <Ico name="arrow" size={16} color="#fff" />
-            </button>
-          </form>
+              <button type="submit" style={{
+                width: '100%', padding: '16px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
+                borderRadius: 14, color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 6px 20px rgba(0,115,244,0.4)',
+              }}>
+                Continuer <Ico name="arrow" size={16} color="#fff" />
+              </button>
+            </form>
           )}
         </div>
       </div>
@@ -340,50 +359,52 @@ export default function DiagnosticSmartPort() {
   }
 
   // ══════════════════════════════════════════
-  // ETAPE 0 : Introduction — les 10 axes + le bareme
+  // ETAPE 0 : Introduction — les 10 axes + le barème
   // ══════════════════════════════════════════
   if (etape === 0) {
     return (
       <div style={wrap}>
         <div style={{ ...card, maxWidth: 760 }}>
-          <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>Avant de commencer</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', marginBottom: 10 }}>Comment fonctionne ce diagnostic</div>
-            <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.6, maxWidth: 560, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>Avant de commencer</div>
+            <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', marginBottom: 10, letterSpacing: '-0.5px' }}>Comment fonctionne ce diagnostic</div>
+            <p style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.6, maxWidth: 580, margin: '0 auto' }}>
               10 dimensions du "Smart Port" à évaluer, notées de 0 à 5. Prenez un instant pour lire chaque définition — une compréhension commune garantit des résultats comparables entre tous les ports.
             </p>
           </div>
 
-          {/* Bareme */}
-          <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 18, marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 }}>Le barème de notation</div>
+          {/* Barème */}
+          <div style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 16, padding: 20, marginBottom: 20, boxShadow: '0 8px 24px rgba(0,0,0,0.4)' }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 14 }}>Le barème de notation</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {ECHELLE.map(n => (
-                <div key={n.valeur} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#f8fafc', borderRadius: 20, border: '1px solid #e2e8f0' }}>
-                  <span style={{ width: 20, height: 20, borderRadius: '50%', background: BLUE, color: '#fff', fontSize: 10.5, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n.valeur}</span>
-                  <span style={{ fontSize: 12.5, color: '#334155', fontWeight: 600 }}>{n.nom}</span>
+                <div key={n.valeur} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 20, border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg, #0073F4, #000E91)', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{n.valeur}</span>
+                  <span style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 600 }}>{n.nom}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Les 10 axes */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 22 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
             {AXES.map((axe, i) => (
-              <div key={axe.id} style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 14, padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'flex-start', boxShadow: '0 2px 8px rgba(0,14,145,.04)' }}>
-                <span style={{ fontSize: 22, flexShrink: 0, lineHeight: 1 }}>{axe.icone}</span>
+              <div key={axe.id} style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: 14, padding: '14px 18px', display: 'flex', gap: 16, alignItems: 'flex-start', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+                <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(0,115,244,0.15)', border: '1px solid rgba(0,115,244,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#60a5fa' }}>
+                  <Ico name={axe.icone} size={20} color="#60a5fa" />
+                </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f172a', marginBottom: 3 }}>{i + 1}. {axe.nom}</div>
-                  <div style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.5 }}>{axe.definition}</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 3 }}>{i + 1}. {axe.nom}</div>
+                  <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5 }}>{axe.definition}</div>
                 </div>
               </div>
             ))}
           </div>
 
           <button onClick={() => setEtape(1)} style={{
-            width: '100%', padding: '16px', background: `linear-gradient(135deg,${BLUE},${NAVY})`, border: 'none',
+            width: '100%', padding: '16px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
             borderRadius: 14, color: '#fff', fontSize: 15.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 8px 24px rgba(0,115,244,.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 8px 24px rgba(0,115,244,0.4)',
           }}>
             J'ai compris, commencer le diagnostic <Ico name="arrow" size={17} color="#fff" />
           </button>
@@ -393,7 +414,7 @@ export default function DiagnosticSmartPort() {
   }
 
   // ══════════════════════════════════════════
-  // ETAPES 1 a 10 : un axe par ecran, redesigne
+  // ETAPES 1 à 10 : un axe par écran
   // ══════════════════════════════════════════
   if (etape >= 1 && etape <= AXES.length) {
     const axe = AXES[etape - 1]
@@ -402,33 +423,35 @@ export default function DiagnosticSmartPort() {
     return (
       <div style={wrap}>
         <div style={card}>
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 8 }}>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8 }}>
               <span>Axe {etape} / {AXES.length}</span>
-              <span>{form.organisation}</span>
+              <span style={{ color: '#60a5fa' }}>{form.organisation}</span>
             </div>
-            <div style={{ height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden' }}>
-              <div style={{ width: `${progression}%`, height: '100%', background: `linear-gradient(90deg,${BLUE},${NAVY})`, borderRadius: 3, transition: 'width .3s' }} />
+            <div style={{ height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ width: `${progression}%`, height: '100%', background: 'linear-gradient(90deg,#0073F4,#000E91)', borderRadius: 3, transition: 'width .3s' }} />
             </div>
           </div>
 
-          <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 22, padding: 28, boxShadow: '0 8px 28px rgba(0,14,145,.08)' }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 8 }}>
+          <div style={{ background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 24, padding: 32, boxShadow: '0 12px 40px rgba(0,0,0,0.6)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 14 }}>
               <div style={{
-                width: 52, height: 52, borderRadius: 16, flexShrink: 0, background: 'linear-gradient(135deg,#EBF3FF,#dbeafe)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26,
-              }}>{axe.icone}</div>
+                width: 54, height: 54, borderRadius: 16, flexShrink: 0, background: 'linear-gradient(135deg, rgba(0,115,244,0.2), rgba(0,14,145,0.4))',
+                border: '1px solid rgba(0,115,244,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#60a5fa'
+              }}>
+                <Ico name={axe.icone} size={28} color="#60a5fa" />
+              </div>
               <div>
-                <div style={{ fontSize: 19, fontWeight: 900, color: '#0f172a', lineHeight: 1.3 }}>{axe.nom}</div>
+                <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', lineHeight: 1.3, letterSpacing: '-0.5px' }}>{axe.nom}</div>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: '#f8fafc', borderRadius: 12, padding: '10px 14px', marginBottom: 22 }}>
-              <Ico name="info" size={15} color="#94a3b8" />
-              <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.55, margin: 0 }}>{axe.definition}</p>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, padding: '12px 16px', marginBottom: 24 }}>
+              <Ico name="info" size={16} color="#60a5fa" />
+              <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.55, margin: 0 }}>{axe.definition}</p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {axe.niveaux.map((texte, i) => {
                 const selected = reponses[axe.id] === i
                 return (
@@ -436,19 +459,23 @@ export default function DiagnosticSmartPort() {
                     key={i}
                     onClick={() => choisir(axe.id, i)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderRadius: 13,
+                      display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 14,
                       textAlign: 'left', fontFamily: 'inherit', fontSize: 13.5, cursor: 'pointer',
-                      border: `2px solid ${selected ? BLUE : '#e2e8f0'}`,
-                      background: selected ? 'linear-gradient(135deg,#EBF3FF,#f0f6ff)' : '#fff', color: selected ? NAVY : '#334155',
+                      border: `1.5px solid ${selected ? '#0073F4' : 'rgba(255,255,255,0.06)'}`,
+                      background: selected ? 'linear-gradient(135deg, rgba(0,115,244,0.18), rgba(0,14,145,0.25))' : 'rgba(255,255,255,0.02)', 
+                      color: selected ? '#fff' : '#cbd5e1',
+                      boxShadow: selected ? '0 4px 20px rgba(0,115,244,0.25)' : 'none',
                       transition: 'all .15s', lineHeight: 1.4,
                     }}
                   >
                     <span style={{
-                      flexShrink: 0, width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: selected ? `linear-gradient(135deg,${BLUE},${NAVY})` : '#f1f5f9', color: selected ? '#fff' : '#94a3b8', fontSize: 12, fontWeight: 800,
+                      flexShrink: 0, width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: selected ? 'linear-gradient(135deg,#0073F4,#000E91)' : 'rgba(255,255,255,0.06)', 
+                      color: selected ? '#fff' : '#94a3b8', fontSize: 12.5, fontWeight: 800,
+                      border: selected ? 'none' : '1px solid rgba(255,255,255,0.08)'
                     }}>{i}</span>
-                    <span style={{ fontWeight: selected ? 700 : 500 }}>{texte}</span>
-                    {selected && <Ico name="check" size={16} color={BLUE} />}
+                    <span style={{ fontWeight: selected ? 700 : 500, flex: 1 }}>{texte}</span>
+                    {selected && <Ico name="check" size={18} color="#60a5fa" />}
                   </button>
                 )
               })}
@@ -462,11 +489,14 @@ export default function DiagnosticSmartPort() {
   // ── Soumission en cours ──
   return (
     <div style={wrap}>
-      <div style={{ ...card, textAlign: 'center', paddingTop: 80 }}>
+      <div style={{ ...card, textAlign: 'center', paddingTop: 100 }}>
         {erreurSoumission ? (
-          <p style={{ color: '#dc2626', fontSize: 14 }}>{erreurSoumission}</p>
+          <p style={{ color: '#f87171', fontSize: 14 }}>{erreurSoumission}</p>
         ) : (
-          <p style={{ color: '#64748b', fontSize: 15 }}>Enregistrement de votre diagnostic...</p>
+          <div>
+            <div style={{ width: 40, height: 40, border: '3px solid rgba(0,115,244,0.2)', borderTop: '3px solid #0073F4', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
+            <p style={{ color: '#94a3b8', fontSize: 15, fontWeight: 600 }}>Enregistrement sécurisé de votre diagnostic...</p>
+          </div>
         )}
       </div>
     </div>

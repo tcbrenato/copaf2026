@@ -17,19 +17,37 @@ const AXES_LABELS = {
   parties_prenantes: 'Parties prenantes',
 }
 
+function tempsRelatif(dateStr) {
+  const diffMs = Date.now() - new Date(dateStr).getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  if (diffMin < 1) return "à l'instant"
+  if (diffMin < 60) return `il y a ${diffMin} min`
+  const diffH = Math.floor(diffMin / 60)
+  if (diffH < 24) return `il y a ${diffH} h`
+  return `il y a ${Math.floor(diffH / 24)} j`
+}
+
 export default function AdminDiagnostics() {
   const [diagnostics, setDiagnostics] = useState([])
   const [loading, setLoading] = useState(true)
   const [filtrePays, setFiltrePays] = useState('')
   const [ouvert, setOuvert] = useState(null) // id du diagnostic deplie
+  const [nouveauId, setNouveauId] = useState(null) // id du dernier arrive, pour l'effet flash
 
   const load = useCallback(async () => {
-    setLoading(true)
     const { data: rows } = await supabase
       .from('diagnostics')
       .select('id, nom, prenom, organisation, pays, scores, recommandations, created_at')
       .order('created_at', { ascending: false })
-    setDiagnostics(rows || [])
+
+    setDiagnostics(prev => {
+      // Detecte une nouvelle arrivee (id le plus recent different de l'ancien) pour l'effet visuel
+      if (prev.length > 0 && rows && rows.length > 0 && rows[0].id !== prev[0]?.id) {
+        setNouveauId(rows[0].id)
+        setTimeout(() => setNouveauId(null), 4000)
+      }
+      return rows || []
+    })
     setLoading(false)
   }, [])
 
@@ -67,6 +85,43 @@ export default function AdminDiagnostics() {
           {diagnostics.length} diagnostic{diagnostics.length > 1 ? 's' : ''} soumis
           {filtrePays && ` · filtré sur ${filtrePays} (${filtres.length})`}
         </div>
+      </div>
+
+      {/* Activite en direct */}
+      <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 18, marginBottom: 20, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', animation: 'copaf-live-pulse 1.4s ease-in-out infinite' }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>Activité en direct</span>
+        </div>
+        {diagnostics.length === 0 ? (
+          <p style={{ fontSize: 12.5, color: '#94a3b8', margin: 0 }}>En attente des premières soumissions...</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {diagnostics.slice(0, 5).map(d => {
+              const estNouveau = d.id === nouveauId
+              const moy = Object.values(d.scores || {}).length
+                ? Object.values(d.scores).reduce((s, v) => s + v, 0) / Object.values(d.scores).length
+                : 0
+              return (
+                <div key={d.id} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+                  padding: '9px 12px', borderRadius: 10, fontSize: 12.5,
+                  background: estNouveau ? '#EBF3FF' : '#f8fafc',
+                  border: estNouveau ? `1.5px solid ${BLUE}` : '1px solid transparent',
+                  transition: 'all .4s ease',
+                }}>
+                  <span style={{ color: '#334155' }}>
+                    {estNouveau && <span style={{ color: BLUE, fontWeight: 800, marginRight: 6 }}>NOUVEAU ·</span>}
+                    <strong>{d.organisation || `${d.prenom} ${d.nom}`}</strong>
+                    <span style={{ color: '#94a3b8' }}> · {d.pays}</span>
+                  </span>
+                  <span style={{ color: '#94a3b8', flexShrink: 0 }}>{moy.toFixed(1)}/5 · {tempsRelatif(d.created_at)}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+        <style>{`@keyframes copaf-live-pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,.5); } 50% { opacity: .6; box-shadow: 0 0 0 5px rgba(34,197,94,0); } }`}</style>
       </div>
 
       {/* Filtre pays */}
