@@ -47,18 +47,15 @@ export default function DiagnosticResultat() {
   const genererRecommandations = async () => {
     setGenLoading(true); setGenError('')
     try {
-      const { data: sessionData } = await supabase.auth.getSession()
-      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/diagnostic-recommandations`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionData?.session?.access_token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ diagnosticId: id }),
+      // supabase.functions.invoke() reutilise automatiquement l'URL et la
+      // cle deja configurees dans src/supabase.js — pas besoin de variables
+      // d'environnement separees, donc pas de risque de mauvaise URL.
+      const { data, error } = await supabase.functions.invoke('diagnostic-recommandations', {
+        body: { diagnosticId: id },
       })
-      if (!resp.ok) throw new Error(`Erreur serveur (${resp.status})`)
-      const result = await resp.json()
-      setDiag(d => ({ ...d, recommandations: result.recommandations }))
+      if (error) throw error
+      if (data?.error) throw new Error(data.error)
+      setDiag(d => ({ ...d, recommandations: data.recommandations }))
     } catch (err) {
       setGenError("Impossible de générer les recommandations pour le moment. Réessayez dans un instant.")
       console.error(err)
