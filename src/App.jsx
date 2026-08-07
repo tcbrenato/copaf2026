@@ -20,6 +20,9 @@ import AdminProforma from './pages/AdminProforma'
 import VoteSondage from './pages/VoteSondage'
 import AdminSondages from './pages/AdminSondages'
 import ResultatsSondage from './pages/ResultatsSondage'
+import DiagnosticSmartPort from './pages/DiagnosticSmartPort'
+import DiagnosticResultat from './pages/DiagnosticResultat'
+import AdminDiagnostics from './pages/AdminDiagnostics'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -102,22 +105,37 @@ const AdminSondagesPage = () => (
   </AdminGate>
 )
 
+// ─── Page Admin Diagnostics Smart Port, protegee par un mot de passe dedie ────
+const AdminDiagnosticsPage = () => (
+  <AdminGate
+    password="DIAGNOSTIC2026"
+    storageKey="copaf_diagnostics_auth"
+    title="COPAF 2026"
+    subtitle="Diagnostics Smart Port"
+  >
+    <AdminDiagnostics />
+  </AdminGate>
+)
+
 // ─── Application principale ───────────────────────────────────────────────────
 function App() {
   return (
     <Router>
       <AnalyticsTracker />
       <Routes>
-        <Route path="/"                    element={<MainSite />} />
-        <Route path="/inscription"         element={<InscriptionPage />} />
-        <Route path="/verifier"            element={<VerifierPage />} />
-        <Route path="/partenariats"        element={<Partenariats />} />
-        <Route path="/exposition-digitale" element={<ExpositionDigitale />} />
-        <Route path="/admin"               element={<AdminPage />} />
-        <Route path="/admin/proforma"      element={<AdminProformaPage />} />
-        <Route path="/admin/sondages"      element={<AdminSondagesPage />} />
-        <Route path="/vote"                element={<VoteSondage />} />
-        <Route path="/sondage-live/:id"    element={<ResultatsSondage />} />
+        <Route path="/"                       element={<MainSite />} />
+        <Route path="/inscription"            element={<InscriptionPage />} />
+        <Route path="/verifier"               element={<VerifierPage />} />
+        <Route path="/partenariats"           element={<Partenariats />} />
+        <Route path="/exposition-digitale"    element={<ExpositionDigitale />} />
+        <Route path="/admin"                  element={<AdminPage />} />
+        <Route path="/admin/proforma"         element={<AdminProformaPage />} />
+        <Route path="/admin/sondages"         element={<AdminSondagesPage />} />
+        <Route path="/admin/diagnostics"      element={<AdminDiagnosticsPage />} />
+        <Route path="/vote"                   element={<VoteSondage />} />
+        <Route path="/sondage-live/:id"       element={<ResultatsSondage />} />
+        <Route path="/diagnostic"             element={<DiagnosticSmartPort />} />
+        <Route path="/diagnostic/resultat/:id" element={<DiagnosticResultat />} />
         <Route path="/visiter" element={<VisiterExposition />} />
       </Routes>
     </Router>
