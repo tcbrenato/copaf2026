@@ -112,51 +112,51 @@
     "titlePart1": "3 Days of",
     "titlePart2": "Intense Sharing",
     "description": "A structured programme to transform your approach to African port management.",
+    "downloadPdfButton": "Download the programme (PDF)",
     "tabs": [
-      { "jour": "Day 1", "date": "Sept 15", "titre": "AI & Strategic Vision" },
-      { "jour": "Day 2", "date": "Sept 16", "titre": "Operational Excellence & Security" },
-      { "jour": "Day 3", "date": "Sept 17", "titre": "Governance, ROI & Roadmap" }
+      { "jour": "Day 1", "date": "Sept 15", "titre": "Smart African Port Vision" },
+      { "jour": "Day 2", "date": "Sept 16", "titre": "Operational Excellence, Security & Cybersecurity" },
+      { "jour": "Day 3", "date": "Sept 17", "titre": "Field Immersion" }
     ],
     "statLabel": "Sessions",
+    "sessionLabel": "Sessions",
     "viewDetails": "View details",
     "days": [
       {
         "jour": "Day 1",
         "date": "Sept 15",
-        "titre": "AI & Strategic Vision",
-        "objectif": "Understand the technological landscape and identify opportunities",
+        "titre": "Smart African Port Vision",
+        "objectif": "Set the vision, assess where each port stands, and learn how to deploy a port tech project in practice.",
         "accent": "#0073f4",
         "sessions": [
-          { "heure": "09:00 – 10:30", "type": "Plenary", "titre": "Opening conference", "desc": "AI at the heart of the Smart Port revolution. Global overview and African specificities.", "intervenant": "Partner Expert A", "categorie": "Partner" },
-          { "heure": "11:00 – 12:30", "type": "Organisational learning panel", "titre": "Technical demystification", "desc": "Understanding Data, Machine Learning and Computer Vision without jargon.", "intervenant": "TCHOBO Rénato", "categorie": "In-house" },
-          { "heure": "14:00 – 15:30", "type": "Case study workshop", "titre": "Case studies", "desc": "Successes and failures of AI projects in African and international ports.", "intervenant": "Partner Expert A", "categorie": "Partner" },
-          { "heure": "16:00 – 17:30", "type": "Reflection roundtable", "titre": "Reflection workshop", "desc": "Digital maturity diagnosis of your port authority.", "intervenant": "Dr. William ODAH", "categorie": "In-house" }
+          { "heure": "09:00 – 09:45", "type": "Plenary", "titre": "Opening remarks and presentation", "desc": "Welcome address and official launch of COPAF 2026.", "intervenant": "CRF Perfection / AGPAOC / ANP-UAPNA", "categorie": "Partner" },
+          { "heure": "10:15 – 11:30", "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specificities.", "intervenant": "Dr William ODAH", "categorie": "In-house" },
+          { "heure": "11:30 – 12:45", "type": "Organisational learning panel", "titre": "Digital maturity diagnosis", "desc": "Assess your port authority's digital maturity — flagship session, live on tablet.", "intervenant": "Dr William ODAH / Rénato TCHOBO", "categorie": "In-house" },
+          { "heure": "13:45 – 15:00", "type": "Case study workshop", "titre": "Deploying a port technology project", "desc": "ROI, business model, failure and success stories.", "intervenant": "Marc BIEGNIÉBÉ", "categorie": "Recruited" },
+          { "heure": "15:30 – 16:45", "type": "Reflection roundtable", "titre": "Automation & data governance", "desc": "Automating port operations with AI and building a Data-Driven culture.", "intervenant": "Rénato TCHOBO / Abiala MODESTE", "categorie": "In-house" }
         ]
       },
       {
         "jour": "Day 2",
         "date": "Sept 16",
-        "titre": "Operational Excellence & Security",
-        "objectif": "See how AI transforms the field (quays, terminals, access)",
+        "titre": "Operational Excellence, Security & Cybersecurity",
+        "objectif": "Make operations smoother and safer, leveraging AI and port cybersecurity.",
         "accent": "#000e91",
         "sessions": [
-          { "heure": "09:00 – 10:30", "type": "Plenary", "titre": "Nautical operations", "desc": "ETA prediction and intelligent berth management.", "intervenant": "Recruited Expert A", "categorie": "Recruited" },
-          { "heure": "11:00 – 12:30", "type": "Organisational learning panel", "titre": "Hinterland fluidity", "desc": "Algorithms for truck flow management and congestion reduction.", "intervenant": "Recruited Expert A", "categorie": "Recruited" },
-          { "heure": "14:00 – 15:30", "type": "Case study workshop", "titre": "Security & safety", "desc": "AI for automatic anomaly detection (scanners, video surveillance).", "intervenant": "Recruited Expert B", "categorie": "Recruited" },
-          { "heure": "16:00 – 17:30", "type": "Reflection roundtable", "titre": "Port cybersecurity", "desc": "How to protect a connected port against state and criminal threats.", "intervenant": "Recruited Expert B", "categorie": "Recruited" }
+          { "heure": "09:00 – 10:30", "type": "Plenary", "titre": "Operational excellence: ETA & Hinterland", "desc": "Nautical operations, ETA prediction, Hinterland fluidity.", "intervenant": "Marc BIEGNIÉBÉ / Abiala MODESTE", "categorie": "Recruited" },
+          { "heure": "11:00 – 12:30", "type": "Organisational learning panel", "titre": "Security & Safety", "desc": "AI for automatic anomaly detection (scanners, video surveillance).", "intervenant": "Morocco Expert (to be confirmed)", "categorie": "Partner" },
+          { "heure": "13:30 – 14:15", "type": "Case study workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Dr Babel BALSOMI", "categorie": "Recruited" },
+          { "heure": "14:45 – 16:15", "type": "Reflection roundtable", "titre": "Roadmap", "desc": "Real-time steering & decision support — handout document and discussion time.", "intervenant": "Dr William ODAH", "categorie": "In-house" }
         ]
       },
       {
         "jour": "Day 3",
         "date": "Sept 17",
-        "titre": "Governance, ROI & Roadmap",
-        "objectif": "Prepare post-training: finance and lead change",
+        "titre": "Field Immersion",
+        "objectif": "See the Smart Port in practice, at the Port of Casablanca.",
         "accent": "#3391f6",
         "sessions": [
-          { "heure": "09:00 – 10:30", "type": "Plenary", "titre": "AI business model", "desc": "Calculate the ROI of a port technology project.", "intervenant": "Partner Expert B", "categorie": "Partner" },
-          { "heure": "11:00 – 12:30", "type": "Organisational learning panel", "titre": "Data governance", "desc": "Create a Data-Driven culture and recruit the necessary talents.", "intervenant": "TCHOBO Rénato", "categorie": "In-house" },
-          { "heure": "14:00 – 15:30", "type": "Case study workshop", "titre": "Action plan workshop", "desc": "Draft a personalised digital transformation roadmap.", "intervenant": "Dr. William ODAH", "categorie": "In-house" },
-          { "heure": "16:00 – 17:00", "type": "Reflection roundtable", "titre": "Final roundtable", "desc": "Signing a manifesto for technological cooperation between African ports.", "intervenant": "Partner Expert B", "categorie": "Partner" }
+          { "heure": "09:00 – 16:00", "type": "Technical Visit", "titre": "Technology immersion at the Port of Casablanca", "desc": "Smart Port demonstrations, applied AI, IT infrastructure.", "intervenant": "ANP / UAPNA Teams / Mr Tarik Maaouni", "categorie": "Partner" }
         ]
       }
     ]
@@ -240,54 +240,52 @@
     "subtitle": "Click on a day to discover its plenary, panel, workshop and roundtable.",
     "ceQueVousAllez": "What you will master",
     "kept": "At the end of COPAF 2026, each participant will be able to:",
-    "activitiesCount": "4 activities",
+    "activitiesCount": "Activities",
     "viewDetails": "View details",
-    "modalActivitiesTitle": "The 4 daily activities",
+    "modalActivitiesTitle": "The day's activities",
     "modalClose": "Close",
     "axes": [
       {
         "num": "01",
         "jour": "Day 1",
         "date": "Sept 15",
-        "titre": "AI & Strategic Vision",
-        "sousTitre": "Understand the technological landscape and identify opportunities",
-        "level": "Strategic",
-        "duration": "6h",
+        "titre": "Smart African Port Vision",
+        "sousTitre": "Set the vision, assess where each port stands, and learn how to deploy a port tech project in practice.",
+        "level": "Vision & Strategy",
+        "duration": "8h15",
         "activities": [
-          { "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specificities.", "intervenant": "Partner Expert A" },
-          { "type": "Organisational learning panel", "titre": "Automating port operations with AI", "desc": "", "intervenant": "TCHOBO Rénato" },
-          { "type": "Case study workshop", "titre": "Case studies, successes and failures of AI projects", "desc": "In African and global ports.", "intervenant": "Partner Expert A" },
-          { "type": "Reflection roundtable", "titre": "Digital maturity diagnosis", "desc": "Of your port authority.", "intervenant": "Dr. William ODAH" }
+          { "type": "Plenary", "titre": "Opening remarks and presentation", "desc": "Welcome address and official launch of COPAF 2026.", "intervenant": "CRF Perfection / AGPAOC / ANP-UAPNA" },
+          { "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specificities.", "intervenant": "Dr William ODAH" },
+          { "type": "Organisational learning panel", "titre": "Digital maturity diagnosis", "desc": "Flagship session, live on tablet.", "intervenant": "Dr William ODAH / Rénato TCHOBO" },
+          { "type": "Case study workshop", "titre": "Deploying a port technology project", "desc": "ROI, business model, failure and success stories.", "intervenant": "Marc BIEGNIÉBÉ" },
+          { "type": "Reflection roundtable", "titre": "Automation & data governance", "desc": "Automating port operations with AI and building a Data-Driven culture.", "intervenant": "Rénato TCHOBO / Abiala MODESTE" }
         ]
       },
       {
         "num": "02",
         "jour": "Day 2",
         "date": "Sept 16",
-        "titre": "Operational Excellence & Security",
-        "sousTitre": "See how AI transforms the field (quays, terminals, access)",
-        "level": "Expert",
-        "duration": "6h",
+        "titre": "Operational Excellence, Security & Cybersecurity",
+        "sousTitre": "Make operations smoother and safer, leveraging AI and port cybersecurity.",
+        "level": "Operations & Security",
+        "duration": "7h15",
         "activities": [
-          { "type": "Plenary", "titre": "Nautical operations", "desc": "ETA prediction and intelligent berth management.", "intervenant": "Recruited Expert A" },
-          { "type": "Organisational learning panel", "titre": "Hinterland fluidity", "desc": "Algorithms for truck flow management and congestion reduction.", "intervenant": "Recruited Expert A" },
-          { "type": "Case study workshop", "titre": "Security & safety", "desc": "AI for automatic anomaly detection (scanners, video surveillance).", "intervenant": "Recruited Expert B" },
-          { "type": "Reflection roundtable", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Recruited Expert B" }
+          { "type": "Plenary", "titre": "Operational excellence: ETA & Hinterland", "desc": "Nautical operations, ETA prediction, Hinterland fluidity.", "intervenant": "Marc BIEGNIÉBÉ / Abiala MODESTE" },
+          { "type": "Organisational learning panel", "titre": "Security & Safety", "desc": "AI for automatic anomaly detection.", "intervenant": "Morocco Expert (to be confirmed)" },
+          { "type": "Case study workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Dr Babel BALSOMI" },
+          { "type": "Reflection roundtable", "titre": "Roadmap", "desc": "Real-time steering & decision support.", "intervenant": "Dr William ODAH" }
         ]
       },
       {
         "num": "03",
         "jour": "Day 3",
         "date": "Sept 17",
-        "titre": "Data-Driven Governance & Roadmap",
-        "sousTitre": "Prepare post-training & optimise change management",
-        "level": "Advanced",
+        "titre": "Field Immersion",
+        "sousTitre": "See the Smart Port in practice, at the Port of Casablanca.",
+        "level": "Field & Practice",
         "duration": "7h",
         "activities": [
-          { "type": "Plenary", "titre": "AI business model", "desc": "Calculate the ROI of a port technology project.", "intervenant": "Partner Expert B" },
-          { "type": "Organisational learning panel", "titre": "Data governance", "desc": "Create a Data-Driven culture and recruit the necessary talent.", "intervenant": "TCHOBO Rénato" },
-          { "type": "Case study workshop", "titre": "Real-time steering", "desc": "Decision support via advanced predictive dashboards.", "intervenant": "Dr. William ODAH" },
-          { "type": "Reflection roundtable", "titre": "Smart port KPIs", "desc": "For strengthened continental competitiveness.", "intervenant": "Partner Expert B" }
+          { "type": "Technical Visit", "titre": "Technology immersion at the Port of Casablanca", "desc": "Smart Port demonstrations, applied AI, IT infrastructure.", "intervenant": "ANP / UAPNA Teams / Mr Tarik Maaouni" }
         ]
       }
     ],

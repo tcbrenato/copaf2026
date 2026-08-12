@@ -112,10 +112,11 @@
     "titlePart1": "3 Jours de",
     "titlePart2": "Partages Intensifs",
     "description": "Un programme structuré pour transformer votre approche de la gestion portuaire africaine.",
+    "downloadPdfButton": "Télécharger le programme (PDF)",
     "tabs": [
-      { "jour": "Jour 1", "date": "15 Sept.", "titre": "IA & Vision Stratégique" },
-      { "jour": "Jour 2", "date": "16 Sept.", "titre": "Excellence Opérationnelle & Sécurité" },
-      { "jour": "Jour 3", "date": "17 Sept.", "titre": "Gouvernance, ROI & Feuille de Route" }
+      { "jour": "Jour 1", "date": "15 Sept.", "titre": "Vision Smart Port Africain" },
+      { "jour": "Jour 2", "date": "16 Sept.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité" },
+      { "jour": "Jour 3", "date": "17 Sept.", "titre": "Immersion Terrain" }
     ],
     "statLabel": "Sessions",
     "sessionLabel": "Sessions",
@@ -124,40 +125,38 @@
       {
         "jour": "Jour 1",
         "date": "15 Sept.",
-        "titre": "IA & Vision Stratégique",
-        "objectif": "Comprendre le paysage technologique et identifier les opportunités",
+        "titre": "Vision Smart Port Africain",
+        "objectif": "Poser la vision, évaluer où en est chaque port, et savoir comment déployer concrètement un projet tech portuaire.",
         "accent": "#0073f4",
         "sessions": [
-          { "heure": "09h00 – 10h30", "type": "Plénière", "titre": "Conférence d'ouverture", "desc": "L'IA au cœur de la révolution du Smart Port. Panorama mondial et spécificités africaines.", "intervenant": "Expert Partenaire A", "categorie": "Partenaire" },
-          { "heure": "11h00 – 12h30", "type": "Panel d'apprentissage organisationnel", "titre": "Démystification technique", "desc": "Comprendre la Data, le Machine Learning et la Vision par Ordinateur sans jargon.", "intervenant": "TCHOBO Rénato", "categorie": "Maison" },
-          { "heure": "14h00 – 15h30", "type": "Atelier d'étude de cas", "titre": "Études de cas", "desc": "Succès et échecs des projets IA dans les ports africains et mondiaux.", "intervenant": "Expert Partenaire A", "categorie": "Partenaire" },
-          { "heure": "16h00 – 17h30", "type": "Table ronde de réflexion", "titre": "Atelier de réflexion", "desc": "Diagnostic de maturité digitale de votre autorité portuaire.", "intervenant": "Dr. William ODAH", "categorie": "Maison" }
+          { "heure": "09h00 – 09h45", "type": "Plénière", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "CRF Perfection / AGPAOC / ANP-UAPNA", "categorie": "Partenaire" },
+          { "heure": "10h15 – 11h30", "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "Dr William ODAH", "categorie": "Maison" },
+          { "heure": "11h30 – 12h45", "type": "Panel d'apprentissage organisationnel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire — session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / Rénato TCHOBO", "categorie": "Maison" },
+          { "heure": "13h45 – 15h00", "type": "Atelier d'étude de cas", "titre": "Déployer un projet technologique portuaire", "desc": "ROI, modèle économique, cas d'échecs et de succès.", "intervenant": "Marc BIEGNIÉBÉ", "categorie": "Recruté" },
+          { "heure": "15h30 – 16h45", "type": "Table ronde de réflexion", "titre": "Automatisation & gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et culture Data-Driven.", "intervenant": "Rénato TCHOBO / Abiala MODESTE", "categorie": "Maison" }
         ]
       },
       {
         "jour": "Jour 2",
         "date": "16 Sept.",
-        "titre": "Excellence Opérationnelle & Sécurité",
-        "objectif": "Voir comment l'IA transforme le terrain (quais, terminaux, accès)",
+        "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
+        "objectif": "Rendre les opérations plus fluides et plus sûres, en s'appuyant sur l'IA et la cybersécurité portuaire.",
         "accent": "#000e91",
         "sessions": [
-          { "heure": "09h00 – 10h30", "type": "Plénière", "titre": "Opérations nautiques", "desc": "Prédiction des arrivées (ETA) et gestion intelligente des postes à quai.", "intervenant": "Expert Recruté A", "categorie": "Recruté" },
-          { "heure": "11h00 – 12h30", "type": "Panel d'apprentissage organisationnel", "titre": "Fluidité de l'Hinterland", "desc": "Algorithmes de gestion des flux de camions et réduction de la congestion urbaine.", "intervenant": "Expert Recruté A", "categorie": "Recruté" },
-          { "heure": "14h00 – 15h30", "type": "Atelier d'étude de cas", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "Expert Recruté B", "categorie": "Recruté" },
-          { "heure": "16h00 – 17h30", "type": "Table ronde de réflexion", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces étatiques et criminelles.", "intervenant": "Expert Recruté B", "categorie": "Recruté" }
+          { "heure": "09h00 – 10h30", "type": "Plénière", "titre": "Excellence opérationnelle : ETA & Hinterland", "desc": "Opérations nautiques, prédiction ETA, fluidité de l'Hinterland.", "intervenant": "Marc BIEGNIÉBÉ / Abiala MODESTE", "categorie": "Recruté" },
+          { "heure": "11h00 – 12h30", "type": "Panel d'apprentissage organisationnel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "Expert Maroc (à confirmer)", "categorie": "Partenaire" },
+          { "heure": "13h30 – 14h15", "type": "Atelier d'étude de cas", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Dr Babel BALSOMI", "categorie": "Recruté" },
+          { "heure": "14h45 – 16h15", "type": "Table ronde de réflexion", "titre": "Feuille de route", "desc": "Pilotage en temps réel & aide à la décision — document distribué et temps d'échange.", "intervenant": "Dr William ODAH", "categorie": "Maison" }
         ]
       },
       {
         "jour": "Jour 3",
         "date": "17 Sept.",
-        "titre": "Gouvernance, ROI & Feuille de Route",
-        "objectif": "Préparer l'après-formation : financer et piloter le changement",
+        "titre": "Immersion Terrain",
+        "objectif": "Voir le Smart Port en pratique, au Port de Casablanca.",
         "accent": "#3391f6",
         "sessions": [
-          { "heure": "09h00 – 10h30", "type": "Plénière", "titre": "Modèle économique de l'IA", "desc": "Calculer le ROI d'un projet technologique portuaire.", "intervenant": "Expert Partenaire B", "categorie": "Partenaire" },
-          { "heure": "11h00 – 12h30", "type": "Panel d'apprentissage organisationnel", "titre": "Gouvernance de la donnée", "desc": "Créer une culture Data-Driven et recruter les talents nécessaires.", "intervenant": "TCHOBO Rénato", "categorie": "Maison" },
-          { "heure": "14h00 – 15h30", "type": "Atelier d'étude de cas", "titre": "Atelier Action Plan", "desc": "Élaboration d'une feuille de route de transformation digitale personnalisée.", "intervenant": "Dr. William ODAH", "categorie": "Maison" },
-          { "heure": "16h00 – 17h00", "type": "Table ronde de réflexion", "titre": "Table ronde finale", "desc": "Signature d'un manifeste pour la coopération technologique entre ports africains.", "intervenant": "Expert Partenaire B", "categorie": "Partenaire" }
+          { "heure": "09h00 – 16h00", "type": "Visite Technique", "titre": "Immersion technologique au Port de Casablanca", "desc": "Démonstrations Smart Port, IA appliquée, infrastructures IT.", "intervenant": "Équipes ANP / UAPNA / M. Tarik Maaouni", "categorie": "Partenaire" }
         ]
       }
     ]
@@ -241,54 +240,52 @@
     "subtitle": "Cliquez sur un jour pour découvrir sa plénière, son panel, son atelier et sa table ronde.",
     "ceQueVousAllez": "Ce que vous allez maîtriser",
     "kept": "À l'issue de la COPAF 2026, chaque participant sera en mesure de :",
-    "activitiesCount": "4 activités",
+    "activitiesCount": "Activités",
     "viewDetails": "Voir le détail",
-    "modalActivitiesTitle": "Les 4 activités du jour",
+    "modalActivitiesTitle": "Les activités du jour",
     "modalClose": "Fermer",
     "axes": [
       {
         "num": "01",
         "jour": "Jour 1",
         "date": "15 Sept.",
-        "titre": "IA & Vision Stratégique",
-        "sousTitre": "Comprendre le paysage technologique et identifier les opportunités",
-        "level": "Stratégique",
-        "duration": "6h",
+        "titre": "Vision Smart Port Africain",
+        "sousTitre": "Poser la vision, évaluer où en est chaque port, et savoir comment déployer concrètement un projet tech portuaire.",
+        "level": "Vision & Stratégie",
+        "duration": "8h15",
         "activities": [
-          { "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "Expert Partenaire A" },
-          { "type": "Panel d'apprentissage organisationnel", "titre": "Automatisation des opérations portuaires par l'Intelligence Artificielle", "desc": "", "intervenant": "TCHOBO Rénato" },
-          { "type": "Atelier d'étude de cas", "titre": "Études de cas, succès et échecs des projets IA", "desc": "Dans les ports africains et mondiaux.", "intervenant": "Expert Partenaire A" },
-          { "type": "Table ronde de réflexion", "titre": "Diagnostic de maturité digitale", "desc": "De votre autorité portuaire.", "intervenant": "Dr. William ODAH" }
+          { "type": "Plénière", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "CRF Perfection / AGPAOC / ANP-UAPNA", "categorie": "Partenaire" },
+          { "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "Dr William ODAH", "categorie": "Maison" },
+          { "type": "Panel d'apprentissage organisationnel", "titre": "Diagnostic de maturité digitale", "desc": "Session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / Rénato TCHOBO", "categorie": "Maison" },
+          { "type": "Atelier d'étude de cas", "titre": "Déployer un projet technologique portuaire", "desc": "ROI, modèle économique, cas d'échecs et de succès.", "intervenant": "Marc BIEGNIÉBÉ", "categorie": "Recruté" },
+          { "type": "Table ronde de réflexion", "titre": "Automatisation & gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et culture Data-Driven.", "intervenant": "Rénato TCHOBO / Abiala MODESTE", "categorie": "Maison" }
         ]
       },
       {
         "num": "02",
         "jour": "Jour 2",
         "date": "16 Sept.",
-        "titre": "Excellence Opérationnelle & Sécurité",
-        "sousTitre": "Voir comment l'IA transforme le terrain (quais, terminaux, accès)",
-        "level": "Expert",
-        "duration": "6h",
+        "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
+        "sousTitre": "Rendre les opérations plus fluides et plus sûres, en s'appuyant sur l'IA et la cybersécurité portuaire.",
+        "level": "Opérations & Sécurité",
+        "duration": "7h15",
         "activities": [
-          { "type": "Plénière", "titre": "Opérations nautiques", "desc": "Prédiction des arrivées (ETA) et gestion intelligente des postes à quai.", "intervenant": "Expert Recruté A" },
-          { "type": "Panel d'apprentissage organisationnel", "titre": "Fluidité de l'Hinterland", "desc": "Algorithmes de gestion des flux de camions et réduction de la congestion urbaine.", "intervenant": "Expert Recruté A" },
-          { "type": "Atelier d'étude de cas", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "Expert Recruté B" },
-          { "type": "Table ronde de réflexion", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Expert Recruté B" }
+          { "type": "Plénière", "titre": "Excellence opérationnelle : ETA & Hinterland", "desc": "Opérations nautiques, prédiction ETA, fluidité de l'Hinterland.", "intervenant": "Marc BIEGNIÉBÉ / Abiala MODESTE", "categorie": "Recruté" },
+          { "type": "Panel d'apprentissage organisationnel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "Expert Maroc (à confirmer)", "categorie": "Partenaire" },
+          { "type": "Atelier d'étude de cas", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Dr Babel BALSOMI", "categorie": "Recruté" },
+          { "type": "Table ronde de réflexion", "titre": "Feuille de route", "desc": "Pilotage en temps réel & aide à la décision — document distribué et temps d'échange.", "intervenant": "Dr William ODAH", "categorie": "Maison" }
         ]
       },
       {
         "num": "03",
         "jour": "Jour 3",
         "date": "17 Sept.",
-        "titre": "Gouvernance Data-Driven & Feuille de Route",
-        "sousTitre": "Préparer l'après-formation & optimiser le management du changement",
-        "level": "Avancé",
+        "titre": "Immersion Terrain",
+        "sousTitre": "Voir le Smart Port en pratique, au Port de Casablanca.",
+        "level": "Terrain & Pratique",
         "duration": "7h",
         "activities": [
-          { "type": "Plénière", "titre": "Modèle économique de l'IA", "desc": "Calculer le ROI d'un projet technologique portuaire.", "intervenant": "Expert Partenaire B" },
-          { "type": "Panel d'apprentissage organisationnel", "titre": "Gouvernance de la donnée", "desc": "Créer une culture Data-Driven et recruter les talents nécessaires.", "intervenant": "TCHOBO Rénato" },
-          { "type": "Atelier d'étude de cas", "titre": "Pilotage en temps réel", "desc": "Aide à la décision via des tableaux de bord prédictifs avancés.", "intervenant": "Dr. William ODAH" },
-          { "type": "Table ronde de réflexion", "titre": "KPIs portuaires intelligents", "desc": "Pour une compétitivité continentale renforcée.", "intervenant": "Expert Partenaire B" }
+          { "type": "Visite Technique", "titre": "Immersion technologique au Port de Casablanca", "desc": "Démonstrations Smart Port, IA appliquée, infrastructures IT.", "intervenant": "Équipes ANP / UAPNA / M. Tarik Maaouni", "categorie": "Partenaire" }
         ]
       }
     ],

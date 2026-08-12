@@ -23,6 +23,7 @@ const icons = {
   globe: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
   cal: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
   user: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  download: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
 }
 
 const C = {
@@ -40,9 +41,9 @@ const joursMeta = [
 ]
 
 const sessionIconsByDay = [
-  [icons.mic, icons.cpu, icons.chart, icons.search],
+  [icons.mic, icons.cpu, icons.chart, icons.search, icons.handshake],
   [icons.anchor, icons.truck, icons.lock, icons.shield],
-  [icons.dollar, icons.users, icons.clipboard, icons.handshake],
+  [icons.dollar],
 ]
 
 const categorieBadgeMap = {
@@ -82,6 +83,8 @@ const Programme = () => {
         .prog-row { transition: all 0.18s ease; }
         .prog-stat-card { transition: all 0.2s ease; }
         .prog-stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,115,244,0.18); }
+        .prog-download-btn { transition: all 0.2s ease; }
+        .prog-download-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,14,145,0.28); }
         @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .prog-animate { animation: fadeSlideUp 0.4s ease forwards; }
         @keyframes modalIn { from { opacity: 0; transform: scale(0.94) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
@@ -153,7 +156,7 @@ const Programme = () => {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(16px, 5vw, 60px)', position: 'relative', zIndex: 2 }}>
 
         {/* ── HEADER ── */}
-        <div style={{ textAlign: 'center', marginBottom: 'clamp(40px, 7vw, 72px)' }}>
+        <div style={{ textAlign: 'center', marginBottom: 'clamp(28px, 5vw, 40px)' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             background: C.navy, borderRadius: 100, padding: '7px 22px', marginBottom: 24,
@@ -179,6 +182,25 @@ const Programme = () => {
           }}>
             {t('programme.description')}
           </p>
+        </div>
+
+        {/* ── BOUTON TÉLÉCHARGEMENT PDF ── */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <a
+            href="/documents/COPAF_2026_Programme.pdf"
+            download="COPAF_2026_Programme.pdf"
+            className="prog-download-btn"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 10,
+              background: `linear-gradient(135deg, ${C.navy}, ${C.blue})`,
+              color: C.white, padding: '13px 28px', borderRadius: 12,
+              fontWeight: 700, fontSize: 14, textDecoration: 'none',
+              boxShadow: '0 8px 24px rgba(0,14,145,0.2)',
+            }}
+          >
+            {icons.download}
+            {t('programme.downloadPdfButton')}
+          </a>
         </div>
 
         {/* ── ONGLETS JOURS ── */}
@@ -247,7 +269,7 @@ const Programme = () => {
               background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
               borderRadius: 14, padding: '14px 24px', textAlign: 'center', flexShrink: 0, backdropFilter: 'blur(8px)',
             }}>
-              <div style={{ fontSize: 28, fontWeight: 900, color: C.white, lineHeight: 1 }}>4</div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: C.white, lineHeight: 1 }}>{jour.sessions.length}</div>
               <div style={{ fontSize: 10, color: C.blueMid, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, marginTop: 4 }}>{t('programme.statLabel')}</div>
             </div>
           </div>
@@ -261,7 +283,7 @@ const Programme = () => {
             {jour.sessions.map((s, k) => {
               const hovered = hoveredSession === k
               const catBadge = categorieBadgeMap[s.categorie] || categorieBadgeMap['Partenaire']
-              const sIcon = sessionIconsByDay[activeJour][k]
+              const sIcon = (sessionIconsByDay[activeJour] && sessionIconsByDay[activeJour][k]) || icons.mic
               return (
                 <div key={k} className="prog-row"
                   onClick={() => setActiveSession({ ...s, icon: sIcon, accent: jour.accent, jourTitre: jour.titre })}
