@@ -6,9 +6,10 @@ import { generateRecapPDF } from '../utils/generateRecapPDF'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { useAnalytics } from '../useAnalytics'
 import { PORTS_AUTRE, getOrgOptionsForCountry, findPortByValue } from '../utils/portsData'
+import { calculerTarif, PRIX_STANDARD } from '../utils/tarifs'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
-const PRIX_UNITAIRE = 3500
+const PRIX_UNITAIRE = PRIX_STANDARD
 const EMAILJS_SVC   = 'service_x07g4et'
 const EMAILJS_TPL_FR = 'template_7wrkmm1'
 const EMAILJS_TPL_EN = 'template_y2q8tlq'
@@ -157,6 +158,8 @@ const TR = {
     participantsOpt: n => `${n} participant${n>1?'s':''} - ${(n*PRIX_UNITAIRE).toLocaleString('fr-FR')} EUR`,
     messageLabel: 'Message / Besoins specifiques',
     messagePh: 'Questions, besoins alimentaires, accessibilite...',
+    codePromoLabel: 'Code partenaire (facultatif)',
+    codePromoPh: 'Code eventuel',
     paiementLabel: 'Mode de paiement *',
     paiementOpts: [
       { value:'maintenant', title:'Payer maintenant', desc:'Virement sous 7 jours ouvrables' },
@@ -275,6 +278,8 @@ const TR = {
     participantsOpt: n => `${n} participant${n>1?'s':''} - EUR ${(n*PRIX_UNITAIRE).toLocaleString('en-US')}`,
     messageLabel: 'Message / Specific needs',
     messagePh: 'Questions, dietary needs, accessibility...',
+    codePromoLabel: 'Partner code (optional)',
+    codePromoPh: 'Code if any',
     paiementLabel: 'Payment method *',
     paiementOpts: [
       { value:'maintenant', title:'Pay now', desc:'Bank transfer within 7 business days' },
@@ -371,8 +376,19 @@ async function upsertContact(form) {
   return data.id
 }
 
-async function createInscription(contactId, form, nb, montant, paiementMode, dossier, lang) {
-  const { error } = await supabase.from('inscriptions').insert([{ contact_id:contactId, dossier, participants:nb, montant, paiement_status:paiementMode==='maintenant'?'en_attente':'reserve', paiement_mode:paiementMode, message:form.message, langue:lang }])
+// tarifInfo = resultat de calculerTarif() : { prixUnitaire, estPreferentiel, source, codeUtilise }
+// Stocke montant (deja calcule avec le bon tarif), et les 2 champs internes
+// tarif_type / code_promo pour la tracabilite cote secretariat (jamais
+// affiches publiquement, voir AdminProforma.jsx). Necessite ces 2 colonnes
+// sur la table `inscriptions` (voir SQL fourni a part).
+async function createInscription(contactId, form, nb, montant, paiementMode, dossier, lang, tarifInfo) {
+  const { error } = await supabase.from('inscriptions').insert([{
+    contact_id: contactId, dossier, participants: nb, montant,
+    paiement_status: paiementMode==='maintenant'?'en_attente':'reserve',
+    paiement_mode: paiementMode, message: form.message, langue: lang,
+    tarif_type: tarifInfo.estPreferentiel ? 'preferentiel' : 'standard',
+    code_promo: tarifInfo.codeUtilise || null,
+  }])
   if (error) throw new Error(error.message)
 }
 
@@ -470,7 +486,7 @@ export default function Inscription() {
   const t = TR[lang]
 
   const [etape,        setEtape]        = useState(1)
-  const [form,         setForm]         = useState({ nom:'', prenom:'', email:'', telephone:'', organisation:'', poste:'', pays:'', participants:'1', message:'' })
+  const [form,         setForm]         = useState({ nom:'', prenom:'', email:'', telephone:'', organisation:'', poste:'', pays:'', participants:'1', message:'', codePromo:'' })
   const [orgSelect,    setOrgSelect]    = useState('')
   const [paiementMode, setPaiementMode] = useState('maintenant')
   const [cgv,          setCgv]          = useState(false)
@@ -485,6 +501,10 @@ export default function Inscription() {
   const [showInclus,   setShowInclus]   = useState(false)
 
   const nb    = parseInt(form.participants) || 1
+  // Recapitulatif AFFICHE : toujours au tarif standard, quel que soit le pays
+  // ou le code saisi. Le vrai tarif (potentiellement preferentiel) n'est
+  // calcule qu'a la soumission, et n'apparait que dans les documents prives
+  // generes pour ce participant (email, PDF) — jamais ici a l'ecran.
   const total = nb * PRIX_UNITAIRE
 
   const handleChange     = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
@@ -533,10 +553,18 @@ export default function Inscription() {
   const handleSubmit = async e => {
     e.preventDefault(); setLoading(true); setErrorMsg('')
     const dossier = genDossier()
+
+    // ── Calcul du tarif REEL (potentiellement preferentiel), invisible
+    // jusqu'ici. C'est ce montant qui est stocke, facture, et envoye par
+    // email/PDF — le recap affiche a l'ecran (variable `total` ci-dessus)
+    // reste volontairement inchange.
+    const tarifInfo = calculerTarif(form.pays, form.codePromo)
+    const totalReel = nb * tarifInfo.prixUnitaire
+
     try {
       const contactId = await upsertContact(form)
-      await createInscription(contactId, form, nb, total, paiementMode, dossier, lang)
-      fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:total,dossier,paiement:paiementMode,langue:lang}) }).catch(()=>{})
+      await createInscription(contactId, form, nb, totalReel, paiementMode, dossier, lang, tarifInfo)
+      fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:totalReel,dossier,paiement:paiementMode,langue:lang,tarif_type:tarifInfo.estPreferentiel?'preferentiel':'standard'}) }).catch(()=>{})
 
       // ── Generation des 2 documents (Attestation + Proforma) ──
       // download:false => on recupere l'objet jsPDF sans declencher le
@@ -545,17 +573,20 @@ export default function Inscription() {
       // ET l'uploader vers Supabase Storage pour obtenir un lien stable a
       // inserer dans l'email (EmailJS ne gere pas les pieces jointes
       // generees dynamiquement, il faut donc un lien).
+      // Les deux documents utilisent totalReel : ce sont des documents
+      // PRIVES propres a ce participant, c'est la que le tarif preferentiel
+      // (s'il s'applique) devient visible pour lui — jamais sur le site.
       let attestationUrl = ''
       let proformaUrl = ''
       try {
-        const attestationDoc = await generateRecapPDF({ form, dossier, nb, total, paiementMode, lang, download: false })
+        const attestationDoc = await generateRecapPDF({ form, dossier, nb, total: totalReel, paiementMode, lang, download: false })
         attestationDoc.save(`COPAF2026-Attestation-${dossier}.pdf`)
         const attestationBlob = attestationDoc.output('blob')
         const attestationPath = `${dossier}-attestation-${lang}.pdf`
         await supabase.storage.from('documents-inscription').upload(attestationPath, attestationBlob, { upsert: true, contentType: 'application/pdf' })
         attestationUrl = supabase.storage.from('documents-inscription').getPublicUrl(attestationPath).data.publicUrl
 
-        const proformaDoc = await generateProformaPDF({ form, dossier, nb, total, lang, download: false })
+        const proformaDoc = await generateProformaPDF({ form, dossier, nb, total: totalReel, lang, download: false })
         const proformaBlob = proformaDoc.output('blob')
         const proformaPath = `${dossier}-proforma-${lang}.pdf`
         await supabase.storage.from('documents-inscription').upload(proformaPath, proformaBlob, { upsert: true, contentType: 'application/pdf' })
@@ -564,7 +595,7 @@ export default function Inscription() {
         console.error('Erreur generation/upload documents:', uploadErr)
         // Repli : si l'upload echoue, on tente au moins le telechargement
         // direct habituel pour que le participant reparte avec son document.
-        try { generateRecapPDF({ form, dossier, nb, total, paiementMode, lang }) } catch {}
+        try { generateRecapPDF({ form, dossier, nb, total: totalReel, paiementMode, lang }) } catch {}
       }
 
       // L'envoi de l'email se fait APRES la generation/upload des documents,
@@ -575,14 +606,14 @@ export default function Inscription() {
       await emailjs.send(EMAILJS_SVC, templateId, {
         prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation,
         poste:form.poste, pays:form.pays, participants:form.participants,
-        montant:`${total.toLocaleString(locale)} EUR`, tarif:`${PRIX_UNITAIRE.toLocaleString(locale)} EUR/pers.`,
+        montant:`${totalReel.toLocaleString(locale)} EUR`, tarif:`${tarifInfo.prixUnitaire.toLocaleString(locale)} EUR/pers.`,
         dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee',
         paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'',
         langue:lang, attestation_url: attestationUrl, proforma_url: proformaUrl,
       }, EMAILJS_KEY)
 
       setDossierNum(dossier); setSubmitted(true)
-      trackConversion('inscription', paiementMode, total)
+      trackConversion('inscription', paiementMode, totalReel)
     } catch(err) { setErrorMsg(t.errorPrefix + err.message) }
     setLoading(false)
   }
@@ -909,6 +940,19 @@ export default function Inscription() {
                     <div style={{ marginBottom:22 }}>
                       <label style={lbl}>{t.messageLabel}</label>
                       <textarea name="message" rows={3} value={form.message} onChange={handleChange} placeholder={t.messagePh} style={{ ...inp('message'), resize:'vertical', minHeight:80 }} onFocus={() => setFocused('message')} onBlur={() => setFocused('')} />
+                    </div>
+
+                    {/* Code partenaire — champ discret, aucune mention de reduction/tarif.
+                        Volontairement place en bas de formulaire, sans emphase visuelle. */}
+                    <div style={{ marginBottom:22 }}>
+                      <label style={{ ...lbl, color:'#94a3b8' }}>{t.codePromoLabel}</label>
+                      <input
+                        name="codePromo" type="text" value={form.codePromo} onChange={handleChange}
+                        placeholder={t.codePromoPh}
+                        style={{ ...inp('codePromo'), maxWidth:220 }}
+                        onFocus={() => setFocused('codePromo')} onBlur={() => setFocused('')}
+                        autoComplete="off"
+                      />
                     </div>
 
                     {/* Mode paiement */}
