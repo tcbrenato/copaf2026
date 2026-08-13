@@ -10,7 +10,7 @@ import { calculerTarif, PRIX_STANDARD } from '../utils/tarifs'
 
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
 const PRIX_UNITAIRE = PRIX_STANDARD
-const EMAILJS_SVC   = 'service_x07g4et'
+const EMAILJS_SVC   = 'service_hvuj5ra'
 const EMAILJS_TPL_FR = 'template_7wrkmm1'
 const EMAILJS_TPL_EN = 'template_y2q8tlq'
 const EMAILJS_KEY   = 'zBZAZxCfznICTKLJK'
