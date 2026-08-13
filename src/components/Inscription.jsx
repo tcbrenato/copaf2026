@@ -380,7 +380,7 @@ async function upsertContact(form) {
 // Stocke montant (deja calcule avec le bon tarif), et les 2 champs internes
 // tarif_type / code_promo pour la tracabilite cote secretariat (jamais
 // affiches publiquement, voir AdminProforma.jsx). Necessite ces 2 colonnes
-// sur la table `inscriptions` (voir SQL fourni a part).
+// sur la table `inscriptions` (deja ajoutees en SQL).
 async function createInscription(contactId, form, nb, montant, paiementMode, dossier, lang, tarifInfo) {
   const { error } = await supabase.from('inscriptions').insert([{
     contact_id: contactId, dossier, participants: nb, montant,
@@ -499,12 +499,18 @@ export default function Inscription() {
   const [modal,        setModal]        = useState(null)
   const [showVideo,    setShowVideo]    = useState(false)
   const [showInclus,   setShowInclus]   = useState(false)
+  // Montant REEL (potentiellement preferentiel) fige au moment de la
+  // soumission. Utilise par le bouton de telechargement de l'ecran succes —
+  // ne jamais utiliser `total` (tarif standard, pour l'ecran de saisie) a
+  // cet endroit, ni ailleurs apres soumission.
+  const [totalFinal,   setTotalFinal]   = useState(0)
 
   const nb    = parseInt(form.participants) || 1
-  // Recapitulatif AFFICHE : toujours au tarif standard, quel que soit le pays
-  // ou le code saisi. Le vrai tarif (potentiellement preferentiel) n'est
-  // calcule qu'a la soumission, et n'apparait que dans les documents prives
-  // generes pour ce participant (email, PDF) — jamais ici a l'ecran.
+  // Recapitulatif AFFICHE PENDANT LA SAISIE : toujours au tarif standard,
+  // quel que soit le pays ou le code saisi. Le vrai tarif (potentiellement
+  // preferentiel) n'est calcule qu'a la soumission (voir totalFinal
+  // ci-dessus), et n'apparait que dans les documents prives generes pour ce
+  // participant (email, PDF, bouton post-soumission) — jamais ici a l'ecran.
   const total = nb * PRIX_UNITAIRE
 
   const handleChange     = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
@@ -560,6 +566,7 @@ export default function Inscription() {
     // reste volontairement inchange.
     const tarifInfo = calculerTarif(form.pays, form.codePromo)
     const totalReel = nb * tarifInfo.prixUnitaire
+    setTotalFinal(totalReel) // fige le montant pour le bouton post-soumission
 
     try {
       const contactId = await upsertContact(form)
@@ -801,7 +808,7 @@ export default function Inscription() {
 
                     <div style={{ marginBottom:28 }}>
                       <button
-                        onClick={() => generateRecapPDF({ form, dossier: dossierNum, nb, total, paiementMode, lang })}
+                        onClick={() => generateRecapPDF({ form, dossier: dossierNum, nb, total: totalFinal, paiementMode, lang })}
                         className="cta-btn"
                         style={{ background:'#EBF3FF', color:'#000E91', border:'1.5px solid #bfdbfe', margin:'0 auto' }}
                       >
