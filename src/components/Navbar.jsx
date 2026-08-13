@@ -86,7 +86,6 @@ const Navbar = () => {
     { label: t('navbar.intervenants'),     id: 'formateurs' },
   ]
 
-  // ✅ CORRIGÉ : virgule mal placée supprimée
   const dropdownLinks = [
     { label: t('navbar.partnerships'),        href: '/partenariats' },
     { label: t('navbar.digitalExposition'), href: '/exposition-digitale' },
@@ -117,12 +116,6 @@ const Navbar = () => {
 
   return (
     <>
-      {/*
-        NOTE : ce <nav> n'est plus en position:fixed — c'est desormais
-        HeaderStack.jsx (qui englobe Navbar + FlashInfoTicker) qui gere la
-        fixation en haut de l'ecran. Le nav reste donc en flux normal, mais
-        visuellement identique puisque HeaderStack est lui-meme fixed en haut.
-      */}
       <nav className="navbar-root" style={{
         position: 'relative', top: 0, left: 0, right: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -134,7 +127,6 @@ const Navbar = () => {
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
       }}>
 
-        {/* LOGOS */}
         <div className="logo-block" style={{
           display: 'flex', alignItems: 'center', gap: 15,
           padding: '8px 20px', background: '#FFFFFF', borderRadius: 10,
@@ -263,11 +255,11 @@ const Navbar = () => {
               fontWeight: 700, fontSize: 12, letterSpacing: 1.5,
               textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.3s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#0073f4'; e.currentTarget.style.color = '#FFFFFF' }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#000e91' }}>
-            {t('inscription.cta')}
-          </button>
-        </div>
+              onMouseEnter={e => { e.currentTarget.style.background = '#0073f4'; e.currentTarget.style.color = '#FFFFFF' }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#000e91' }}>
+              {t('inscription.cta')}
+            </button>
+          </div>
         </div>
 
         <button className="burger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu"
@@ -278,7 +270,6 @@ const Navbar = () => {
         </button>
       </nav>
 
-      {/* MENU MOBILE */}
       <div className="mobile-menu" style={{
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
         background: '#000e91',
@@ -296,7 +287,6 @@ const Navbar = () => {
           {!isHome && (
             <a href="/" style={mobileItemStyle()}>← {t('navbar.home')}</a>
           )}
-
           {isHome && (
             <button onClick={() => handleSection('about')} style={{ ...mobileItemStyle(), background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}>
               {t('navbar.about')}
@@ -384,13 +374,11 @@ const Navbar = () => {
             display: flex !important;
           }
 
-          /* Header plus compact sur mobile */
           .navbar-root {
             padding: 8px 10px !important;
             gap: 6px !important;
           }
 
-          /* Bloc logos réduit pour laisser la place au burger et au FR */
           .logo-block {
             gap: 6px !important;
             padding: 5px 8px !important;
@@ -402,7 +390,6 @@ const Navbar = () => {
           .logo-divider {
             height: 18px !important;
           }
-          /* On masque le sous-titre "COPAF 2026" et on réduit le nom pour gagner de la place */
           .copaf-subtitle {
             display: none !important;
           }
@@ -416,7 +403,6 @@ const Navbar = () => {
         }
 
         @media (max-width: 400px) {
-          /* Très petits écrans : on ne garde que les logos, sans le texte COPAF */
           .copaf-text-block {
             display: none !important;
           }
