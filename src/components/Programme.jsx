@@ -24,6 +24,7 @@ const icons = {
   cal: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
   user: <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
   download: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+  award: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>,
 }
 
 const C = {
@@ -40,9 +41,10 @@ const joursMeta = [
   { icon: icons.map, accent: C.blueLight },
 ]
 
+// ✅ Jour 2 mis a jour a 5 icones (ajout de "Remise d'attestation" = icons.award)
 const sessionIconsByDay = [
   [icons.mic, icons.cpu, icons.chart, icons.search, icons.handshake],
-  [icons.anchor, icons.truck, icons.lock, icons.shield],
+  [icons.anchor, icons.lock, icons.shield, icons.clipboard, icons.award],
   [icons.dollar],
 ]
 
@@ -56,7 +58,7 @@ const categorieBadgeMap = {
 }
 
 const Programme = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [activeJour, setActiveJour] = useState(0)
   const [activeSession, setActiveSession] = useState(null)
   const [hoveredSession, setHoveredSession] = useState(null)
@@ -90,7 +92,6 @@ const Programme = () => {
         @keyframes modalIn { from { opacity: 0; transform: scale(0.94) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .modal-animate { animation: modalIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards; }
 
-        /* Comportement Responsive adaptatif (Mobile vs Desktop) */
         .prog-row-grid {
           display: flex;
           flex-direction: column;
@@ -120,7 +121,6 @@ const Programme = () => {
         }
         .tabs-container::-webkit-scrollbar { display: none; }
 
-        /* Bureau / Desktop (écrans >= 768px) */
         @media(min-width: 768px) {
           .tabs-container {
             justify-content: center;
@@ -187,8 +187,8 @@ const Programme = () => {
         {/* ── BOUTON TÉLÉCHARGEMENT PDF ── */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <a
-            href="/documents/COPAF_2026_Programme.pdf"
-            download="COPAF_2026_Programme.pdf"
+            href={i18n.language === 'en' ? '/documents/COPAF_2026_Programme_EN.pdf' : '/documents/COPAF_2026_Programme.pdf'}
+            download={i18n.language === 'en' ? 'COPAF_2026_Programme_EN.pdf' : 'COPAF_2026_Programme.pdf'}
             className="prog-download-btn"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 10,
@@ -314,7 +314,7 @@ const Programme = () => {
                         width: 48, height: 48, borderRadius: 14,
                         background: hovered ? C.blue : C.bluePale,
                         border: `1.5px solid ${hovered ? C.blue : C.blueMid}`,
-                        display: 'none', // S'affichera uniquement sur desktop via media query si besoin, ou flex
+                        display: 'none',
                         alignItems: 'center', justifyContent: 'center',
                         color: hovered ? C.white : C.blue, flexShrink: 0, transition: 'all 0.18s',
                       }} className="session-icon-box">{sIcon}</div>

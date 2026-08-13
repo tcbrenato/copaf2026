@@ -1,395 +1,325 @@
 {
   "navbar": {
-    "home": "Home",
-    "about": "About",
-    "conference": "Conference",
+    "home": "Accueil",
+    "about": "À Propos",
+    "conference": "Conférence",
     "contact": "Contact",
-    "partners": "Partners",
+    "partners": "Partenaires",
     "programme": "Programme",
-    "axes": "Thematic Axes",
-    "intervenants": "Speakers",
-    "partnerships": "Partnerships",
-    "digitalExposition": "Digital Exhibition",
-    "visit": "Visit"
+    "axes": "Axes Thématiques",
+    "intervenants": "Intervenants",
+    "partnerships": "Partenariats",
+    "digitalExposition": "Exposition Digitale",
+    "visit": "Visiter"
   },
-  "languageSwitcher": {
-    "fr": "FR",
-    "en": "EN"
-  },
+  "languageSwitcher": { "fr": "FR", "en": "EN" },
   "hero": {
     "kicker": "COPAF 2026",
-    "titlePart1": "African Ports",
-    "titlePart2": "Conference",
-    "subtitle": "Three days of scientific reflection and strategic exchange bringing together experts, decision-makers and port institutions around 'Smart African Port: AI and cybersecurity serving performance'.",
+    "titlePart1": "Conférence des",
+    "titlePart2": "Ports Africains",
+    "subtitle": "Trois jours de réflexion scientifique et d'échanges stratégiques réunissant experts, décideurs et institutions portuaires autour de « Smart Port Africain : IA et cybersécurité au service de la performance ».",
     "stats": [
-      { "value": "50+", "label": "Member ports" },
-      { "value": "30+", "label": "Countries represented" },
+      { "value": "50+", "label": "Ports membres" },
+      { "value": "30+", "label": "Pays représentés" },
       { "value": "200+", "label": "Participants" }
     ],
-    "registerButton": "Register now",
-    "programmeButton": "See the programme →",
-    "downloadButton": "Download the brochure",
+    "registerButton": "S'inscrire maintenant",
+    "programmeButton": "Voir le programme →",
+    "downloadButton": "Télécharger la brochure",
     "card": {
-      "location": "Location",
-      "locationValue": "Casablanca",
-      "dates": "Dates",
-      "datesValue": "15–17 Sept.",
-      "deadline": "Deadline",
-      "deadlineValue": "Aug 31"
+      "location": "Lieu", "locationValue": "Casablanca",
+      "dates": "Dates", "datesValue": "15–17 Sept.",
+      "deadline": "Limite", "deadlineValue": "31 Août"
     }
   },
   "about": {
-    "kicker": "Strategic Vision 2026",
-    "titlePart1": "The African Ports",
-    "titlePart2": "Conference",
-    "description": "Boosting the share of African ports beyond 3% in global trade by 2030 is COPAF's ambition. By relying on the Smart Port model and digitalisation, the event elevates operational performance as a lever for continental sovereignty and resilience.",
+    "kicker": "Vision Stratégique 2026",
+    "titlePart1": "La Conférence des",
+    "titlePart2": "Ports Africains",
+    "description": "Propulser la part des ports africains au-delà de 3 % dans le commerce mondial d'ici 2030 : telle est l'ambition de la COPAF. En s'appuyant sur le modèle Smart Port et la digitalisation, l'événement érige la performance opérationnelle en levier de souveraineté et de résilience pour le continent.",
     "stats": [
-      { "number": "200+", "label": "Expected participants" },
-      { "number": "54", "label": "African nations" },
-      { "number": "50+", "label": "Expert speakers" },
-      { "number": "3", "label": "Intensive days" }
+      { "number": "200+", "label": "Participants attendus" },
+      { "number": "54", "label": "Nations africaines" },
+      { "number": "50+", "label": "Conférenciers experts" },
+      { "number": "3", "label": "Jours intensifs" }
     ],
-    "objectivesTitle": "Conference objectives",
-    "objectivesSubtitle": "Four ambitions serving African port performance.",
+    "objectivesTitle": "Objectifs de la Conférence",
+    "objectivesSubtitle": "Quatre ambitions au service de la performance portuaire africaine.",
     "objectives": [
-      {
-        "num": "01",
-        "title": "Share high-level expertise",
-        "desc": "Institutionalise a platform for best practice exchange and accelerate African port executives' performance."
-      },
-      {
-        "num": "02",
-        "title": "Strengthen decision-making networks",
-        "desc": "Unite African maritime leaders and decision-makers to foster continental synergy and strategic, sustainable partnerships."
-      },
-      {
-        "num": "03",
-        "title": "Experience technological and operational immersion",
-        "desc": "Discover concrete Smart Port, AI and logistics automation solutions by example."
-      },
-      {
-        "num": "04",
-        "title": "Accelerate continental competitiveness",
-        "desc": "Turn technical and relational gains into growth levers to increase Africa's share in global maritime trade."
-      }
+      { "num": "01", "title": "Partager l'expertise de haut niveau", "desc": "Institutionnaliser une plateforme d'échange sur les meilleures pratiques et accroître la performance des cadres portuaires africains." },
+      { "num": "02", "title": "Renforcer le réseau décisionnel", "desc": "Fédérer les leaders et décideurs maritimes africains pour favoriser la synergie continentale et l'émergence de partenariats stratégiques durables." },
+      { "num": "03", "title": "Vivre une immersion technologique et opérationnelle", "desc": "Découvrir par l'exemple les solutions concrètes en matière de Smart Port, d'IA et d'automatisation logistique." },
+      { "num": "04", "title": "Accélérer la compétitivité continentale", "desc": "Transformer les acquis techniques et relationnels en leviers de croissance pour porter la part de l'Afrique dans le commerce maritime mondial." }
     ],
     "formats": [
-      {
-        "title": "Plenary conferences",
-        "desc": "Keynotes from international experts on digitalisation, AI and port cybersecurity."
-      },
-      {
-        "title": "Immersive training sessions",
-        "desc": "Technical workshops for managers and directors combining theory and practical port case studies."
-      },
-      {
-        "title": "Networking & B2B",
-        "desc": "Spaces dedicated to exchanges between port actors and technology solution providers."
-      },
-      {
-        "title": "Field visits",
-        "desc": "Guided immersion in a leading port hub to experience Smart Port solutions firsthand."
-      }
+      { "title": "Conférences plénières", "desc": "Keynotes d'experts internationaux sur la digitalisation, l'IA et la cybersécurité portuaire." },
+      { "title": "Sessions de formation immersive", "desc": "Ateliers techniques pour les cadres et directeurs, alliant théorie et études de cas portuaires appliquées." },
+      { "title": "Networking & B2B", "desc": "Espaces dédiés aux échanges entre acteurs portuaires et fournisseurs de solutions technologiques." },
+      { "title": "Visites de terrain", "desc": "Immersion guidée dans les installations d'un premier hub portuaire pour s'approprier les solutions Smart Port." }
     ],
     "publics": [
-      { "role": "Chief executives", "sub": "Port authorities", "tag": "Strategic leadership" },
-      { "role": "Strategy directors", "sub": "and development", "tag": "Planning & governance" },
-      { "role": "CIOs", "sub": "Information systems", "tag": "Digital transformation" },
-      { "role": "Terminal managers", "sub": "and operations", "tag": "Operational excellence" },
-      { "role": "Harbourmasters", "sub": "Maritime safety", "tag": "Regulation & security" },
-      { "role": "Innovation leaders", "sub": "and technology", "tag": "Smart Port deployment" },
-      { "role": "Other directors", "sub": "and port executives", "tag": "Operational steering" },
-      { "role": "Sector actors", "sub": "Port and para-port", "tag": "Logistics ecosystem" }
+      { "role": "Directeurs généraux", "sub": "Autorités portuaires", "tag": "Leadership stratégique" },
+      { "role": "Directeurs stratégie", "sub": "et développement", "tag": "Planification & gouvernance" },
+      { "role": "DSI", "sub": "Systèmes d'information", "tag": "Transformation digitale" },
+      { "role": "Responsables terminaux", "sub": "et opérations", "tag": "Excellence opérationnelle" },
+      { "role": "La capitainerie", "sub": "Sécurité maritime", "tag": "Réglementation & sûreté" },
+      { "role": "Responsables innovation", "sub": "et technologie", "tag": "Déploiement Smart Port" },
+      { "role": "Autres directeurs", "sub": "et cadres portuaires", "tag": "Pilotage opérationnel" },
+      { "role": "Acteurs du secteur", "sub": "Portuaire et paraportuaire", "tag": "Écosystème logistique" }
     ],
-    "formatsTitle": "Program formats",
-    "formatsSubtitle": "Four formats to learn, exchange and experience",
-    "publicTitle": "An event designed for",
-    "publicAccent": "port decision-makers",
-    "publicSubtitle": "A qualified audience, strategic and operational profiles"
+    "formatsTitle": "Les formats du programme",
+    "formatsSubtitle": "Quatre formats pour apprendre, échanger et expérimenter",
+    "publicTitle": "Un événement pensé pour",
+    "publicAccent": "les décideurs portuaires",
+    "publicSubtitle": "Une audience qualifiée, des profils stratégiques et opérationnels"
   },
   "programme": {
-    "kicker": "Timeline",
-    "titlePart1": "3 Days of",
-    "titlePart2": "Intense Sharing",
-    "description": "A structured programme to transform your approach to African port management.",
-    "downloadPdfButton": "Download the programme (PDF)",
+    "kicker": "Chronogramme",
+    "titlePart1": "3 Jours de",
+    "titlePart2": "Partages Intensifs",
+    "description": "Un programme structuré pour transformer votre approche de la gestion portuaire africaine.",
+    "downloadPdfButton": "Télécharger le programme (PDF)",
     "tabs": [
-      { "jour": "Day 1", "date": "Sept 15", "titre": "Smart African Port Vision" },
-      { "jour": "Day 2", "date": "Sept 16", "titre": "Operational Excellence, Security & Cybersecurity" },
-      { "jour": "Day 3", "date": "Sept 17", "titre": "Field Immersion" }
+      { "jour": "Jour 1", "date": "15 Sept.", "titre": "Vision Smart Port Africain" },
+      { "jour": "Jour 2", "date": "16 Sept.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité" },
+      { "jour": "Jour 3", "date": "17 Sept.", "titre": "Immersion Terrain" }
     ],
     "statLabel": "Sessions",
     "sessionLabel": "Sessions",
-    "viewDetails": "View details",
+    "viewDetails": "Voir le détail",
     "days": [
       {
-        "jour": "Day 1",
-        "date": "Sept 15",
-        "titre": "Smart African Port Vision",
-        "objectif": "Set the vision, assess where each port stands, and learn how to deploy a port tech project in practice.",
+        "jour": "Jour 1", "date": "15 Sept.", "titre": "Vision Smart Port Africain",
+        "objectif": "Comprendre le paysage technologique et identifier les opportunités",
         "accent": "#0073f4",
         "sessions": [
-          { "heure": "09:00 – 09:45", "type": "Plenary", "titre": "Opening remarks and presentation", "desc": "Welcome address and official launch of COPAF 2026.", "intervenant": "CRF Perfection / AGPAOC / ANP-UAPNA", "categorie": "Partner" },
-          { "heure": "10:15 – 11:30", "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specificities.", "intervenant": "Dr William ODAH", "categorie": "In-house" },
-          { "heure": "11:30 – 12:45", "type": "Organisational learning panel", "titre": "Digital maturity diagnosis", "desc": "Assess your port authority's digital maturity — flagship session, live on tablet.", "intervenant": "Dr William ODAH / Rénato TCHOBO", "categorie": "In-house" },
-          { "heure": "13:45 – 15:00", "type": "Case study workshop", "titre": "Deploying a port technology project", "desc": "ROI, business model, failure and success stories.", "intervenant": "Marc BIEGNIÉBÉ", "categorie": "Recruited" },
-          { "heure": "15:30 – 16:45", "type": "Reflection roundtable", "titre": "Automation & data governance", "desc": "Automating port operations with AI and building a Data-Driven culture.", "intervenant": "Rénato TCHOBO / Abiala MODESTE", "categorie": "In-house" }
+          { "heure": "09h00 – 09h45", "type": "Ouverture", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "—", "categorie": "Partenaire" },
+          { "heure": "10h15 – 11h30", "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Abiala", "categorie": "Recruté" },
+          { "heure": "11h30 – 12h45", "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire — session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Tchobo", "categorie": "Maison" },
+          { "heure": "13h45 – 15h00", "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Experts Maroc", "categorie": "Partenaire" },
+          { "heure": "15h30 – 16h45", "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Tchobo / M. Abiala", "categorie": "Maison" }
         ]
       },
       {
-        "jour": "Day 2",
-        "date": "Sept 16",
-        "titre": "Operational Excellence, Security & Cybersecurity",
-        "objectif": "Make operations smoother and safer, leveraging AI and port cybersecurity.",
+        "jour": "Jour 2", "date": "16 Sept.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
+        "objectif": "Rendre les opérations plus fluides et plus sûres, en s'appuyant sur l'IA et la cybersécurité portuaire",
         "accent": "#000e91",
         "sessions": [
-          { "heure": "09:00 – 10:30", "type": "Plenary", "titre": "Operational excellence: ETA & Hinterland", "desc": "Nautical operations, ETA prediction, Hinterland fluidity.", "intervenant": "Marc BIEGNIÉBÉ / Abiala MODESTE", "categorie": "Recruited" },
-          { "heure": "11:00 – 12:30", "type": "Organisational learning panel", "titre": "Security & Safety", "desc": "AI for automatic anomaly detection (scanners, video surveillance).", "intervenant": "Morocco Expert (to be confirmed)", "categorie": "Partner" },
-          { "heure": "13:30 – 14:15", "type": "Case study workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Dr Babel BALSOMI", "categorie": "Recruited" },
-          { "heure": "14:45 – 16:15", "type": "Reflection roundtable", "titre": "Roadmap", "desc": "Real-time steering & decision support — handout document and discussion time.", "intervenant": "Dr William ODAH", "categorie": "In-house" }
+          { "heure": "09h00 – 10h30", "type": "Plénière", "titre": "Opérations nautiques et gestion des transports multimodaux", "desc": "Prédictions des arrivées (ETA) et gestion intelligente des transports multimodaux (camions et ferroviaires).", "intervenant": "Marc Biegniébé", "categorie": "Recruté" },
+          { "heure": "11h00 – 12h30", "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
+          { "heure": "13h30 – 14h15", "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Expert Babel BALSOMI", "categorie": "Recruté" },
+          { "heure": "14h45 – 16h15", "type": "Table Ronde", "titre": "Feuille de route", "desc": "Pilotage en temps réel et aide à la décision.", "intervenant": "Dr ODAH", "categorie": "Maison" },
+          { "heure": "16h15", "type": "Clôture", "titre": "Remise d'attestation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
         ]
       },
       {
-        "jour": "Day 3",
-        "date": "Sept 17",
-        "titre": "Field Immersion",
-        "objectif": "See the Smart Port in practice, at the Port of Casablanca.",
+        "jour": "Jour 3", "date": "17 Sept.", "titre": "Immersion Terrain",
+        "objectif": "Voir le Smart Port en pratique, au Port de Casablanca",
         "accent": "#3391f6",
         "sessions": [
-          { "heure": "09:00 – 16:00", "type": "Technical Visit", "titre": "Technology immersion at the Port of Casablanca", "desc": "Smart Port demonstrations, applied AI, IT infrastructure.", "intervenant": "ANP / UAPNA Teams / Mr Tarik Maaouni", "categorie": "Partner" }
+          { "heure": "Journée", "type": "Visite Technique", "titre": "Immersion terrain", "desc": "Visite du Port de Casablanca, visite d'infrastructures IT & IA, réseautage.", "intervenant": "Équipes ANP / UAPNA", "categorie": "Partenaire" }
         ]
       }
     ]
   },
   "footer": {
     "title": "COPAF",
-    "tagline": "African Port Performance",
-    "description": "African Ports Conference. A strategic meeting to shape the future of African ports.",
-    "organizer": "Organised by CRF Perfection",
+    "tagline": "La Performance des Ports Africains",
+    "description": "Conférence des Ports Africains. Une rencontre stratégique pour façonner l'avenir portuaire africain.",
+    "organizer": "Organisé par CRF Perfection",
     "navigationTitle": "Navigation",
-    "navLinks": [
-      "About",
-      "Programme",
-      "Thematic Axes",
-      "Registration"
-    ],
+    "navLinks": ["À Propos", "Programme", "Axes Thématiques", "Inscription"],
     "contactTitle": "Contact",
-    "copyright": "© 2026 COPAF — CRF Perfection. All rights reserved.",
-    "location": "Casablanca, Morocco · Sept 15–17 2026"
+    "copyright": "© 2026 COPAF — CRF Perfection. Tous droits réservés.",
+    "location": "Casablanca, Maroc · 15–17 Septembre 2026"
   },
   "contact": {
     "eyebrow": "Contact",
-    "title": "Have a question? Contact us",
-    "subtitle": "Our team will reply quickly through the channel that suits you best.",
+    "title": "Une question ? Contactez-nous",
+    "subtitle": "Notre équipe vous répond rapidement, par le canal qui vous convient le mieux.",
     "cards": [
-      { "label": "Official email", "value": "contact@copaf-ports.com", "cta": "Write an email" },
-      { "label": "CRF Perfection email", "value": "contact@crfperfection.pro", "cta": "Write an email" },
-      { "label": "WhatsApp", "value": "+229 0169 30 30 19", "cta": "Chat on WhatsApp" },
-      { "label": "Phone", "value": "+1 (240) 978-4155", "cta": "Call" }
+      { "label": "Email officiel", "value": "contact@copaf-ports.com", "cta": "Écrire un email" },
+      { "label": "Email CRF Perfection", "value": "contact@crfperfection.pro", "cta": "Écrire un email" },
+      { "label": "WhatsApp", "value": "+229 0169 30 30 19", "cta": "Discuter sur WhatsApp" },
+      { "label": "Téléphone", "value": "+1 (240) 978-4155", "cta": "Appeler" }
     ],
-    "sectionOneTitle": "CRF Perfection — regional presence",
-    "sectionOneText": "Benin · Côte d'Ivoire · Togo · United States",
-    "sectionTwoTitle": "Always verify our bank details",
-    "sectionTwoText": "Before any transfer, confirm the official IBAN on copaf-ports.com/verifier.",
-    "emailSubject": "COPAF 2026 question",
-    "whatsappMessage": "Hello, I have a question about COPAF 2026."
+    "sectionOneTitle": "CRF Perfection — présence régionale",
+    "sectionOneText": "Bénin · Côte d'Ivoire · Togo · États-Unis",
+    "sectionTwoTitle": "Vérifiez toujours nos coordonnées bancaires",
+    "sectionTwoText": "Avant tout virement, confirmez le RIB officiel sur copaf-ports.com/verifier.",
+    "emailSubject": "Question COPAF 2026",
+    "whatsappMessage": "Bonjour, j'ai une question concernant la COPAF 2026."
   },
   "brochure": {
-    "button": "Download the brochure",
-    "modalTitle": "Download the brochure",
-    "modalSubtitle": "Complete COPAF 2026 programme",
-    "successTitle": "Download started!",
-    "successBody": "If the file did not open automatically, click below.",
-    "downloadAgain": "Download again",
-    "formIntro": "Enter your details to receive the brochure immediately (programme, thematic axes, terms, pricing).",
-    "labelName": "Full name *",
-    "placeholderName": "Your name",
-    "labelEmail": "Professional email *",
-    "placeholderEmail": "you@organisation.com",
-    "labelOrganization": "Organisation (optional)",
-    "placeholderOrganization": "Port / Company",
-    "error": "An error occurred. Try again, or download directly: ",
-    "submit": "Receive the brochure",
-    "submitLoading": "One moment...",
-    "note": "Your details are used only to inform you about COPAF 2026. No resale to third parties."
+    "button": "Télécharger la brochure",
+    "modalTitle": "Télécharger la brochure",
+    "modalSubtitle": "Programme complet COPAF 2026",
+    "successTitle": "Téléchargement lancé !",
+    "successBody": "Si le fichier ne s'est pas ouvert automatiquement, cliquez ci-dessous.",
+    "downloadAgain": "Télécharger à nouveau",
+    "formIntro": "Renseignez vos coordonnées pour recevoir immédiatement la brochure détaillée (programme, axes thématiques, modalités, tarifs).",
+    "labelName": "Nom complet *",
+    "placeholderName": "Votre nom",
+    "labelEmail": "Email professionnel *",
+    "placeholderEmail": "vous@organisation.com",
+    "labelOrganization": "Organisation (facultatif)",
+    "placeholderOrganization": "Port / Entreprise",
+    "error": "Une erreur est survenue. Réessayez, ou téléchargez directement : ",
+    "submit": "Recevoir la brochure",
+    "submitLoading": "Un instant...",
+    "note": "Vos coordonnées servent uniquement à vous informer sur la COPAF 2026. Aucune revente à des tiers."
   },
-  "flashInfoTicker": {
-    "title": "Ports already registered"
-  },
-  "partners": {
-    "eyebrow": "Strategic Partnerships",
-    "title": "They support COPAF 2026"
-  },
+  "flashInfoTicker": { "title": "Ports déjà inscrits" },
+  "partners": { "eyebrow": "Partenariats Stratégiques", "title": "Ils soutiennent la COPAF 2026" },
   "intervenants": {
     "eyebrow": "COPAF 2026",
-    "title": "Speakers",
-    "subtitle": "Experts gathered to share their expertise on port issues in Africa.",
-    "readBio": "Read biography",
-    "toConfirm": "To be confirmed",
-    "bioComingSoon": "Biography coming soon. This speaker will be announced shortly.",
-    "odahTitre": "Expert in Strategic Governance and Port Development",
-    "odahBio": "As Managing Director of CRF Perfection, Dr. William ODAH has spent many years supporting institutions and businesses across West Africa in their strategic governance, training and port development projects. He regularly works with public and private stakeholders in the maritime and logistics sector, with particular attention to organisational structuring and skills development. His expertise covers institutional change management, executive training and strategic support for high-stakes port projects.",
-    "biegniebeBio": "Marc Biegniébé is Managing Director of ANAXAR, a road transport company operating along the corridors linking the Port of Lomé to hinterland countries — Burkina Faso, Mali and Niger. With over 10 years of experience in port and cross-border logistics, he works on corridor fluidity, customs clearance and the digitalisation of transport in West Africa.",
-    "tchoboTitre": "Digital Transformation Expert & Digital Solutions Consultant",
-    "tchoboBio": "Rénato TCHOBO is Chief Digital & IT Officer at CRF Perfection, where he leads web development, digital strategy and the digital transformation of institutional and event-related projects. A freelance consultant in web development and community management, he designs and deploys complete digital platforms — from concept to production — for organisations based in Cotonou and internationally. His expertise covers structuring complex digital projects, process automation and strategic support for digital transformation."
+    "title": "Intervenants",
+    "subtitle": "Des experts réunis pour partager leur expertise sur les enjeux portuaires en Afrique.",
+    "readBio": "Lire la biographie",
+    "toConfirm": "À confirmer",
+    "bioComingSoon": "Biographie à venir. Cet intervenant sera annoncé prochainement.",
+    "odahTitre": "Expert en Gouvernance Stratégique et Développement Portuaire",
+    "odahBio": "Directeur Général de CRF Perfection, le Dr. William ODAH accompagne depuis de nombreuses années institutions et entreprises d'Afrique de l'Ouest dans leurs projets de gouvernance stratégique, de formation et de développement portuaire. Il intervient régulièrement auprès d'acteurs publics et privés du secteur maritime et logistique, avec une attention particulière portée à la structuration des organisations et au renforcement des compétences. Son expertise couvre la conduite du changement institutionnel, la formation des cadres et l'accompagnement stratégique des projets à fort enjeu portuaire.",
+    "biegniebeBio": "Marc Biegniébé est Directeur Général d'ANAXAR, entreprise de transport routier opérant sur les corridors reliant le port de Lomé aux pays de l'hinterland — Burkina Faso, Mali et Niger. Fort de plus de 10 ans d'expérience dans la chaîne logistique portuaire et transfrontalière, il intervient sur les enjeux de fluidité des corridors, de dédouanement et de digitalisation du transport en Afrique de l'Ouest.",
+    "tchoboTitre": "Expert en Transformation Digitale & Consultant en Solutions Numériques",
+    "tchoboBio": "Rénato TCHOBO est Chief Digital & IT Officer chez CRF Perfection, où il pilote le développement web, la stratégie digitale et la transformation numérique des projets institutionnels et événementiels. Consultant freelance en développement web et community management, il conçoit et déploie des plateformes numériques complètes — de la conception à la mise en production — pour des organisations basées à Cotonou et à l'international. Son expertise couvre la structuration de projets digitaux complexes, l'automatisation des processus et l'accompagnement stratégique de la transformation numérique."
   },
   "modules": {
-    "eyebrow": "Thematic Axes",
-    "titlePart1": "3 Days, 3 Axes at the heart of",
+    "eyebrow": "Axes Thématiques",
+    "titlePart1": "3 Jours, 3 Axes au cœur de la",
     "titlePart2": "COPAF 2026",
-    "subtitle": "Click on a day to discover its plenary, panel, workshop and roundtable.",
-    "ceQueVousAllez": "What you will master",
-    "kept": "At the end of COPAF 2026, each participant will be able to:",
-    "activitiesCount": "Activities",
-    "viewDetails": "View details",
-    "modalActivitiesTitle": "The day's activities",
-    "modalClose": "Close",
+    "subtitle": "Cliquez sur un jour pour découvrir sa plénière, son panel, son atelier et sa table ronde.",
+    "ceQueVousAllez": "Ce que vous allez maîtriser",
+    "kept": "À l'issue de la COPAF 2026, chaque participant sera en mesure de :",
+    "activitiesCount": "Activités",
+    "viewDetails": "Voir le détail",
+    "modalActivitiesTitle": "Les activités du jour",
+    "modalClose": "Fermer",
     "axes": [
       {
-        "num": "01",
-        "jour": "Day 1",
-        "date": "Sept 15",
-        "titre": "Smart African Port Vision",
-        "sousTitre": "Set the vision, assess where each port stands, and learn how to deploy a port tech project in practice.",
-        "level": "Vision & Strategy",
-        "duration": "8h15",
+        "num": "01", "jour": "Jour 1", "date": "15 Sept.", "titre": "Vision Smart Port Africain",
+        "sousTitre": "Comprendre le paysage technologique et identifier les opportunités",
+        "level": "Vision & Stratégie", "duration": "7h45",
         "activities": [
-          { "type": "Plenary", "titre": "Opening remarks and presentation", "desc": "Welcome address and official launch of COPAF 2026.", "intervenant": "CRF Perfection / AGPAOC / ANP-UAPNA" },
-          { "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specificities.", "intervenant": "Dr William ODAH" },
-          { "type": "Organisational learning panel", "titre": "Digital maturity diagnosis", "desc": "Flagship session, live on tablet.", "intervenant": "Dr William ODAH / Rénato TCHOBO" },
-          { "type": "Case study workshop", "titre": "Deploying a port technology project", "desc": "ROI, business model, failure and success stories.", "intervenant": "Marc BIEGNIÉBÉ" },
-          { "type": "Reflection roundtable", "titre": "Automation & data governance", "desc": "Automating port operations with AI and building a Data-Driven culture.", "intervenant": "Rénato TCHOBO / Abiala MODESTE" }
+          { "type": "Ouverture", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "—", "categorie": "Partenaire" },
+          { "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Abiala", "categorie": "Recruté" },
+          { "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Tchobo", "categorie": "Maison" },
+          { "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Experts Maroc", "categorie": "Partenaire" },
+          { "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Tchobo / M. Abiala", "categorie": "Maison" }
         ]
       },
       {
-        "num": "02",
-        "jour": "Day 2",
-        "date": "Sept 16",
-        "titre": "Operational Excellence, Security & Cybersecurity",
-        "sousTitre": "Make operations smoother and safer, leveraging AI and port cybersecurity.",
-        "level": "Operations & Security",
-        "duration": "7h15",
+        "num": "02", "jour": "Jour 2", "date": "16 Sept.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
+        "sousTitre": "Rendre les opérations plus fluides et plus sûres, en s'appuyant sur l'IA et la cybersécurité portuaire",
+        "level": "Opérations & Sécurité", "duration": "7h15",
         "activities": [
-          { "type": "Plenary", "titre": "Operational excellence: ETA & Hinterland", "desc": "Nautical operations, ETA prediction, Hinterland fluidity.", "intervenant": "Marc BIEGNIÉBÉ / Abiala MODESTE" },
-          { "type": "Organisational learning panel", "titre": "Security & Safety", "desc": "AI for automatic anomaly detection.", "intervenant": "Morocco Expert (to be confirmed)" },
-          { "type": "Case study workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Dr Babel BALSOMI" },
-          { "type": "Reflection roundtable", "titre": "Roadmap", "desc": "Real-time steering & decision support.", "intervenant": "Dr William ODAH" }
+          { "type": "Plénière", "titre": "Opérations nautiques et gestion des transports multimodaux", "desc": "Prédictions des arrivées (ETA) et gestion intelligente des transports multimodaux (camions et ferroviaires).", "intervenant": "Marc Biegniébé", "categorie": "Recruté" },
+          { "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
+          { "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Expert Babel BALSOMI", "categorie": "Recruté" },
+          { "type": "Table Ronde", "titre": "Feuille de route", "desc": "Pilotage en temps réel et aide à la décision.", "intervenant": "Dr ODAH", "categorie": "Maison" },
+          { "type": "Clôture", "titre": "Remise d'attestation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
         ]
       },
       {
-        "num": "03",
-        "jour": "Day 3",
-        "date": "Sept 17",
-        "titre": "Field Immersion",
-        "sousTitre": "See the Smart Port in practice, at the Port of Casablanca.",
-        "level": "Field & Practice",
-        "duration": "7h",
+        "num": "03", "jour": "Jour 3", "date": "17 Sept.", "titre": "Immersion Terrain",
+        "sousTitre": "Voir le Smart Port en pratique, au Port de Casablanca",
+        "level": "Terrain & Pratique", "duration": "7h",
         "activities": [
-          { "type": "Technical Visit", "titre": "Technology immersion at the Port of Casablanca", "desc": "Smart Port demonstrations, applied AI, IT infrastructure.", "intervenant": "ANP / UAPNA Teams / Mr Tarik Maaouni" }
+          { "type": "Visite Technique", "titre": "Immersion terrain", "desc": "Visite du Port de Casablanca, visite d'infrastructures IT & IA, réseautage.", "intervenant": "Équipes ANP / UAPNA", "categorie": "Partenaire" }
         ]
       }
     ],
     "outcomes": [
-      { "num": "01", "text": "Understand the fundamentals of AI and data science applied to ports" },
-      { "num": "02", "text": "Design and structure an AI project adapted to African port management" },
-      { "num": "03", "text": "Use predictive data to anticipate logistics flows" },
-      { "num": "04", "text": "Integrate AI into daily terminal operations" },
-      { "num": "05", "text": "Identify productivity levers: waiting time, maintenance, congestion" },
-      { "num": "06", "text": "Master data governance and port cybersecurity" },
-      { "num": "07", "text": "Position the port as a high-performing link in African trade corridors" }
+      { "num": "01", "text": "Comprendre les fondamentaux de l'IA et de la data science appliquée aux ports" },
+      { "num": "02", "text": "Concevoir et structurer un projet IA adapté à la gestion portuaire africaine" },
+      { "num": "03", "text": "Utiliser les données prédictives pour anticiper les flux logistiques" },
+      { "num": "04", "text": "Intégrer l'IA dans la gestion opérationnelle quotidienne des terminaux" },
+      { "num": "05", "text": "Identifier les gisements de productivité : temps d'attente, maintenance, congestion" },
+      { "num": "06", "text": "Maîtriser la gouvernance de la donnée et la cybersécurité portuaire" },
+      { "num": "07", "text": "Positionner le port comme maillon performant des corridors de commerce africains" }
     ]
   },
   "inscription": {
-    "kicker": "Join COPAF 2026",
-    "cta": "Register",
-    "stepTitle1": "Choose your participation",
-    "stepTitle2": "Registration form",
-    "subtitle1": "Select the category matching your profile.",
-    "subtitle2": "Fill in the form. Secure payment by bank transfer.",
-    "tutoButton": "Watch the video tutorial: how to register",
-    "backButton": "← Change category",
+    "kicker": "Rejoindre la COPAF 2026",
+    "cta": "S'inscrire",
+    "stepTitle1": "Choisissez votre participation",
+    "stepTitle2": "Formulaire d'inscription",
+    "subtitle1": "Sélectionnez la catégorie correspondant à votre profil.",
+    "subtitle2": "Remplissez le formulaire. Paiement sécurisé par virement bancaire.",
+    "tutoButton": "Voir le tutoriel vidéo : comment s'inscrire",
+    "backButton": "← Changer de catégorie",
     "types": {
-      "participant": { "label": "Participant", "sublabel": "I am attending the conference", "desc": "Ports, port authorities, logistics operators, shippers and maritime professionals.", "tag": "per person", "cta": "Register now" },
-      "sponsor": { "label": "Sponsor / Partner", "sublabel": "Visibility & partnership", "desc": "Platinum, Gold, Silver, Bronze sponsorships or institutional, media, academic partnership.", "tag": "sponsors & partners", "cta": "View offers" },
-      "exposant": { "label": "Digital Exhibitor", "sublabel": "Digital showcase for your solutions", "desc": "100% digital exhibition on the COPAF website and on participant tablets.", "tag": "digital - website + tablets", "cta": "View packages" }
+      "participant": { "label": "Participant", "sublabel": "Je participe à la conférence", "desc": "Ports, autorités portuaires, logisticiens, shippers et tout professionnel du maritime.", "tag": "par personne", "cta": "S'inscrire maintenant" },
+      "sponsor": { "label": "Sponsor / Partenaire", "sublabel": "Visibilité & partenariat", "desc": "Sponsors Platine, Or, Argent, Bronze ou partenariat institutionnel, media, académique.", "tag": "sponsors & partenaires", "cta": "Voir les offres" },
+      "exposant": { "label": "Exposant Digital", "sublabel": "Vitrine digitale de vos solutions", "desc": "Exposition 100% digitale sur le site COPAF et les tablettes distribuées aux participants.", "tag": "digital - site + tablettes", "cta": "Voir les formules" }
     },
-    "pageDediee": "Dedicated page →",
-    "voirInclus": "See what is included",
-    "inclusTitle": "What's included",
-    "inclusTarif": "Participant rate — EUR 3,500",
+    "pageDediee": "Page dédiée →",
+    "voirInclus": "Voir ce qui est inclus",
+    "inclusTitle": "Ce qui est inclus",
+    "inclusTarif": "Tarif Participant — 3 500 EUR",
     "inclusList": [
-      "Airport welcome and hotel check-in",
-      "Airport ↔ Hotel shuttle (round trip)",
-      "4-night stay in a 4-star hotel",
-      "Breakfast & lunch during the 3 days",
-      "Access to conferences, workshops & networking",
-      "Guided tour of the Port of Casablanca",
-      "Pre-loaded tablet with case studies",
-      "Attendance certificate"
+      "Accueil à l'aéroport et installation à l'hôtel",
+      "Navette Aéroport ↔ Hôtel (aller-retour)",
+      "Hébergement 4 nuits en Hôtel 4 étoiles",
+      "Petit-déjeuner & déjeuner pendant les 3 jours",
+      "Accès aux conférences, ateliers & networking",
+      "Visite guidée du port de Casablanca",
+      "Tablette préchargée avec études de cas",
+      "Attestation de participation"
     ],
-    "formTitle": "Your information",
+    "formTitle": "Vos informations",
     "fields": {
-      "nom": "Last name *",
-      "prenom": "First name *",
-      "email": "Email *",
-      "telephone": "Phone *",
-      "organisation": "Organisation *",
-      "poste": "Position *",
-      "pays": "Country *",
-      "participants": "Number of participants"
+      "nom": "Nom *", "prenom": "Prénom *", "email": "Email *", "telephone": "Téléphone *",
+      "organisation": "Organisation *", "poste": "Poste *", "pays": "Pays *", "participants": "Nombre de participants"
     },
     "placeholders": {
-      "nom": "Your last name",
-      "prenom": "Your first name",
-      "email": "your@email.com",
-      "telephone": "+229 01 XX XX XX",
-      "organisation": "Port / Company",
-      "poste": "Your role"
+      "nom": "Votre nom", "prenom": "Votre prénom", "email": "votre@email.com",
+      "telephone": "+229 01 XX XX XX", "organisation": "Port / Entreprise", "poste": "Votre fonction"
     },
-    "paysPlaceholder": "Select your country",
-    "photoLabel": "Photo (for your participant badge)",
-    "photoChoose": "Choose a photo",
-    "photoChange": "Change photo",
-    "photoHint": "Optional at this stage — used to generate your badge once registration is confirmed. Portrait format recommended.",
-    "messageLabel": "Message / Specific needs",
-    "messagePlaceholder": "Questions, dietary needs, accessibility...",
-    "paiementLabel": "Payment method *",
+    "paysPlaceholder": "Sélectionnez votre pays",
+    "photoLabel": "Photo (pour votre badge participant)",
+    "photoChoose": "Choisir une photo",
+    "photoChange": "Changer la photo",
+    "photoHint": "Facultatif à ce stade — utilisé pour générer votre badge une fois l'inscription confirmée. Format portrait recommandé.",
+    "messageLabel": "Message / Besoins spécifiques",
+    "messagePlaceholder": "Questions, besoins alimentaires, accessibilité...",
+    "paiementLabel": "Mode de paiement *",
     "paiementOpts": [
-      { "value": "maintenant", "title": "Pay now", "desc": "Bank transfer within 7 business days" },
-      { "value": "plus_tard", "title": "Reserve my spot", "desc": "Payment before August 31, 2026" }
+      { "value": "maintenant", "title": "Payer maintenant", "desc": "Virement sous 7 jours ouvrables" },
+      { "value": "plus_tard", "title": "Réserver ma place", "desc": "Paiement avant le 31 août 2026" }
     ],
-    "beforeSubmitTitle": "Before you confirm",
-    "beforeSubmit1": "Registrations are firm and final: no refunds, whatever the reason (a colleague may replace you with 72h notice).",
-    "beforeSubmit2": "After your confirmation email, contact us on WhatsApp or email to finalise payment.",
-    "securityTitle": "🔒 Payment security",
-    "securityText": "Before making any transfer, always verify our official bank details on our secure page copaf-ports.com/verifier. Any transfer request to a bank account not listed on this page should be considered suspicious.",
-    "cgvLabel": "I have read and accept the ",
-    "cgvLink": "terms and conditions of sale",
-    "cgvSuffix": ", including the no-refund policy.",
-    "rgpdLabel": "I accept the processing of my data in accordance with the ",
-    "rgpdLink": "privacy policy",
+    "beforeSubmitTitle": "À savoir avant de valider",
+    "beforeSubmit1": "Les inscriptions sont fermes et définitives : aucun remboursement, quel que soit le motif (un collègue peut vous remplacer avec notification 72h avant).",
+    "beforeSubmit2": "Après votre email de confirmation, contactez-nous par WhatsApp ou email pour finaliser le paiement.",
+    "securityTitle": "🔒 Sécurité de vos paiements",
+    "securityText": "Avant tout virement, vérifiez toujours nos coordonnées bancaires officielles sur notre page sécurisée copaf-ports.com/verifier. Toute demande de virement vers un RIB non listé sur cette page doit être considérée comme suspecte.",
+    "cgvLabel": "J'ai lu et j'accepte les ",
+    "cgvLink": "conditions générales de vente",
+    "cgvSuffix": " incluant la politique de non-remboursement.",
+    "rgpdLabel": "J'accepte le traitement de mes données conformément à la ",
+    "rgpdLink": "politique de confidentialité",
     "rgpdSuffix": ".",
-    "submitPay": "Confirm my registration",
-    "submitReserve": "Reserve my spot",
-    "submitLoading": "Sending...",
-    "secureNote": "100% secure payment by bank transfer. No credit card required.",
-    "successTitlePay": "Registration recorded!",
-    "successTitleReserve": "Spot reserved!",
-    "successThanks": "Thank you",
-    "downloadPdf": "Download my summary (PDF)",
-    "dossierLabel": "Reference number",
-    "actionTitle": "Action required - Contact us to finalise",
-    "actionText": "After receiving your confirmation email, you must contact us on WhatsApp or email to validate your registration and receive the transfer instructions.",
-    "nextStepsTitle": "Next steps",
+    "submitPay": "Confirmer mon inscription",
+    "submitReserve": "Réserver ma place",
+    "submitLoading": "Envoi en cours...",
+    "secureNote": "Paiement 100% sécurisé par virement bancaire. Aucune carte bancaire requise.",
+    "successTitlePay": "Inscription enregistrée !",
+    "successTitleReserve": "Place réservée !",
+    "successThanks": "Merci",
+    "downloadPdf": "Télécharger mon récapitulatif (PDF)",
+    "dossierLabel": "Numéro de dossier",
+    "actionTitle": "Action obligatoire - Contactez-nous pour finaliser",
+    "actionText": "Après réception de votre email de confirmation, vous devez obligatoirement nous contacter par WhatsApp ou email pour valider votre inscription et recevoir les instructions de virement.",
+    "nextStepsTitle": "Prochaines étapes",
     "steps": [
-      "Automatic confirmation email sent",
-      "You contact us on WhatsApp or email",
-      "You receive the transfer instructions",
-      "Badge and participant access sent after payment"
+      "Email de confirmation automatique envoyé",
+      "Vous nous contactez par WhatsApp ou email",
+      "Réception des instructions de virement",
+      "Badge et accès participant envoyés après paiement"
     ],
-    "verifyRib": "Always check the bank details before paying on our dedicated page.",
-    "verifyNow": "Verify now →",
-    "reminderTitle": "Reminder:",
-    "reminderText": " Registrations are firm and final. No refunds will be issued. In case of impediment, you may be replaced by a colleague (72h notice required)."
+    "verifyRib": "Vérifiez toujours le RIB avant de payer sur notre page dédiée.",
+    "verifyNow": "Vérifier maintenant →",
+    "reminderTitle": "Rappel :",
+    "reminderText": " Les inscriptions sont fermes et définitives. Aucun remboursement ne sera effectué. En cas d'empêchement, vous pouvez vous faire remplacer par un collègue (notification 72h avant)."
   }
 }
