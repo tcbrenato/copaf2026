@@ -6,9 +6,9 @@ const intervenants = [
     initiales: 'AM',
     photo: '/abialamodeste.png',
     nom: 'M. Abiala MODESTE',
-    titre: 'Plénière : L\'IA au cœur de la révolution du Smart Port',
-    organisationKey: 'toConfirm',
-    bioKey: 'bioComingSoon',
+    titre: 'Directeur Commercial',
+    organisation: 'Bolloré Transport & Logistics',
+    bioKey: 'abialaBio',
   },
   {
     initiales: 'EM',
