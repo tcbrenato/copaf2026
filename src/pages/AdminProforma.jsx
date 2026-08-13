@@ -35,6 +35,7 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
     trash:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
     users:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
     user:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+    tag:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
   }
   return icons[name] || null
 }
@@ -48,6 +49,30 @@ const newParticipantRow = () => ({
   _id: `p_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
   prenom: '', nom: '', fonction: '', tarif: 3500, dossier: '',
 })
+
+// Badge affiche uniquement cote secretariat (jamais visible participant) —
+// permet de savoir en un coup d'oeil si le tarif preferentiel ANP/UAPNA a
+// ete applique, et par quel canal (pays automatique ou code partenaire).
+function TarifBadge({ tarifType, codePromo }) {
+  if (!tarifType) return null
+  const estPreferentiel = tarifType === 'preferentiel'
+  const bg = estPreferentiel ? '#ecfdf5' : '#f1f5f9'
+  const color = estPreferentiel ? '#059669' : '#64748b'
+  const border = estPreferentiel ? '#6ee7b7' : '#e2e8f0'
+  const label = estPreferentiel
+    ? `Tarif préférentiel${codePromo ? ` — code ${codePromo}` : ' — pays UAPNA/ANP'}`
+    : 'Tarif standard'
+  return (
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      background: bg, border: `1.5px solid ${border}`, borderRadius: 20,
+      padding: '4px 12px', fontSize: 11.5, fontWeight: 700, color, marginBottom: 14,
+    }}>
+      <Ico name="tag" size={13} color={color} />
+      {label}
+    </div>
+  )
+}
 
 export default function AdminProforma() {
   const [dossierInput, setDossierInput] = useState('')
@@ -155,7 +180,7 @@ export default function AdminProforma() {
     setLoading(true); setError(''); setData(null)
     const { data: rows, error: err } = await supabase
       .from('inscriptions')
-      .select('dossier, participants, montant, paiement_status, note_interne, numero_facture, delegation_nom, participants_liste, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
+      .select('dossier, participants, montant, paiement_status, note_interne, numero_facture, delegation_nom, participants_liste, tarif_type, code_promo, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
       .eq('dossier', dossier.trim())
       .limit(1)
 
@@ -170,6 +195,8 @@ export default function AdminProforma() {
       statut: row.paiement_status,
       noteInterne: row.note_interne || '',
       numeroFacture: row.numero_facture || null,
+      tarifType: row.tarif_type || null,
+      codePromo: row.code_promo || '',
       nom: row.contacts?.nom || '',
       prenom: row.contacts?.prenom || '',
       organisation: row.contacts?.organisation || '',
@@ -569,12 +596,15 @@ export default function AdminProforma() {
         <>
           {/* Fiche dossier */}
           <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, flexWrap: 'wrap', gap: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 1.5, textTransform: 'uppercase' }}>Dossier {data.dossier}</div>
               <button onClick={() => { setData(null); setDossierInput(''); setBrowseResults([]); setBrowseSearched(false) }} style={{ background: 'none', border: 'none', fontSize: 12, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
                 &larr; Nouvelle recherche
               </button>
             </div>
+
+            {/* Tracabilite tarif — visible UNIQUEMENT ici, cote secretariat */}
+            <TarifBadge tarifType={data.tarifType} codePromo={data.codePromo} />
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
               <div><label style={labelStyle}>Prénom</label><input style={inputStyle} value={data.prenom} onChange={e => handleField('prenom', e.target.value)} /></div>
