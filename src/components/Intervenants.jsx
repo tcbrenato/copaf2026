@@ -72,8 +72,6 @@ const Intervenants = () => {
   const { t } = useTranslation()
   const [activeModal, setActiveModal] = useState(null)
 
-  // Résout titre/organisation/bio : soit la valeur statique fixe (bios confirmées),
-  // soit une clé i18n à traduire (placeholders "À confirmer" / "Biographie à venir")
   const resolve = (p) => ({
     ...p,
     titre: p.titre ?? t(`intervenants.${p.titreKey}`),
@@ -83,75 +81,88 @@ const Intervenants = () => {
 
   return (
     <section id="formateurs" style={{
-      padding: 'clamp(80px, 10vw, 130px) clamp(20px, 5vw, 80px)',
-      fontFamily: "'Roboto', 'Helvetica Neue', sans-serif",
+      padding: 'clamp(80px, 10vw, 130px) clamp(20px, 5vw, 40px)',
+      fontFamily: "'Inter', 'Roboto', sans-serif",
       position: 'relative',
       overflow: 'hidden',
       backgroundImage: 'url(/bg2.png)',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
     }}>
-
-      {/* Overlay */}
+      {/* Overlay subtil */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'rgba(248,249,255,0.90)',
+        background: 'linear-gradient(180deg, rgba(248,249,255,0.95) 0%, rgba(240,244,255,0.98) 100%)',
         zIndex: 0,
       }} />
 
       <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
         {/* En-tête */}
-        <div style={{ textAlign: 'center', marginBottom: 56 }}>
-          <div style={{
+        <div style={{ textAlign: 'center', marginBottom: 64 }}>
+          <span style={{
             display: 'inline-block',
-            fontSize: 11, fontWeight: 700, letterSpacing: 3,
-            textTransform: 'uppercase', color: '#0073f4', marginBottom: 14,
+            padding: '6px 16px',
+            borderRadius: '50px',
+            background: 'rgba(0, 115, 244, 0.1)',
+            fontSize: 12, fontWeight: 700, letterSpacing: 2,
+            textTransform: 'uppercase', color: '#0073f4', marginBottom: 16,
           }}>
             {t('intervenants.eyebrow')}
-          </div>
+          </span>
           <h2 style={{
-            fontSize: 'clamp(32px, 4vw, 52px)',
-            fontWeight: 900,
-            color: '#000e91',
-            margin: '0 0 18px',
-            lineHeight: 1.1,
+            fontSize: 'clamp(30px, 4vw, 46px)',
+            fontWeight: 800,
+            color: '#0a1128',
+            margin: '0 0 16px',
             letterSpacing: '-0.02em',
           }}>
             {t('intervenants.title')}
           </h2>
           <p style={{
-            fontSize: 16, color: '#555',
-            maxWidth: 560, margin: '0 auto', lineHeight: 1.7,
+            fontSize: 16, color: '#475569',
+            maxWidth: 600, margin: '0 auto', lineHeight: 1.6,
           }}>
             {t('intervenants.subtitle')}
           </p>
         </div>
 
-        {/* Grille */}
+        {/* Grille des intervenants */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: 28,
+          gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))',
+          gap: 30,
         }}>
           {intervenants.map((raw, i) => {
             const p = resolve(raw)
             return (
-              <div key={i} className="intervenant-card" onClick={() => setActiveModal(p)} style={{ cursor: 'pointer' }}>
-                <div
-                  className="intervenant-card-inner"
-                  onMouseEnter={e => {
-                    e.currentTarget.parentElement.style.transform = 'translateY(-5px)'
-                    e.currentTarget.parentElement.style.boxShadow = '0 16px 40px rgba(0,14,145,0.14)'
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.parentElement.style.transform = 'translateY(0)'
-                    e.currentTarget.parentElement.style.boxShadow = '0 4px 20px rgba(0,14,145,0.06)'
-                  }}
-                >
-                {/* Photo carrée en grand format, pleine largeur */}
-                <div style={{ width: '100%', aspectRatio: '1 / 1', position: 'relative', background: '#EBF3FF' }}>
+              <div 
+                key={i} 
+                onClick={() => setActiveModal(p)}
+                style={{
+                  background: '#ffffff',
+                  borderRadius: 20,
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  border: '1px solid rgba(0, 115, 244, 0.08)',
+                  boxShadow: '0 10px 30px -5px rgba(0, 14, 145, 0.05)',
+                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-8px)'
+                  e.currentTarget.style.boxShadow = '0 20px 40px -10px rgba(0, 115, 244, 0.15)'
+                  e.currentTarget.style.borderColor = 'rgba(0, 115, 244, 0.3)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  e.currentTarget.style.boxShadow = '0 10px 30px -5px rgba(0, 14, 145, 0.05)'
+                  e.currentTarget.style.borderColor = 'rgba(0, 115, 244, 0.08)'
+                }}
+              >
+                {/* Photo */}
+                <div style={{ width: '100%', aspectRatio: '1 / 1', position: 'relative', overflow: 'hidden', background: '#f1f5f9' }}>
                   {p.photo ? (
                     <img
                       src={p.photo}
@@ -159,154 +170,108 @@ const Intervenants = () => {
                       style={{
                         width: '100%', height: '100%',
                         objectFit: 'cover',
-                        display: 'block',
+                        transition: 'transform 0.5s ease',
                       }}
+                      onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+                      onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                     />
                   ) : (
                     <div style={{
                       width: '100%', height: '100%',
                       background: 'linear-gradient(135deg, #000e91, #0073f4)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: '#FFFFFF', fontSize: 48, fontWeight: 700,
-                      letterSpacing: 1,
+                      color: '#FFFFFF', fontSize: 40, fontWeight: 700,
                     }}>
                       {p.initiales}
                     </div>
                   )}
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 5, background: 'linear-gradient(90deg, #000e91, #0073f4)' }} />
                 </div>
 
-                <div style={{ padding: '24px 28px 30px' }}>
-                  {/* Nom & titre */}
+                {/* Contenu */}
+                <div style={{ padding: '22px 24px 24px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
                   <h3 style={{
-                    fontSize: 22, fontWeight: 800,
-                    color: '#000e91', margin: '0 0 6px', lineHeight: 1.2,
-                    letterSpacing: '-0.01em',
+                    fontSize: 18, fontWeight: 700,
+                    color: '#0a1128', margin: '0 0 6px',
                   }}>
                     {p.nom}
                   </h3>
+                  
                   <div style={{
                     fontSize: 13, fontWeight: 600,
                     color: '#0073f4',
-                    letterSpacing: 0.3, lineHeight: 1.5,
-                    marginBottom: 8,
+                    lineHeight: 1.4,
+                    marginBottom: 12,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
                   }}>
                     {p.titre}
                   </div>
-                  <div style={{ fontSize: 12, color: '#888', letterSpacing: 0.3, marginBottom: 10 }}>
+
+                  <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500, marginBottom: 'auto', paddingBottom: 16 }}>
                     {p.organisation}
                   </div>
+
                   <div style={{
-                    fontSize: 12, fontWeight: 700, color: '#0073f4',
+                    fontSize: 13, fontWeight: 600, color: '#000e91',
                     display: 'flex', alignItems: 'center', gap: 6,
+                    paddingTop: 12, borderTop: '1px solid #f1f5f9',
                   }}>
                     {t('intervenants.readBio')}
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0073f4" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    <span style={{ transition: 'transform 0.2s' }}>→</span>
                   </div>
-                </div>
                 </div>
               </div>
             )
           })}
         </div>
 
-        <style>{`
-          .intervenant-card {
-            position: relative;
-            border-radius: 17px;
-            padding: 1.5px;
-            overflow: hidden;
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-            box-shadow: 0 4px 20px rgba(0,14,145,0.06);
-          }
-          .intervenant-card::before {
-            content: '';
-            position: absolute;
-            inset: -60%;
-            background: conic-gradient(
-              from 0deg,
-              transparent 0deg,
-              transparent 300deg,
-              #4DA6FF 330deg,
-              #0073f4 345deg,
-              #000e91 355deg,
-              transparent 360deg
-            );
-            animation: intervenant-border-spin 3.2s linear infinite;
-          }
-          .intervenant-card-inner {
-            position: relative;
-            z-index: 1;
-            background: rgba(255,255,255,0.96);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-          }
-          @keyframes intervenant-border-spin {
-            to { transform: rotate(360deg); }
-          }
-          .intervenant-modal-overlay {
-            position: fixed; inset: 0;
-            background: rgba(15,23,42,.55);
-            backdrop-filter: blur(6px);
-            z-index: 10000;
-            display: flex; align-items: center; justify-content: center;
-            padding: 20px;
-            animation: intervenant-fade-in .2s ease;
-          }
-          .intervenant-modal-box {
-            background: #fff;
-            border-radius: 22px;
-            width: 100%;
-            max-width: 560px;
-            max-height: 86vh;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 24px 60px rgba(0,0,0,.2);
-            animation: intervenant-slide-up .3s ease;
-            display: flex;
-            flex-direction: column;
-          }
-          .intervenant-modal-photo {
-            width: 100%;
-            height: clamp(180px, 32vh, 280px);
-            flex-shrink: 0;
-            position: relative;
-            background: #EBF3FF;
-          }
-          .intervenant-modal-body {
-            overflow-y: auto;
-            padding: 28px 32px 36px;
-          }
-          @keyframes intervenant-fade-in { from { opacity: 0; } to { opacity: 1; } }
-          @keyframes intervenant-slide-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-        `}</style>
-
+        {/* Modal Améliorée */}
         {activeModal && (
-          <div className="intervenant-modal-overlay" onClick={() => setActiveModal(null)}>
-            <div className="intervenant-modal-box" onClick={e => e.stopPropagation()}>
+          <div style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(10, 17, 40, 0.6)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 20,
+            animation: 'fadeIn 0.2s ease',
+          }} onClick={() => setActiveModal(null)}>
+            <div 
+              style={{
+                background: '#fff',
+                borderRadius: 24,
+                width: '100%',
+                maxWidth: 540,
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                position: 'relative',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+              onClick={e => e.stopPropagation()}
+            >
               <button
                 onClick={() => setActiveModal(null)}
                 style={{
-                  position: 'absolute', top: 16, right: 16, zIndex: 2,
-                  background: 'rgba(255,255,255,0.9)', border: 'none',
-                  width: 34, height: 34, borderRadius: '50%', cursor: 'pointer',
+                  position: 'absolute', top: 16, right: 16, zIndex: 10,
+                  background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(4px)',
+                  border: '1px solid rgba(0,0,0,0.05)',
+                  width: 36, height: 36, borderRadius: '50%', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 2px 8px rgba(0,0,0,.15)',
+                  color: '#0a1128', fontWeight: 'bold',
                 }}
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                ✕
               </button>
 
-              <div className="intervenant-modal-photo">
+              <div style={{ width: '100%', height: 260, background: '#f1f5f9', position: 'relative' }}>
                 {activeModal.photo ? (
                   <img
                     src={activeModal.photo}
                     alt={activeModal.nom}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 20%', display: 'block' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 ) : (
                   <div style={{
@@ -320,17 +285,17 @@ const Intervenants = () => {
                 )}
               </div>
 
-              <div className="intervenant-modal-body">
-                <h3 style={{ fontSize: 24, fontWeight: 900, color: '#000e91', margin: '0 0 6px', letterSpacing: '-0.01em' }}>
+              <div style={{ padding: '32px' }}>
+                <h3 style={{ fontSize: 24, fontWeight: 800, color: '#0a1128', margin: '0 0 6px' }}>
                   {activeModal.nom}
                 </h3>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#0073f4', marginBottom: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#0073f4', marginBottom: 4 }}>
                   {activeModal.titre}
                 </div>
-                <div style={{ fontSize: 13, color: '#888', marginBottom: 20 }}>
+                <div style={{ fontSize: 13, color: '#64748b', fontWeight: 500, marginBottom: 24, paddingBottom: 16, borderBottom: '1px solid #f1f5f9' }}>
                   {activeModal.organisation}
                 </div>
-                <p style={{ fontSize: 14.5, color: '#334155', lineHeight: 1.8 }}>
+                <p style={{ fontSize: 15, color: '#334155', lineHeight: 1.7, margin: 0 }}>
                   {activeModal.bio}
                 </p>
               </div>
@@ -339,6 +304,11 @@ const Intervenants = () => {
         )}
 
       </div>
+
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </section>
   )
 }
