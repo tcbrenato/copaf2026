@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 const intervenants = [
   {
     initiales: 'AM',
-    photo: '/intervenant3.png',
+    photo: '/abialamodeste.png',
     nom: 'M. Abiala MODESTE',
     titre: 'Plénière : L\'IA au cœur de la révolution du Smart Port',
     organisationKey: 'toConfirm',
@@ -12,7 +12,7 @@ const intervenants = [
   },
   {
     initiales: 'EM',
-    photo: '/intervenant4.png',
+    photo: '/intervenant2.png',
     nom: 'Expert Maroc',
     titre: 'Atelier : Modèle économique de développement d\'un projet technologique portuaire',
     organisationKey: 'toConfirm',
@@ -20,7 +20,7 @@ const intervenants = [
   },
   {
     initiales: 'WO',
-    photo: '/intervenant2.png',
+    photo: '/drodah.png',
     nom: 'Dr. William ODAH',
     titre: 'Directeur Général',
     organisation: 'CRF Perfection',
@@ -28,7 +28,7 @@ const intervenants = [
   },
   {
     initiales: 'BB',
-    photo: '/intervenant6.png',
+    photo: '/babelbalsomi.png',
     nom: 'Babel BALSOMI',
     titre: 'CEO & Experte en Cybersécurité Offensive et Transformation Digitale',
     organisation: 'Hiero Digital International',
@@ -36,7 +36,7 @@ const intervenants = [
   },
   {
     initiales: 'EM',
-    photo: '/intervenant5.png',
+    photo: '/intervenant3.png',
     nom: 'Expert Maroc',
     titre: 'Panel : Sécurité & Sûreté — détection automatique des anomalies',
     organisationKey: 'toConfirm',
@@ -52,7 +52,7 @@ const intervenants = [
   },
   {
     initiales: 'TM',
-    photo: '/intervenant7.png',
+    photo: '/intervenant2.png',
     nom: 'M. Tarik Maaouni',
     titre: 'Directeur Organisation et Systèmes d\'Information',
     organisation: 'ANP',
@@ -60,7 +60,7 @@ const intervenants = [
   },
   {
     initiales: 'RT',
-    photo: '/renatoint.png',
+    photo: '/renatotchobo.png',
     nom: 'Rénato TCHOBO',
     titreKey: 'tchoboTitre',
     organisation: 'CRF Perfection',
