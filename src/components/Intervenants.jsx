@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 const intervenants = [
   {
     initiales: 'AM',
-    photo: '/abialamodeste.png',
+    photo: '/modeste.png',
     nom: 'M. Abiala MODESTE',
     titre: 'Directeur Commercial',
     organisation: 'Bolloré Transport & Logistics',
@@ -20,7 +20,7 @@ const intervenants = [
   },
   {
     initiales: 'WO',
-    photo: '/drodah.png',
+    photo: '/william.png',
     nom: 'Dr. William ODAH',
     titre: 'Directeur Général',
     organisation: 'CRF Perfection',
@@ -28,7 +28,7 @@ const intervenants = [
   },
   {
     initiales: 'BB',
-    photo: '/babelbalsomi.png',
+    photo: '/babel.png',
     nom: 'Babel BALSOMI',
     titre: 'CEO & Experte en Cybersécurité Offensive et Transformation Digitale',
     organisation: 'Hiero Digital International',
@@ -60,7 +60,7 @@ const intervenants = [
   },
   {
     initiales: 'RT',
-    photo: '/renatotchobo.png',
+    photo: '/renato.png',
     nom: 'Rénato TCHOBO',
     titreKey: 'tchoboTitre',
     organisation: 'CRF Perfection',
