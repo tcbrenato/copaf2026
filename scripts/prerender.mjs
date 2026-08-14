@@ -26,6 +26,23 @@ const ROUTES = [
   '/verifier',
 ]
 
+// Domaines de tracking/analytics tiers a bloquer pendant le prerendu.
+// Ces scripts maintiennent souvent des connexions reseau ouvertes en
+// continu (beacons, pixels, websockets), ce qui empeche Puppeteer
+// d'atteindre l'etat "networkidle" et fait timeout la navigation.
+// Ce blocage n'affecte QUE le prerendu : les vrais visiteurs du site
+// chargeront ces scripts normalement.
+const BLOCKED_DOMAINS = [
+  'googletagmanager.com',
+  'google-analytics.com',
+  'analytics.google.com',
+  'linkedin.com',
+  'px.ads.linkedin.com',
+  'facebook.net',
+  'connect.facebook.net',
+  'doubleclick.net',
+]
+
 function waitForServer(url, timeoutMs = 20000) {
   return new Promise((resolve, reject) => {
     const start = Date.now()
@@ -60,10 +77,23 @@ async function main() {
 
     for (const route of ROUTES) {
       const page = await browser.newPage()
+
+      // Bloque les domaines de tracking pour eviter les connexions
+      // reseau persistantes qui empechent l'etat "idle".
+      await page.setRequestInterception(true)
+      page.on('request', (req) => {
+        const url = req.url()
+        if (BLOCKED_DOMAINS.some(domain => url.includes(domain))) {
+          req.abort()
+        } else {
+          req.continue()
+        }
+      })
+
       const url = `${BASE_URL}${route}`
       console.log('[prerender] Rendu de', url)
 
-      await page.goto(url, { waitUntil: 'networkidle0', timeout: 90000 })
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 90000 })
       await new Promise(r => setTimeout(r, 600))
 
       await page.evaluate(() => {
@@ -92,4 +122,3 @@ main().catch(err => {
   console.error('[prerender] Erreur :', err)
   process.exit(1)
 })
-
