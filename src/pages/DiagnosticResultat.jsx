@@ -33,6 +33,9 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
   const icons = {
     sparkles: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z"/></svg>,
     download: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+    link: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
+    check: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+    refresh: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>,
   }
   return icons[name] || null
 }
@@ -83,6 +86,7 @@ export default function DiagnosticResultat() {
   const [genLoading, setGenLoading] = useState(false)
   const [genError, setGenError] = useState('')
   const [pdfLoading, setPdfLoading] = useState(false)
+  const [lienCopie, setLienCopie] = useState(false)
   const timerStarted = useRef(false)
 
   const load = useCallback(async () => {
@@ -124,6 +128,16 @@ export default function DiagnosticResultat() {
       console.error('Erreur export PDF:', err)
     } finally {
       setPdfLoading(false)
+    }
+  }
+
+  const copierLien = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setLienCopie(true)
+      setTimeout(() => setLienCopie(false), 2200)
+    } catch (err) {
+      console.error('Erreur copie du lien:', err)
     }
   }
 
@@ -179,57 +193,114 @@ export default function DiagnosticResultat() {
   }))
   const moyenne = chartData.length ? (chartData.reduce((s, d) => s + d.valeur, 0) / chartData.length) : 0
 
+  const panelStyle = { background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 20, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }
+
   return (
     <div style={wrap}>
       <Fond />
-        <BoutonMenu />
-      <div style={card}>
-        <div style={{ textAlign: 'center', marginBottom: 28 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'rgba(0, 115, 244, 0.1)', border: '1px solid rgba(0, 115, 244, 0.3)', borderRadius: 20, fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 14 }}>
-            COPAF 2026 · Diagnostic Smart Port
+      <BoutonMenu />
+      <style>{`
+        .dash-wrap { max-width: 1080px; margin: 0 auto; }
+        .dash-header {
+          display: flex; align-items: flex-end; justify-content: space-between;
+          gap: 20px; flex-wrap: wrap; margin-bottom: 24px;
+        }
+        .dash-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .dash-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 18px;
+          margin-bottom: 18px;
+          align-items: start;
+        }
+        @media (max-width: 860px) {
+          .dash-grid { grid-template-columns: 1fr; }
+          .dash-header { justify-content: center; text-align: center; }
+        }
+        .dash-btn { transition: transform .15s ease, box-shadow .15s ease; cursor: pointer; }
+        .dash-btn:hover { transform: translateY(-2px); }
+      `}</style>
+
+      <div className="dash-wrap">
+
+        {/* En-tête + actions */}
+        <div className="dash-header">
+          <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'rgba(0, 115, 244, 0.1)', border: '1px solid rgba(0, 115, 244, 0.3)', borderRadius: 20, fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 }}>
+              COPAF 2026 · Diagnostic Smart Port
+            </div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: '#fff', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
+              {diag.organisation || `${diag.prenom} ${diag.nom}`}
+            </div>
+            <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 6 }}>{diag.pays}</div>
           </div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', letterSpacing: '-0.5px' }}>{diag.organisation || `${diag.prenom} ${diag.nom}`}</div>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 6 }}>{diag.pays}</div>
+
+          <div className="dash-actions">
+            <button onClick={copierLien} className="dash-btn" style={{
+              padding: '12px 20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 12, color: '#cbd5e1', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+            }}>
+              <Ico name={lienCopie ? 'check' : 'link'} size={15} color={lienCopie ? '#4ade80' : '#cbd5e1'} />
+              {lienCopie ? 'Lien copié' : 'Copier le lien'}
+            </button>
+            <button onClick={telechargerPDF} disabled={pdfLoading} className="dash-btn" style={{
+              padding: '12px 22px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
+              borderRadius: 12, color: '#fff', fontSize: 13, fontWeight: 700, fontFamily: 'inherit',
+              cursor: pdfLoading ? 'default' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8,
+              boxShadow: '0 6px 20px rgba(0,115,244,0.35)',
+            }}>
+              <Ico name="download" size={15} color="#fff" />
+              {pdfLoading ? 'Préparation...' : 'Télécharger le PDF'}
+            </button>
+          </div>
         </div>
 
-        {/* Radar */}
-        <div style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 20, padding: '22px 10px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', marginBottom: 18 }}>
-          <div style={{ width: '100%', height: 380 }}>
-            <ResponsiveContainer>
-              <RadarChart data={chartData} outerRadius="72%">
-                <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                <PolarAngleAxis dataKey="axis" tick={{ fontSize: 11, fill: '#cbd5e1' }} />
-                <PolarRadiusAxis angle={30} domain={[0, 5]} tick={{ fontSize: 9, fill: '#64748b' }} tickCount={6} axisLine={false} />
-                <Radar name="Score" dataKey="valeur" stroke="#60a5fa" fill={BLUE} fillOpacity={0.4} strokeWidth={2} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-          <div style={{ textAlign: 'center', marginTop: 4 }}>
-            <span style={{ fontSize: 13, color: '#94a3b8' }}>Score moyen : </span>
-            <span style={{ fontSize: 17, fontWeight: 900, color: '#fff' }}>{moyenne.toFixed(1)} / 5</span>
-          </div>
-        </div>
+        {/* Grille dashboard : radar + score / détail par axe */}
+        <div className="dash-grid">
 
-        {/* Detail par axe */}
-        <div style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 20, padding: 22, boxShadow: '0 10px 30px rgba(0,0,0,0.5)', marginBottom: 18 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 16 }}>Détail par axe</div>
-          {Object.keys(AXES_LABELS).map(key => {
-            const v = scores[key] ?? 0
-            const c = couleurNiveau(v)
-            return (
-              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <span style={{ fontSize: 12.5, color: '#cbd5e1', width: 150, flexShrink: 0 }}>{AXES_LABELS[key]}</span>
-                <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.08)', borderRadius: 4, overflow: 'hidden' }}>
-                  <div style={{ width: `${(v / 5) * 100}%`, height: '100%', background: c, borderRadius: 4 }} />
+          {/* Radar + score moyen */}
+          <div style={{ ...panelStyle, padding: '22px 10px' }}>
+            <div style={{ padding: '0 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+              Profil Smart Port
+            </div>
+            <div style={{ width: '100%', height: 340 }}>
+              <ResponsiveContainer>
+                <RadarChart data={chartData} outerRadius="70%">
+                  <PolarGrid stroke="rgba(255,255,255,0.1)" />
+                  <PolarAngleAxis dataKey="axis" tick={{ fontSize: 10.5, fill: '#cbd5e1' }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 5]} tick={{ fontSize: 9, fill: '#64748b' }} tickCount={6} axisLine={false} />
+                  <Radar name="Score" dataKey="valeur" stroke="#60a5fa" fill={BLUE} fillOpacity={0.4} strokeWidth={2} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            <div style={{ textAlign: 'center', marginTop: 4 }}>
+              <span style={{ fontSize: 13, color: '#94a3b8' }}>Score moyen : </span>
+              <span style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>{moyenne.toFixed(1)} / 5</span>
+            </div>
+          </div>
+
+          {/* Detail par axe */}
+          <div style={{ ...panelStyle, padding: 22 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 16 }}>Détail par axe</div>
+            {Object.keys(AXES_LABELS).map(key => {
+              const v = scores[key] ?? 0
+              const c = couleurNiveau(v)
+              return (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <span style={{ fontSize: 12.5, color: '#cbd5e1', width: 150, flexShrink: 0 }}>{AXES_LABELS[key]}</span>
+                  <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.08)', borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{ width: `${(v / 5) * 100}%`, height: '100%', background: c, borderRadius: 4 }} />
+                  </div>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, color: c, width: 90, textAlign: 'right', flexShrink: 0 }}>{v}/5 · {NOMS_NIVEAUX[v]}</span>
                 </div>
-                <span style={{ fontSize: 11.5, fontWeight: 700, color: c, width: 90, textAlign: 'right', flexShrink: 0 }}>{v}/5 · {NOMS_NIVEAUX[v]}</span>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
 
-        {/* Recommandations IA */}
-        <div style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 20, padding: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+        {/* Recommandations IA — pleine largeur */}
+        <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Ico name="sparkles" size={17} color="#60a5fa" />
             <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>Recommandations personnalisées</div>
@@ -241,32 +312,21 @@ export default function DiagnosticResultat() {
             <div style={{ textAlign: 'center', padding: '10px 0' }}>
               <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 16 }}>Générez une analyse personnalisée basée sur votre profil complet.</p>
               {genError && <p style={{ fontSize: 12.5, color: '#f87171', marginBottom: 12 }}>{genError}</p>}
-              <button onClick={genererRecommandations} disabled={genLoading} style={{
+              <button onClick={genererRecommandations} disabled={genLoading} className="dash-btn" style={{
                 padding: '13px 26px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
                 borderRadius: 12, color: '#fff', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
-                boxShadow: '0 6px 20px rgba(0,115,244,0.4)',
+                boxShadow: '0 6px 20px rgba(0,115,244,0.4)', display: 'inline-flex', alignItems: 'center', gap: 8,
               }}>
+                <Ico name="sparkles" size={14} color="#fff" />
                 {genLoading ? 'Génération en cours...' : 'Générer mes recommandations'}
               </button>
             </div>
           )}
         </div>
 
-        {/* Telecharger PDF */}
-        <div style={{ textAlign: 'center', marginTop: 20 }}>
-          <button onClick={telechargerPDF} disabled={pdfLoading} style={{
-            padding: '12px 24px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: 12, color: '#cbd5e1', fontSize: 13, fontWeight: 700, cursor: pdfLoading ? 'default' : 'pointer',
-            fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 8,
-          }}>
-            <Ico name="download" size={15} color="#cbd5e1" />
-            {pdfLoading ? 'Préparation du PDF...' : 'Télécharger en PDF'}
-          </button>
-
-          <p style={{ textAlign: 'center', fontSize: 11.5, color: '#64748b', marginTop: 20 }}>
-            Cette page reste accessible à tout moment — conservez le lien pour la retrouver.
-          </p>
-        </div>
+        <p style={{ textAlign: 'center', fontSize: 11.5, color: '#64748b' }}>
+          Cette page reste accessible à tout moment — conservez le lien pour la retrouver.
+        </p>
       </div>
     </div>
   )

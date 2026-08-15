@@ -143,6 +143,7 @@ const Ico = ({ name, size = 20, color = 'currentColor' }) => {
   const icons = {
     check: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
     arrow: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+    arrowLeft: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>,
     info: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
     infrastructure: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,
     automatisation: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
@@ -212,10 +213,14 @@ export default function DiagnosticSmartPort() {
     setEtape(0)
   }
 
+  // Sélectionne une réponse sans avancer automatiquement : la navigation
+  // se fait désormais explicitement via les boutons Précédent / Suivant.
   const choisir = (axisId, valeur) => {
     setReponses(r => ({ ...r, [axisId]: valeur }))
-    setTimeout(() => setEtape(e => e + 1), 300)
   }
+
+  const allerPrecedent = () => setEtape(e => Math.max(0, e - 1))
+  const allerSuivant = () => setEtape(e => e + 1)
 
   const soumettre = async () => {
     setSoumission(true); setErreurSoumission('')
@@ -414,13 +419,38 @@ export default function DiagnosticSmartPort() {
   if (etape >= 1 && etape <= AXES.length) {
     const axe = AXES[etape - 1]
     const progression = Math.round(((etape - 1) / AXES.length) * 100)
+    const reponseActuelle = reponses[axe.id]
+    const estDerniereAxe = etape === AXES.length
 
     return (
       <div style={wrap}>
         <Fond />
         <BoutonMenu />
         <RetourMenu />
-        <div style={card}>
+        <style>{`
+          .diag-niveaux-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+          }
+          @media (max-width: 760px) {
+            .diag-niveaux-grid { grid-template-columns: repeat(2, 1fr); }
+          }
+          @media (max-width: 480px) {
+            .diag-niveaux-grid { grid-template-columns: 1fr; }
+          }
+          .diag-niveau-card {
+            transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+          }
+          .diag-niveau-card:hover {
+            transform: translateY(-2px);
+          }
+          .diag-nav-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+          }
+        `}</style>
+        <div style={{ ...card, maxWidth: 900 }}>
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8 }}>
               <span>Axe {etape} / {AXES.length}</span>
@@ -449,35 +479,72 @@ export default function DiagnosticSmartPort() {
               <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.55, margin: 0 }}>{axe.definition}</p>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* Cartes de niveau : 3 colonnes x 2 lignes sur desktop */}
+            <div className="diag-niveaux-grid">
               {axe.niveaux.map((texte, i) => {
-                const selected = reponses[axe.id] === i
+                const selected = reponseActuelle === i
                 return (
                   <button
                     key={i}
+                    className="diag-niveau-card"
                     onClick={() => choisir(axe.id, i)}
                     style={{
-                      display: 'flex', alignItems: 'center', gap: 14, padding: '16px 18px', borderRadius: 14,
-                      textAlign: 'left', fontFamily: 'inherit', fontSize: 13.5, cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column', gap: 10, padding: '18px 16px', borderRadius: 14,
+                      textAlign: 'left', fontFamily: 'inherit', fontSize: 13, cursor: 'pointer', height: '100%',
                       border: `1.5px solid ${selected ? '#0073F4' : 'rgba(255,255,255,0.06)'}`,
-                      background: selected ? 'linear-gradient(135deg, rgba(0,115,244,0.18), rgba(0,14,145,0.25))' : 'rgba(255,255,255,0.02)', 
+                      background: selected ? 'linear-gradient(135deg, rgba(0,115,244,0.18), rgba(0,14,145,0.25))' : 'rgba(255,255,255,0.02)',
                       color: selected ? '#fff' : '#cbd5e1',
                       boxShadow: selected ? '0 4px 20px rgba(0,115,244,0.25)' : 'none',
-                      transition: 'all .15s', lineHeight: 1.4,
                     }}
                   >
-                    <span style={{
-                      flexShrink: 0, width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: selected ? 'linear-gradient(135deg,#0073F4,#000E91)' : 'rgba(255,255,255,0.06)', 
-                      color: selected ? '#fff' : '#94a3b8', fontSize: 12.5, fontWeight: 800,
-                      border: selected ? 'none' : '1px solid rgba(255,255,255,0.08)'
-                    }}>{i}</span>
-                    <span style={{ fontWeight: selected ? 700 : 500, flex: 1 }}>{texte}</span>
-                    {selected && <Ico name="check" size={18} color="#60a5fa" />}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{
+                        flexShrink: 0, width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: selected ? 'linear-gradient(135deg,#0073F4,#000E91)' : 'rgba(255,255,255,0.06)',
+                        color: selected ? '#fff' : '#94a3b8', fontSize: 12.5, fontWeight: 800,
+                        border: selected ? 'none' : '1px solid rgba(255,255,255,0.08)'
+                      }}>{i}</span>
+                      {selected && <Ico name="check" size={16} color="#60a5fa" />}
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.6, color: selected ? '#93c5fd' : '#64748b' }}>
+                      {ECHELLE[i].nom}
+                    </span>
+                    <span style={{ fontWeight: selected ? 600 : 500, lineHeight: 1.4, flex: 1 }}>{texte}</span>
                   </button>
                 )
               })}
             </div>
+          </div>
+
+          {/* Navigation Précédent / Suivant */}
+          <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
+            <button
+              className="diag-nav-btn"
+              onClick={allerPrecedent}
+              style={{
+                flex: '0 0 auto', padding: '14px 22px', background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14, color: '#cbd5e1',
+                fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', gap: 8,
+              }}
+            >
+              <Ico name="arrowLeft" size={16} color="#cbd5e1" /> Précédent
+            </button>
+
+            <button
+              className="diag-nav-btn"
+              onClick={allerSuivant}
+              disabled={reponseActuelle === undefined}
+              style={{
+                flex: 1, padding: '14px 22px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
+                borderRadius: 14, color: '#fff', fontSize: 14, fontWeight: 700,
+                cursor: reponseActuelle === undefined ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                boxShadow: reponseActuelle === undefined ? 'none' : '0 6px 20px rgba(0,115,244,0.4)',
+              }}
+            >
+              {estDerniereAxe ? 'Terminer le diagnostic' : 'Suivant'} <Ico name="arrow" size={16} color="#fff" />
+            </button>
           </div>
         </div>
       </div>
