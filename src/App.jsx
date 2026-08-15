@@ -3,7 +3,6 @@ import HeaderStack from './components/HeaderStack'
 import Hero from './components/Hero'
 import About from './components/About'
 import Programme from './components/Programme'
-import Modules from './components/Modules'
 import Intervenants from './components/Intervenants'
 import Inscription from './components/Inscription'
 import Contact from './components/Contact'
@@ -42,7 +41,6 @@ const MainSite = () => (
       <Partners />
       <About />
       <Programme />
-      <Modules />
       <Intervenants />
       <Inscription />
       <Contact />
