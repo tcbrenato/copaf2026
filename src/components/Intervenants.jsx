@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 const intervenants = [
   {
     initiales: 'AM',
-    photo: '/modeste.png',
+    photo: '/modeste.jpg',
     nom: 'M. Abiala MODESTE',
     titre: 'Directeur Commercial',
     organisation: 'Bolloré Transport & Logistics',
@@ -13,7 +13,7 @@ const intervenants = [
   },
   {
     initiales: 'EM',
-    photo: '/intervenant2.png',
+    photo: '/intervenant2.jpg',
     nom: 'Expert Maroc',
     titre: 'Atelier : Modèle économique de développement d\'un projet technologique portuaire',
     organisationKey: 'toConfirm',
@@ -21,7 +21,7 @@ const intervenants = [
   },
   {
     initiales: 'WO',
-    photo: '/william.png',
+    photo: '/william.jpg',
     nom: 'Dr. William ODAH',
     titre: 'Directeur Général',
     organisation: 'CRF Perfection',
@@ -29,7 +29,7 @@ const intervenants = [
   },
   {
     initiales: 'BB',
-    photo: '/babel.png',
+    photo: '/babel.jpg',
     nom: 'Babel BALSOMI',
     titre: 'CEO & Experte en Cybersécurité Offensive et Transformation Digitale',
     organisation: 'Hiero Digital International',
@@ -37,7 +37,7 @@ const intervenants = [
   },
   {
     initiales: 'EM',
-    photo: '/intervenant3.png',
+    photo: '/intervenant3.jpg',
     nom: 'Expert Maroc',
     titre: 'Panel : Sécurité & Sûreté — détection automatique des anomalies',
     organisationKey: 'toConfirm',
@@ -45,7 +45,7 @@ const intervenants = [
   },
   {
     initiales: 'MB',
-    photo: '/marc.png',
+    photo: '/marc.jpg',
     nom: 'Marc BIEGNIEBE',
     titre: 'Directeur Général',
     organisation: 'ANAXAR',
@@ -53,7 +53,7 @@ const intervenants = [
   },
   {
     initiales: 'TM',
-    photo: '/intervenant2.png',
+    photo: '/intervenant2.jpg',
     nom: 'M. Tarik Maaouni',
     titre: 'Directeur Organisation et Systèmes d\'Information',
     organisation: 'ANP',
@@ -61,7 +61,7 @@ const intervenants = [
   },
   {
     initiales: 'RT',
-    photo: '/renato.png',
+    photo: '/renato.jpg',
     nom: 'Rénato TCHOBO',
     titreKey: 'tchoboTitre',
     organisation: 'CRF Perfection',
@@ -168,6 +168,8 @@ const Intervenants = () => {
                     <img
                       src={p.photo}
                       alt={p.nom}
+                      loading="lazy"
+                      decoding="async"
                       style={{
                         width: '100%', height: '100%',
                         objectFit: 'cover',
