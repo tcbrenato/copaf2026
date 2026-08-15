@@ -139,6 +139,31 @@ const IcoLune = ({ size = 15, color = 'currentColor' }) => (
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
   </svg>
 )
+const IcoProjection = ({ size = 15, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="4" width="20" height="13" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+  </svg>
+)
+const IcoTrendUp = ({ size = 17, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12" />
+  </svg>
+)
+const IcoTrendDown = ({ size = 17, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" /><polyline points="17 18 23 18 23 12" />
+  </svg>
+)
+const IcoDoc = ({ size = 17, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+  </svg>
+)
+const IcoGauge = ({ size = 17, color = 'currentColor' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 21a9 9 0 1 0-9-9" /><path d="M12 12l4-4" /><path d="M12 12v0" />
+  </svg>
+)
 
 export default function AdminDiagnostics() {
   const [diagnostics, setDiagnostics] = useState([])
@@ -316,6 +341,13 @@ export default function AdminDiagnostics() {
     return { key, label: AXES_LABELS[key], moyenne, n: valeurs.length }
   })
 
+  const axesRenseignes = moyennesParAxe.filter(a => a.n > 0)
+  const scoreGlobalMoyen = axesRenseignes.length
+    ? axesRenseignes.reduce((s, a) => s + a.moyenne, 0) / axesRenseignes.length
+    : 0
+  const axeFort = axesRenseignes.length ? axesRenseignes.reduce((m, a) => a.moyenne > m.moyenne ? a : m) : null
+  const axeFaible = axesRenseignes.length ? axesRenseignes.reduce((m, a) => a.moyenne < m.moyenne ? a : m) : null
+
   const densiteCompacte = params.densite === 'compact'
 
   const wrap = { position: 'relative', overflow: 'hidden', borderRadius: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", padding: '32px 20px', color: T.text, background: T.pageBg, transition: 'background .25s ease, color .25s ease' }
@@ -358,7 +390,7 @@ export default function AdminDiagnostics() {
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: T.accentBg, border: `1px solid ${T.accentBorder}`, borderRadius: 20, fontSize: 11, fontWeight: 800, color: T.accent, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 }}>
               COPAF 2026
             </div>
-            <div style={{ fontSize: 24, fontWeight: 900, color: T.text, marginBottom: 6, letterSpacing: '-0.5px' }}>Diagnostics Smart Port</div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: T.text, marginBottom: 6, letterSpacing: '-0.6px' }}>Diagnostics Smart Port</div>
             <div style={{ fontSize: 13.5, color: T.textMuted }}>
               {diagnostics.length} diagnostic{diagnostics.length > 1 ? 's' : ''} soumis
               {filtrePays && ` · filtré sur ${filtrePays} (${filtres.length})`}
@@ -366,7 +398,15 @@ export default function AdminDiagnostics() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0, flexWrap: 'wrap' }}>
+            <a href="/diagnostic/projection" target="_blank" rel="noopener noreferrer" title="Ouvrir l'écran plein écran pour la salle de conférence" style={{
+              display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 10,
+              background: T.accentBg, border: `1px solid ${T.accentBorder}`, color: T.accent,
+              fontSize: 12, fontWeight: 700, textDecoration: 'none', fontFamily: 'inherit',
+            }}>
+              <IcoProjection color={T.accent} />
+              Mode projection ↗
+            </a>
             {/* Bascule rapide clair / sombre */}
             <button onClick={basculerTheme} title={params.theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'} style={{
               display: 'flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 10,
@@ -394,6 +434,43 @@ export default function AdminDiagnostics() {
             }}>
               ⚙️ Paramètres
             </button>
+          </div>
+        </div>
+
+        {/* KPI en un coup d'oeil */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 20 }}>
+          <div style={{ ...cardStyle, padding: '16px 18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: T.textMuted, marginBottom: 8 }}>
+              <IcoDoc color={T.textMuted} size={15} />
+              <span style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>Total soumis</span>
+            </div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: T.text }}>{filtres.length}</div>
+          </div>
+
+          <div style={{ ...cardStyle, padding: '16px 18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: T.textMuted, marginBottom: 8 }}>
+              <IcoGauge color={T.textMuted} size={15} />
+              <span style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>Score moyen global</span>
+            </div>
+            <div style={{ fontSize: 26, fontWeight: 900, color: couleurMoyenne(scoreGlobalMoyen) }}>{filtres.length ? scoreGlobalMoyen.toFixed(1) : '—'}<span style={{ fontSize: 14, fontWeight: 700, color: T.textMuted }}>/5</span></div>
+          </div>
+
+          <div style={{ ...cardStyle, padding: '16px 18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: T.textMuted, marginBottom: 8 }}>
+              <IcoTrendUp color="#22c55e" size={15} />
+              <span style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>Axe le plus fort</span>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 2 }}>{axeFort ? axeFort.label : '—'}</div>
+            {axeFort && <div style={{ fontSize: 12, fontWeight: 700, color: '#22c55e' }}>{axeFort.moyenne.toFixed(1)}/5</div>}
+          </div>
+
+          <div style={{ ...cardStyle, padding: '16px 18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: T.textMuted, marginBottom: 8 }}>
+              <IcoTrendDown color="#ef4444" size={15} />
+              <span style={{ fontSize: 10.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>Axe le plus faible</span>
+            </div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 2 }}>{axeFaible ? axeFaible.label : '—'}</div>
+            {axeFaible && <div style={{ fontSize: 12, fontWeight: 700, color: '#ef4444' }}>{axeFaible.moyenne.toFixed(1)}/5</div>}
           </div>
         </div>
 

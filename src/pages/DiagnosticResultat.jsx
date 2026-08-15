@@ -1,31 +1,70 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts'
 import { supabase } from '../supabase'
 import { generateDiagnosticPDF } from '../utils/generateDiagnosticPDF'
+import { AXES, AXES_LABELS, ECHELLE, txt } from '../utils/diagnosticAxes'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
 
-const AXES_LABELS = {
-  infrastructure: 'Infrastructure digitale',
-  automatisation: 'Automatisation',
-  tracabilite: 'Traçabilité & données',
-  ia: 'IA & décision',
-  cybersecurite: 'Cybersécurité',
-  surete: 'Sûreté & sécurité',
-  environnement: 'Énergie & environnement',
-  synchromodalite: 'Synchromodalité',
-  competences: 'Compétences',
-  parties_prenantes: 'Parties prenantes',
+const TR = {
+  fr: {
+    badge: 'COPAF 2026 · Diagnostic Smart Port',
+    calcul: 'Calcul de votre profil...',
+    introuvable: 'Diagnostic introuvable.',
+    scoreMoyen: 'Score moyen : ',
+    profil: 'Profil Smart Port',
+    detailAxe: 'Détail par axe',
+    lienCopie: 'Lien copié',
+    copierLien: 'Copier le lien',
+    preparation: 'Préparation...',
+    telechargerPDF: 'Télécharger le PDF',
+    recoTitre: 'Recommandations personnalisées',
+    recoIntro: 'Générez une analyse personnalisée basée sur votre profil complet.',
+    recoGenLoading: 'Génération en cours...',
+    recoGenBtn: 'Générer mes recommandations',
+    recoErreur: 'Impossible de générer les recommandations pour le moment. Réessayez dans un instant.',
+    footer: 'Cette page reste accessible à tout moment — conservez le lien pour la retrouver.',
+    planTitre: "Plan d'action",
+    planSousTitre: 'Des actions concrètes, adaptées à votre score actuel sur chaque axe.',
+    tierLabel: { faible: 'Priorités à traiter', moyen: 'Prochaines étapes', bon: 'Pour aller plus loin' },
+    analyseEnCours: 'Analyse de votre profil Smart Port en cours...',
+  },
+  en: {
+    badge: 'COPAF 2026 · Smart Port Diagnostic',
+    calcul: 'Calculating your profile...',
+    introuvable: 'Diagnostic not found.',
+    scoreMoyen: 'Average score: ',
+    profil: 'Smart Port Profile',
+    detailAxe: 'Breakdown by axis',
+    lienCopie: 'Link copied',
+    copierLien: 'Copy link',
+    preparation: 'Preparing...',
+    telechargerPDF: 'Download PDF',
+    recoTitre: 'Personalised recommendations',
+    recoIntro: 'Generate a personalised analysis based on your full profile.',
+    recoGenLoading: 'Generating...',
+    recoGenBtn: 'Generate my recommendations',
+    recoErreur: 'Unable to generate recommendations right now. Please try again shortly.',
+    footer: 'This page stays accessible at any time — keep the link to find it again.',
+    planTitre: 'Action plan',
+    planSousTitre: 'Concrete actions, matched to your current score on each axis.',
+    tierLabel: { faible: 'Priorities to address', moyen: 'Next steps', bon: 'To go further' },
+    analyseEnCours: 'Analysing your Smart Port profile...',
+  },
 }
-
-const NOMS_NIVEAUX = ['Nul', 'Très faible', 'Faible', 'Moyen', 'Bon', 'Très bon']
 
 function couleurNiveau(v) {
   if (v <= 1) return '#f87171'
   if (v <= 3) return '#fbbf24'
   return '#4ade80'
+}
+
+function tierNiveau(v) {
+  if (v <= 1) return 'faible'
+  if (v <= 3) return 'moyen'
+  return 'bon'
 }
 
 const Ico = ({ name, size = 18, color = 'currentColor' }) => {
@@ -36,6 +75,7 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
     link: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
     check: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
     refresh: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>,
+    target: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill={color} stroke="none"/></svg>,
   }
   return icons[name] || null
 }
@@ -43,9 +83,9 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
 // ══════════════════════════════════════════
 // Ecran de chargement : radar qui oscille pendant l'analyse
 // ══════════════════════════════════════════
-function RadarLoader() {
+function RadarLoader({ lang = 'fr' }) {
   const [data, setData] = useState(() =>
-    Object.values(AXES_LABELS).map(axis => ({ axis, valeur: Math.random() * 5, fullMark: 5 }))
+    AXES.map(axe => ({ axis: txt(axe.nom, lang), valeur: Math.random() * 5, fullMark: 5 }))
   )
 
   useEffect(() => {
@@ -70,7 +110,7 @@ function RadarLoader() {
       <div style={{ textAlign: 'center', marginTop: 8 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#60a5fa', animation: 'copaf-pulse 1s ease-in-out infinite' }} />
-          <span style={{ fontSize: 13.5, color: '#94a3b8', fontWeight: 600 }}>Analyse de votre profil Smart Port en cours...</span>
+          <span style={{ fontSize: 13.5, color: '#94a3b8', fontWeight: 600 }}>{TR[lang].analyseEnCours}</span>
         </div>
       </div>
       <style>{`@keyframes copaf-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }`}</style>
@@ -80,6 +120,7 @@ function RadarLoader() {
 
 export default function DiagnosticResultat() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
   const [diag, setDiag] = useState(null)
   const [fetchDone, setFetchDone] = useState(false)
   const [minDelayDone, setMinDelayDone] = useState(false)
@@ -87,6 +128,7 @@ export default function DiagnosticResultat() {
   const [genError, setGenError] = useState('')
   const [pdfLoading, setPdfLoading] = useState(false)
   const [lienCopie, setLienCopie] = useState(false)
+  const [lang, setLang] = useState(searchParams.get('lang') === 'en' ? 'en' : 'fr')
   const timerStarted = useRef(false)
 
   const load = useCallback(async () => {
@@ -103,6 +145,12 @@ export default function DiagnosticResultat() {
     }
   }, [load])
 
+  useEffect(() => {
+    if (diag?.langue === 'en') setLang('en')
+  }, [diag])
+
+  const t = TR[lang]
+
   const genererRecommandations = async () => {
     setGenLoading(true); setGenError('')
     try {
@@ -113,7 +161,7 @@ export default function DiagnosticResultat() {
       if (data?.error) throw new Error(data.error)
       setDiag(d => ({ ...d, recommandations: data.recommandations }))
     } catch (err) {
-      setGenError("Impossible de générer les recommandations pour le moment. Réessayez dans un instant.")
+      setGenError(t.recoErreur)
       console.error(err)
     } finally {
       setGenLoading(false)
@@ -167,11 +215,11 @@ export default function DiagnosticResultat() {
         <div style={card}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'rgba(0, 115, 244, 0.1)', border: '1px solid rgba(0, 115, 244, 0.3)', borderRadius: 20, fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 14 }}>
-              COPAF 2026 · Diagnostic Smart Port
+              {t.badge}
             </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', letterSpacing: '-0.5px' }}>Calcul de votre profil...</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', letterSpacing: '-0.5px' }}>{t.calcul}</div>
           </div>
-          <RadarLoader />
+          <RadarLoader lang={lang} />
         </div>
       </div>
     )
@@ -181,14 +229,14 @@ export default function DiagnosticResultat() {
     <div style={wrap}>
       <Fond />
         <BoutonMenu />
-      <div style={{ ...card, textAlign: 'center', paddingTop: 100, color: '#f87171' }}>Diagnostic introuvable.</div>
+      <div style={{ ...card, textAlign: 'center', paddingTop: 100, color: '#f87171' }}>{t.introuvable}</div>
     </div>
   )
 
   const scores = diag.scores || {}
-  const chartData = Object.keys(AXES_LABELS).map(key => ({
-    axis: AXES_LABELS[key],
-    valeur: scores[key] ?? 0,
+  const chartData = AXES.map(axe => ({
+    axis: txt(AXES_LABELS[axe.id], lang),
+    valeur: scores[axe.id] ?? 0,
     fullMark: 5,
   }))
   const moyenne = chartData.length ? (chartData.reduce((s, d) => s + d.valeur, 0) / chartData.length) : 0
@@ -213,8 +261,14 @@ export default function DiagnosticResultat() {
           margin-bottom: 18px;
           align-items: start;
         }
+        .plan-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+        }
         @media (max-width: 860px) {
           .dash-grid { grid-template-columns: 1fr; }
+          .plan-grid { grid-template-columns: 1fr; }
           .dash-header { justify-content: center; text-align: center; }
         }
         .dash-btn { transition: transform .15s ease, box-shadow .15s ease; cursor: pointer; }
@@ -227,7 +281,7 @@ export default function DiagnosticResultat() {
         <div className="dash-header">
           <div>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'rgba(0, 115, 244, 0.1)', border: '1px solid rgba(0, 115, 244, 0.3)', borderRadius: 20, fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 }}>
-              COPAF 2026 · Diagnostic Smart Port
+              {t.badge}
             </div>
             <div style={{ fontSize: 26, fontWeight: 900, color: '#fff', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
               {diag.organisation || `${diag.prenom} ${diag.nom}`}
@@ -242,7 +296,7 @@ export default function DiagnosticResultat() {
               display: 'inline-flex', alignItems: 'center', gap: 8,
             }}>
               <Ico name={lienCopie ? 'check' : 'link'} size={15} color={lienCopie ? '#4ade80' : '#cbd5e1'} />
-              {lienCopie ? 'Lien copié' : 'Copier le lien'}
+              {lienCopie ? t.lienCopie : t.copierLien}
             </button>
             <button onClick={telechargerPDF} disabled={pdfLoading} className="dash-btn" style={{
               padding: '12px 22px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
@@ -251,7 +305,7 @@ export default function DiagnosticResultat() {
               boxShadow: '0 6px 20px rgba(0,115,244,0.35)',
             }}>
               <Ico name="download" size={15} color="#fff" />
-              {pdfLoading ? 'Préparation...' : 'Télécharger le PDF'}
+              {pdfLoading ? t.preparation : t.telechargerPDF}
             </button>
           </div>
         </div>
@@ -262,7 +316,7 @@ export default function DiagnosticResultat() {
           {/* Radar + score moyen */}
           <div style={{ ...panelStyle, padding: '22px 10px' }}>
             <div style={{ padding: '0 16px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
-              Profil Smart Port
+              {t.profil}
             </div>
             <div style={{ width: '100%', height: 340 }}>
               <ResponsiveContainer>
@@ -275,24 +329,57 @@ export default function DiagnosticResultat() {
               </ResponsiveContainer>
             </div>
             <div style={{ textAlign: 'center', marginTop: 4 }}>
-              <span style={{ fontSize: 13, color: '#94a3b8' }}>Score moyen : </span>
+              <span style={{ fontSize: 13, color: '#94a3b8' }}>{t.scoreMoyen}</span>
               <span style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>{moyenne.toFixed(1)} / 5</span>
             </div>
           </div>
 
           {/* Detail par axe */}
           <div style={{ ...panelStyle, padding: 22 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 16 }}>Détail par axe</div>
-            {Object.keys(AXES_LABELS).map(key => {
-              const v = scores[key] ?? 0
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 16 }}>{t.detailAxe}</div>
+            {AXES.map(axe => {
+              const v = scores[axe.id] ?? 0
               const c = couleurNiveau(v)
               return (
-                <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                  <span style={{ fontSize: 12.5, color: '#cbd5e1', width: 150, flexShrink: 0 }}>{AXES_LABELS[key]}</span>
+                <div key={axe.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                  <span style={{ fontSize: 12.5, color: '#cbd5e1', width: 150, flexShrink: 0 }}>{txt(AXES_LABELS[axe.id], lang)}</span>
                   <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,0.08)', borderRadius: 4, overflow: 'hidden' }}>
                     <div style={{ width: `${(v / 5) * 100}%`, height: '100%', background: c, borderRadius: 4 }} />
                   </div>
-                  <span style={{ fontSize: 11.5, fontWeight: 700, color: c, width: 90, textAlign: 'right', flexShrink: 0 }}>{v}/5 · {NOMS_NIVEAUX[v]}</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, color: c, width: 90, textAlign: 'right', flexShrink: 0 }}>{v}/5 · {txt(ECHELLE[v]?.nom, lang)}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Plan d'action — pleine largeur */}
+        <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <Ico name="target" size={17} color="#60a5fa" />
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{t.planTitre}</div>
+          </div>
+          <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 18 }}>{t.planSousTitre}</p>
+          <div className="plan-grid">
+            {AXES.map(axe => {
+              const v = scores[axe.id] ?? 0
+              const tier = tierNiveau(v)
+              const c = couleurNiveau(v)
+              const items = axe.actions?.[tier] || []
+              if (!items.length) return null
+              return (
+                <div key={axe.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: '#fff' }}>{txt(axe.nom, lang)}</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: c, padding: '2px 8px', borderRadius: 20, background: `${c}22`, border: `1px solid ${c}55`, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      {t.tierLabel[tier]}
+                    </span>
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {items.map((item, i) => (
+                      <li key={i} style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.5 }}>{txt(item, lang)}</li>
+                    ))}
+                  </ul>
                 </div>
               )
             })}
@@ -303,14 +390,14 @@ export default function DiagnosticResultat() {
         <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Ico name="sparkles" size={17} color="#60a5fa" />
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>Recommandations personnalisées</div>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{t.recoTitre}</div>
           </div>
 
           {diag.recommandations ? (
             <div style={{ fontSize: 13.5, color: '#cbd5e1', lineHeight: 1.8, whiteSpace: 'pre-line' }}>{diag.recommandations}</div>
           ) : (
             <div style={{ textAlign: 'center', padding: '10px 0' }}>
-              <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 16 }}>Générez une analyse personnalisée basée sur votre profil complet.</p>
+              <p style={{ fontSize: 13, color: '#94a3b8', marginBottom: 16 }}>{t.recoIntro}</p>
               {genError && <p style={{ fontSize: 12.5, color: '#f87171', marginBottom: 12 }}>{genError}</p>}
               <button onClick={genererRecommandations} disabled={genLoading} className="dash-btn" style={{
                 padding: '13px 26px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
@@ -318,14 +405,14 @@ export default function DiagnosticResultat() {
                 boxShadow: '0 6px 20px rgba(0,115,244,0.4)', display: 'inline-flex', alignItems: 'center', gap: 8,
               }}>
                 <Ico name="sparkles" size={14} color="#fff" />
-                {genLoading ? 'Génération en cours...' : 'Générer mes recommandations'}
+                {genLoading ? t.recoGenLoading : t.recoGenBtn}
               </button>
             </div>
           )}
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 11.5, color: '#64748b' }}>
-          Cette page reste accessible à tout moment — conservez le lien pour la retrouver.
+          {t.footer}
         </p>
       </div>
     </div>

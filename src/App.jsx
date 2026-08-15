@@ -20,6 +20,7 @@ import VoteSondage from './pages/VoteSondage'
 import ResultatsSondage from './pages/ResultatsSondage'
 import DiagnosticSmartPort from './pages/DiagnosticSmartPort'
 import DiagnosticResultat from './pages/DiagnosticResultat'
+import ProjectionDiagnostic from './pages/ProjectionDiagnostic'
 import TabletteHub from './pages/TabletteHub'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
@@ -101,6 +102,7 @@ function App() {
         <Route path="/sondage-live/:id"       element={<ResultatsSondage />} />
         <Route path="/diagnostic"             element={<DiagnosticSmartPort />} />
         <Route path="/diagnostic/resultat/:id" element={<DiagnosticResultat />} />
+        <Route path="/diagnostic/projection"   element={<ProjectionDiagnostic />} />
         <Route path="/tablette"                element={<TabletteHub />} />
         <Route path="/visiter" element={<VisiterExposition />} />
       </Routes>

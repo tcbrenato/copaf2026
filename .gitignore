@@ -17,6 +17,9 @@ dist-ssr
 .env.local
 .env.*.local
 
+# Notes locales contenant des identifiants — jamais commitées
+RUNBOOK-JOUR-J-PRIVE.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
