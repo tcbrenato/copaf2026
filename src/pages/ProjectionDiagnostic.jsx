@@ -121,7 +121,7 @@ export default function ProjectionDiagnostic() {
   const scoreGlobal = valeurs.length ? valeurs.reduce((s, v) => s + v, 0) / valeurs.length : 0
 
   const wrap = { height: '100vh', width: '100vw', position: 'relative', overflow: 'hidden', fontFamily: "'Plus Jakarta Sans',sans-serif", color: '#f8fafc', display: 'flex', flexDirection: 'column' }
-  const bgImage = { position: 'fixed', inset: 0, zIndex: -3, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.6) saturate(1.25)' }
+  const bgImage = { position: 'fixed', inset: 0, zIndex: -3, backgroundColor: '#0b0f1c', backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.6) saturate(1.25)' }
   const bgOverlay = { position: 'fixed', inset: 0, zIndex: -2, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.6) 0%, rgba(6,9,18,0.9) 75%)' }
   const bgGlow = { position: 'fixed', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: '80vw', height: '80vw', zIndex: -1, background: `radial-gradient(circle, ${BLUE}22 0%, transparent 65%)`, pointerEvents: 'none' }
 

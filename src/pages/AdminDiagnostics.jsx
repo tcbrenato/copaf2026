@@ -26,7 +26,7 @@ const THEMES = {
     label: 'Sombre',
     bgFilter: 'brightness(0.75) saturate(1.2)',
     overlay: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.55) 0%, rgba(9,13,22,0.78) 70%)',
-    pageBg: 'transparent',
+    pageBg: '#0b0f1c',
     card: 'rgba(15, 23, 42, 0.7)',
     cardBlur: 'blur(12px)',
     cardBorder: 'rgba(255, 255, 255, 0.08)',
@@ -351,7 +351,7 @@ export default function AdminDiagnostics() {
   const densiteCompacte = params.densite === 'compact'
 
   const wrap = { position: 'relative', overflow: 'hidden', borderRadius: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", padding: '32px 20px', color: T.text, background: T.pageBg, transition: 'background .25s ease, color .25s ease' }
-  const bgImage = { position: 'absolute', inset: 0, zIndex: -2, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: T.bgFilter }
+  const bgImage = { position: 'absolute', inset: 0, zIndex: -2, backgroundColor: T.pageBg, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: T.bgFilter }
   const bgOverlay = { position: 'absolute', inset: 0, zIndex: -1, backgroundImage: T.overlay }
   const cardStyle = { background: T.card, backdropFilter: T.cardBlur, border: `1px solid ${T.cardBorder}`, borderRadius: 16, boxShadow: T.cardShadow, transition: 'background .25s ease, border-color .25s ease' }
 
