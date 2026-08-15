@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 
 const intervenants = [
@@ -227,13 +228,14 @@ const Intervenants = () => {
           })}
         </div>
 
-        {/* Modal Améliorée */}
-        {activeModal && (
+        {/* Modal Améliorée — rendue via portail pour échapper au contexte d'empilement local
+            (sinon le header fixe, avec le même z-index, passe par-dessus sur mobile). */}
+        {activeModal && createPortal((
           <div style={{
             position: 'fixed', inset: 0,
             background: 'rgba(10, 17, 40, 0.6)',
             backdropFilter: 'blur(8px)',
-            zIndex: 1000,
+            zIndex: 9999,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: 20,
             animation: 'fadeIn 0.2s ease',
@@ -301,7 +303,7 @@ const Intervenants = () => {
               </div>
             </div>
           </div>
-        )}
+        ), document.body)}
 
       </div>
 
