@@ -210,7 +210,7 @@ const TR = {
     rgpdModalTitle: 'Politique de Confidentialite (RGPD)',
     modalClose: "J'ai lu et compris",
     cgvContent: [
-      { title:'1. Objet', text:"Les presentes conditions generales de vente regissent les inscriptions a la Conference des Ports Africains (COPAF 2026) organisee par CRF Perfection, prevue du 15 au 17 septembre 2026 a Tanger Med, Maroc." },
+      { title:'1. Objet', text:"Les presentes conditions generales de vente regissent les inscriptions a la Conference des Ports Africains (COPAF 2026) organisee par CRF Perfection, prevue du 15 au 17 septembre 2026 a Casablanca, Maroc." },
       { title:'2. Inscription et confirmation', text:"Toute inscription n'est definitivement confirmee qu'apres reception du paiement integral. Apres reception du mail de confirmation automatique, le participant doit contacter l'organisation par WhatsApp au +229 0169 30 30 19 ou par email a contact@copaf-ports.com pour valider son inscription et recevoir les instructions de paiement." },
       { title:'3. Tarifs et paiement', text:"Le tarif est fixe a 3 500 EUR par personne. Le paiement s'effectue exclusivement par virement bancaire. Le paiement doit etre effectue dans les 7 jours ouvrables suivant la confirmation d'inscription. En cas de reservation (paiement differe), le reglement doit intervenir avant le 31 aout 2026." },
       { title:'4. Politique de non-remboursement', text:"Les inscriptions sont fermes et definitives. Aucun remboursement ne sera effectue, quelle que soit la raison de l'annulation (raison personnelle, professionnelle, medicale, force majeure, refus de visa, etc.). En cas d'empechement, le participant peut se faire remplacer par une autre personne de son organisation sous reserve de notification ecrite au moins 72h avant l'evenement." },
@@ -330,7 +330,7 @@ const TR = {
     rgpdModalTitle: 'Privacy Policy (GDPR)',
     modalClose: 'I have read and understood',
     cgvContent: [
-      { title:'1. Purpose', text:'These terms and conditions of sale govern registrations for the Conference of African Ports (COPAF 2026), organised by CRF Perfection, to be held from 15 to 17 September 2026 in Tanger Med, Morocco.' },
+      { title:'1. Purpose', text:'These terms and conditions of sale govern registrations for the Conference of African Ports (COPAF 2026), organised by CRF Perfection, to be held from 15 to 17 September 2026 in Casablanca, Morocco.' },
       { title:'2. Registration and confirmation', text:'A registration is only definitively confirmed upon receipt of full payment. After receiving the automatic confirmation email, the participant must contact the organisation via WhatsApp at +229 0169 30 30 19 or by email at contact@copaf-ports.com to validate their registration and receive payment instructions.' },
       { title:'3. Rates and payment', text:'The rate is set at EUR 3,500 per person. Payment is made exclusively by bank transfer. Payment must be made within 7 business days of registration confirmation. For deferred (reserved) payments, settlement must occur before 31 August 2026.' },
       { title:'4. No-refund policy', text:'Registrations are firm and final. No refund will be issued, whatever the reason for cancellation (personal, professional, medical, force majeure, visa refusal, etc.). In case of impediment, the participant may be replaced by another person from their organisation, subject to written notice at least 72h before the event.' },
