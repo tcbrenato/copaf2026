@@ -369,7 +369,24 @@ export default function DiagnosticSmartPort() {
         <Fond />
         <BoutonMenu />
         <RetourMenu />
-        <div style={{ ...card, maxWidth: 760 }}>
+        <style>{`
+          .diag-axes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+          @media (max-width: 680px) {
+            .diag-axes-grid { grid-template-columns: 1fr; }
+          }
+          .diag-axe-card {
+            transition: transform .15s ease, border-color .15s ease;
+          }
+          .diag-axe-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(0,115,244,0.35) !important;
+          }
+        `}</style>
+        <div style={{ ...card, maxWidth: 920 }}>
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
             <div style={{ fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>Avant de commencer</div>
             <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', marginBottom: 10, letterSpacing: '-0.5px' }}>Comment fonctionne ce diagnostic</div>
@@ -390,15 +407,25 @@ export default function DiagnosticSmartPort() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+          {/* Axes : grille 2 colonnes au lieu d'une liste verticale */}
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12 }}>
+            Les 10 dimensions évaluées
+          </div>
+          <div className="diag-axes-grid" style={{ marginBottom: 24 }}>
             {AXES.map((axe, i) => (
-              <div key={axe.id} style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: 14, padding: '14px 18px', display: 'flex', gap: 16, alignItems: 'flex-start', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-                <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(0,115,244,0.15)', border: '1px solid rgba(0,115,244,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#60a5fa' }}>
-                  <Ico name={axe.icone} size={20} color="#60a5fa" />
+              <div key={axe.id} className="diag-axe-card" style={{
+                background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: 14,
+                padding: '16px 18px', display: 'flex', gap: 14, alignItems: 'flex-start',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(0,115,244,0.15)', border: '1px solid rgba(0,115,244,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#60a5fa' }}>
+                  <Ico name={axe.icone} size={18} color="#60a5fa" />
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 3 }}>{i + 1}. {axe.nom}</div>
-                  <div style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.5 }}>{axe.definition}</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: '#fff', marginBottom: 4, lineHeight: 1.3 }}>
+                    <span style={{ color: '#60a5fa', marginRight: 6 }}>{String(i + 1).padStart(2, '0')}</span>{axe.nom}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: '#94a3b8', lineHeight: 1.5 }}>{axe.definition}</div>
                 </div>
               </div>
             ))}
