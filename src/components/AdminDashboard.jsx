@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { supabase } from '../supabase'
 import { generateBadge } from '../utils/generateBadge'
 import { useAdminAuth } from '../adminAuth'
@@ -134,27 +135,31 @@ function StatusBadge({ status }) {
   )
 }
 
+// ─── STYLE PARTAGE DES CARTES ─────────────────────────────────────────────────
+const CARD_STYLE = {
+  background: '#fff', border: '1px solid #eef1f8', borderRadius: 18,
+  boxShadow: '0 1px 3px rgba(15,23,42,.04), 0 10px 24px -16px rgba(15,23,42,.12)',
+}
+
 // ─── CARTE KPI ───────────────────────────────────────────────────────────────
 function KpiCard({ icon, label, value, sub, color, trend }) {
   return (
-    <div style={{
-      background: '#fff', border: '1px solid #e8edf5',
-      borderRadius: 16, padding: '22px 20px',
-      borderLeft: `4px solid ${color}`,
-      boxShadow: '0 1px 4px rgba(0,14,145,.04)',
+    <div className="kpi-card" style={{
+      ...CARD_STYLE, padding: '20px 20px 18px', position: 'relative', overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${color}, ${color}33)` }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        <div style={{ width: 42, height: 42, borderRadius: 13, background: `linear-gradient(135deg, ${color}26, ${color}0d)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon name={icon} size={20} color={color} />
         </div>
         {trend !== undefined && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: trend >= 0 ? '#10b981' : '#ef4444', background: trend >= 0 ? '#d1fae5' : '#fee2e2', padding: '2px 8px', borderRadius: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: trend >= 0 ? '#10b981' : '#ef4444', background: trend >= 0 ? '#d1fae5' : '#fee2e2', padding: '3px 9px', borderRadius: 8 }}>
             {trend >= 0 ? '+' : ''}{trend}%
           </span>
         )}
       </div>
-      <div style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 12, color: '#64748b', textTransform: 'uppercase', letterSpacing: 1, marginTop: 6, fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: 26, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.6px', lineHeight: 1.1 }}>{value}</div>
+      <div style={{ fontSize: 12, color: '#64748b', marginTop: 6, fontWeight: 600 }}>{label}</div>
       {sub && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>{sub}</div>}
     </div>
   )
@@ -443,14 +448,14 @@ function ModalExposant({ row, onClose, onUpdate }) {
 // ─── TABLE GÉNÉRIQUE ──────────────────────────────────────────────────────────
 function DataTable({ cols, rows, onRow }) {
   if (rows.length === 0) return (
-    <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: 60, textAlign: 'center' }}>
+    <div style={{ ...CARD_STYLE, padding: 60, textAlign: 'center' }}>
       <Icon name="filter" size={32} color="#cbd5e1" />
       <div style={{ color: '#94a3b8', fontSize: 14, marginTop: 12 }}>Aucun enregistrement trouvé</div>
     </div>
   )
 
   return (
-    <div style={{ overflowX: 'auto', borderRadius: 16, border: '1px solid #e8edf5', background: '#fff', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+    <div style={{ ...CARD_STYLE, overflowX: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 600 }}>
         <thead>
           <tr style={{ borderBottom: '1.5px solid #f1f5f9', background: '#f8fafc' }}>
@@ -801,7 +806,7 @@ function SectionDashboard({ allData }) {
     dayMap[d] = (dayMap[d] || 0) + 1
   })
   const dailyEntries = Object.entries(dayMap).slice(-14)
-  const maxDaily     = Math.max(...dailyEntries.map(d => d[1]), 1)
+  const dailyChartData = dailyEntries.map(([label, val]) => ({ name: label, value: val }))
 
   // Statuts inscriptions
   const statutsInsc = Object.entries(STATUS_CONFIG).map(([k, s]) => ({
@@ -823,23 +828,32 @@ function SectionDashboard({ allData }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
         {/* Inscriptions par jour */}
-        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+        <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Inscriptions par jour</div>
-          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>14 derniers jours</div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80 }}>
-            {dailyEntries.length === 0 ? (
-              <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 12 }}>Aucune donnee</div>
-            ) : dailyEntries.map(([label, val], i) => (
-              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                <div title={`${label}: ${val}`} style={{ width: '100%', borderRadius: '3px 3px 0 0', height: `${Math.max(4, Math.round((val / maxDaily) * 70))}px`, background: '#6366f1', opacity: .8 }} />
-                <span style={{ fontSize: 8, color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{label}</span>
-              </div>
-            ))}
-          </div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8 }}>14 derniers jours</div>
+          {dailyChartData.length === 0 ? (
+            <div style={{ height: 170, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 12 }}>Aucune donnee</div>
+          ) : (
+            <ResponsiveContainer width="100%" height={170}>
+              <AreaChart data={dailyChartData} margin={{ top: 6, right: 6, left: -22, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="dailyFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#0073F4" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#0073F4" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} allowDecimals={false} width={26} />
+                <Tooltip contentStyle={{ borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 8px 24px rgba(15,23,42,.12)' }} />
+                <Area type="monotone" dataKey="value" name="Inscriptions" stroke="#0073F4" strokeWidth={2.5} fill="url(#dailyFill)" activeDot={{ r: 5 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
         {/* Top pays */}
-        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+        <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Top pays</div>
           <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Par nombre de dossiers</div>
           {topPays.length === 0
@@ -850,7 +864,7 @@ function SectionDashboard({ allData }) {
       </div>
 
       {/* Statuts inscriptions */}
-      <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+      <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
         <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Repartition des statuts — Inscriptions</div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           {statutsInsc.map((s, i) => (
@@ -1044,7 +1058,7 @@ function SectionAnalytics() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
         {/* Pages les plus vues */}
-        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+        <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Pages les plus vues</div>
           <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Toutes périodes</div>
           {topPages.length === 0
@@ -1057,7 +1071,7 @@ function SectionAnalytics() {
         </div>
 
         {/* Tunnel de conversion */}
-        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+        <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Tunnel de conversion</div>
           <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Visite → Inscription confirmée</div>
           {funnel.length === 0
@@ -1072,7 +1086,7 @@ function SectionAnalytics() {
 
       <div className="analytics-grid-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
         {/* Appareils */}
-        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+        <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Appareils</div>
           {deviceEntries.length === 0
             ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
@@ -1083,7 +1097,7 @@ function SectionAnalytics() {
         </div>
 
         {/* Sources */}
-        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+        <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Sources de trafic</div>
           {sourceEntries.length === 0
             ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
@@ -1094,7 +1108,7 @@ function SectionAnalytics() {
         </div>
 
         {/* Pays */}
-        <div style={{ background: '#fff', border: '1px solid #e8edf5', borderRadius: 16, padding: '22px 20px', boxShadow: '0 1px 4px rgba(0,14,145,.04)' }}>
+        <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Top pays</div>
           {countryEntries.length === 0
             ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
@@ -1117,7 +1131,7 @@ function SectionAnalytics() {
 
 // ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────────────────
 export default function AdminPage() {
-  const { scope, signOut } = useAdminAuth()
+  const { scope, signOut, session } = useAdminAuth()
   const visibleModules = useMemo(() => scope === 'all' ? MODULES : MODULES.filter(m => m.scope === scope), [scope])
   const [activeModule,   setActiveModule]   = useState(() => visibleModules[0]?.id || 'dashboard')
   const [sidebarOpen,    setSidebarOpen]    = useState(true)
@@ -1213,9 +1227,11 @@ export default function AdminPage() {
           100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
         }
         .spinner { width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite; }
-        .nav-item { display:flex;align-items:center;gap:12px;padding:11px 16px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;color:#64748b;transition:all .18s;width:100%;text-align:left; }
-        .nav-item:hover { background:#f1f5f9;color:#0f172a; }
-        .nav-item.active { background:#EBF3FF;color:#000E91; }
+        .kpi-card { transition: transform .18s ease, box-shadow .18s ease; }
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 1px 3px rgba(15,23,42,.05), 0 16px 32px -16px rgba(15,23,42,.18); }
+        .nav-item { display:flex;align-items:center;gap:12px;padding:11px 14px;border:none;border-radius:12px;background:transparent;cursor:pointer;font-family:inherit;font-weight:600;font-size:13.5px;color:rgba(255,255,255,.62);transition:all .18s;width:100%;text-align:left; }
+        .nav-item:hover { background:rgba(255,255,255,.08);color:#fff; }
+        .nav-item.active { background:linear-gradient(135deg,#0073F4,#000E91);color:#fff;box-shadow:0 6px 16px -4px rgba(0,115,244,.5); }
         ::-webkit-scrollbar { width:5px;height:5px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:#e2e8f0;border-radius:10px; }
@@ -1226,10 +1242,9 @@ export default function AdminPage() {
 
       {/* ══════════ SIDEBAR ══════════ */}
       <aside style={{
-        width: sidebarOpen ? 260 : 0,
-        minWidth: sidebarOpen ? 260 : 0,
-        background: '#fff',
-        borderRight: '1px solid #e8edf5',
+        width: sidebarOpen ? 264 : 0,
+        minWidth: sidebarOpen ? 264 : 0,
+        background: 'linear-gradient(180deg, #020924 0%, #001156 55%, #020a30 100%)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -1237,31 +1252,42 @@ export default function AdminPage() {
         flexShrink: 0,
       }}>
         {/* Logo */}
-        <div style={{ padding: '28px 20px 20px', borderBottom: '1px solid #f1f5f9', flexShrink: 0 }}>
+        <div style={{ padding: '26px 22px 18px', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#000E91,#0073F4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 12, background: 'linear-gradient(135deg,#0073F4,#38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 14px rgba(0,115,244,.4)' }}>
               <Icon name="copaf" size={18} color="#fff" />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 900, color: '#0f172a', letterSpacing: '-0.3px' }}>COPAF 2026</div>
-              <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase' }}>Administration</div>
+              <div style={{ fontSize: 15, fontWeight: 900, color: '#fff', letterSpacing: '-0.3px' }}>COPAF 2026</div>
+              <div style={{ fontSize: 10, color: 'rgba(255,255,255,.45)', fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase' }}>Administration</div>
             </div>
           </div>
         </div>
 
+        {/* Profil admin connecte */}
+        <div style={{ margin: '2px 16px 16px', padding: 14, background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.08)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'linear-gradient(135deg,#0073F4,#38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 15, flexShrink: 0, textTransform: 'uppercase' }}>
+            {(session?.user?.email || '?')[0]}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{session?.user?.email}</div>
+            <div style={{ fontSize: 10, color: '#7dd3fc', fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, marginTop: 2 }}>{scope === 'all' ? 'Accès complet' : scope}</div>
+          </div>
+        </div>
+
         {/* Navigation */}
-        <nav style={{ padding: '16px 12px', flex: 1, overflowY: 'auto' }}>
-          <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', padding: '0 8px 10px' }}>Menu principal</div>
+        <nav style={{ padding: '4px 12px 16px', flex: 1, overflowY: 'auto' }}>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,.35)', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', padding: '0 8px 10px' }}>Menu principal</div>
           {visibleModules.map(m => (
             <button
               key={m.id}
               className={`nav-item${activeModule === m.id ? ' active' : ''}`}
               onClick={() => setActiveModule(m.id)}
             >
-              <Icon name={m.icon} size={18} color={activeModule === m.id ? '#000E91' : '#64748b'} />
+              <Icon name={m.icon} size={18} color={activeModule === m.id ? '#fff' : 'rgba(255,255,255,.55)'} />
               <span style={{ whiteSpace: 'nowrap' }}>{m.label}</span>
               {m.table && allData[m.id]?.length > 0 && (
-                <span style={{ marginLeft: 'auto', background: activeModule === m.id ? '#000E91' : '#f1f5f9', color: activeModule === m.id ? '#fff' : '#64748b', borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+                <span style={{ marginLeft: 'auto', background: activeModule === m.id ? 'rgba(255,255,255,.22)' : 'rgba(255,255,255,.08)', color: '#fff', borderRadius: 20, padding: '2px 8px', fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
                   {allData[m.id]?.length}
                 </span>
               )}
@@ -1271,17 +1297,17 @@ export default function AdminPage() {
 
         {/* Derniere sync */}
         {lastSync && (
-          <div style={{ padding: '14px 20px', borderTop: '1px solid #f1f5f9', fontSize: 11, color: '#94a3b8', flexShrink: 0 }}>
-            <div style={{ fontWeight: 600, color: '#64748b', marginBottom: 2 }}>Derniere actualisation</div>
+          <div style={{ padding: '14px 22px', borderTop: '1px solid rgba(255,255,255,.08)', fontSize: 11, color: 'rgba(255,255,255,.4)', flexShrink: 0 }}>
+            <div style={{ fontWeight: 600, color: 'rgba(255,255,255,.6)', marginBottom: 2 }}>Derniere actualisation</div>
             {lastSync.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </div>
         )}
 
         {/* Deconnexion */}
-        <div style={{ padding: '12px 20px 18px', borderTop: '1px solid #f1f5f9', flexShrink: 0 }}>
+        <div style={{ padding: '12px 20px 20px', borderTop: '1px solid rgba(255,255,255,.08)', flexShrink: 0 }}>
           <button
             onClick={signOut}
-            style={{ width: '100%', padding: '9px 12px', background: 'none', border: '1.5px solid #e2e8f0', borderRadius: 10, color: '#64748b', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+            style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,.06)', border: '1.5px solid rgba(255,255,255,.12)', borderRadius: 10, color: '#fff', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
           >
             Se déconnecter
           </button>
@@ -1292,7 +1318,7 @@ export default function AdminPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
         {/* Topbar */}
-        <header style={{ background: '#fff', borderBottom: '1px solid #e8edf5', padding: '0 28px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <header style={{ background: '#fff', boxShadow: '0 1px 0 rgba(15,23,42,.06), 0 2px 8px rgba(15,23,42,.03)', padding: '0 28px', height: 68, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <button
               onClick={() => setSidebarOpen(o => !o)}
