@@ -15,11 +15,13 @@ const Ico = ({ name, size = 26, color = 'currentColor' }) => {
     handshake: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M11 17l-4 4-4-4 4-4"/><path d="M18 12l4 4-4 4-4-4"/><path d="M7 17l4-4 3-3 3 3"/></svg>,
     mail: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
     globe: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+    ship: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M2 20h20"/><path d="M4 20l1.5-6h13L20 20"/><path d="M8 14V6h8v8"/><path d="M12 2v4"/></svg>,
   }
   return icons[name] || null
 }
 
 const TUILES = [
+  { titre: 'COPAF Smart Port Challenge', sousTitre: 'Testez vos décisions en 3 minutes', href: '/demo', icone: 'ship', accent: true },
   { titre: 'Diagnostic Smart Port', sousTitre: 'Évaluez la maturité digitale de votre port', href: '/diagnostic', icone: 'radar', accent: true },
   { titre: 'Sondage en direct', sousTitre: 'Votez en temps réel pendant les sessions', href: '/vote', icone: 'poll', accent: true },
   { titre: 'Programme', sousTitre: 'Le déroulé complet des 3 jours', href: '/#programme', icone: 'calendar' },
