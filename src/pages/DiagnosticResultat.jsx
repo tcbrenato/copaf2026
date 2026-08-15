@@ -86,7 +86,7 @@ export default function DiagnosticResultat() {
   const timerStarted = useRef(false)
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('diagnostics').select('*').eq('id', id).single()
+    const { data, error } = await supabase.rpc('get_diagnostic_result', { p_id: id }).single()
     if (!error) setDiag(data)
     setFetchDone(true)
   }, [id])

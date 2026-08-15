@@ -8,7 +8,7 @@ import { useAnalytics } from '../useAnalytics'
 import { PORTS_AUTRE, getOrgOptionsForCountry, findPortByValue } from '../utils/portsData'
 import { calculerTarif, PRIX_STANDARD } from '../utils/tarifs'
 
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
+const SHEET_URL = import.meta.env.VITE_SHEET_URL_INSCRIPTIONS
 const PRIX_UNITAIRE = PRIX_STANDARD
 const EMAILJS_SVC   = 'service_hvuj5ra'
 const EMAILJS_TPL_FR = 'template_7wrkmm1'
@@ -371,9 +371,12 @@ const TYPE_PRIX_EN = { participant:'EUR 3,500', sponsor:'From EUR 8,000', exposa
 const genDossier = () => `COPAF2026-${Math.floor(Math.random() * 90000) + 10000}`
 
 async function upsertContact(form) {
-  const { data, error } = await supabase.from('contacts').upsert({ email:form.email, prenom:form.prenom, nom:form.nom, telephone:form.telephone, organisation:form.organisation, poste:form.poste, pays:form.pays, source:'inscription' }, { onConflict:'email' }).select('id').single()
+  const { data, error } = await supabase.rpc('public_upsert_contact', {
+    p_email: form.email, p_source: 'inscription', p_prenom: form.prenom, p_nom: form.nom,
+    p_telephone: form.telephone, p_organisation: form.organisation, p_poste: form.poste, p_pays: form.pays,
+  })
   if (error) throw new Error(error.message)
-  return data.id
+  return data
 }
 
 // tarifInfo = resultat de calculerTarif() : { prixUnitaire, estPreferentiel, source, codeUtilise }

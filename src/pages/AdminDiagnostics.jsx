@@ -242,9 +242,9 @@ export default function AdminDiagnostics() {
 
   const densiteCompacte = params.densite === 'compact'
 
-  const wrap = { minHeight: '100vh', position: 'relative', fontFamily: "'Plus Jakarta Sans', sans-serif", padding: '32px 20px', color: '#f8fafc' }
-  const bgImage = { position: 'fixed', inset: 0, zIndex: -2, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.75) saturate(1.2)' }
-  const bgOverlay = { position: 'fixed', inset: 0, zIndex: -1, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.55) 0%, rgba(9,13,22,0.78) 70%)' }
+  const wrap = { position: 'relative', overflow: 'hidden', borderRadius: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", padding: '32px 20px', color: '#f8fafc' }
+  const bgImage = { position: 'absolute', inset: 0, zIndex: -2, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.75) saturate(1.2)' }
+  const bgOverlay = { position: 'absolute', inset: 0, zIndex: -1, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.55) 0%, rgba(9,13,22,0.78) 70%)' }
   const cardStyle = { background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 16, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }
 
   const inputStyle = {

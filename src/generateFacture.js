@@ -6,7 +6,7 @@ import { generateBadge } from '../utils/generateBadge'
 // REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
 // Extensions > Apps Script > Déployer > Nouvelle application web
 // ============================================================
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwbcaBVsg3ua3ZOoDJbzlHj75ozIDDLPeZ1youQnl8hKyu-CXIN-DJ2efwhira39bPY/exec'
+const SHEET_URL = import.meta.env.VITE_SHEET_URL_ADMIN
 
 // ─── ICÔNES SVG ──────────────────────────────────────────────────────────────
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {

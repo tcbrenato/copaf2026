@@ -185,20 +185,9 @@ export default function DiagnosticSmartPort() {
     const valeur = recherche.trim()
     const isDossier = /^COPAF/i.test(valeur)
 
-    let query = supabase.from('contacts').select('id, nom, prenom, organisation, pays, email, telephone')
-    if (isDossier) {
-      const { data: insc } = await supabase.from('inscriptions').select('contact_id').eq('dossier', valeur).limit(1)
-      if (!insc || insc.length === 0) {
-        setErreurRecherche('Aucun dossier trouvé avec cette référence.')
-        setChercheEnCours(false)
-        return
-      }
-      query = query.eq('id', insc[0].contact_id)
-    } else {
-      query = query.eq('email', valeur.toLowerCase())
-    }
-
-    const { data: rows, error } = await query.limit(1)
+    const { data: rows, error } = await supabase.rpc('lookup_contact_for_diagnostic', isDossier
+      ? { p_dossier: valeur, p_email: null }
+      : { p_dossier: null, p_email: valeur.toLowerCase() })
     setChercheEnCours(false)
 
     if (error || !rows || rows.length === 0) {
@@ -230,15 +219,16 @@ export default function DiagnosticSmartPort() {
 
   const soumettre = async () => {
     setSoumission(true); setErreurSoumission('')
-    const { data, error } = await supabase.from('diagnostics').insert([{
-      nom: form.nom, prenom: form.prenom, telephone: form.telephone,
+    const id = crypto.randomUUID()
+    const { error } = await supabase.from('diagnostics').insert([{
+      id, nom: form.nom, prenom: form.prenom, telephone: form.telephone,
       email: form.email, organisation: form.organisation, pays: form.pays,
       scores: reponses,
-    }]).select('id').single()
+    }])
     setSoumission(false)
 
     if (error) { setErreurSoumission('Erreur : ' + error.message); return }
-    navigate(`/diagnostic/resultat/${data.id}`)
+    navigate(`/diagnostic/resultat/${id}`)
   }
 
   useEffect(() => {

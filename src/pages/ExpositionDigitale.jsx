@@ -4,7 +4,7 @@ import { supabase } from '../supabase'
 import Navbar from '../components/Navbar'
 
 // ─── SHEET URL ────────────────────────────────────────────────────────────────
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
+const SHEET_URL = import.meta.env.VITE_SHEET_URL_INSCRIPTIONS
 
 // ─── ROUTE VERS LA PAGE "VISITER L'EXPOSITION" ─────────────────────────────────
 const VISITER_ROUTE = '/visiter'
@@ -135,9 +135,11 @@ const FAQS = [
 
 // ─── BDD ─────────────────────────────────────────────────────────────────────
 async function upsertContact({ email, nom, telephone, organisation, secteur }) {
-  const { data, error } = await supabase.from('contacts').upsert({ email, nom, telephone, organisation, poste: secteur, source: 'exposant' }, { onConflict: 'email' }).select('id').single()
+  const { data, error } = await supabase.rpc('public_upsert_contact', {
+    p_email: email, p_source: 'exposant', p_nom: nom, p_telephone: telephone, p_organisation: organisation, p_poste: secteur,
+  })
   if (error) throw new Error(error.message)
-  return data.id
+  return data
 }
 
 async function createExposant({ contactId, entreprise, secteur, forfait, goals }) {

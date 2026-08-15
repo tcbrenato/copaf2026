@@ -1,12 +1,16 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { generateBadge } from '../utils/generateBadge'
+import { useAdminAuth } from '../adminAuth'
+import AdminProforma from '../pages/AdminProforma'
+import AdminSondages from '../pages/AdminSondages'
+import AdminDiagnostics from '../pages/AdminDiagnostics'
 
 // ============================================================
 // REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
 // Extensions > Apps Script > Déployer > Nouvelle application web
 // ============================================================
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwbcaBVsg3ua3ZOoDJbzlHj75ozIDDLPeZ1youQnl8hKyu-CXIN-DJ2efwhira39bPY/exec'
+const SHEET_URL = import.meta.env.VITE_SHEET_URL_ADMIN
 
 // ─── ICÔNES SVG ──────────────────────────────────────────────────────────────
 const Icon = ({ name, size = 18, color = 'currentColor' }) => {
@@ -47,12 +51,15 @@ const STATUS_CONFIG = {
 
 // ─── MODULES (onglets sidebar) ────────────────────────────────────────────────
 const MODULES = [
-  { id: 'dashboard',   label: 'Tableau de bord', icon: 'chart',    table: null },
-  { id: 'analytics',   label: 'Analytics',       icon: 'globe',    table: null },
-  { id: 'participants',label: 'Participants',     icon: 'users',    table: 'inscriptions',  statusField: 'paiement_status' },
-  { id: 'sponsors',    label: 'Sponsors',         icon: 'diamond',  table: 'sponsorships',  statusField: 'statut', filter: { type: 'sponsor' } },
-  { id: 'partenaires', label: 'Partenaires',      icon: 'building', table: 'sponsorships',  statusField: 'statut', filter: { type: 'partenaire_strategique' } },
-  { id: 'exposants',   label: 'Exposants',        icon: 'monitor',  table: 'exposants',     statusField: 'statut' },
+  { id: 'dashboard',   label: 'Tableau de bord', icon: 'chart',    table: null,            scope: 'all' },
+  { id: 'analytics',   label: 'Analytics',       icon: 'globe',    table: null,            scope: 'all' },
+  { id: 'participants',label: 'Participants',     icon: 'users',    table: 'inscriptions',  statusField: 'paiement_status', scope: 'all' },
+  { id: 'sponsors',    label: 'Sponsors',         icon: 'diamond',  table: 'sponsorships',  statusField: 'statut', filter: { type: 'sponsor' }, scope: 'all' },
+  { id: 'partenaires', label: 'Partenaires',      icon: 'building', table: 'sponsorships',  statusField: 'statut', filter: { type: 'partenaire_strategique' }, scope: 'all' },
+  { id: 'exposants',   label: 'Exposants',        icon: 'monitor',  table: 'exposants',     statusField: 'statut', scope: 'all' },
+  { id: 'proforma',    label: 'Proforma',         icon: 'euro',     table: null,            scope: 'proforma' },
+  { id: 'sondages',    label: 'Sondages',         icon: 'check',    table: null,            scope: 'sondages' },
+  { id: 'diagnostics', label: 'Diagnostics',      icon: 'search',   table: null,            scope: 'diagnostics' },
 ]
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -1110,7 +1117,9 @@ function SectionAnalytics() {
 
 // ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────────────────
 export default function AdminPage() {
-  const [activeModule,   setActiveModule]   = useState('dashboard')
+  const { scope, signOut } = useAdminAuth()
+  const visibleModules = useMemo(() => scope === 'all' ? MODULES : MODULES.filter(m => m.scope === scope), [scope])
+  const [activeModule,   setActiveModule]   = useState(() => visibleModules[0]?.id || 'dashboard')
   const [sidebarOpen,    setSidebarOpen]    = useState(true)
   const [allData,        setAllData]        = useState({ inscriptions: [], sponsors: [], partenaires: [], exposants: [] })
   const [sectionData,    setSectionData]    = useState([])
@@ -1149,7 +1158,7 @@ export default function AdminPage() {
 
   // Changement d'onglet
   useEffect(() => {
-    if (activeModule === 'dashboard' || activeModule === 'analytics') return
+    if (['dashboard', 'analytics', 'proforma', 'sondages', 'diagnostics'].includes(activeModule)) return
     setSectionData(allData[activeModule] || [])
   }, [activeModule, allData])
 
@@ -1243,7 +1252,7 @@ export default function AdminPage() {
         {/* Navigation */}
         <nav style={{ padding: '16px 12px', flex: 1, overflowY: 'auto' }}>
           <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', padding: '0 8px 10px' }}>Menu principal</div>
-          {MODULES.map(m => (
+          {visibleModules.map(m => (
             <button
               key={m.id}
               className={`nav-item${activeModule === m.id ? ' active' : ''}`}
@@ -1267,6 +1276,16 @@ export default function AdminPage() {
             {lastSync.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </div>
         )}
+
+        {/* Deconnexion */}
+        <div style={{ padding: '12px 20px 18px', borderTop: '1px solid #f1f5f9', flexShrink: 0 }}>
+          <button
+            onClick={signOut}
+            style={{ width: '100%', padding: '9px 12px', background: 'none', border: '1.5px solid #e2e8f0', borderRadius: 10, color: '#64748b', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Se déconnecter
+          </button>
+        </div>
       </aside>
 
       {/* ══════════ MAIN ══════════ */}
@@ -1291,42 +1310,50 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            {/* Sync tout vers Sheets */}
-            <button
-              onClick={syncAll}
-              disabled={globalSyncing}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '9px 16px',
-                background: globalSyncOk ? '#d1fae5' : '#fff',
-                border: `1.5px solid ${globalSyncOk ? '#10b981' : '#e2e8f0'}`,
-                borderRadius: 12, fontSize: 13, fontWeight: 700,
-                color: globalSyncOk ? '#065f46' : '#0f172a',
-                cursor: globalSyncing ? 'not-allowed' : 'pointer',
-                fontFamily: 'inherit', transition: 'all .2s',
-                opacity: globalSyncing ? .7 : 1,
-              }}
-            >
-              {globalSyncing ? <div className="spinner" style={{ borderTopColor: '#0f172a', borderColor: '#e2e8f0' }} /> : <Icon name="sheet" size={16} color={globalSyncOk ? '#065f46' : '#0f172a'} />}
-              {globalSyncing ? 'Sync en cours...' : globalSyncOk ? 'Google Sheets a jour' : 'Tout synchroniser'}
-            </button>
+          {!['proforma', 'sondages', 'diagnostics'].includes(activeModule) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {/* Sync tout vers Sheets */}
+              <button
+                onClick={syncAll}
+                disabled={globalSyncing}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  padding: '9px 16px',
+                  background: globalSyncOk ? '#d1fae5' : '#fff',
+                  border: `1.5px solid ${globalSyncOk ? '#10b981' : '#e2e8f0'}`,
+                  borderRadius: 12, fontSize: 13, fontWeight: 700,
+                  color: globalSyncOk ? '#065f46' : '#0f172a',
+                  cursor: globalSyncing ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit', transition: 'all .2s',
+                  opacity: globalSyncing ? .7 : 1,
+                }}
+              >
+                {globalSyncing ? <div className="spinner" style={{ borderTopColor: '#0f172a', borderColor: '#e2e8f0' }} /> : <Icon name="sheet" size={16} color={globalSyncOk ? '#065f46' : '#0f172a'} />}
+                {globalSyncing ? 'Sync en cours...' : globalSyncOk ? 'Google Sheets a jour' : 'Tout synchroniser'}
+              </button>
 
-            {/* Actualiser */}
-            <button
-              onClick={loadAll}
-              disabled={loading}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', background: '#000E91', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading ? .7 : 1 }}
-            >
-              {loading ? <div className="spinner" /> : <Icon name="refresh" size={16} color="#fff" />}
-              Actualiser
-            </button>
-          </div>
+              {/* Actualiser */}
+              <button
+                onClick={loadAll}
+                disabled={loading}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', background: '#000E91', border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: loading ? .7 : 1 }}
+              >
+                {loading ? <div className="spinner" /> : <Icon name="refresh" size={16} color="#fff" />}
+                Actualiser
+              </button>
+            </div>
+          )}
         </header>
 
         {/* Contenu */}
         <main style={{ flex: 1, overflowY: 'auto', padding: '28px 28px 40px' }}>
-          {activeModule === 'analytics' ? (
+          {activeModule === 'proforma' ? (
+            <AdminProforma />
+          ) : activeModule === 'sondages' ? (
+            <AdminSondages />
+          ) : activeModule === 'diagnostics' ? (
+            <AdminDiagnostics />
+          ) : activeModule === 'analytics' ? (
             <SectionAnalytics />
           ) : loading ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', flexDirection: 'column', gap: 16 }}>

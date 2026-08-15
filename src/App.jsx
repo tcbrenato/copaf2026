@@ -1,4 +1,4 @@
-﻿import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+﻿import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import HeaderStack from './components/HeaderStack'
 import Hero from './components/Hero'
 import About from './components/About'
@@ -9,20 +9,17 @@ import Inscription from './components/Inscription'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 import AdminDashboard from './components/AdminDashboard'
-import AdminGate from './components/AdminGate'
+import AuthGate from './components/AuthGate'
 import Partners from './components/Partners'
 import { useAnalytics } from './useAnalytics'
 import Partenariats from './pages/Partenariats'
 import ExpositionDigitale from './pages/ExpositionDigitale'
 import VisiterExposition from './pages/VisiterExposition'
 import VerifierDossier from './pages/VerifierDossier'
-import AdminProforma from './pages/AdminProforma'
 import VoteSondage from './pages/VoteSondage'
-import AdminSondages from './pages/AdminSondages'
 import ResultatsSondage from './pages/ResultatsSondage'
 import DiagnosticSmartPort from './pages/DiagnosticSmartPort'
 import DiagnosticResultat from './pages/DiagnosticResultat'
-import AdminDiagnostics from './pages/AdminDiagnostics'
 import TabletteHub from './pages/TabletteHub'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
@@ -75,47 +72,14 @@ const VerifierPage = () => (
   </>
 )
 
-// ─── Page Admin protegee par mot de passe ─────────────────────────────────────
+// ─── Espace Admin : tableau de bord unique protege par une vraie connexion ────
+// (Supabase Auth). Le compte connecte determine les sections visibles :
+// scope "all" voit tout, scope "proforma"/"sondages"/"diagnostics" ne voit
+// que sa section dediee (voir src/components/AdminDashboard.jsx).
 const AdminPage = () => (
-  <AdminGate>
+  <AuthGate title="COPAF 2026" subtitle="Accès réservé à l'administration">
     <AdminDashboard />
-  </AdminGate>
-)
-
-// ─── Page Facture Proforma, protegee par un mot de passe dedie au secretariat ──
-const AdminProformaPage = () => (
-  <AdminGate
-    password="PROFORMA2026"
-    storageKey="copaf_proforma_auth"
-    title="COPAF 2026"
-    subtitle="Génération des factures proforma"
-  >
-    <AdminProforma />
-  </AdminGate>
-)
-
-// ─── Page Admin Sondages, protegee par un mot de passe dedie ──────────────────
-const AdminSondagesPage = () => (
-  <AdminGate
-    password="SONDAGES2026"
-    storageKey="copaf_sondages_auth"
-    title="COPAF 2026"
-    subtitle="Contrôle des sondages en direct"
-  >
-    <AdminSondages />
-  </AdminGate>
-)
-
-// ─── Page Admin Diagnostics Smart Port, protegee par un mot de passe dedie ────
-const AdminDiagnosticsPage = () => (
-  <AdminGate
-    password="DIAGNOSTIC2026"
-    storageKey="copaf_diagnostics_auth"
-    title="COPAF 2026"
-    subtitle="Diagnostics Smart Port"
-  >
-    <AdminDiagnostics />
-  </AdminGate>
+  </AuthGate>
 )
 
 // ─── Application principale ───────────────────────────────────────────────────
@@ -130,9 +94,9 @@ function App() {
         <Route path="/partenariats"           element={<Partenariats />} />
         <Route path="/exposition-digitale"    element={<ExpositionDigitale />} />
         <Route path="/admin"                  element={<AdminPage />} />
-        <Route path="/admin/proforma"         element={<AdminProformaPage />} />
-        <Route path="/admin/sondages"         element={<AdminSondagesPage />} />
-        <Route path="/admin/diagnostics"      element={<AdminDiagnosticsPage />} />
+        <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
+        <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />
+        <Route path="/admin/diagnostics"      element={<Navigate to="/admin" replace />} />
         <Route path="/vote"                   element={<VoteSondage />} />
         <Route path="/sondage-live/:id"       element={<ResultatsSondage />} />
         <Route path="/diagnostic"             element={<DiagnosticSmartPort />} />

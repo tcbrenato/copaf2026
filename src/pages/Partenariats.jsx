@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar'
 import { useAnalytics } from '../useAnalytics'
 
 // ─── SHEET URL ────────────────────────────────────────────────────────────────
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbz7r-LgcYhTnR7VjHzq0KsrRUAp5fNrzn6Y4wnPf9rzc1-bd2j8aMbT8guG3P2i-kbe/exec'
+const SHEET_URL = import.meta.env.VITE_SHEET_URL_INSCRIPTIONS
 
 // NOTE : pas d'envoi d'email automatique sur cette page — EmailJS (plan
 // gratuit) est deja au maximum de ses 2 templates avec le formulaire
@@ -380,9 +380,11 @@ const TR = {
 
 // ─── BDD ─────────────────────────────────────────────────────────────────────
 async function upsertContact({ email, nom, telephone, organisation, pays, source }) {
-  const { data, error } = await supabase.from('contacts').upsert({ email, nom, telephone, organisation, pays, source }, { onConflict: 'email' }).select('id').single()
+  const { data, error } = await supabase.rpc('public_upsert_contact', {
+    p_email: email, p_source: source, p_nom: nom, p_telephone: telephone, p_organisation: organisation, p_pays: pays,
+  })
   if (error) throw new Error(error.message)
-  return data.id
+  return data
 }
 
 async function createSponsorship({ contactId, type, niveau, montant, typeInstitution, message }) {
