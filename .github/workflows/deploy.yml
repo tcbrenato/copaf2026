@@ -23,6 +23,11 @@ jobs:
 
       - name: 🛠️ Build du projet
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SHEET_URL_INSCRIPTIONS: ${{ secrets.VITE_SHEET_URL_INSCRIPTIONS }}
+          VITE_SHEET_URL_ADMIN: ${{ secrets.VITE_SHEET_URL_ADMIN }}
 
       - name: 📂 Envoyer sur Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
