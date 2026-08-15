@@ -4,6 +4,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Responsi
 import { supabase } from '../supabase'
 import { generateDiagnosticPDF } from '../utils/generateDiagnosticPDF'
 import { AXES, AXES_LABELS, ECHELLE, txt } from '../utils/diagnosticAxes'
+import DiagnosticChat from '../components/DiagnosticChat'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -30,6 +31,10 @@ const TR = {
     planSousTitre: 'Des actions concrètes, adaptées à votre score actuel sur chaque axe.',
     tierLabel: { faible: 'Priorités à traiter', moyen: 'Prochaines étapes', bon: 'Pour aller plus loin' },
     analyseEnCours: 'Analyse de votre profil Smart Port en cours...',
+    collectifTitre: 'Vue collective de votre port',
+    collectifSousTitre: n => n === 1
+      ? 'Basée sur 1 diagnostic soumis pour ce port pendant la conférence (le vôtre).'
+      : `Basée sur ${n} diagnostics soumis pour ce port pendant la conférence.`,
   },
   en: {
     badge: 'COPAF 2026 · Smart Port Diagnostic',
@@ -52,6 +57,10 @@ const TR = {
     planSousTitre: 'Concrete actions, matched to your current score on each axis.',
     tierLabel: { faible: 'Priorities to address', moyen: 'Next steps', bon: 'To go further' },
     analyseEnCours: 'Analysing your Smart Port profile...',
+    collectifTitre: 'Collective view for your port',
+    collectifSousTitre: n => n === 1
+      ? 'Based on 1 diagnostic submitted for this port during the conference (yours).'
+      : `Based on ${n} diagnostics submitted for this port during the conference.`,
   },
 }
 
@@ -129,6 +138,7 @@ export default function DiagnosticResultat() {
   const [pdfLoading, setPdfLoading] = useState(false)
   const [lienCopie, setLienCopie] = useState(false)
   const [lang, setLang] = useState(searchParams.get('lang') === 'en' ? 'en' : 'fr')
+  const [collectif, setCollectif] = useState(null)
   const timerStarted = useRef(false)
 
   const load = useCallback(async () => {
@@ -147,6 +157,23 @@ export default function DiagnosticResultat() {
 
   useEffect(() => {
     if (diag?.langue === 'en') setLang('en')
+  }, [diag])
+
+  useEffect(() => {
+    if (!diag?.organisation_id || diag.organisation_id === 'autre') return
+    supabase.rpc('get_diagnostic_live_aggregate', {
+      p_organisation_id: diag.organisation_id,
+      p_site_id: diag.site_id || null,
+    }).then(({ data, error }) => {
+      if (error || !data) return
+      const parAxe = {}
+      let nbReponses = 0
+      data.forEach(r => {
+        parAxe[r.axis_id] = Number(r.moyenne)
+        nbReponses = Math.max(nbReponses, Number(r.nb_reponses))
+      })
+      if (nbReponses > 0) setCollectif({ parAxe, nbReponses })
+    })
   }, [diag])
 
   const t = TR[lang]
@@ -240,6 +267,11 @@ export default function DiagnosticResultat() {
     fullMark: 5,
   }))
   const moyenne = chartData.length ? (chartData.reduce((s, d) => s + d.valeur, 0) / chartData.length) : 0
+
+  const normalise = s => (s || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')
+  const roomKey = diag.organisation_id && diag.organisation_id !== 'autre'
+    ? `${diag.organisation_id}${diag.site_id ? ':' + diag.site_id : ''}`
+    : diag.organisation ? `autre:${normalise(diag.organisation)}:${normalise(diag.pays)}` : null
 
   const panelStyle = { background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 20, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }
 
@@ -352,6 +384,35 @@ export default function DiagnosticResultat() {
             })}
           </div>
         </div>
+
+        {/* Vue collective du port — pleine largeur */}
+        {collectif && (
+          <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{t.collectifTitre}</div>
+            <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16 }}>{t.collectifSousTitre(collectif.nbReponses)}</p>
+            {AXES.map(axe => {
+              const v = collectif.parAxe[axe.id]
+              if (v === undefined) return null
+              const c = couleurNiveau(v)
+              return (
+                <div key={axe.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <span style={{ fontSize: 12, color: '#cbd5e1', width: 150, flexShrink: 0 }}>{txt(AXES_LABELS[axe.id], lang)}</span>
+                  <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ width: `${(v / 5) * 100}%`, height: '100%', background: c }} />
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: c, width: 36, textAlign: 'right', flexShrink: 0 }}>{v.toFixed(1)}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Chat entre repondants du meme port — pleine largeur */}
+        {roomKey && (
+          <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
+            <DiagnosticChat roomKey={roomKey} pseudoInitial={`${diag.prenom || ''} ${diag.nom || ''}`.trim()} lang={lang} />
+          </div>
+        )}
 
         {/* Plan d'action — pleine largeur */}
         <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
