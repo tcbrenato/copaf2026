@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
+import { PORTS, PORTS_AUTRE } from '../utils/portsData'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -16,6 +17,14 @@ function getDeviceToken() {
   return token
 }
 
+// Identite saisie une seule fois par session d'appareil, reutilisee pour
+// tous les sondages "publics" votes ensuite (evite de la redemander a
+// chaque question si plusieurs sondages publics sont actifs).
+function getIdentiteStockee() {
+  try { return JSON.parse(localStorage.getItem('copaf_vote_identite') || 'null') || { nom: '', port: '', portAutre: '' } }
+  catch { return { nom: '', port: '', portAutre: '' } }
+}
+
 const Ico = ({ name, size = 22, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
   const icons = {
@@ -30,12 +39,14 @@ export default function VoteSondage() {
   const [mesVotes, setMesVotes] = useState({}) // { sondage_id: option_index }
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState('')
+  const [identite, setIdentite] = useState(getIdentiteStockee)
+  const [erreurIdentite, setErreurIdentite] = useState('')
   const deviceToken = getDeviceToken()
 
   const loadSondagesActifs = useCallback(async () => {
     const { data: rows } = await supabase
       .from('sondages')
-      .select('id, session, question, options, ordre')
+      .select('id, session, question, options, ordre, is_public')
       .eq('actif', true)
       .order('ordre', { ascending: true })
     setSondages(rows || [])
@@ -74,19 +85,36 @@ export default function VoteSondage() {
     }
   }, [loadSondagesActifs])
 
-  const voter = async (sondageId, optionIndex) => {
+  const voter = async (sondage, optionIndex) => {
+    const sondageId = sondage.id
     if (mesVotes[sondageId] !== undefined || submitting) return
+
+    const identiteIncomplete = !identite.nom.trim() || !identite.port || (identite.port === PORTS_AUTRE.value && !identite.portAutre.trim())
+    if (sondage.is_public && identiteIncomplete) {
+      setErreurIdentite(sondageId)
+      return
+    }
+    setErreurIdentite('')
+
     setSubmitting(sondageId)
+    const portLabel = identite.port === PORTS_AUTRE.value
+      ? identite.portAutre
+      : (PORTS.find(p => p.value === identite.port)?.label.fr || '')
     const { error } = await supabase.from('votes').insert([{
       sondage_id: sondageId, option_index: optionIndex, device_token: deviceToken,
+      ...(sondage.is_public ? { nom: identite.nom.trim(), port: portLabel } : {}),
     }])
     setSubmitting('')
-    if (!error) setMesVotes(v => ({ ...v, [sondageId]: optionIndex }))
+    if (!error) {
+      setMesVotes(v => ({ ...v, [sondageId]: optionIndex }))
+      if (sondage.is_public) localStorage.setItem('copaf_vote_identite', JSON.stringify(identite))
+    }
     // Si error (ex: doublon), on ignore silencieusement — le vote existant reste valable.
   }
 
   const wrap = { minHeight: '100vh', background: 'linear-gradient(180deg,#f0f6ff 0%,#f8faff 100%)', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '24px 16px' }
   const card = { maxWidth: 560, margin: '0 auto' }
+  const inputIdentite = { width: '100%', padding: '10px 12px', fontSize: 13.5, fontFamily: 'inherit', color: '#0f172a', background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }
   const BoutonMenu = () => (
     <a href="/tablette" style={{
       position: 'fixed', top: 18, left: 18, zIndex: 10, display: 'inline-flex', alignItems: 'center', gap: 6,
@@ -118,11 +146,52 @@ export default function VoteSondage() {
           </div>
         )}
 
-        {sondages.map(s => {
+        {sondages.some(s => s.is_public) && (
+          <div style={{ background: '#fff', border: '1.5px solid #fde68a', borderRadius: 20, padding: 20, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,14,145,.06)', animation: 'copaf-vote-in .35s ease' }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#92400e', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: '#fef3c7' }}>PUBLIC</span>
+              Une question est publique — indiquez qui vous êtes
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <input
+                style={inputIdentite} placeholder="Votre nom" value={identite.nom}
+                onChange={e => setIdentite(v => ({ ...v, nom: e.target.value }))}
+              />
+              <select
+                style={inputIdentite} value={identite.port}
+                onChange={e => setIdentite(v => ({ ...v, port: e.target.value }))}
+              >
+                <option value="">Votre port</option>
+                {[...new Set(PORTS.map(p => p.country))].map(country => (
+                  <optgroup key={country} label={country}>
+                    {PORTS.filter(p => p.country === country).map(p => (
+                      <option key={p.value} value={p.value}>{p.label.fr}</option>
+                    ))}
+                  </optgroup>
+                ))}
+                <option value={PORTS_AUTRE.value}>{PORTS_AUTRE.label.fr}</option>
+              </select>
+            </div>
+            {identite.port === PORTS_AUTRE.value && (
+              <input
+                style={{ ...inputIdentite, marginTop: 10 }} placeholder="Précisez votre port / organisation"
+                value={identite.portAutre} onChange={e => setIdentite(v => ({ ...v, portAutre: e.target.value }))}
+              />
+            )}
+          </div>
+        )}
+
+        {sondages.map((s, idx) => {
           const monVote = mesVotes[s.id]
           return (
-            <div key={s.id} style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: 22, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,14,145,.06)' }}>
-              {s.session && <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>{s.session}</div>}
+            <div key={s.id} style={{
+              background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: 22, marginBottom: 18,
+              boxShadow: '0 4px 20px rgba(0,14,145,.06)', animation: `copaf-vote-in .35s ease ${idx * 0.06}s both`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                {s.session && <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.session}</div>}
+                {s.is_public && <span style={{ fontSize: 9.5, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: '#fef3c7', color: '#92400e', letterSpacing: 0.4 }}>PUBLIC</span>}
+              </div>
               <div style={{ fontSize: 17, fontWeight: 800, color: '#0f172a', marginBottom: 18, lineHeight: 1.4 }}>{s.question}</div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -132,7 +201,7 @@ export default function VoteSondage() {
                   return (
                     <button
                       key={i}
-                      onClick={() => voter(s.id, i)}
+                      onClick={() => voter(s, i)}
                       disabled={disabled || submitting === s.id}
                       style={{
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
@@ -142,7 +211,8 @@ export default function VoteSondage() {
                         background: selected ? '#EBF3FF' : '#fff',
                         color: selected ? NAVY : '#334155',
                         opacity: disabled && !selected ? 0.5 : 1,
-                        transition: 'all .15s',
+                        transform: selected ? 'scale(1.02)' : 'scale(1)',
+                        transition: 'all .2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                       }}
                     >
                       <span>{opt}</span>
@@ -152,8 +222,14 @@ export default function VoteSondage() {
                 })}
               </div>
 
+              {erreurIdentite === s.id && (
+                <p style={{ fontSize: 12.5, color: '#dc2626', fontWeight: 700, marginTop: 14, marginBottom: 0, textAlign: 'center' }}>
+                  Merci de renseigner votre nom et votre port ci-dessus avant de voter.
+                </p>
+              )}
+
               {monVote !== undefined && (
-                <p style={{ fontSize: 12.5, color: '#059669', fontWeight: 700, marginTop: 14, marginBottom: 0, textAlign: 'center' }}>
+                <p style={{ fontSize: 12.5, color: '#059669', fontWeight: 700, marginTop: 14, marginBottom: 0, textAlign: 'center', animation: 'copaf-vote-in .3s ease' }}>
                   ✓ Merci, votre réponse a été enregistrée
                 </p>
               )}
@@ -161,6 +237,10 @@ export default function VoteSondage() {
           )
         })}
       </div>
+
+      <style>{`
+        @keyframes copaf-vote-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   )
 }

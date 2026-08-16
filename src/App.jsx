@@ -17,6 +17,7 @@ import ExpositionDigitale from './pages/ExpositionDigitale'
 import VisiterExposition from './pages/VisiterExposition'
 import VerifierDossier from './pages/VerifierDossier'
 import VoteSondage from './pages/VoteSondage'
+import SondagesLiveIndex from './pages/SondagesLiveIndex'
 import ResultatsSondage from './pages/ResultatsSondage'
 import DiagnosticSmartPort from './pages/DiagnosticSmartPort'
 import DiagnosticResultat from './pages/DiagnosticResultat'
@@ -100,6 +101,7 @@ function App() {
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/diagnostics"      element={<Navigate to="/admin" replace />} />
         <Route path="/vote"                   element={<VoteSondage />} />
+        <Route path="/sondage-live"           element={<SondagesLiveIndex />} />
         <Route path="/sondage-live/:id"       element={<ResultatsSondage />} />
         <Route path="/diagnostic"             element={<DiagnosticSmartPort />} />
         <Route path="/diagnostic/resultat/:id" element={<DiagnosticResultat />} />

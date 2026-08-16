@@ -25,6 +25,7 @@ export default function AdminSondages() {
   const [session, setSession] = useState('')
   const [question, setQuestion] = useState('')
   const [options, setOptions] = useState([newOptionRow(), newOptionRow()])
+  const [isPublic, setIsPublic] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
@@ -33,7 +34,7 @@ export default function AdminSondages() {
     setLoading(true)
     const { data: rows } = await supabase
       .from('sondages')
-      .select('id, session, question, options, actif, ordre, created_at')
+      .select('id, session, question, options, actif, ordre, created_at, is_public')
       .order('created_at', { ascending: false })
     setSondages(rows || [])
     setLoading(false)
@@ -65,11 +66,12 @@ export default function AdminSondages() {
       options: opts,
       actif: false,
       ordre: sondages.length,
+      is_public: isPublic,
     }])
     setSaving(false)
     if (error) { showToast('Erreur : ' + error.message); return }
 
-    setSession(''); setQuestion(''); setOptions([newOptionRow(), newOptionRow()])
+    setSession(''); setQuestion(''); setOptions([newOptionRow(), newOptionRow()]); setIsPublic(false)
     showToast('Sondage créé')
     load()
   }
@@ -148,11 +150,28 @@ export default function AdminSondages() {
           ))}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
           <button onClick={addOptionRow} style={actionBtn('#f1f5f9', '#334155', '#e2e8f0')}>
             <Ico name="plus" size={14} color="#334155" />
             Ajouter une option
           </button>
+        </div>
+
+        <label style={{
+          display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', borderRadius: 12,
+          background: isPublic ? '#EBF3FF' : '#f8fafc', border: `1.5px solid ${isPublic ? BLUE : '#e2e8f0'}`,
+          cursor: 'pointer', marginBottom: 14,
+        }}>
+          <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} style={{ marginTop: 3, width: 16, height: 16, accentColor: BLUE, cursor: 'pointer' }} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Sondage public</div>
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+              Chaque votant renseigne son nom et son port, affichés en direct sur l'écran de résultats. Décoché = vote anonyme (par défaut).
+            </div>
+          </div>
+        </label>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
           <button onClick={handleCreate} disabled={saving} style={actionBtn(BLUE, '#fff', BLUE)}>
             {saving ? 'Création...' : 'Créer le sondage'}
           </button>
@@ -177,7 +196,15 @@ export default function AdminSondages() {
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ minWidth: 0, flex: 1 }}>
-              {s.session && <div style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 4 }}>{s.session}</div>}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                {s.session && <div style={{ fontSize: 10.5, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>{s.session}</div>}
+                <span style={{
+                  fontSize: 10, fontWeight: 800, padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: 0.4,
+                  background: s.is_public ? '#fef3c7' : '#f1f5f9', color: s.is_public ? '#92400e' : '#64748b',
+                }}>
+                  {s.is_public ? 'Public' : 'Privé'}
+                </span>
+              </div>
               <div style={{ fontSize: 14.5, fontWeight: 800, color: '#0f172a', marginBottom: 6 }}>{s.question}</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {(s.options || []).map((opt, i) => (
