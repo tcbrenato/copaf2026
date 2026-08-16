@@ -6,6 +6,7 @@ import { useAdminAuth } from '../adminAuth'
 import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
 import AdminDiagnostics from '../pages/AdminDiagnostics'
+import AdminTirage from '../pages/AdminTirage'
 
 // ============================================================
 // REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
@@ -37,6 +38,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     globe: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
     menu: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
     copaf: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 2 17 12 22 22 17 22 7 12 2"/><polyline points="2 7 12 12 22 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>,
+    gift: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>,
   }
   return paths[name] || null
 }
@@ -61,6 +63,7 @@ const MODULES = [
   { id: 'proforma',    label: 'Proforma',         icon: 'euro',     table: null,            scope: 'proforma' },
   { id: 'sondages',    label: 'Sondages',         icon: 'check',    table: null,            scope: 'sondages' },
   { id: 'diagnostics', label: 'Diagnostics',      icon: 'search',   table: null,            scope: 'diagnostics' },
+  { id: 'tirage',      label: 'Tirage au sort',   icon: 'gift',     table: null,            scope: 'all' },
 ]
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -1172,7 +1175,7 @@ export default function AdminPage() {
 
   // Changement d'onglet
   useEffect(() => {
-    if (['dashboard', 'analytics', 'proforma', 'sondages', 'diagnostics'].includes(activeModule)) return
+    if (['dashboard', 'analytics', 'proforma', 'sondages', 'diagnostics', 'tirage'].includes(activeModule)) return
     setSectionData(allData[activeModule] || [])
   }, [activeModule, allData])
 
@@ -1336,7 +1339,7 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {!['proforma', 'sondages', 'diagnostics'].includes(activeModule) && (
+          {!['proforma', 'sondages', 'diagnostics', 'tirage'].includes(activeModule) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {/* Sync tout vers Sheets */}
               <button
@@ -1379,6 +1382,8 @@ export default function AdminPage() {
             <AdminSondages />
           ) : activeModule === 'diagnostics' ? (
             <AdminDiagnostics />
+          ) : activeModule === 'tirage' ? (
+            <AdminTirage />
           ) : activeModule === 'analytics' ? (
             <SectionAnalytics />
           ) : loading ? (
