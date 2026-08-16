@@ -6,9 +6,15 @@ import { PORTS, PORTS_AUTRE, findPortByValue } from '../utils/portsData'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
+const LANE_X = { 'quai-1': 20, 'quai-2': 50, 'quai-3': 80 }
+const CONTAINER_COLORS = ['#f59e0b', '#ef4444', '#10b981', '#8b5cf6', '#3b82f6', '#ec4899']
 
 const TR = {
   fr: {
+    brand: 'COPAF Smart Port Challenge',
+    accrocheHook: 'En 3 minutes, prenez les commandes d’un port et voyez l’impact du digital sur sa performance.',
+    accrocheTeaser: 'Jusqu’à -55% de temps de déchargement selon vos choix',
+    accrocheCta: 'Découvrir le challenge',
     identTitle: 'COPAF Smart Port Challenge',
     identSubtitle: 'Avant de commencer, dites-nous qui vous êtes',
     prenom: 'Prénom', prenomP: 'Votre prénom',
@@ -23,19 +29,20 @@ const TR = {
     commencer: 'Commencer',
     bonjour: (prenom, port) => `Bonjour ${prenom}${port ? ' - ' + port : ''}`,
     alerte: 'ALERTE : MSC AFRICA — 1200 EVP arrive. Pénalité : 15 000$/h de retard',
-    quaiLabel: 'Quai',
-    quaiOptions: ['Quai 1 - 90% occupé', 'Quai 2 - 75% occupé', 'Quai 3 - 40% occupé'],
+    consigne: 'Touchez un quai pour le choisir',
+    quaiOccupe: ['90% occupé', '75% occupé', '40% occupé'],
     gruesLabel: 'Grues',
-    gruesOptions: ['2 Grues', '3 Grues', '4 Grues'],
     digitalLabel: 'Digital',
     digitalOff: 'OFF',
-    digitalOn: 'ON - IA Activée',
+    digitalOn: 'IA activée',
     copilotTitre: 'Copilote IA',
     copilotTexte: 'Recommandation : Quai 3 + 4 Grues + Digital ON. Gain estimé : -39%',
     lancer: 'Lancer les opérations',
     lancement: 'Lancement...',
     erreurLancement: 'Une erreur est survenue, réessayez.',
     simTitre: 'Déchargement en cours...',
+    tempsEcoule: 'Temps écoulé',
+    coutCumule: 'Coût cumulé',
     resultTitre: 'Rapport de Performance',
     kpiTemps: 'Temps', kpiCout: 'Coût', kpiScore: 'Score',
     sansDigital: v => `Sans Digital : ${v}`,
@@ -46,6 +53,10 @@ const TR = {
     pts: 'pts',
   },
   en: {
+    brand: 'COPAF Smart Port Challenge',
+    accrocheHook: 'In 3 minutes, take command of a port and see the impact of digital on its performance.',
+    accrocheTeaser: 'Up to -55% unloading time depending on your choices',
+    accrocheCta: 'Discover the challenge',
     identTitle: 'COPAF Smart Port Challenge',
     identSubtitle: 'Before you start, tell us who you are',
     prenom: 'First name', prenomP: 'Your first name',
@@ -60,19 +71,20 @@ const TR = {
     commencer: 'Start',
     bonjour: (prenom, port) => `Hello ${prenom}${port ? ' - ' + port : ''}`,
     alerte: 'ALERT: MSC AFRICA — 1200 TEU inbound. Penalty: $15,000/h delay',
-    quaiLabel: 'Berth',
-    quaiOptions: ['Berth 1 - 90% occupied', 'Berth 2 - 75% occupied', 'Berth 3 - 40% occupied'],
+    consigne: 'Tap a berth to select it',
+    quaiOccupe: ['90% occupied', '75% occupied', '40% occupied'],
     gruesLabel: 'Cranes',
-    gruesOptions: ['2 Cranes', '3 Cranes', '4 Cranes'],
     digitalLabel: 'Digital',
     digitalOff: 'OFF',
-    digitalOn: 'ON - AI Enabled',
+    digitalOn: 'AI enabled',
     copilotTitre: 'AI Copilot',
     copilotTexte: 'Recommendation: Berth 3 + 4 Cranes + Digital ON. Estimated gain: -39%',
     lancer: 'Start operations',
     lancement: 'Starting...',
     erreurLancement: 'Something went wrong, please try again.',
     simTitre: 'Unloading in progress...',
+    tempsEcoule: 'Elapsed time',
+    coutCumule: 'Running cost',
     resultTitre: 'Performance Report',
     kpiTemps: 'Time', kpiCout: 'Cost', kpiScore: 'Score',
     sansDigital: v => `Without Digital: ${v}`,
@@ -88,76 +100,200 @@ const Ico = ({ name, size = 24, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
   const icons = {
     globe: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>,
-    ship: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 20h20" /><path d="M4 20l1.5-6h13L20 20" /><path d="M8 14V6h8v8" /><path d="M12 2v4" /></svg>,
     clock: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
     dollar: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>,
     target: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" /></svg>,
     replay: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>,
     alert: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>,
     ai: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 0 1 7.54 16.63" /><path d="M12 12v9" /><path d="M12 2a10 10 0 0 0-7.54 16.63" /><path d="M9 18h6" /><path d="M10 22h4" /></svg>,
+    plus: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>,
+    minus: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12" /></svg>,
   }
   return icons[name] || null
 }
 
-// ─── Fond decoratif "vue du ciel" du port (ecran 1 : statique / ecran 2 : anime) ──
-function VuePort({ simulating, quai, grues }) {
-  const laneX = { 'quai-1': 20, 'quai-2': 50, 'quai-3': 80 }
-  const boatX = simulating ? laneX[quai] : 50
-  const boatY = simulating ? 78 : 12
-  const nbGrues = simulating ? grues : 3
-  const gruePositions = simulating
-    ? Array.from({ length: nbGrues }, (_, i) => laneX[quai] + (i - (nbGrues - 1) / 2) * 8)
-    : [25, 50, 75]
+// ─── Grue avec fleche articulee et cable/crochet ─────────────────────────
+function Grue({ actif, anime, delay = 0 }) {
+  const couleur = actif ? '#e2e8f0' : 'rgba(226,232,240,0.35)'
+  return (
+    <svg width="38" height="76" viewBox="0 0 38 76" fill="none">
+      <line x1="19" y1="76" x2="19" y2="12" stroke={couleur} strokeWidth="3.5" />
+      <line x1="10" y1="76" x2="28" y2="76" stroke={couleur} strokeWidth="3.5" strokeLinecap="round" />
+      <g className={anime ? 'spc-grue-bras' : ''} style={{ transformOrigin: '19px 12px', animationDelay: `${delay}s` }}>
+        <line x1="19" y1="12" x2="35" y2="18" stroke={couleur} strokeWidth="3.5" strokeLinecap="round" />
+        <line x1="19" y1="12" x2="4" y2="18" stroke={couleur} strokeWidth="3.5" strokeLinecap="round" />
+        {actif && <line x1="30" y1="18" x2="30" y2="30" stroke={couleur} strokeWidth="1.5" strokeDasharray="2 2" />}
+      </g>
+    </svg>
+  )
+}
+
+// ─── Bateau : coque + conteneurs sur le pont ─────────────────────────────
+function Bateau({ size = 1 }) {
+  return (
+    <svg width={64 * size} height={44 * size} viewBox="0 0 64 44" fill="none">
+      <path d="M4 30h56l-6 10H10z" fill="#e2e8f0" />
+      <rect x="10" y="14" width="10" height="10" rx="1" fill={CONTAINER_COLORS[0]} />
+      <rect x="21" y="14" width="10" height="10" rx="1" fill={CONTAINER_COLORS[2]} />
+      <rect x="32" y="14" width="10" height="10" rx="1" fill={CONTAINER_COLORS[4]} />
+      <rect x="43" y="17" width="9" height="7" rx="1" fill="#94a3b8" />
+      <rect x="46" y="8" width="7" height="9" rx="1" fill="#cbd5e1" />
+    </svg>
+  )
+}
+
+// ─── Pile de conteneurs decorative sur un quai ───────────────────────────
+function PileConteneurs({ x, dim }) {
+  return (
+    <div style={{ position: 'absolute', bottom: '21%', left: `${x}%`, transform: 'translateX(-50%)', display: 'flex', gap: 2, opacity: dim ? 0.4 : 1 }}>
+      {[0, 1, 2].map(i => (
+        <div key={i} style={{ width: 9, height: 9 + (i % 2) * 4, background: CONTAINER_COLORS[(i + Math.round(x)) % CONTAINER_COLORS.length], borderRadius: 1.5 }} />
+      ))}
+    </div>
+  )
+}
+
+// ─── Scene principale du port : accroche (ambiance) / setup (interactif) / simulation (animee) ──
+function PortScene({ mode, quai, grues, digital, onSelectQuai, onIncGrues, onDecGrues, onToggleDigital, t }) {
+  const simulating = mode === 'simulation'
+  const interactif = mode === 'setup'
+  const boatX = simulating ? LANE_X[quai] : 50
+  const boatY = simulating ? 76 : (mode === 'accroche' ? 18 : 10)
 
   return (
     <div style={{
-      position: 'relative', width: '100%', height: 220, borderRadius: 20, overflow: 'hidden',
+      position: 'relative', width: '100%', height: mode === 'accroche' ? 320 : 240, borderRadius: 20, overflow: 'hidden',
       background: 'linear-gradient(180deg, #0a2a5e 0%, #0e3d7a 55%, #0b2f52 100%)',
       border: '1px solid rgba(255,255,255,0.1)',
     }}>
-      {/* Quais */}
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '22%', background: 'linear-gradient(180deg, #334155, #1e293b)' }} />
-      {['quai-1', 'quai-2', 'quai-3'].map(q => (
-        <div key={q} style={{
-          position: 'absolute', bottom: '20%', left: `${laneX[q]}%`, transform: 'translateX(-50%)',
-          width: 2, height: 6, background: 'rgba(255,255,255,0.3)',
-        }} />
+      {/* Quai / dock */}
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '20%', background: 'linear-gradient(180deg, #334155, #1e293b)' }} />
+
+      {/* Piles de conteneurs decoratives (une par quai, sauf sur la voie active en simulation) */}
+      {mode !== 'accroche' && ['quai-1', 'quai-2', 'quai-3'].map(q => (
+        (!simulating || q !== quai) && <PileConteneurs key={q} x={LANE_X[q] - 8} dim={interactif && q !== quai} />
       ))}
 
-      {/* Grues */}
-      {gruePositions.map((x, i) => (
-        <div key={i} className="spc-grue" style={{
-          position: 'absolute', bottom: '20%', left: `${x}%`, transform: 'translateX(-50%)',
-          transformOrigin: 'bottom center', transition: 'left 0.6s ease',
-        }}>
-          <svg width="34" height="70" viewBox="0 0 34 70" fill="none">
-            <line x1="17" y1="70" x2="17" y2="10" stroke="#e2e8f0" strokeWidth="3" />
-            <g className={simulating ? 'spc-grue-bras-anim' : ''} style={{ transformOrigin: '17px 10px' }}>
-              <line x1="17" y1="10" x2="32" y2="16" stroke="#e2e8f0" strokeWidth="3" strokeLinecap="round" />
-              <line x1="17" y1="10" x2="4" y2="16" stroke="#e2e8f0" strokeWidth="3" strokeLinecap="round" />
-            </g>
-          </svg>
-        </div>
+      {/* Grues : 1 par quai (setup, quai non selectionne) ou `grues` sur le quai actif */}
+      {mode !== 'accroche' && ['quai-1', 'quai-2', 'quai-3'].map(q => {
+        if (simulating && q !== quai) return null
+        const actif = q === quai
+        const nb = actif ? grues : 1
+        return Array.from({ length: nb }, (_, i) => (
+          <div key={`${q}-${i}`} style={{
+            position: 'absolute', bottom: '19%', left: `${LANE_X[q] + (i - (nb - 1) / 2) * 9}%`, transform: 'translateX(-50%)',
+            transition: 'left 0.5s ease',
+          }}>
+            <Grue actif={actif} anime={simulating && actif} delay={i * 0.15} />
+          </div>
+        ))
+      })}
+
+      {/* Zones tactiles de selection du quai (setup uniquement) */}
+      {interactif && ['quai-1', 'quai-2', 'quai-3'].map((q, i) => (
+        <button
+          key={q}
+          type="button"
+          onClick={() => onSelectQuai(q)}
+          style={{
+            position: 'absolute', bottom: 0, top: 0, left: `${i * (100 / 3)}%`, width: `${100 / 3}%`,
+            background: q === quai ? 'rgba(0,115,244,0.16)' : 'transparent',
+            border: 'none', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+            cursor: 'pointer', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', padding: '0 0 4px',
+          }}
+        >
+          {q === quai && <div style={{ position: 'absolute', inset: 4, borderRadius: 14, border: '2px solid rgba(0,115,244,0.6)', pointerEvents: 'none' }} />}
+          <span style={{
+            fontSize: 10.5, fontWeight: 800, color: q === quai ? '#93c5fd' : 'rgba(226,232,240,0.55)',
+            background: 'rgba(10,17,40,0.55)', padding: '3px 8px', borderRadius: 20, marginBottom: 2,
+          }}>
+            {`Q${i + 1} · ${t.quaiOccupe[i]}`}
+          </span>
+        </button>
       ))}
 
       {/* Bateau */}
       <div style={{
         position: 'absolute', left: `${boatX}%`, top: `${boatY}%`,
         transform: 'translate(-50%, -50%)',
-        transition: simulating ? 'left 4.5s ease-in-out, top 4.5s ease-in-out' : 'none',
+        transition: simulating ? 'left 2.2s ease-in-out, top 2.2s ease-in-out' : 'none',
+        animation: mode === 'accroche' ? 'spcBoatBob 3.2s ease-in-out infinite' : 'none',
       }}>
-        <Ico name="ship" size={40} color="#fff" />
+        <Bateau size={mode === 'accroche' ? 1.3 : 1} />
       </div>
+
+      {/* Conteneurs en mouvement pendant la simulation */}
+      {simulating && Array.from({ length: grues }, (_, i) => (
+        <div key={i} style={{
+          position: 'absolute', left: `${boatX}%`, top: `${boatY}%`, width: 10, height: 10, borderRadius: 2,
+          background: CONTAINER_COLORS[i % CONTAINER_COLORS.length],
+          animation: `spcConteneurFlow 1.6s ease-in ${i * 0.35}s infinite`,
+        }} />
+      ))}
+
+      {/* Overlay "grille numerique" quand Digital = ON */}
+      {digital && mode !== 'accroche' && (
+        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', animation: 'spcGridPulse 2.4s ease-in-out infinite' }}>
+          <defs>
+            <pattern id="spcGrid" width="26" height="26" patternUnits="userSpaceOnUse">
+              <path d="M 26 0 L 0 0 0 26" fill="none" stroke="#60a5fa" strokeWidth="0.6" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#spcGrid)" />
+        </svg>
+      )}
+
+      {/* Consigne (setup) */}
+      {interactif && (
+        <div style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', fontSize: 11.5, fontWeight: 700, color: 'rgba(226,232,240,0.7)', background: 'rgba(10,17,40,0.5)', padding: '4px 12px', borderRadius: 20 }}>
+          {t.consigne}
+        </div>
+      )}
+
+      {/* Stepper Grues (setup) */}
+      {interactif && (
+        <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(10,17,40,0.7)', backdropFilter: 'blur(6px)', borderRadius: 30, padding: '6px 8px', border: '1px solid rgba(255,255,255,0.12)' }}>
+          <button type="button" onClick={onDecGrues} disabled={grues <= 2} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: grues <= 2 ? 'default' : 'pointer', opacity: grues <= 2 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Ico name="minus" size={13} color="#fff" />
+          </button>
+          <span style={{ fontSize: 12.5, fontWeight: 800, color: '#fff', minWidth: 60, textAlign: 'center' }}>{grues} {t.gruesLabel}</span>
+          <button type="button" onClick={onIncGrues} disabled={grues >= 4} style={{ width: 26, height: 26, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: grues >= 4 ? 'default' : 'pointer', opacity: grues >= 4 ? 0.4 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Ico name="plus" size={13} color="#fff" />
+          </button>
+        </div>
+      )}
+
+      {/* Toggle Digital (setup) */}
+      {interactif && (
+        <button type="button" onClick={onToggleDigital} style={{
+          position: 'absolute', bottom: 10, right: 10, display: 'inline-flex', alignItems: 'center', gap: 6,
+          padding: '7px 14px', borderRadius: 30, cursor: 'pointer', fontWeight: 800, fontSize: 12,
+          background: digital ? 'rgba(16,185,129,0.85)' : 'rgba(10,17,40,0.7)',
+          border: digital ? '1px solid rgba(52,211,153,0.6)' : '1px solid rgba(255,255,255,0.15)',
+          color: '#fff', backdropFilter: 'blur(6px)',
+        }}>
+          <Ico name="ai" size={14} color="#fff" />
+          {digital ? t.digitalOn : t.digitalLabel + ' ' + t.digitalOff}
+        </button>
+      )}
 
       <style>{`
         @keyframes spcGrueBras { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-12deg); } }
-        .spc-grue-bras-anim { animation: spcGrueBras 1.1s ease-in-out infinite; }
+        .spc-grue-bras { animation: spcGrueBras 1.1s ease-in-out infinite; }
+        @keyframes spcBoatBob { 0%, 100% { margin-top: 0px; } 50% { margin-top: -8px; } }
+        @keyframes spcGridPulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.5; } }
+        @keyframes spcConteneurFlow {
+          0% { transform: translate(-50%, -50%) translateY(0); opacity: 0; }
+          15% { opacity: 1; }
+          80% { opacity: 1; }
+          100% { transform: translate(-50%, -50%) translateY(120px); opacity: 0; }
+        }
       `}</style>
     </div>
   )
 }
 
-// ─── Ecran 4 : classement projete, mis a jour en direct ─────────────────────
+// ─── Ecran de classement projete, mis a jour en direct ─────────────────────
 function ClassementLive() {
   const [top10, setTop10] = useState([])
   const [loaded, setLoaded] = useState(false)
@@ -212,11 +348,12 @@ function ClassementLive() {
   )
 }
 
-// ─── Ecrans 0 a 3 : identification, setup, simulation, resultat ─────────────
+// ─── Ecrans : accroche, identification, setup, simulation, resultat ────────
 function Challenge() {
   const [lang, setLang] = useState('fr')
   const t = TR[lang]
 
+  // 0 accroche, 1 identification, 2 setup, 3 simulation, 4 resultat
   const [step, setStep] = useState(0)
   const [form, setForm] = useState({ prenom: '', nom: '', email: '', portValue: '', portAutre: '' })
   const [erreurForm, setErreurForm] = useState('')
@@ -225,7 +362,7 @@ function Challenge() {
   const [lancement, setLancement] = useState(false)
   const [erreurLancement, setErreurLancement] = useState('')
   const [resultat, setResultat] = useState(null)
-  const [progress, setProgress] = useState(0)
+  const [simProgress, setSimProgress] = useState(0)
 
   const portLabel = form.portValue === PORTS_AUTRE.value
     ? form.portAutre
@@ -238,7 +375,7 @@ function Challenge() {
       return
     }
     setErreurForm('')
-    setStep(1)
+    setStep(2)
   }
 
   const lancerOperations = async () => {
@@ -259,7 +396,7 @@ function Challenge() {
       if (error) throw error
       if (data?.error) throw new Error(data.error)
       setResultat(data)
-      setStep(2)
+      setStep(3)
     } catch (err) {
       console.error(err)
       setErreurLancement(t.erreurLancement)
@@ -268,25 +405,36 @@ function Challenge() {
     }
   }
 
-  // Ecran 2 : animation proportionnelle au temps calcule par le moteur.
-  const timeoutRef = useRef(null)
+  const dureeMs = resultat ? Math.min(10000, Math.max(5000, Math.round(5000 + ((resultat.tempsFinal - 4) / 6) * 5000))) : 7000
+
+  // Ecran 3 : compteurs en direct (temps/cout) pilotes par requestAnimationFrame,
+  // pour donner l'impression de regarder l'operation se derouler en temps reel
+  // plutot qu'une simple barre de progression statique.
+  const rafRef = useRef(null)
   useEffect(() => {
-    if (step !== 2 || !resultat) return
-    const duree = Math.min(10000, Math.max(5000, Math.round(5000 + ((resultat.tempsFinal - 4) / 6) * 5000)))
-    setProgress(0)
-    const raf = requestAnimationFrame(() => setProgress(100))
-    timeoutRef.current = setTimeout(() => setStep(3), duree)
-    return () => { clearTimeout(timeoutRef.current); cancelAnimationFrame(raf) }
+    if (step !== 3 || !resultat) return
+    let start = null
+    const tick = ts => {
+      if (start === null) start = ts
+      const p = Math.min(1, (ts - start) / dureeMs)
+      setSimProgress(p)
+      if (p < 1) {
+        rafRef.current = requestAnimationFrame(tick)
+      } else {
+        setTimeout(() => setStep(4), 400)
+      }
+    }
+    setSimProgress(0)
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, resultat])
 
-  const dureeMs = resultat ? Math.min(10000, Math.max(5000, Math.round(5000 + ((resultat.tempsFinal - 4) / 6) * 5000))) : 7000
-
   const rejouer = () => {
     setResultat(null)
-    setProgress(0)
+    setSimProgress(0)
     setChoix({ quai: 'quai-2', grues: 2, digital: false })
-    setStep(1)
+    setStep(2)
   }
 
   // ─── Styles partages (memes conventions que DiagnosticSmartPort.jsx) ──────
@@ -310,8 +458,31 @@ function Challenge() {
   const labelStyle = { display: 'block', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }
   const btnPrimary = { padding: '16px 32px', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg,#0073F4,#000E91)', color: '#fff', fontWeight: 800, fontSize: 15, fontFamily: "'Plus Jakarta Sans',sans-serif", boxShadow: '0 10px 30px rgba(0,115,244,0.35)' }
 
-  // ─── Ecran 0 : identification ──────────────────────────────────────────
+  // ─── Ecran 0 : accroche ─────────────────────────────────────────────────
   if (step === 0) {
+    return (
+      <div style={wrap}>
+        <Fond /><RetourMenu /><BoutonLang />
+        <div style={{ ...card, maxWidth: 720, margin: 'auto', display: 'flex', flexDirection: 'column', gap: 24, textAlign: 'center' }}>
+          <div>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', background: 'rgba(0,115,244,0.15)', border: '1px solid rgba(0,115,244,0.4)', borderRadius: 30, fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: '#60a5fa', marginBottom: 18 }}>
+              {t.brand}
+            </div>
+            <h1 style={{ fontSize: 'clamp(26px,4vw,38px)', fontWeight: 900, margin: '0 0 12px', lineHeight: 1.25 }}>{t.accrocheHook}</h1>
+          </div>
+
+          <PortScene mode="accroche" quai={choix.quai} grues={choix.grues} digital={false} t={t} />
+
+          <div style={{ fontSize: 14.5, fontWeight: 700, color: '#34d399' }}>{t.accrocheTeaser}</div>
+
+          <button onClick={() => setStep(1)} style={{ ...btnPrimary, alignSelf: 'center' }}>{t.accrocheCta}</button>
+        </div>
+      </div>
+    )
+  }
+
+  // ─── Ecran 1 : identification ──────────────────────────────────────────
+  if (step === 1) {
     return (
       <div style={wrap}>
         <Fond /><RetourMenu /><BoutonLang />
@@ -367,8 +538,8 @@ function Challenge() {
     )
   }
 
-  // ─── Ecran 1 : setup / decision ────────────────────────────────────────
-  if (step === 1) {
+  // ─── Ecran 2 : setup / decision (scene interactive) ────────────────────
+  if (step === 2) {
     return (
       <div style={wrap}>
         <Fond /><RetourMenu /><BoutonLang />
@@ -386,40 +557,13 @@ function Challenge() {
             <span style={{ fontSize: 13.5, fontWeight: 700 }}>{t.alerte}</span>
           </div>
 
-          <VuePort simulating={false} quai={choix.quai} grues={choix.grues} />
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            <div>
-              <label style={labelStyle}>{t.quaiLabel}</label>
-              <select style={inputStyle} value={choix.quai} onChange={e => setChoix(c => ({ ...c, quai: e.target.value }))}>
-                <option value="quai-1">{t.quaiOptions[0]}</option>
-                <option value="quai-2">{t.quaiOptions[1]}</option>
-                <option value="quai-3">{t.quaiOptions[2]}</option>
-              </select>
-            </div>
-            <div>
-              <label style={labelStyle}>{t.gruesLabel}</label>
-              <select style={inputStyle} value={choix.grues} onChange={e => setChoix(c => ({ ...c, grues: Number(e.target.value) }))}>
-                <option value={2}>{t.gruesOptions[0]}</option>
-                <option value={3}>{t.gruesOptions[1]}</option>
-                <option value={4}>{t.gruesOptions[2]}</option>
-              </select>
-            </div>
-            <div>
-              <label style={labelStyle}>{t.digitalLabel}</label>
-              <button
-                type="button"
-                onClick={() => setChoix(c => ({ ...c, digital: !c.digital }))}
-                style={{
-                  width: '100%', padding: '14px 18px', borderRadius: 12, border: choix.digital ? '1px solid rgba(16,185,129,0.5)' : '1px solid rgba(255,255,255,0.1)',
-                  background: choix.digital ? 'rgba(16,185,129,0.15)' : 'rgba(15, 23, 42, 0.6)', color: choix.digital ? '#34d399' : '#cbd5e1',
-                  fontWeight: 800, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',
-                }}
-              >
-                {choix.digital ? t.digitalOn : t.digitalOff}
-              </button>
-            </div>
-          </div>
+          <PortScene
+            mode="setup" quai={choix.quai} grues={choix.grues} digital={choix.digital} t={t}
+            onSelectQuai={q => setChoix(c => ({ ...c, quai: q }))}
+            onIncGrues={() => setChoix(c => ({ ...c, grues: Math.min(4, c.grues + 1) }))}
+            onDecGrues={() => setChoix(c => ({ ...c, grues: Math.max(2, c.grues - 1) }))}
+            onToggleDigital={() => setChoix(c => ({ ...c, digital: !c.digital }))}
+          />
 
           {choix.digital && (
             <div style={{
@@ -444,26 +588,37 @@ function Challenge() {
     )
   }
 
-  // ─── Ecran 2 : simulation ───────────────────────────────────────────────
-  if (step === 2) {
+  // ─── Ecran 3 : simulation avec compteurs en direct ──────────────────────
+  if (step === 3) {
+    const tempsEcoule = resultat ? (simProgress * resultat.tempsFinal).toFixed(1) : '0.0'
+    const coutCumule = resultat ? Math.round(simProgress * resultat.coutFinal) : 0
     return (
       <div style={wrap}>
         <Fond /><RetourMenu /><BoutonLang />
-        <div style={{ ...card, maxWidth: 780, margin: 'auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ ...card, maxWidth: 780, margin: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <h1 style={{ textAlign: 'center', fontSize: 'clamp(22px,3vw,30px)', fontWeight: 900, margin: 0 }}>{t.simTitre}</h1>
-          <VuePort simulating quai={choix.quai} grues={choix.grues} />
-          <div style={{ width: '100%', height: 10, borderRadius: 10, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-            <div style={{
-              height: '100%', borderRadius: 10, background: 'linear-gradient(90deg,#0073F4,#34d399)',
-              width: `${progress}%`, transition: `width ${dureeMs}ms linear`,
-            }} />
+          <PortScene mode="simulation" quai={choix.quai} grues={choix.grues} digital={choix.digital} t={t} />
+
+          <div style={{ display: 'flex', gap: 16 }}>
+            <div style={{ flex: 1, textAlign: 'center', padding: '14px', borderRadius: 14, background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{tempsEcoule}h</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>{t.tempsEcoule}</div>
+            </div>
+            <div style={{ flex: 1, textAlign: 'center', padding: '14px', borderRadius: 14, background: 'rgba(15,23,42,0.6)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', fontVariantNumeric: 'tabular-nums' }}>{coutCumule.toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-US')}$</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>{t.coutCumule}</div>
+            </div>
+          </div>
+
+          <div style={{ width: '100%', height: 8, borderRadius: 10, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+            <div style={{ height: '100%', borderRadius: 10, background: 'linear-gradient(90deg,#0073F4,#34d399)', width: `${simProgress * 100}%` }} />
           </div>
         </div>
       </div>
     )
   }
 
-  // ─── Ecran 3 : resultat ─────────────────────────────────────────────────
+  // ─── Ecran 4 : resultat ─────────────────────────────────────────────────
   const gainArgent = resultat ? resultat.coutSansDigital - resultat.coutFinal : 0
   const gainTemps = resultat ? (resultat.tempsSansDigital - resultat.tempsFinal).toFixed(1) : 0
 
