@@ -83,6 +83,45 @@ export async function generateDiagnosticPDF({ diag, download = true }) {
     doc.text('www.copaf-ports.com', W - M, footerY + 14, { align: 'right' })
   }
 
+  // Numerotation de sections auto-incrementee (1. DETAIL PAR AXE, 2. CONSTAT
+  // GENERAL, etc.) pour que le document se lise comme un vrai rapport
+  // structure plutot qu'un export d'ecran.
+  let sectionNum = 0
+  const sectionTitle = titre => {
+    sectionNum += 1
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(9)
+    doc.setTextColor(...NAVY)
+    doc.text(`${sectionNum}. ${titre}`, M, y)
+    doc.setDrawColor(...LINE)
+    doc.setLineWidth(0.75)
+    doc.line(M, y + 5, W - M, y + 5)
+    y += 20
+  }
+  const pageBreakIfNeeded = neededH => {
+    if (y + neededH > H - 70) { drawFooter(); doc.addPage(); y = M }
+  }
+  const paragraphe = (texte, options = {}) => {
+    const { fontSize = 9, fond = false, italique = false, couleur = DARK } = options
+    doc.setFont('helvetica', italique ? 'italic' : 'normal')
+    doc.setFontSize(fontSize)
+    doc.setTextColor(...couleur)
+    const wrapped = doc.splitTextToSize(texte, fond ? contentW - 28 : contentW)
+    const blocH = wrapped.length * (fontSize + 2.5) + (fond ? 20 : 0)
+    pageBreakIfNeeded(blocH)
+    if (fond) {
+      doc.setFillColor(...LIGHT_BG)
+      doc.roundedRect(M, y, contentW, blocH, 8, 8, 'F')
+      doc.setFont('helvetica', italique ? 'italic' : 'normal')
+      doc.setFontSize(fontSize)
+      doc.setTextColor(...couleur)
+      doc.text(wrapped, M + 14, y + 15)
+    } else {
+      doc.text(wrapped, M, y + fontSize)
+    }
+    y += blocH + 14
+  }
+
   // ══════════════════════════════════════════
   // EN-TETE
   // ══════════════════════════════════════════
@@ -186,14 +225,7 @@ export async function generateDiagnosticPDF({ diag, download = true }) {
   // ══════════════════════════════════════════
   // DETAIL PAR AXE (2 colonnes)
   // ══════════════════════════════════════════
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
-  doc.setTextColor(...NAVY)
-  doc.text('DÉTAIL PAR AXE', M, y)
-  doc.setDrawColor(...LINE)
-  doc.setLineWidth(0.75)
-  doc.line(M, y + 5, W - M, y + 5)
-  y += 20
+  sectionTitle('DÉTAIL PAR AXE')
 
   const colGap = 24
   const colW = (contentW - colGap) / 2
@@ -225,43 +257,88 @@ export async function generateDiagnosticPDF({ diag, download = true }) {
 
   y += Math.ceil(cles.length / 2) * rowH + 14
 
-  // ══════════════════════════════════════════
-  // RECOMMANDATIONS
-  // ══════════════════════════════════════════
-  if (y > H - 160) { drawFooter(); doc.addPage(); y = M }
+  // Structure imposee par le DG : le raisonnement doit se lire comme un
+  // vrai rapport d'expert, en 2 blocs stricts — 1) analyse/interpretation
+  // (constat general + lecture de CHAQUE axe, rien de prescriptif), 2)
+  // recommandations/plan d'action, qui decoule logiquement du bloc 1. Les
+  // diagnostics generes avant l'introduction de ce format
+  // (recommandations_v2 absent) retombent sur l'ancien bloc de texte
+  // unique, inchange.
+  const structure = diag.recommandations_v2
 
+  if (structure) {
+    // ══════════════════════════════════════════
+    // BLOC 1 : ANALYSE, INTERPRETATION ET CONSTAT GENERAL
+    // ══════════════════════════════════════════
+    pageBreakIfNeeded(50)
+    sectionTitle('ANALYSE, INTERPRÉTATION ET CONSTAT GÉNÉRAL')
+    paragraphe(structure.constatGeneral, { fontSize: 8.5, fond: true })
+
+    cles.forEach(cle => {
+      const texteAxe = structure.analyseParAxe?.[cle]
+      if (!texteAxe) return
+      pageBreakIfNeeded(28)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8.5)
+      doc.setTextColor(...NAVY)
+      doc.text(AXES_LABELS[cle], M, y)
+      y += 12
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8.5)
+      doc.setTextColor(...DARK)
+      const wrapped = doc.splitTextToSize(texteAxe, contentW)
+      const blocH = wrapped.length * 11
+      pageBreakIfNeeded(blocH + 10)
+      doc.text(wrapped, M, y)
+      y += blocH + 12
+    })
+    y += 4
+
+    // ══════════════════════════════════════════
+    // BLOC 2 : RECOMMANDATIONS ET PLAN D'ACTION
+    // ══════════════════════════════════════════
+    pageBreakIfNeeded(50)
+    sectionTitle("RECOMMANDATIONS ET PLAN D'ACTION")
+    paragraphe(structure.recommandations, { fontSize: 8.5, fond: true })
+  } else {
+    // ══════════════════════════════════════════
+    // RECOMMANDATIONS (format legacy)
+    // ══════════════════════════════════════════
+    pageBreakIfNeeded(50)
+    sectionTitle('RECOMMANDATIONS PERSONNALISÉES')
+    const texteRecos = diag.recommandations || "Recommandations non générées pour ce diagnostic. Rendez-vous sur la page en ligne pour les générer."
+    paragraphe(texteRecos, { fontSize: 8.5, fond: true, italique: !diag.recommandations, couleur: diag.recommandations ? DARK : GRAY })
+  }
+
+  // ══════════════════════════════════════════
+  // NOTE METHODOLOGIQUE
+  // ══════════════════════════════════════════
+  pageBreakIfNeeded(26)
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
-  doc.setTextColor(...NAVY)
-  doc.text('RECOMMANDATIONS PERSONNALISÉES', M, y)
-  doc.setDrawColor(...LINE)
-  doc.setLineWidth(0.75)
-  doc.line(M, y + 5, W - M, y + 5)
-  y += 16
-
-  const texteRecos = diag.recommandations || "Recommandations non générées pour ce diagnostic. Rendez-vous sur la page en ligne pour les générer."
-  doc.setFont('helvetica', diag.recommandations ? 'normal' : 'italic')
-  doc.setFontSize(8.5)
-  doc.setTextColor(...(diag.recommandations ? DARK : GRAY))
-  const recoWrapped = doc.splitTextToSize(texteRecos, contentW)
-  const recoH = recoWrapped.length * 11 + 20
-
-  if (y + recoH > H - 70) { drawFooter(); doc.addPage(); y = M }
-
-  doc.setFillColor(...LIGHT_BG)
-  doc.roundedRect(M, y, contentW, recoH, 8, 8, 'F')
-  doc.text(recoWrapped, M + 14, y + 16)
-  y += recoH + 16
-
-  // ══════════════════════════════════════════
-  // MENTION
-  // ══════════════════════════════════════════
+  doc.setFontSize(6.5)
+  doc.setTextColor(...GRAY)
+  doc.text('NOTE MÉTHODOLOGIQUE', M, y)
+  y += 9
   doc.setFont('helvetica', 'italic')
   doc.setFontSize(6.5)
   doc.setTextColor(...GRAY)
-  doc.text("Ce diagnostic est une auto-évaluation déclarative réalisée par le participant. Il ne constitue pas un audit certifié.", M, y)
+  doc.text(
+    "Ce diagnostic est une auto-évaluation déclarative réalisée par le participant, sur 10 axes normés notés de 0 à 5 selon des critères vérifiables. Il ne constitue pas un audit certifié.",
+    M, y, { maxWidth: contentW },
+  )
 
   drawFooter()
+
+  // Numerotation des pages — ajoutee en tout dernier, une fois le nombre
+  // total de pages connu (jsPDF ne l'expose qu'apres coup).
+  const totalPages = doc.internal.getNumberOfPages()
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7.5)
+    doc.setTextColor(...GRAY)
+    doc.text(`Page ${p} / ${totalPages}`, W / 2, H - 22, { align: 'center' })
+  }
 
   if (download) {
     const nomFichier = (diag.organisation || `${diag.prenom}-${diag.nom}` || 'diagnostic').replace(/[^a-zA-Z0-9]+/g, '-')

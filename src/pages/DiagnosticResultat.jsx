@@ -21,11 +21,13 @@ const TR = {
     copierLien: 'Copier le lien',
     preparation: 'Préparation...',
     telechargerPDF: 'Télécharger le PDF',
-    recoTitre: 'Recommandations personnalisées',
+    recoTitre: 'Analyse personnalisée',
     recoIntro: 'Générez une analyse personnalisée basée sur votre profil complet.',
     recoGenLoading: 'Génération en cours...',
     recoGenBtn: 'Générer mes recommandations',
     recoErreur: 'Impossible de générer les recommandations pour le moment. Réessayez dans un instant.',
+    analyseTitre: 'Analyse, interprétation et constat général',
+    recoPlanTitre: 'Recommandations et plan d\'action',
     footer: 'Cette page reste accessible à tout moment — conservez le lien pour la retrouver.',
     planTitre: "Plan d'action",
     planSousTitre: 'Des actions concrètes, adaptées à votre score actuel sur chaque axe.',
@@ -47,11 +49,13 @@ const TR = {
     copierLien: 'Copy link',
     preparation: 'Preparing...',
     telechargerPDF: 'Download PDF',
-    recoTitre: 'Personalised recommendations',
+    recoTitre: 'Personalised analysis',
     recoIntro: 'Generate a personalised analysis based on your full profile.',
     recoGenLoading: 'Generating...',
     recoGenBtn: 'Generate my recommendations',
     recoErreur: 'Unable to generate recommendations right now. Please try again shortly.',
+    analyseTitre: 'Analysis, interpretation and general assessment',
+    recoPlanTitre: 'Recommendations and action plan',
     footer: 'This page stays accessible at any time — keep the link to find it again.',
     planTitre: 'Action plan',
     planSousTitre: 'Concrete actions, matched to your current score on each axis.',
@@ -186,7 +190,10 @@ export default function DiagnosticResultat() {
       })
       if (error) throw error
       if (data?.error) throw new Error(data.error)
-      setDiag(d => ({ ...d, recommandations: data.recommandations }))
+      setDiag(d => ({
+        ...d,
+        ...(data.recommandations_v2 ? { recommandations_v2: data.recommandations_v2 } : { recommandations: data.recommandations }),
+      }))
     } catch (err) {
       setGenError(t.recoErreur)
       console.error(err)
@@ -454,7 +461,30 @@ export default function DiagnosticResultat() {
             <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{t.recoTitre}</div>
           </div>
 
-          {diag.recommandations ? (
+          {diag.recommandations_v2 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+              <div>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>1. {t.analyseTitre}</div>
+                <div style={{ fontSize: 13.5, color: '#e2e8f0', lineHeight: 1.8, marginBottom: 14 }}>{diag.recommandations_v2.constatGeneral}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {AXES.map(axe => {
+                    const texte = diag.recommandations_v2.analyseParAxe?.[axe.id]
+                    if (!texte) return null
+                    return (
+                      <div key={axe.id} style={{ display: 'flex', gap: 12, alignItems: 'baseline' }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', width: 150, flexShrink: 0 }}>{txt(AXES_LABELS[axe.id], lang)}</span>
+                        <span style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6 }}>{texte}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>2. {t.recoPlanTitre}</div>
+                <div style={{ fontSize: 13.5, color: '#e2e8f0', lineHeight: 1.8, whiteSpace: 'pre-line' }}>{diag.recommandations_v2.recommandations}</div>
+              </div>
+            </div>
+          ) : diag.recommandations ? (
             <div style={{ fontSize: 13.5, color: '#cbd5e1', lineHeight: 1.8, whiteSpace: 'pre-line' }}>{diag.recommandations}</div>
           ) : (
             <div style={{ textAlign: 'center', padding: '10px 0' }}>

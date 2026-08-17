@@ -1,7 +1,18 @@
 // supabase/functions/diagnostic-recommandations/index.ts
 //
-// Fonction serveur (Supabase Edge Function) qui genere les
-// recommandations personnalisees d'un diagnostic Smart Port.
+// Fonction serveur (Supabase Edge Function) qui genere l'analyse
+// personnalisee d'un diagnostic Smart Port.
+//
+// Structure imposee par le DG : le raisonnement doit suivre 3 etapes
+// strictement separees et dans cet ordre — 1) constat general, 2) analyse
+// interpretative de CHACUN des 10 axes, 3) recommandations/plan d'action —
+// jamais l'inverse. Pour que le site ET le PDF puissent chacun afficher ces
+// 3 parties distinctement (au lieu de deviner des titres dans un bloc de
+// texte libre), le modele doit repondre en JSON structure, stocke dans la
+// nouvelle colonne `recommandations_v2`. Si le modele derape et renvoie du
+// texte non structure, on retombe sur l'ancien format `recommandations`
+// (texte brut) pour ne jamais planter — meme filet de securite que celui
+// qui laisse les diagnostics deja generes avant ce changement inchanges.
 //
 // Pourquoi une fonction serveur et pas un appel direct depuis la
 // tablette ? Parce qu'un appel direct depuis le navigateur obligerait
@@ -39,6 +50,16 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+function estStructureValide(obj: unknown): obj is { constatGeneral: string; analyseParAxe: Record<string, string>; recommandations: string } {
+  if (!obj || typeof obj !== 'object') return false
+  const o = obj as Record<string, unknown>
+  if (typeof o.constatGeneral !== 'string' || !o.constatGeneral.trim()) return false
+  if (typeof o.recommandations !== 'string' || !o.recommandations.trim()) return false
+  if (!o.analyseParAxe || typeof o.analyseParAxe !== 'object') return false
+  const axes = o.analyseParAxe as Record<string, unknown>
+  return Object.keys(AXES_LABELS).every(k => typeof axes[k] === 'string' && (axes[k] as string).trim().length > 0)
+}
+
 Deno.serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -63,9 +84,13 @@ Deno.serve(async req => {
       return new Response(JSON.stringify({ error: 'Diagnostic introuvable' }), { status: 404, headers: corsHeaders })
     }
 
-    // Reutilise les recommandations existantes si deja generees,
-    // pour eviter de refaire un appel IA (et donc des frais) a chaque
-    // fois que quelqu'un revisite la page resultat.
+    // Reutilise l'analyse existante si deja generee, pour eviter un appel
+    // IA (et donc des frais) a chaque fois que quelqu'un revisite la page
+    // resultat. Priorite au nouveau format structure ; a defaut, ancien
+    // format texte pour les diagnostics generes avant ce changement.
+    if (diag.recommandations_v2) {
+      return new Response(JSON.stringify({ recommandations_v2: diag.recommandations_v2 }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
     if (diag.recommandations) {
       return new Response(JSON.stringify({ recommandations: diag.recommandations }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
@@ -81,19 +106,34 @@ Voici le profil de maturité Smart Port de "${diag.organisation || 'ce port'}" (
 
 ${profil}
 
-Rédige une analyse dense et directement actionnable (350 mots maximum), en français. Consignes strictes de format :
-- TEXTE BRUT UNIQUEMENT. Aucun symbole Markdown : pas de #, pas de ##, pas de **, pas de tirets de liste, pas de crochets.
-- Pour les titres de section, écris-les simplement en majuscules suivies de deux-points, sur leur propre ligne (ex : CONSTAT GENERAL :).
-- Pour mettre un mot en avant, utilise des guillemets ou rien du tout — jamais d'astérisques.
+Réponds UNIQUEMENT avec un objet JSON valide — aucun texte avant ou après, aucune balise markdown, aucun bloc de code — respectant EXACTEMENT ce format :
 
-Structure attendue :
-CONSTAT GENERAL : 1-2 phrases factuelles et directes sur le profil global (pas de langue de bois, pas de ton alarmiste non plus).
+{
+  "constatGeneral": "...",
+  "analyseParAxe": {
+    "infrastructure": "...",
+    "automatisation": "...",
+    "tracabilite": "...",
+    "ia": "...",
+    "cybersecurite": "...",
+    "surete": "...",
+    "environnement": "...",
+    "synchromodalite": "...",
+    "competences": "...",
+    "parties_prenantes": "..."
+  },
+  "recommandations": "..."
+}
 
-AXES PRIORITAIRES : les 2 axes les plus faibles. Pour chacun, ne te contente pas de "faites un audit" — nomme un outil, une norme, un type de dispositif ou une pratique precise et realiste que ce port pourrait concretement mettre en place ou explorer en premier (ex : deployer un PCS national, se rapprocher de la certification ISO 27001, installer des capteurs IoT sur 2-3 portiques pilotes, adherer a un standard EDI existant dans sa region, etc.), avec une premiere etape tres concrete a faire dans le mois qui vient.
+Consignes de contenu, dans cet ordre logique strict — ce sont 3 étapes de raisonnement séparées, ne mélange jamais l'analyse et la recommandation dans une même partie :
 
-POINT FORT A VALORISER : l'axe le plus eleve, et comment ce port pourrait s'en servir comme argument ou comme base pour progresser sur un axe faible connexe.
+1. "constatGeneral" : 1 à 3 phrases factuelles et directes sur le profil global de ce port (pas de langue de bois, pas de ton alarmiste). C'est une OBSERVATION, pas encore une recommandation.
 
-Adresse-toi directement au port ("vous"). Sois precis et technique sans etre jargonneux au point d'etre incomprehensible. N'invente aucun chiffre, aucun nom de fournisseur specifique, ni aucun fait qui n'est pas dans les donnees fournies — reste sur des categories d'outils/normes reconnues du secteur, pas des marques.`
+2. "analyseParAxe" : pour CHACUN des 10 axes, 1 à 2 phrases qui expliquent ce que le score obtenu révèle CONCRÈTEMENT sur la situation du port pour cet axe précis — jamais une phrase générique qui irait pour n'importe quel score. Appuie-toi sur le niveau réellement atteint (indiqué dans le profil ci-dessus). C'est de l'ANALYSE/INTERPRÉTATION, toujours pas une recommandation.
+
+3. "recommandations" : SEULEMENT maintenant, en t'appuyant sur le constat et l'analyse ci-dessus, propose un plan d'action concret (350 mots maximum) : pour les 2 axes les plus faibles, nomme un outil, une norme, un type de dispositif ou une pratique précise et réaliste (ex : déployer un PCS national, viser la certification ISO 27001, installer des capteurs IoT sur 2-3 portiques pilotes, adhérer à un standard EDI existant dans sa région), avec une première étape très concrète à faire dans le mois qui vient. Termine par comment valoriser l'axe le plus fort.
+
+Règles générales : français uniquement, aucun symbole markdown dans les valeurs texte (pas de #, **, listes à tirets), adresse-toi directement au port ("vous"), n'invente aucun chiffre ni nom de fournisseur spécifique ni aucun fait non fourni ci-dessus.`
 
     const aiResp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -104,7 +144,7 @@ Adresse-toi directement au port ("vous"). Sois precis et technique sans etre jar
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 750,
+        max_tokens: 1700,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
@@ -120,11 +160,37 @@ Adresse-toi directement au port ("vous"). Sois precis et technique sans etre jar
     if (!texteGenere) {
       console.error('Reponse Anthropic sans texte exploitable:', JSON.stringify(aiData))
     }
-    const recommandations = texteGenere || "Impossible de générer une analyse pour le moment."
 
-    await supabase.from('diagnostics').update({ recommandations, updated_at: new Date().toISOString() }).eq('id', diagnosticId)
+    let recommandationsV2: Record<string, unknown> | null = null
+    let recommandationsLegacy: string | null = null
 
-    return new Response(JSON.stringify({ recommandations }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    if (texteGenere) {
+      try {
+        const nettoye = texteGenere.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+        const parsed = JSON.parse(nettoye)
+        if (estStructureValide(parsed)) {
+          recommandationsV2 = parsed
+        } else {
+          throw new Error('Structure JSON incomplete ou champs manquants')
+        }
+      } catch (err) {
+        console.error('Reponse IA non structuree, repli sur texte brut:', err, texteGenere)
+        recommandationsLegacy = texteGenere
+      }
+    }
+
+    if (!recommandationsV2 && !recommandationsLegacy) {
+      recommandationsLegacy = "Impossible de générer une analyse pour le moment."
+    }
+
+    const updatePayload = recommandationsV2
+      ? { recommandations_v2: recommandationsV2, updated_at: new Date().toISOString() }
+      : { recommandations: recommandationsLegacy, updated_at: new Date().toISOString() }
+
+    await supabase.from('diagnostics').update(updatePayload).eq('id', diagnosticId)
+
+    const responseBody = recommandationsV2 ? { recommandations_v2: recommandationsV2 } : { recommandations: recommandationsLegacy }
+    return new Response(JSON.stringify(responseBody), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (err) {
     console.error(err)
     return new Response(JSON.stringify({ error: 'Erreur interne' }), { status: 500, headers: corsHeaders })
