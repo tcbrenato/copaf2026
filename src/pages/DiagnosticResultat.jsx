@@ -309,6 +309,7 @@ export default function DiagnosticResultat() {
           .dash-grid { grid-template-columns: 1fr; }
           .plan-grid { grid-template-columns: 1fr; }
           .dash-header { justify-content: center; text-align: center; }
+          .analyse-row { grid-template-columns: 1fr !important; gap: 6px !important; }
         }
         .dash-btn { transition: transform .15s ease, box-shadow .15s ease; cursor: pointer; }
         .dash-btn:hover { transform: translateY(-2px); }
@@ -427,14 +428,26 @@ export default function DiagnosticResultat() {
               <div>
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>1. {t.analyseTitre}</div>
                 <div style={{ fontSize: 13.5, color: '#e2e8f0', lineHeight: 1.8, marginBottom: 14 }}>{diag.recommandations_v2.constatGeneral}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {AXES.map(axe => {
+                <div className="analyse-table" style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  {AXES.map((axe, i) => {
                     const texte = diag.recommandations_v2.analyseParAxe?.[axe.id]
                     if (!texte) return null
+                    const v = scores[axe.id] ?? 0
+                    const c = couleurNiveau(v)
                     return (
-                      <div key={axe.id} style={{ display: 'flex', gap: 12, alignItems: 'baseline' }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', width: 150, flexShrink: 0 }}>{txt(AXES_LABELS[axe.id], lang)}</span>
-                        <span style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6 }}>{texte}</span>
+                      <div key={axe.id} className="analyse-row" style={{
+                        display: 'grid', gridTemplateColumns: '200px 1fr', gap: 16, padding: '14px 16px',
+                        background: i % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'transparent',
+                        borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: c, marginTop: 5, flexShrink: 0, boxShadow: `0 0 8px ${c}` }} />
+                          <div>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#fff', lineHeight: 1.4 }}>{txt(AXES_LABELS[axe.id], lang)}</div>
+                            <div style={{ fontSize: 11, fontWeight: 800, color: c, marginTop: 3 }}>{v}/5 · {txt(ECHELLE[v]?.nom, lang)}</div>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6 }}>{texte}</div>
                       </div>
                     )
                   })}
@@ -463,7 +476,10 @@ export default function DiagnosticResultat() {
           )}
         </div>
 
-        {/* Plan d'action statique — pleine largeur, apres le rapport IA */}
+        {/* Plan d'action statique — cache tant que l'analyse IA n'a pas ete
+            generee, pour ne pas montrer un "plan d'action" avant l'analyse
+            qui le justifie (meme demande que pour le PDF : l'ordre compte). */}
+        {(diag.recommandations_v2 || diag.recommandations) && (
         <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <Ico name="target" size={17} color="#60a5fa" />
@@ -495,6 +511,7 @@ export default function DiagnosticResultat() {
             })}
           </div>
         </div>
+        )}
 
         {/* Chat entre repondants du meme port — pleine largeur */}
         {roomKey && (
