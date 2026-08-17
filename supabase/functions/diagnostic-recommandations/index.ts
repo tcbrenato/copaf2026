@@ -144,7 +144,12 @@ Règles générales : français uniquement, aucun symbole markdown dans les vale
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1700,
+        // 10 paragraphes d'analyse + constat + recommandations, en francais,
+        // avec la structure JSON en plus : ca depasse largement les 750
+        // tokens qui suffisaient a l'ancien prompt (2 axes seulement). Une
+        // limite trop basse ici tronque le JSON en plein milieu -> echec de
+        // parsing silencieux plus bas. Marge large pour eviter ça.
+        max_tokens: 3000,
         messages: [{ role: 'user', content: prompt }],
       }),
     })
@@ -157,40 +162,35 @@ Règles générales : français uniquement, aucun symbole markdown dans les vale
 
     const aiData = await aiResp.json()
     const texteGenere = aiData.content?.[0]?.text?.trim()
+
     if (!texteGenere) {
       console.error('Reponse Anthropic sans texte exploitable:', JSON.stringify(aiData))
+      return new Response(JSON.stringify({ error: 'Réponse vide du service IA' }), { status: 502, headers: corsHeaders })
     }
 
+    // Le format structure est desormais la seule sortie acceptee pour une
+    // NOUVELLE generation. Si le JSON est tronque (limite de tokens) ou mal
+    // forme, on renvoie une erreur plutot que de sauvegarder un texte brut
+    // casse en base — sans quoi ce texte casse resterait fige pour
+    // toujours (le cache "deja genere" empecherait toute nouvelle tentative,
+    // et le site afficherait le JSON brut a la place de l'analyse).
     let recommandationsV2: Record<string, unknown> | null = null
-    let recommandationsLegacy: string | null = null
-
-    if (texteGenere) {
-      try {
-        const nettoye = texteGenere.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
-        const parsed = JSON.parse(nettoye)
-        if (estStructureValide(parsed)) {
-          recommandationsV2 = parsed
-        } else {
-          throw new Error('Structure JSON incomplete ou champs manquants')
-        }
-      } catch (err) {
-        console.error('Reponse IA non structuree, repli sur texte brut:', err, texteGenere)
-        recommandationsLegacy = texteGenere
+    try {
+      const nettoye = texteGenere.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+      const parsed = JSON.parse(nettoye)
+      if (estStructureValide(parsed)) {
+        recommandationsV2 = parsed
+      } else {
+        throw new Error('Structure JSON incomplete ou champs manquants')
       }
+    } catch (err) {
+      console.error('Reponse IA non structuree ou tronquee, echec de generation:', err, texteGenere)
+      return new Response(JSON.stringify({ error: 'La génération a échoué (réponse incomplète), réessayez.' }), { status: 502, headers: corsHeaders })
     }
 
-    if (!recommandationsV2 && !recommandationsLegacy) {
-      recommandationsLegacy = "Impossible de générer une analyse pour le moment."
-    }
+    await supabase.from('diagnostics').update({ recommandations_v2: recommandationsV2, updated_at: new Date().toISOString() }).eq('id', diagnosticId)
 
-    const updatePayload = recommandationsV2
-      ? { recommandations_v2: recommandationsV2, updated_at: new Date().toISOString() }
-      : { recommandations: recommandationsLegacy, updated_at: new Date().toISOString() }
-
-    await supabase.from('diagnostics').update(updatePayload).eq('id', diagnosticId)
-
-    const responseBody = recommandationsV2 ? { recommandations_v2: recommandationsV2 } : { recommandations: recommandationsLegacy }
-    return new Response(JSON.stringify(responseBody), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ recommandations_v2: recommandationsV2 }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (err) {
     console.error(err)
     return new Response(JSON.stringify({ error: 'Erreur interne' }), { status: 500, headers: corsHeaders })

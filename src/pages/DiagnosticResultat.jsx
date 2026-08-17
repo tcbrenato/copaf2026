@@ -414,47 +414,8 @@ export default function DiagnosticResultat() {
           </div>
         )}
 
-        {/* Chat entre repondants du meme port — pleine largeur */}
-        {roomKey && (
-          <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
-            <DiagnosticChat roomKey={roomKey} pseudoInitial={`${diag.prenom || ''} ${diag.nom || ''}`.trim()} lang={lang} />
-          </div>
-        )}
-
-        {/* Plan d'action — pleine largeur */}
-        <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <Ico name="target" size={17} color="#60a5fa" />
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{t.planTitre}</div>
-          </div>
-          <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 18 }}>{t.planSousTitre}</p>
-          <div className="plan-grid">
-            {AXES.map(axe => {
-              const v = scores[axe.id] ?? 0
-              const tier = tierNiveau(v)
-              const c = couleurNiveau(v)
-              const items = axe.actions?.[tier] || []
-              if (!items.length) return null
-              return (
-                <div key={axe.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '14px 16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 700, color: '#fff' }}>{txt(axe.nom, lang)}</span>
-                    <span style={{ fontSize: 10.5, fontWeight: 700, color: c, padding: '2px 8px', borderRadius: 20, background: `${c}22`, border: `1px solid ${c}55`, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                      {t.tierLabel[tier]}
-                    </span>
-                  </div>
-                  <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {items.map((item, i) => (
-                      <li key={i} style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.5 }}>{txt(item, lang)}</li>
-                    ))}
-                  </ul>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Recommandations IA — pleine largeur */}
+        {/* Recommandations IA — pleine largeur, directement apres le detail des scores,
+            pour suivre le meme enchainement que le PDF (scores -> analyse -> recommandations) */}
         <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Ico name="sparkles" size={17} color="#60a5fa" />
@@ -501,6 +462,46 @@ export default function DiagnosticResultat() {
             </div>
           )}
         </div>
+
+        {/* Plan d'action statique — pleine largeur, apres le rapport IA */}
+        <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <Ico name="target" size={17} color="#60a5fa" />
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{t.planTitre}</div>
+          </div>
+          <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 18 }}>{t.planSousTitre}</p>
+          <div className="plan-grid">
+            {AXES.map(axe => {
+              const v = scores[axe.id] ?? 0
+              const tier = tierNiveau(v)
+              const c = couleurNiveau(v)
+              const items = axe.actions?.[tier] || []
+              if (!items.length) return null
+              return (
+                <div key={axe.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: '#fff' }}>{txt(axe.nom, lang)}</span>
+                    <span style={{ fontSize: 10.5, fontWeight: 700, color: c, padding: '2px 8px', borderRadius: 20, background: `${c}22`, border: `1px solid ${c}55`, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                      {t.tierLabel[tier]}
+                    </span>
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {items.map((item, i) => (
+                      <li key={i} style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.5 }}>{txt(item, lang)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Chat entre repondants du meme port — pleine largeur */}
+        {roomKey && (
+          <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
+            <DiagnosticChat roomKey={roomKey} pseudoInitial={`${diag.prenom || ''} ${diag.nom || ''}`.trim()} lang={lang} />
+          </div>
+        )}
 
         <p style={{ textAlign: 'center', fontSize: 11.5, color: '#64748b' }}>
           {t.footer}
