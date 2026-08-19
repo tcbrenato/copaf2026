@@ -30,6 +30,8 @@ const ROUTES = [
   // (voir SeoHead.jsx) — indispensable pour que chacun ressorte sur ses
   // propres mots-cles plutot que sur le titre generique du site.
   ...ARTICLES.map(a => `/actualites/${a.slug}`),
+  '/mentions-legales',
+  '/politique-confidentialite',
 ]
 
 // Domaines de tracking/analytics tiers a bloquer pendant le prerendu.

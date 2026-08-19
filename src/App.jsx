@@ -1,4 +1,4 @@
-﻿import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+﻿import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import HeaderStack from './components/HeaderStack'
 import Hero from './components/Hero'
 import About from './components/About'
@@ -25,12 +25,24 @@ import ProjectionDiagnostic from './pages/ProjectionDiagnostic'
 import TabletteHub from './pages/TabletteHub'
 import Actualites from './pages/Actualites'
 import ActualiteDetail from './pages/ActualiteDetail'
+import MentionsLegales from './pages/MentionsLegales'
+import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite'
 import WhatsAppButton from './components/WhatsAppButton'
+import CookieBanner from './components/CookieBanner'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
   useAnalytics()
   return null
+}
+
+// ─── Bandeau cookies : partout sauf /admin, meme exclusion que le tracking
+// analytics lui-meme (voir useAnalytics.js) — pas de sens a demander un
+// consentement de tracking sur une page qui n'est pas trackee.
+const CookieBannerGate = () => {
+  const location = useLocation()
+  if (location.pathname.includes('/admin')) return null
+  return <CookieBanner />
 }
 
 // NOTE SUR L'ESPACEMENT : --copaf-header-h est mise a jour en continu par
@@ -95,6 +107,7 @@ function App() {
   return (
     <Router>
       <AnalyticsTracker />
+      <CookieBannerGate />
       <Routes>
         <Route path="/"                       element={<MainSite />} />
         <Route path="/inscription"            element={<InscriptionPage />} />
@@ -103,6 +116,8 @@ function App() {
         <Route path="/exposition-digitale"    element={<><ExpositionDigitale /><WhatsAppButton /></>} />
         <Route path="/actualites"             element={<><Actualites /><WhatsAppButton /></>} />
         <Route path="/actualites/:slug"       element={<><ActualiteDetail /><WhatsAppButton /></>} />
+        <Route path="/mentions-legales"       element={<MentionsLegales />} />
+        <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
         <Route path="/admin"                  element={<AdminPage />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />

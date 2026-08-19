@@ -266,6 +266,11 @@ const Footer = () => {
         <div style={{ fontSize: 'clamp(11px, 1.6vw, 13px)', color: 'rgba(255,255,255,0.3)' }}>
           {t('footer.location')}
         </div>
+        <div style={{ display: 'flex', gap: 8, fontSize: 'clamp(11px, 1.6vw, 13px)', color: 'rgba(255,255,255,0.3)' }}>
+          <a href="/mentions-legales" style={{ color: 'inherit', textDecoration: 'none' }}>Mentions légales</a>
+          <span>·</span>
+          <a href="/politique-confidentialite" style={{ color: 'inherit', textDecoration: 'none' }}>Politique de confidentialité</a>
+        </div>
       </div>
     </footer>
   )
