@@ -38,26 +38,26 @@ export default function MentionsLegales() {
         </h1>
 
         <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 14, padding: '16px 20px', marginBottom: 36, fontSize: 13.5, color: '#92400e', lineHeight: 1.7 }}>
-          Les informations surlignées ci-dessous sont des <strong>informations génériques à vérifier et compléter</strong> par l'organisation avant publication officielle — je n'ai pas accès aux données légales exactes de l'entité qui édite ce site.
+          L'adresse de l'hébergeur ci-dessous est <strong>à vérifier</strong> par l'organisation avant publication officielle — c'est celle que je connais pour Hostinger, mais elle peut avoir changé.
         </div>
 
         <Section titre="Éditeur du site">
-          Le site COPAF 2026 (copaf-ports.com) est édité par <AProof>CRF Perfection</AProof>, <AProof>[forme juridique à préciser, ex. SARL / société individuelle]</AProof>,
-          dont le siège social est situé au <AProof>[adresse complète à compléter]</AProof>.
+          Le site COPAF 2026 (copaf-ports.com) est édité par CRF Perfection, SARL Unipersonnelle,
+          dont le siège social est situé à Cotonou, Carré 1735, Akogbato, Bénin.
           <br /><br />
           Numéro de téléphone : +229 0169 30 30 19<br />
           Email : contact@copaf-ports.com<br />
-          Numéro d'immatriculation (RCCM, IFU ou équivalent) : <AProof>[à compléter]</AProof>
+          Numéro d'immatriculation : RCCM RB/COT/15-B-13727 — IFU 87015034851
         </Section>
 
         <Section titre="Directeur de la publication">
-          <AProof>[Nom et fonction du responsable de publication à préciser]</AProof>
+          M. TCHOBO Rénato
         </Section>
 
         <Section titre="Hébergement">
-          Ce site est hébergé par Netlify, Inc.<br />
-          512 2nd Street, Suite 200, San Francisco, CA 94107, États-Unis<br />
-          <a href="https://www.netlify.com" target="_blank" rel="noopener noreferrer" style={{ color: NAVY }}>www.netlify.com</a>
+          Ce site est hébergé par Hostinger International Ltd.<br />
+          <AProof>61 Lordou Vironos Street, 6023 Larnaca, Chypre</AProof><br />
+          <a href="https://www.hostinger.com" target="_blank" rel="noopener noreferrer" style={{ color: NAVY }}>www.hostinger.com</a>
         </Section>
 
         <Section titre="Propriété intellectuelle">
