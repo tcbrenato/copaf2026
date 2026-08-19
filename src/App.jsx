@@ -23,6 +23,9 @@ import DiagnosticSmartPort from './pages/DiagnosticSmartPort'
 import DiagnosticResultat from './pages/DiagnosticResultat'
 import ProjectionDiagnostic from './pages/ProjectionDiagnostic'
 import TabletteHub from './pages/TabletteHub'
+import Actualites from './pages/Actualites'
+import ActualiteDetail from './pages/ActualiteDetail'
+import WhatsAppButton from './components/WhatsAppButton'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -49,6 +52,7 @@ const MainSite = () => (
       <Contact />
       <Footer />
     </main>
+    <WhatsAppButton />
   </>
 )
 
@@ -60,6 +64,7 @@ const InscriptionPage = () => (
       <Inscription />
     </div>
     <Footer />
+    <WhatsAppButton />
   </>
 )
 
@@ -71,6 +76,7 @@ const VerifierPage = () => (
       <VerifierDossier />
     </div>
     <Footer />
+    <WhatsAppButton />
   </>
 )
 
@@ -93,8 +99,10 @@ function App() {
         <Route path="/"                       element={<MainSite />} />
         <Route path="/inscription"            element={<InscriptionPage />} />
         <Route path="/verifier"               element={<VerifierPage />} />
-        <Route path="/partenariats"           element={<Partenariats />} />
-        <Route path="/exposition-digitale"    element={<ExpositionDigitale />} />
+        <Route path="/partenariats"           element={<><Partenariats /><WhatsAppButton /></>} />
+        <Route path="/exposition-digitale"    element={<><ExpositionDigitale /><WhatsAppButton /></>} />
+        <Route path="/actualites"             element={<><Actualites /><WhatsAppButton /></>} />
+        <Route path="/actualites/:slug"       element={<><ActualiteDetail /><WhatsAppButton /></>} />
         <Route path="/admin"                  element={<AdminPage />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />

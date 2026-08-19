@@ -195,6 +195,27 @@ const Footer = () => {
               </a>
             </div>
           ))}
+          <div style={{ marginBottom: 12 }}>
+            <a
+              href="/actualites"
+              style={{
+                fontSize: 'clamp(13px, 1.8vw, 14px)',
+                color: 'rgba(255,255,255,0.5)',
+                textDecoration: 'none', transition: 'color 0.2s ease, letter-spacing 0.2s ease',
+                letterSpacing: 0.3,
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = '#0073f4'
+                e.currentTarget.style.letterSpacing = '0.8px'
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = 'rgba(255,255,255,0.5)'
+                e.currentTarget.style.letterSpacing = '0.3px'
+              }}
+            >
+              Actualités
+            </a>
+          </div>
         </div>
 
         {/* Contact */}

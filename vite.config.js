@@ -1,11 +1,26 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import sitemap from 'vite-plugin-sitemap'
+import { ARTICLES } from './src/utils/articlesData.js'
+
+// vite-plugin-sitemap ne scanne que les fichiers HTML produits par Vite
+// lui-meme (uniquement dist/index.html pour une SPA) — les autres routes
+// reelles du site (y compris celles pre-rendues ensuite par
+// scripts/prerender.mjs) doivent donc etre listees explicitement ici pour
+// apparaitre dans sitemap.xml.
+const DYNAMIC_ROUTES = [
+  '/inscription',
+  '/partenariats',
+  '/exposition-digitale',
+  '/visiter',
+  '/actualites',
+  ...ARTICLES.map(a => `/actualites/${a.slug}`),
+]
 
 export default defineConfig({
   plugins: [
     react(),
-    sitemap({ hostname: 'https://copaf-ports.com' }),
+    sitemap({ hostname: 'https://copaf-ports.com', dynamicRoutes: DYNAMIC_ROUTES }),
   ],
   base: './',
   build: {
