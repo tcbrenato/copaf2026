@@ -12,8 +12,6 @@ const Section = ({ titre, children }) => (
   </div>
 )
 
-const AProof = ({ children }) => <mark style={{ background: '#fef3c7', color: '#92400e', padding: '1px 6px', borderRadius: 4, fontWeight: 700 }}>{children}</mark>
-
 export default function MentionsLegales() {
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#0f172a', background: '#f8faff' }}>
@@ -37,10 +35,6 @@ export default function MentionsLegales() {
           Mentions légales
         </h1>
 
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 14, padding: '16px 20px', marginBottom: 36, fontSize: 13.5, color: '#92400e', lineHeight: 1.7 }}>
-          L'adresse de l'hébergeur ci-dessous est <strong>à vérifier</strong> par l'organisation avant publication officielle — c'est celle que je connais pour Hostinger, mais elle peut avoir changé.
-        </div>
-
         <Section titre="Éditeur du site">
           Le site COPAF 2026 (copaf-ports.com) est édité par CRF Perfection, SARL Unipersonnelle,
           dont le siège social est situé à Cotonou, Carré 1735, Akogbato, Bénin.
@@ -56,7 +50,7 @@ export default function MentionsLegales() {
 
         <Section titre="Hébergement">
           Ce site est hébergé par Hostinger International Ltd.<br />
-          <AProof>61 Lordou Vironos Street, 6023 Larnaca, Chypre</AProof><br />
+          61 Lordou Vironos Street, 6023 Larnaca, Chypre<br />
           <a href="https://www.hostinger.com" target="_blank" rel="noopener noreferrer" style={{ color: NAVY }}>www.hostinger.com</a>
         </Section>
 
@@ -65,7 +59,7 @@ export default function MentionsLegales() {
         </Section>
 
         <Section titre="Organisateurs">
-          La Conférence des Ports Africains (COPAF) 2026 est organisée par CRF Perfection, en partenariat avec l'AGPAOC et l'Agence Nationale des Ports (ANP) du Maroc.
+          La Conférence des Ports Africains (COPAF) 2026 est organisée par CRF Perfection, sous l'égide conjointe de l'AGPAOC et de l'UAPNA/ANP (Agence Nationale des Ports du Maroc).
         </Section>
 
         <Section titre="Contact">
