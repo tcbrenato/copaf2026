@@ -9,13 +9,17 @@ const Navbar = () => {
   const [menuOpen,              setMenuOpen]              = useState(false)
   const [dropdownOpen,          setDropdownOpen]          = useState(false)
   const [conferenceOpen,        setConferenceOpen]        = useState(false)
+  const [ressourcesOpen,        setRessourcesOpen]        = useState(false)
   const [mobileConferenceOpen,  setMobileConferenceOpen]  = useState(false)
   const [mobilePartenairesOpen, setMobilePartenairesOpen] = useState(false)
+  const [mobileRessourcesOpen,  setMobileRessourcesOpen]  = useState(false)
 
   const dropdownRef     = useRef(null)
   const conferenceRef   = useRef(null)
+  const ressourcesRef   = useRef(null)
   const dropdownTimer   = useRef(null)
   const conferenceTimer = useRef(null)
+  const ressourcesTimer = useRef(null)
 
   const navigate = useNavigate()
   const isHome   = window.location.pathname === '/'
@@ -36,11 +40,14 @@ const Navbar = () => {
   const closeConference = () => { conferenceTimer.current = setTimeout(() => setConferenceOpen(false), 120) }
   const openDropdown    = () => { clearTimeout(dropdownTimer.current);   setDropdownOpen(true) }
   const closeDropdown   = () => { dropdownTimer.current = setTimeout(() => setDropdownOpen(false), 120) }
+  const openRessources  = () => { clearTimeout(ressourcesTimer.current); setRessourcesOpen(true) }
+  const closeRessources = () => { ressourcesTimer.current = setTimeout(() => setRessourcesOpen(false), 120) }
 
   const closeMobileMenu = () => {
     setMenuOpen(false)
     setMobileConferenceOpen(false)
     setMobilePartenairesOpen(false)
+    setMobileRessourcesOpen(false)
   }
 
   const scrollTo = (id, attempts = 0) => {
@@ -92,7 +99,13 @@ const Navbar = () => {
     { label: t('navbar.visit'),             href: '/visiter' },
   ]
 
-  const isDropdownActive = dropdownLinks.some(l => window.location.pathname === l.href)
+  const ressourcesLinks = [
+    { label: 'Live Streaming', href: '/live' },
+    { label: 'Documentation',  href: '/documentation' },
+  ]
+
+  const isDropdownActive   = dropdownLinks.some(l => window.location.pathname === l.href)
+  const isRessourcesActive = ressourcesLinks.some(l => window.location.pathname === l.href)
   const logoHeight       = scrolled ? 36 : 44
 
   const btnBase = {
@@ -244,6 +257,35 @@ const Navbar = () => {
               ))}
             </div>
           </li>
+
+          <li ref={ressourcesRef} style={{ position: 'relative' }}
+            onMouseEnter={openRessources} onMouseLeave={closeRessources}>
+            <button style={{ ...btnBase, display: 'flex', alignItems: 'center', gap: 5, color: isRessourcesActive ? '#0073f4' : '#FFFFFF' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
+              onMouseLeave={e => { e.currentTarget.style.color = isRessourcesActive ? '#0073f4' : '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
+              Ressources
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
+                style={{ transition: 'transform 0.25s', transform: ressourcesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <div style={dropdownPanelStyle(ressourcesOpen)} onMouseEnter={openRessources} onMouseLeave={closeRessources}>
+              {ressourcesLinks.map((item, i) => (
+                <a key={item.href} href={item.href} onClick={() => setRessourcesOpen(false)} style={{
+                  display: 'block', padding: '11px 20px', fontSize: 12,
+                  fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase',
+                  textDecoration: 'none',
+                  color: window.location.pathname === item.href ? '#0073f4' : '#000e91',
+                  borderTop: i > 0 ? '1px solid rgba(0,14,145,0.08)' : 'none',
+                  transition: 'background 0.15s, color 0.15s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#f0f4ff'; e.currentTarget.style.color = '#0073f4' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = window.location.pathname === item.href ? '#0073f4' : '#000e91' }}>
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </li>
         </ul>
 
         <div className="nav-right" style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
@@ -341,6 +383,29 @@ const Navbar = () => {
             </button>
             <div style={{ maxHeight: mobilePartenairesOpen ? '200px' : '0', overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
               {dropdownLinks.map(item => (
+                <a key={item.href} href={item.href} onClick={closeMobileMenu}
+                  style={mobileSubItemStyle(window.location.pathname === item.href)}>
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <button onClick={() => setMobileRessourcesOpen(p => !p)} style={{
+              ...mobileItemStyle(), display: 'flex', alignItems: 'center',
+              justifyContent: 'space-between', width: '100%',
+              background: 'none', border: 'none', padding: 0,
+              borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              <span>Ressources</span>
+              <svg width="12" height="12" viewBox="0 0 10 10" fill="none"
+                style={{ transition: 'transform 0.25s', transform: mobileRessourcesOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}>
+                <path d="M2 3.5L5 6.5L8 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            <div style={{ maxHeight: mobileRessourcesOpen ? '200px' : '0', overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
+              {ressourcesLinks.map(item => (
                 <a key={item.href} href={item.href} onClick={closeMobileMenu}
                   style={mobileSubItemStyle(window.location.pathname === item.href)}>
                   {item.label}

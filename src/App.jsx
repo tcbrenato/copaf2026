@@ -27,6 +27,8 @@ import Actualites from './pages/Actualites'
 import ActualiteDetail from './pages/ActualiteDetail'
 import MentionsLegales from './pages/MentionsLegales'
 import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite'
+import LiveStreaming from './pages/LiveStreaming'
+import Documentation from './pages/Documentation'
 import WhatsAppButton from './components/WhatsAppButton'
 import CookieBanner from './components/CookieBanner'
 
@@ -118,6 +120,8 @@ function App() {
         <Route path="/actualites/:slug"       element={<><ActualiteDetail /><WhatsAppButton /></>} />
         <Route path="/mentions-legales"       element={<MentionsLegales />} />
         <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+        <Route path="/live"                   element={<><LiveStreaming /><WhatsAppButton /></>} />
+        <Route path="/documentation"          element={<><Documentation /><WhatsAppButton /></>} />
         <Route path="/admin"                  element={<AdminPage />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />

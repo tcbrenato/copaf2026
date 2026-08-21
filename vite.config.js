@@ -17,6 +17,8 @@ const DYNAMIC_ROUTES = [
   ...ARTICLES.map(a => `/actualites/${a.slug}`),
   '/mentions-legales',
   '/politique-confidentialite',
+  '/live',
+  '/documentation',
 ]
 
 export default defineConfig({

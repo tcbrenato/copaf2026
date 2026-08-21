@@ -32,6 +32,8 @@ const ROUTES = [
   ...ARTICLES.map(a => `/actualites/${a.slug}`),
   '/mentions-legales',
   '/politique-confidentialite',
+  '/live',
+  '/documentation',
 ]
 
 // Domaines de tracking/analytics tiers a bloquer pendant le prerendu.
