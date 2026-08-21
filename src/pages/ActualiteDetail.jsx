@@ -55,7 +55,7 @@ export default function ActualiteDetail() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Navbar />
 
-      <article style={{ maxWidth: 720, margin: '0 auto', padding: 'clamp(110px, 14vw, 150px) clamp(20px, 5vw, 40px) 40px' }}>
+      <article style={{ maxWidth: article.twoColumn ? 900 : 720, margin: '0 auto', padding: 'clamp(110px, 14vw, 150px) clamp(20px, 5vw, 40px) 40px' }}>
         <a href="/actualites" style={{ fontSize: 13, fontWeight: 700, color: BLUE, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 24 }}>
           ← Toutes les actualités
         </a>
@@ -68,7 +68,15 @@ export default function ActualiteDetail() {
           {article.title}
         </h1>
 
-        <div style={{ fontSize: 16, color: '#334155', lineHeight: 1.85 }}>
+        {article.imageUrl && (
+          <img
+            src={article.imageUrl}
+            alt={article.title}
+            style={{ width: '100%', maxHeight: 420, objectFit: 'cover', borderRadius: 20, marginBottom: 32, display: 'block' }}
+          />
+        )}
+
+        <div className={article.twoColumn ? 'article-two-col' : undefined} style={{ fontSize: 16, color: '#334155', lineHeight: 1.85 }}>
           {article.content.map((block, i) => (
             block.type === 'h2' ? (
               <h2 key={i} style={{ fontSize: 21, fontWeight: 800, color: '#0a1128', margin: '32px 0 12px' }}>{block.text}</h2>
@@ -77,6 +85,17 @@ export default function ActualiteDetail() {
             )
           ))}
         </div>
+
+        {article.twoColumn && (
+          <style>{`
+            .article-two-col { column-count: 2; column-gap: 48px; }
+            .article-two-col h2 { column-span: all; }
+            .article-two-col p { break-inside: avoid; }
+            @media (max-width: 700px) {
+              .article-two-col { column-count: 1; }
+            }
+          `}</style>
+        )}
 
         <div style={{ marginTop: 40, padding: '20px 24px', borderRadius: 16, background: 'rgba(0,115,244,0.06)', border: '1px solid rgba(0,115,244,0.15)' }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: NAVY, marginBottom: 6 }}>COPAF 2026 — Conférence des Ports Africains</div>
