@@ -25,25 +25,32 @@ export default function Actualites() {
       />
       <Navbar />
 
-      <div style={{ maxWidth: 1120, margin: '0 auto', padding: 'clamp(110px, 14vw, 150px) clamp(20px, 5vw, 40px) 80px' }}>
-        
-        {/* En-tête */}
-        <div style={{ textAlign: 'center', marginBottom: 64 }}>
+      {/* Cover — bandeau de bienvenue plutot qu'un simple espace vide sous la navbar */}
+      <div style={{
+        position: 'relative', paddingTop: 'clamp(110px, 14vw, 150px)', paddingBottom: 64,
+        textAlign: 'center', overflow: 'hidden',
+      }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.55) saturate(1.1)' }} />
+        <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(180deg, rgba(0,14,145,0.75) 0%, rgba(10,17,40,0.9) 100%)' }} />
+        <div style={{ position: 'relative', zIndex: 2, padding: '0 20px' }}>
           <span style={{
             display: 'inline-block', padding: '6px 18px', borderRadius: 50,
-            background: 'rgba(0, 115, 244, 0.08)', fontSize: 12, fontWeight: 700, letterSpacing: 2,
-            textTransform: 'uppercase', color: BLUE, marginBottom: 16,
-            border: '1px solid rgba(0, 115, 244, 0.12)'
+            background: 'rgba(255,255,255,0.12)', fontSize: 12, fontWeight: 700, letterSpacing: 2,
+            textTransform: 'uppercase', color: '#fff', marginBottom: 18,
+            border: '1px solid rgba(255,255,255,0.25)',
           }}>
             COPAF 2026 • Le Mag
           </span>
-          <h1 style={{ fontSize: 'clamp(32px, 4.5vw, 48px)', fontWeight: 900, color: '#0a1128', margin: '0 0 16px', letterSpacing: '-0.03em' }}>
-            Actualites & Analyses
+          <h1 style={{ fontSize: 'clamp(30px, 5vw, 50px)', fontWeight: 900, color: '#fff', margin: '0 0 16px', letterSpacing: '-0.03em' }}>
+            Bienvenue à la COPAF 2026
           </h1>
-          <p style={{ fontSize: 17, color: '#475569', maxWidth: 640, margin: '0 auto', lineHeight: 1.6 }}>
+          <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.8)', maxWidth: 640, margin: '0 auto', lineHeight: 1.6 }}>
             Décryptages, innovations technologiques et communiqués officiels sur la transformation digitale et durable des ports africains.
           </p>
         </div>
+      </div>
+
+      <div style={{ maxWidth: 1120, margin: '0 auto', padding: '56px clamp(20px, 5vw, 40px) 80px' }}>
 
         {/* Article Mis en Avant (Featured) AVEC IMAGE */}
         {featuredArticle && (

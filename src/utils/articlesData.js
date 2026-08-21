@@ -81,7 +81,7 @@ export const ARTICLES = [
     title: "Conférence des Ports Africains (COPAF 2026) : le Directeur Général de CRF PERFECTION en visite de travail à Casablanca",
     metaDescription: "Le Dr William ODAH, DG de CRF PERFECTION, a été reçu le 12 août 2026 par l'Agence Nationale des Ports (ANP) à Casablanca pour préparer la COPAF 2026, dont la 3e journée sera désormais entièrement consacrée à la visite du Port de Casablanca.",
     excerpt: "Communiqué — Reçu par l'ANP à Casablanca le 12 août 2026, le Directeur Général de CRF PERFECTION a fait le point sur les préparatifs de la COPAF 2026, avec une décision clé : la 3e journée sera entièrement dédiée à la visite du Port de Casablanca.",
-    imageUrl: '/hero4.png',
+    imageUrl: '/dg.png',
     publishedDate: '2026-08-12',
     readingTime: 5,
     twoColumn: true,

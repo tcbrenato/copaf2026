@@ -29,8 +29,8 @@ import MentionsLegales from './pages/MentionsLegales'
 import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite'
 import LiveStreaming from './pages/LiveStreaming'
 import Documentation from './pages/Documentation'
-import WhatsAppButton from './components/WhatsAppButton'
 import CookieBanner from './components/CookieBanner'
+import ContactHub from './components/ContactHub'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -45,6 +45,18 @@ const CookieBannerGate = () => {
   const location = useLocation()
   if (location.pathname.includes('/admin')) return null
   return <CookieBanner />
+}
+
+// ─── Bouton flottant de contact : partout sauf /admin et les ecrans de pure
+// projection (sondage-live/diagnostic) affiches sur grand ecran en salle, ou
+// un bouton de contact n'a pas de sens.
+const ContactHubGate = () => {
+  const location = useLocation()
+  const { pathname } = location
+  if (pathname.includes('/admin')) return null
+  if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
+  if (pathname === '/diagnostic/projection') return null
+  return <ContactHub />
 }
 
 // NOTE SUR L'ESPACEMENT : --copaf-header-h est mise a jour en continu par
@@ -66,7 +78,6 @@ const MainSite = () => (
       <Contact />
       <Footer />
     </main>
-    <WhatsAppButton />
   </>
 )
 
@@ -78,7 +89,6 @@ const InscriptionPage = () => (
       <Inscription />
     </div>
     <Footer />
-    <WhatsAppButton />
   </>
 )
 
@@ -90,7 +100,6 @@ const VerifierPage = () => (
       <VerifierDossier />
     </div>
     <Footer />
-    <WhatsAppButton />
   </>
 )
 
@@ -110,18 +119,19 @@ function App() {
     <Router>
       <AnalyticsTracker />
       <CookieBannerGate />
+      <ContactHubGate />
       <Routes>
         <Route path="/"                       element={<MainSite />} />
         <Route path="/inscription"            element={<InscriptionPage />} />
         <Route path="/verifier"               element={<VerifierPage />} />
-        <Route path="/partenariats"           element={<><Partenariats /><WhatsAppButton /></>} />
-        <Route path="/exposition-digitale"    element={<><ExpositionDigitale /><WhatsAppButton /></>} />
-        <Route path="/actualites"             element={<><Actualites /><WhatsAppButton /></>} />
-        <Route path="/actualites/:slug"       element={<><ActualiteDetail /><WhatsAppButton /></>} />
+        <Route path="/partenariats"           element={<Partenariats />} />
+        <Route path="/exposition-digitale"    element={<ExpositionDigitale />} />
+        <Route path="/actualites"             element={<Actualites />} />
+        <Route path="/actualites/:slug"       element={<ActualiteDetail />} />
         <Route path="/mentions-legales"       element={<MentionsLegales />} />
         <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
-        <Route path="/live"                   element={<><LiveStreaming /><WhatsAppButton /></>} />
-        <Route path="/documentation"          element={<><Documentation /><WhatsAppButton /></>} />
+        <Route path="/live"                   element={<LiveStreaming />} />
+        <Route path="/documentation"          element={<Documentation />} />
         <Route path="/admin"                  element={<AdminPage />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />
