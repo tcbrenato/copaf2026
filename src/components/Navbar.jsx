@@ -168,8 +168,20 @@ const Navbar = () => {
 
           <div className="logo-divider" style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)', flexShrink: 0 }} />
 
-          <div style={{ display: 'flex', flexShrink: 0 }}>
+          <div className="logo-partenaire" style={{ display: 'flex', flexShrink: 0 }}>
             <img className="logo-img" src="/logoagpaoc.png" alt="AGPAOC" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
+          </div>
+
+          <div className="logo-divider logo-divider-extra" style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)', flexShrink: 0 }} />
+
+          <div className="logo-partenaire logo-partenaire-extra" style={{ display: 'flex', flexShrink: 0 }}>
+            <img className="logo-img" src="/uapna.png" alt="UAPNA" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
+          </div>
+
+          <div className="logo-divider logo-divider-extra" style={{ width: 1, height: 30, background: 'rgba(0,0,0,0.15)', flexShrink: 0 }} />
+
+          <div className="logo-partenaire logo-partenaire-extra" style={{ display: 'flex', flexShrink: 0 }}>
+            <img className="logo-img" src="/ANP.png" alt="ANP" style={{ height: logoHeight + 6, width: 'auto', objectFit: 'contain' }} />
           </div>
         </div>
 
@@ -432,6 +444,16 @@ const Navbar = () => {
 
       <style>{`
         .burger { display: none !important; }
+        /* Entre le passage en menu burger et une largeur confortable, la barre
+           est trop etroite pour 5 logos + tous les liens de nav — on masque
+           les 2 derniers logos (UAPNA, ANP) dans cette zone intermediaire
+           uniquement ; ils restent visibles en mobile (menu burger, pas de
+           liens a cote) et en grand desktop (assez de place). */
+        @media (min-width: 769px) and (max-width: 1150px) {
+          .logo-partenaire-extra, .logo-divider-extra {
+            display: none !important;
+          }
+        }
         @media (max-width: 768px) {
           .nav-links { display: none !important; }
           .nav-cta   { display: none !important; }

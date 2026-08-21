@@ -89,6 +89,27 @@ const Footer = () => {
       fontFamily: "'Roboto', 'Helvetica Neue', sans-serif",
     }}>
 
+      {/* Bandeau des logos organisateurs & partenaires */}
+      <div style={{
+        display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 14,
+        padding: '14px 22px', background: '#FFFFFF', borderRadius: 12,
+        boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
+        maxWidth: 620, margin: '0 auto clamp(36px, 5vw, 52px)',
+      }}>
+        {[
+          { src: '/logocrf.png', alt: 'CRF Perfection' },
+          { src: '/logocopaf.png', alt: 'COPAF' },
+          { src: '/logoagpaoc.png', alt: 'AGPAOC' },
+          { src: '/uapna.png', alt: 'UAPNA' },
+          { src: '/ANP.png', alt: 'ANP' },
+        ].map((logo, i) => (
+          <div key={logo.alt} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {i > 0 && <div style={{ width: 1, height: 26, background: 'rgba(0,0,0,0.12)' }} />}
+            <img src={logo.src} alt={logo.alt} style={{ height: 32, width: 'auto', objectFit: 'contain' }} />
+          </div>
+        ))}
+      </div>
+
       {/* Grille principale */}
       <div style={{
         display: 'grid',

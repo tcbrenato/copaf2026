@@ -5,6 +5,7 @@ const partners = [
   { url: 'https://i.ibb.co/7dNZJQN5/agpaoc-0.jpg', name: 'AGPAOC' },
   { url: 'https://i.ibb.co/5WvKCqt8/logo-CRF-PERFECTION-4x-1761998753526.png', name: 'CRF Perfection' },
   { url: '/ANP.png', name: 'ANP' },
+  { url: '/uapna.png', name: 'UAPNA' },
   { url: 'https://i.ibb.co/4nB4hykm/logo-tmpa.png', name: 'Tanger Med' },
   { url: '/beninmanutentions.png', name: 'Benin Manutention' },
   { url: '/pac.png', name: 'PAC' },
