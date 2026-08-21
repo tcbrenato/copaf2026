@@ -17,6 +17,11 @@
 // Chaque `content` est une liste de blocs { type: 'p' | 'h2', text }.
 // `twoColumn: true` (optionnel) affiche le corps de l'article sur 2
 // colonnes façon presse ecrite (voir ActualiteDetail.jsx).
+//
+// `releaseDate` (optionnel) : article suspendu jusqu'a cette date (absent
+// de la liste ET de l'acces direct par URL). Consigne DG du 21/08/2026 :
+// publier uniquement le CR de la visite de Casablanca dans l'immediat, et
+// les 3 autres articles deux semaines plus tard.
 
 export const ARTICLES = [
   {
@@ -26,6 +31,7 @@ export const ARTICLES = [
     excerpt: "À mesure que les ports africains se digitalisent, la cybersécurité devient un enjeu de souveraineté et de continuité d'activité aussi critique que la sûreté physique.",
     imageUrl: '/hero5.png',
     publishedDate: '2026-08-10',
+    releaseDate: '2026-09-04',
     readingTime: 6,
     content: [
       { type: 'p', text: "Pendant longtemps, la sûreté portuaire en Afrique s'est essentiellement pensée en termes physiques : contrôle d'accès, vidéosurveillance, conformité au Code international pour la sûreté des navires et des installations portuaires (Code ISPS), entré en vigueur en 2004 sous l'égide de l'Organisation maritime internationale (OMI). Cette dimension reste centrale. Mais elle ne suffit plus. À mesure que les ports du continent adoptent des systèmes de gestion de terminaux (TOS), des guichets uniques portuaires, des plateformes d'échange de données EDI ou des capteurs connectés sur leurs équipements de manutention, ils héritent aussi des vulnérabilités propres à tout système numérique interconnecté." },
@@ -46,6 +52,7 @@ export const ARTICLES = [
     excerpt: "L'intelligence artificielle n'est plus un horizon lointain pour les ports : elle s'applique déjà, très concrètement, à la prévision, à l'automatisation et à la maintenance des installations portuaires.",
     imageUrl: '/hero3.png',
     publishedDate: '2026-08-12',
+    releaseDate: '2026-09-04',
     readingTime: 6,
     content: [
       { type: 'p', text: "Quand on parle d'intelligence artificielle appliquée aux ports, l'imaginaire va souvent vers des terminaux entièrement automatisés, à la manière de certains grands hubs asiatiques ou européens. Cette vision, coûteuse et lointaine pour la majorité des ports africains, masque une réalité plus immédiate : l'IA se déploie aujourd'hui surtout par petites briques ciblées, à fort retour sur investissement, plutôt que par une transformation totale d'un seul coup." },
@@ -66,6 +73,7 @@ export const ARTICLES = [
     excerpt: "Communiqué — La Conférence des Ports Africains (COPAF 2026) se tiendra du 15 au 17 septembre 2026 à Casablanca, autour de la transformation digitale et de la cybersécurité des ports du continent.",
     imageUrl: '/hero1.png',
     publishedDate: '2026-08-15',
+    releaseDate: '2026-09-04',
     readingTime: 4,
     content: [
       { type: 'p', text: "Casablanca accueillera, du 15 au 17 septembre 2026, la Conférence des Ports Africains (COPAF 2026), un rendez-vous consacré à la transformation digitale du secteur portuaire africain. Organisée par CRF Perfection en partenariat avec l'AGPAOC (Association de Gestion des Ports de l'Afrique de l'Ouest et du Centre) et l'ANP/UAPNA, cette édition a pour thème « Smart Port Africain : Intelligence Artificielle et cybersécurité au service de la performance »." },
@@ -115,6 +123,15 @@ export const ARTICLES = [
   },
 ]
 
+function isReleased(article) {
+  return !article.releaseDate || new Date(article.releaseDate) <= new Date()
+}
+
+export function getPublishedArticles() {
+  return ARTICLES.filter(isReleased)
+}
+
 export function getArticleBySlug(slug) {
-  return ARTICLES.find(a => a.slug === slug) || null
+  const article = ARTICLES.find(a => a.slug === slug) || null
+  return article && isReleased(article) ? article : null
 }

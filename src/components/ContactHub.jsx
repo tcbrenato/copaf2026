@@ -52,9 +52,9 @@ export default function ContactHub() {
   }, [open])
 
   return (
-    <div ref={rootRef} style={{ position: 'fixed', right: 'clamp(16px, 4vw, 24px)', bottom: 'clamp(16px, 4vw, 24px)', zIndex: 940 }}>
+    <div ref={rootRef} className="copaf-hub-root" style={{ position: 'fixed', zIndex: 940 }}>
       {/* Grille des raccourcis */}
-      <div style={{
+      <div className="copaf-hub-grid" style={{
         position: 'absolute', bottom: 'calc(100% + 16px)', right: 0,
         display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12,
         padding: 16, borderRadius: 22, width: 260,
@@ -100,14 +100,15 @@ export default function ContactHub() {
 
       {/* Bouton principal */}
       <button
+        className="copaf-hub-btn"
         onClick={() => setOpen(o => !o)}
         aria-label={open ? 'Fermer le menu de contact' : 'Ouvrir le menu de contact'}
         aria-expanded={open}
         style={{
-          width: 60, height: 60, borderRadius: '50%', border: 'none', cursor: 'pointer',
+          borderRadius: '50%', border: '3px solid #fff', cursor: 'pointer',
           background: `linear-gradient(135deg, ${BLUE}, ${NAVY})`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 10px 28px rgba(0,14,145,0.45)',
+          boxShadow: '0 8px 20px rgba(0,14,145,0.35)',
           animation: open ? 'none' : 'copaf-hub-pulse 2.6s ease-in-out infinite',
           transition: 'transform 0.2s ease',
         }}
@@ -115,17 +116,23 @@ export default function ContactHub() {
         onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
       >
         <div style={{ transition: 'transform 0.25s ease', transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>
-          <Ico name={open ? 'close' : 'chat'} size={24} />
+          <Ico name={open ? 'close' : 'chat'} size={22} />
         </div>
       </button>
 
       <style>{`
+        .copaf-hub-root {
+          right: clamp(16px, 4vw, 24px);
+          bottom: max(20px, calc(env(safe-area-inset-bottom) + 14px));
+        }
+        .copaf-hub-btn { width: 56px; height: 56px; }
         @keyframes copaf-hub-pulse {
-          0%, 100% { box-shadow: 0 10px 28px rgba(0,14,145,0.45); }
-          50% { box-shadow: 0 10px 28px rgba(0,14,145,0.65), 0 0 0 9px rgba(0,115,244,0.15); }
+          0%, 100% { box-shadow: 0 8px 20px rgba(0,14,145,0.35); }
+          50% { box-shadow: 0 8px 20px rgba(0,14,145,0.5), 0 0 0 8px rgba(0,115,244,0.12); }
         }
         @media (max-width: 480px) {
-          div[style*="grid-template-columns"] { width: 232px !important; }
+          .copaf-hub-btn { width: 46px; height: 46px; }
+          .copaf-hub-grid { width: 220px !important; }
         }
       `}</style>
     </div>

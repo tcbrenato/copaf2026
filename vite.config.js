@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import sitemap from 'vite-plugin-sitemap'
-import { ARTICLES } from './src/utils/articlesData.js'
+import { getPublishedArticles } from './src/utils/articlesData.js'
 
 // vite-plugin-sitemap ne scanne que les fichiers HTML produits par Vite
 // lui-meme (uniquement dist/index.html pour une SPA) — les autres routes
@@ -14,7 +14,7 @@ const DYNAMIC_ROUTES = [
   '/exposition-digitale',
   '/visiter',
   '/actualites',
-  ...ARTICLES.map(a => `/actualites/${a.slug}`),
+  ...getPublishedArticles().map(a => `/actualites/${a.slug}`),
   '/mentions-legales',
   '/politique-confidentialite',
   '/live',

@@ -1,7 +1,7 @@
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SeoHead from '../components/SeoHead'
-import { ARTICLES } from '../utils/articlesData'
+import { getPublishedArticles } from '../utils/articlesData'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -11,7 +11,7 @@ function fmtDate(d) {
 }
 
 export default function Actualites() {
-  const sortedArticles = ARTICLES.slice().reverse()
+  const sortedArticles = getPublishedArticles().reverse()
   const featuredArticle = sortedArticles[0]
   const otherArticles = sortedArticles.slice(1)
 

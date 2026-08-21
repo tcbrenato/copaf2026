@@ -12,7 +12,7 @@ import { spawn } from 'node:child_process'
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import puppeteer from 'puppeteer'
-import { ARTICLES } from '../src/utils/articlesData.js'
+import { getPublishedArticles } from '../src/utils/articlesData.js'
 
 const PORT     = 4173
 const BASE_URL = `http://localhost:${PORT}`
@@ -29,7 +29,7 @@ const ROUTES = [
   // Chaque article a son propre HTML statique avec son propre titre/meta
   // (voir SeoHead.jsx) — indispensable pour que chacun ressorte sur ses
   // propres mots-cles plutot que sur le titre generique du site.
-  ...ARTICLES.map(a => `/actualites/${a.slug}`),
+  ...getPublishedArticles().map(a => `/actualites/${a.slug}`),
   '/mentions-legales',
   '/politique-confidentialite',
   '/live',

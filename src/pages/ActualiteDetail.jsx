@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SeoHead from '../components/SeoHead'
-import { ARTICLES, getArticleBySlug } from '../utils/articlesData'
+import { getPublishedArticles, getArticleBySlug } from '../utils/articlesData'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -42,7 +42,7 @@ export default function ActualiteDetail() {
     mainEntityOfPage: canonical,
   }
 
-  const autres = ARTICLES.filter(a => a.slug !== article.slug).slice(0, 2)
+  const autres = getPublishedArticles().filter(a => a.slug !== article.slug).slice(0, 2)
 
   return (
     <div style={wrap}>
