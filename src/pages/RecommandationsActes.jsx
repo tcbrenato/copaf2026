@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import Navbar from '../components/Navbar'
+import HeaderStack from '../components/HeaderStack'
 import Footer from '../components/Footer'
 import SeoHead from '../components/SeoHead'
 
@@ -77,7 +77,7 @@ function JourCard({ jour, register }) {
   return (
     <div id={jour.id} ref={el => register(jour.id, el)} style={{
       background: '#fff', borderRadius: 22, overflow: 'hidden', border: '1px solid rgba(0,14,145,0.08)',
-      boxShadow: '0 16px 40px -12px rgba(0,14,145,0.1)', scrollMarginTop: 170,
+      boxShadow: '0 16px 40px -12px rgba(0,14,145,0.1)', scrollMarginTop: 'calc(var(--copaf-header-h, 140px) + 70px)',
     }}>
       {/* En-tete */}
       <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${NAVY_DEEP})`, padding: '24px 28px' }}>
@@ -206,18 +206,18 @@ export default function RecommandationsActes() {
         canonical="https://copaf-ports.com/recommandations"
         type="website"
       />
-      <Navbar />
+      <HeaderStack />
 
       {/* Hero */}
       <div style={{
         position: 'relative', overflow: 'hidden', textAlign: 'center',
-        paddingTop: 'clamp(110px, 14vw, 150px)', paddingBottom: 56,
+        paddingTop: 'calc(var(--copaf-header-h, 140px) + 32px)', paddingBottom: 32,
         background: `linear-gradient(160deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)`,
       }}>
         <div style={{ position: 'absolute', inset: 0, opacity: 0.08, backgroundImage: 'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)', backgroundSize: '26px 26px' }} />
         <div style={{ position: 'relative', zIndex: 1, padding: '0 20px', maxWidth: 760, margin: '0 auto' }}>
           <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', marginBottom: 22,
+            display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', marginBottom: 18,
             borderRadius: 50, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
           }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', animation: 'copaf-reco-pulse 1.8s ease-in-out infinite' }} />
@@ -225,10 +225,10 @@ export default function RecommandationsActes() {
               Mis à jour en direct pendant l'événement
             </span>
           </div>
-          <h1 style={{ fontSize: 'clamp(28px,4.5vw,46px)', fontWeight: 900, color: '#fff', margin: '0 0 16px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 900, color: '#fff', margin: '0 0 12px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
             Recommandations Officielles &amp; Actes — COPAF 2026
           </h1>
-          <p style={{ fontSize: 15.5, color: 'rgba(255,255,255,0.75)', lineHeight: 1.75, margin: 0 }}>
+          <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.75)', lineHeight: 1.65, margin: 0 }}>
             Consultez et téléchargez les feuilles de route stratégiques et les décisions consensuelles issues des travaux de Casablanca.
           </p>
         </div>
@@ -236,8 +236,8 @@ export default function RecommandationsActes() {
 
       {/* Barre d'onglets sticky */}
       <div style={{
-        position: 'sticky', top: 'clamp(66px, 9vw, 90px)', zIndex: 60,
-        background: 'rgba(248,250,255,0.92)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+        position: 'sticky', top: 'var(--copaf-header-h, 90px)', zIndex: 60,
+        background: 'rgba(248,250,255,0.96)', backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
         borderBottom: '1px solid rgba(0,14,145,0.08)',
       }}>
         <div style={{
@@ -265,7 +265,7 @@ export default function RecommandationsActes() {
       </div>
 
       {/* Rapport general & livre blanc */}
-      <div id="rapport" ref={el => register('rapport', el)} style={{ maxWidth: 880, margin: '0 auto', padding: '24px clamp(16px,4vw,32px) 80px', scrollMarginTop: 170 }}>
+      <div id="rapport" ref={el => register('rapport', el)} style={{ maxWidth: 880, margin: '0 auto', padding: '24px clamp(16px,4vw,32px) 80px', scrollMarginTop: 'calc(var(--copaf-header-h, 140px) + 70px)' }}>
         <div style={{
           borderRadius: 24, padding: 'clamp(32px,5vw,48px)', textAlign: 'center', position: 'relative', overflow: 'hidden',
           background: `linear-gradient(135deg, ${NAVY}, ${NAVY_DEEP})`,

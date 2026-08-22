@@ -107,7 +107,7 @@ const Navbar = () => {
 
   const isDropdownActive   = dropdownLinks.some(l => window.location.pathname === l.href)
   const isRessourcesActive = ressourcesLinks.some(l => window.location.pathname === l.href)
-  const logoHeight       = scrolled ? 36 : 44
+  const logoHeight       = scrolled ? 30 : 38
 
   const btnBase = {
     background: 'none', border: 'none', cursor: 'pointer',
