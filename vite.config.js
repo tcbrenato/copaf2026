@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import sitemap from 'vite-plugin-sitemap'
+import { VitePWA } from 'vite-plugin-pwa'
 import { getPublishedArticles } from './src/utils/articlesData.js'
 
 // vite-plugin-sitemap ne scanne que les fichiers HTML produits par Vite
@@ -25,6 +26,40 @@ export default defineConfig({
   plugins: [
     react(),
     sitemap({ hostname: 'https://copaf-ports.com', dynamicRoutes: DYNAMIC_ROUTES }),
+    VitePWA({
+      registerType: 'autoUpdate',
+      injectRegister: 'auto',
+      manifestFilename: 'manifest.json',
+      includeAssets: ['copaf.png'],
+      manifest: {
+        name: 'COPAF 2026',
+        short_name: 'COPAF',
+        description: 'Conférence des Ports Africains 2026 — Casablanca, 15-17 septembre',
+        lang: 'fr',
+        start_url: '/',
+        display: 'standalone',
+        background_color: '#000E91',
+        theme_color: '#000E91',
+        icons: [
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icons/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      workbox: {
+        // Precache le shell + assets statiques ; les pages HTML deja
+        // visitees sont mises en cache a la volee (NetworkFirst) pour
+        // fonctionner hors-ligne sans jamais servir un contenu perime.
+        globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,webp,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: { cacheName: 'pages-cache' },
+          },
+        ],
+      },
+    }),
   ],
   base: './',
   build: {

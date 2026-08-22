@@ -31,6 +31,7 @@ import LiveStreaming from './pages/LiveStreaming'
 import Documentation from './pages/Documentation'
 import CookieBanner from './components/CookieBanner'
 import ContactHub from './components/ContactHub'
+import InstallPrompt from './components/InstallPrompt'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -57,6 +58,17 @@ const ContactHubGate = () => {
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
   return <ContactHub />
+}
+
+// ─── Banniere d'installation PWA : memes exclusions que ContactHub (pas de
+// sens sur les ecrans de projection en salle, ni sur l'admin).
+const InstallPromptGate = () => {
+  const location = useLocation()
+  const { pathname } = location
+  if (pathname.includes('/admin')) return null
+  if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
+  if (pathname === '/diagnostic/projection') return null
+  return <InstallPrompt />
 }
 
 // NOTE SUR L'ESPACEMENT : --copaf-header-h est mise a jour en continu par
@@ -120,6 +132,7 @@ function App() {
       <AnalyticsTracker />
       <CookieBannerGate />
       <ContactHubGate />
+      <InstallPromptGate />
       <Routes>
         <Route path="/"                       element={<MainSite />} />
         <Route path="/inscription"            element={<InscriptionPage />} />
