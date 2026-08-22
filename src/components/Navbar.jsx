@@ -102,6 +102,7 @@ const Navbar = () => {
   const ressourcesLinks = [
     { label: 'Live Streaming', href: '/live' },
     { label: 'Documentation',  href: '/documentation' },
+    { label: 'Recommandations Officielles & Actes', href: '/recommandations' },
   ]
 
   const isDropdownActive   = dropdownLinks.some(l => window.location.pathname === l.href)

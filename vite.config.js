@@ -20,6 +20,7 @@ const DYNAMIC_ROUTES = [
   '/politique-confidentialite',
   '/live',
   '/documentation',
+  '/recommandations',
 ]
 
 export default defineConfig({

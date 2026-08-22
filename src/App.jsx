@@ -29,6 +29,7 @@ import MentionsLegales from './pages/MentionsLegales'
 import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite'
 import LiveStreaming from './pages/LiveStreaming'
 import Documentation from './pages/Documentation'
+import RecommandationsActes from './pages/RecommandationsActes'
 import CookieBanner from './components/CookieBanner'
 import ContactHub from './components/ContactHub'
 import InstallPrompt from './components/InstallPrompt'
@@ -145,6 +146,7 @@ function App() {
         <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
         <Route path="/live"                   element={<LiveStreaming />} />
         <Route path="/documentation"          element={<Documentation />} />
+        <Route path="/recommandations"        element={<RecommandationsActes />} />
         <Route path="/admin"                  element={<AdminPage />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />

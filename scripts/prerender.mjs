@@ -34,6 +34,7 @@ const ROUTES = [
   '/politique-confidentialite',
   '/live',
   '/documentation',
+  '/recommandations',
 ]
 
 // Domaines de tracking/analytics tiers a bloquer pendant le prerendu.
