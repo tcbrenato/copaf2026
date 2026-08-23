@@ -48,6 +48,7 @@ const BLOCKED_DOMAINS = [
   'google-analytics.com',
   'analytics.google.com',
   'linkedin.com',
+  'snap.licdn.com',
   'px.ads.linkedin.com',
   'facebook.net',
   'connect.facebook.net',
