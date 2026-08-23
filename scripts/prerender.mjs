@@ -37,12 +37,12 @@ const ROUTES = [
   '/recommandations',
 ]
 
-// Domaines de tracking/analytics tiers a bloquer pendant le prerendu.
-// Ces scripts maintiennent souvent des connexions reseau ouvertes en
-// continu (beacons, pixels, websockets), ce qui empeche Puppeteer
-// d'atteindre l'etat "networkidle" et fait timeout la navigation.
-// Ce blocage n'affecte QUE le prerendu : les vrais visiteurs du site
-// chargeront ces scripts normalement.
+// Domaines tiers a bloquer pendant le prerendu : trackers (connexions
+// persistantes qui empechent l'etat "idle") ET ressources non essentielles
+// au contenu textuel/structurel (polices, images externes) qui ralentissent
+// ou font planter le rendu. Un crawler n'a besoin que du HTML/texte — pas
+// des polices Google Fonts ni des logos herberges sur i.ibb.co. Ce blocage
+// n'affecte QUE le prerendu : les vrais visiteurs chargent tout normalement.
 const BLOCKED_DOMAINS = [
   'googletagmanager.com',
   'google-analytics.com',
@@ -53,6 +53,9 @@ const BLOCKED_DOMAINS = [
   'facebook.net',
   'connect.facebook.net',
   'doubleclick.net',
+  'fonts.googleapis.com',
+  'fonts.gstatic.com',
+  'i.ibb.co',
 ]
 
 function waitForServer(url, timeoutMs = 20000) {
@@ -87,46 +90,82 @@ async function main() {
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     })
 
+    const echecs = []
+
     for (const route of ROUTES) {
-      const page = await browser.newPage()
-      page.on('pageerror', (err) => console.log('[prerender] ERREUR PAGE:', err.message))
-      page.on('console', (msg) => { if (msg.type() === 'error') console.log('[prerender] CONSOLE:', msg.text()) })
+      // Chaque route est independante : si l'une echoue (timeout, erreur
+      // JS...), on logge et on passe a la suivante plutot que de faire
+      // planter tout le build — mieux vaut 12 pages pre-rendues sur 13
+      // qu'aucune parce qu'une seule route a eu un probleme reseau.
+      try {
+        const page = await browser.newPage()
+        page.on('pageerror', (err) => console.log('[prerender] ERREUR PAGE:', err.message))
+        page.on('console', (msg) => { if (msg.type() === 'error') console.log('[prerender] CONSOLE:', msg.text()) })
 
-      // Bloque les domaines de tracking pour eviter les connexions
-      // reseau persistantes qui empechent l'etat "idle".
-      await page.setRequestInterception(true)
-      page.on('request', (req) => {
-        const url = req.url()
-        if (BLOCKED_DOMAINS.some(domain => url.includes(domain))) {
-          req.abort()
-        } else {
-          req.continue()
-        }
-      })
+        // Neutralise le Service Worker (vite-plugin-pwa) pendant le prerendu :
+        // son precaching en arriere-plan maintient des connexions reseau
+        // actives qui empechent l'etat reseau de se stabiliser et causent
+        // des timeouts sur certaines routes. On ne peut pas juste mettre
+        // `navigator.serviceWorker` a `undefined` : la propriete existe
+        // toujours, donc `'serviceWorker' in navigator` reste vrai et
+        // registerSW.js plante en appelant `.register()` sur `undefined`.
+        // On fournit plutot un faux objet avec un `register()` qui ne fait
+        // rien, pour que le script d'enregistrement du PWA s'execute sans
+        // erreur mais sans jamais activer de vrai Service Worker.
+        await page.evaluateOnNewDocument(() => {
+          Object.defineProperty(navigator, 'serviceWorker', {
+            value: { register: () => Promise.resolve({ unregister: () => Promise.resolve(true) }) },
+            configurable: true,
+          })
+        })
 
-      const url = `${BASE_URL}${route}`
-      console.log('[prerender] Rendu de', url)
+        // Bloque les domaines de tracking et les ressources non essentielles
+        // au contenu (polices, images externes) pour eviter les connexions
+        // reseau persistantes/lentes qui empechent l'etat "idle".
+        await page.setRequestInterception(true)
+        page.on('request', (req) => {
+          const url = req.url()
+          if (BLOCKED_DOMAINS.some(domain => url.includes(domain))) {
+            req.abort()
+          } else {
+            req.continue()
+          }
+        })
 
-      await page.goto(url, { waitUntil: 'networkidle2', timeout: 90000 })
-      await new Promise(r => setTimeout(r, 600))
+        const url = `${BASE_URL}${route}`
+        console.log('[prerender] Rendu de', url)
 
-      await page.evaluate(() => {
-        document.querySelectorAll('script[src*="googletagmanager.com/gtag/js"]')
-          .forEach(el => el.remove())
-      })
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 })
+        await page.waitForFunction(
+          () => document.getElementById('root')?.children.length > 0,
+          { timeout: 20000 }
+        )
+        await new Promise(r => setTimeout(r, 600))
 
-      const html = await page.content()
-      await page.close()
+        await page.evaluate(() => {
+          document.querySelectorAll('script[src*="googletagmanager.com/gtag/js"]')
+            .forEach(el => el.remove())
+        })
 
-      const htmlCorrige = html.replace(/=(["'])\.\//g, '=$1/')
+        const html = await page.content()
+        await page.close()
 
-      const outDir = route === '/' ? DIST_DIR : path.join(DIST_DIR, route)
-      await mkdir(outDir, { recursive: true })
-      await writeFile(path.join(outDir, 'index.html'), htmlCorrige, 'utf-8')
+        const htmlCorrige = html.replace(/=(["'])\.\//g, '=$1/')
+
+        const outDir = route === '/' ? DIST_DIR : path.join(DIST_DIR, route)
+        await mkdir(outDir, { recursive: true })
+        await writeFile(path.join(outDir, 'index.html'), htmlCorrige, 'utf-8')
+      } catch (err) {
+        console.error(`[prerender] ECHEC sur ${route} :`, err.message)
+        echecs.push(route)
+      }
     }
 
     await browser.close()
-    console.log(`[prerender] Termine : ${ROUTES.length} page(s) pre-rendue(s).`)
+    console.log(`[prerender] Termine : ${ROUTES.length - echecs.length}/${ROUTES.length} page(s) pre-rendue(s).`)
+    if (echecs.length) {
+      console.log('[prerender] Routes en echec (fallback SPA servi pour celles-ci) :', echecs.join(', '))
+    }
   } finally {
     preview.kill()
   }
