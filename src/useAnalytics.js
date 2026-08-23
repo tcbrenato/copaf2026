@@ -30,27 +30,16 @@ async function getOrCreateSession() {
   const existing = sessionStorage.getItem(SESSION_KEY)
   if (existing) return existing
 
-  // api.country.is est compatible CORS — remplace ipapi.co
-  let country = null
-  try {
-    const r = await fetch('https://api.country.is/', { signal: AbortSignal.timeout(2000) })
-    const d = await r.json()
-    country = d.country || null
-  } catch {}
-
+  // Resolution du pays cote serveur (Edge Function create-session) a partir
+  // de l'IP reelle du visiteur (en-tete x-forwarded-for) — plus fiable que
+  // l'appel a une API de geolocalisation depuis le navigateur, qui est
+  // souvent bloque par les extensions anti-pub/vie privee.
   const contactId = localStorage.getItem(CONTACT_KEY) || null
-  const { data, error } = await supabase
-    .from('sessions')
-    .insert([{
-      contact_id: contactId,
-      user_agent: navigator.userAgent.slice(0, 200),
-      country,
-      page_count: 0,
-    }])
-    .select('id')
-    .single()
+  const { data, error } = await supabase.functions.invoke('create-session', {
+    body: { contact_id: contactId },
+  })
 
-  if (error || !data) return null
+  if (error || !data?.id) return null
   sessionStorage.setItem(SESSION_KEY, data.id)
   return data.id
 }
@@ -63,10 +52,26 @@ async function pingSession(sessionId) {
     .eq('id', sessionId)
 }
 
+// Envoie la duree passee sur une page au moment ou le visiteur la quitte
+// (changement de route SPA ou fermeture/rafraichissement d'onglet).
+// sendBeacon (au lieu d'un fetch classique) garantit l'envoi meme quand la
+// page est en train de se decharger, ce qu'un fetch normal ne peut pas
+// promettre. La fonction Edge cible est deployee sans verification JWT
+// (sendBeacon ne peut pas poser d'en-tete Authorization).
+function sendTimeOnPage(pageViewId, enteredAt) {
+  if (!pageViewId || !enteredAt) return
+  const seconds = Math.round((Date.now() - enteredAt) / 1000)
+  if (seconds <= 0) return
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-time-on-page`
+  const body = new Blob([JSON.stringify({ page_view_id: pageViewId, time_on_page: seconds })], { type: 'text/plain' })
+  navigator.sendBeacon?.(url, body)
+}
+
 export function useAnalytics() {
-  const location     = useLocation()
-  const sessionRef   = useRef(null)
-  const pageStartRef = useRef(Date.now())
+  const location        = useLocation()
+  const sessionRef      = useRef(null)
+  const pageStartRef    = useRef(Date.now())
+  const pageViewIdRef   = useRef(null)
 
   // Initialisation GA4 (une seule fois) + création/récupération de la session Supabase
   useEffect(() => {
@@ -101,19 +106,33 @@ export function useAnalytics() {
       const sessionId = sessionRef.current || await getOrCreateSession()
       if (!sessionId) return
       const contactId = localStorage.getItem(CONTACT_KEY) || null
-      await supabase.from('page_views').insert([{
+      const { data } = await supabase.from('page_views').insert([{
         session_id:  sessionId,
         contact_id:  contactId,
         path:        location.pathname,
         referrer:    document.referrer || null,
         time_on_page: 0,
         ...getUtmParams(),
-      }])
+      }]).select('id').single()
+      pageViewIdRef.current = data?.id || null
       pageStartRef.current = Date.now()
       await pingSession(sessionId)
     }
     trackView()
+
+    // Au changement de route (navigation SPA), on envoie la duree passee
+    // sur la page qu'on quitte AVANT que trackView() n'en cree une nouvelle.
+    return () => { sendTimeOnPage(pageViewIdRef.current, pageStartRef.current) }
   }, [location?.pathname])
+
+  // Fermeture d'onglet / rafraichissement : le cleanup ci-dessus ne se
+  // declenche pas dans ce cas (pas de changement de route), d'ou ce
+  // listener separe pour capturer la derniere page vue de la session.
+  useEffect(() => {
+    const onHide = () => sendTimeOnPage(pageViewIdRef.current, pageStartRef.current)
+    window.addEventListener('pagehide', onHide)
+    return () => window.removeEventListener('pagehide', onHide)
+  }, [])
 
   const trackEvent = useCallback(async (category, action, label = null, value = null, metadata = {}) => {
     // GA4
