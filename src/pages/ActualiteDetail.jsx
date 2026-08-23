@@ -50,6 +50,7 @@ export default function ActualiteDetail() {
         title={`${article.title} — COPAF 2026`}
         description={article.metaDescription}
         canonical={canonical}
+        ogImage={article.imageUrl ? `https://copaf-ports.com${article.imageUrl}` : undefined}
       />
       {/* eslint-disable-next-line react/no-danger */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
