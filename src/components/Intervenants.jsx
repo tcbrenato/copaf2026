@@ -317,4 +317,4 @@ const Intervenants = () => {
   )
 }
 
-export default Intervenants
+export default Intervenants 

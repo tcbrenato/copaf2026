@@ -88,6 +88,8 @@ async function main() {
 
     for (const route of ROUTES) {
       const page = await browser.newPage()
+      page.on('pageerror', (err) => console.log('[prerender] ERREUR PAGE:', err.message))
+      page.on('console', (msg) => { if (msg.type() === 'error') console.log('[prerender] CONSOLE:', msg.text()) })
 
       // Bloque les domaines de tracking pour eviter les connexions
       // reseau persistantes qui empechent l'etat "idle".

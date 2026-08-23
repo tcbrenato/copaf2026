@@ -6,6 +6,30 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 5173
+    },
+    {
+      "name": "copaf-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--port", "4174"],
+      "port": 4174
+    },
+    {
+      "name": "etudi-move",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/HomePC/Desktop/etudi-move", "run", "dev", "--", "--port", "5180"],
+      "port": 5180
+    },
+    {
+      "name": "benin-rca-market",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/HomePC/Desktop/benin-rca-market-main", "run", "dev", "--", "--port", "5181"],
+      "port": 5181
+    },
+    {
+      "name": "macartedigitale",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/HomePC/macartedigitale", "run", "dev", "--", "--port", "5182"],
+      "port": 5182
     }
   ]
 }
