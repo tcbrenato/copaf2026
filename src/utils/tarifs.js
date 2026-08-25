@@ -17,10 +17,11 @@
 
 export const PRIX_STANDARD = 3500
 
-// ⚠️ Montant PROVISOIRE en attendant confirmation officielle du DG.
-// Une fois confirme, changer uniquement cette valeur — tout le reste du
-// systeme (formulaire, emails, PDF) se met a jour automatiquement.
-export const PRIX_PREFERENTIEL = 1500
+// ⚠️ Montant PROVISOIRE (2500€, consigne DG du 25/08/2026) en attendant le
+// retour officiel de l'ANP/UAPNA. Une fois confirme, changer uniquement
+// cette valeur — tout le reste du systeme (formulaire, emails, PDF) se met
+// a jour automatiquement.
+export const PRIX_PREFERENTIEL = 2500
 
 // Pays membres de l'UAPNA (Union des Administrations Portuaires du Nord de
 // l'Afrique), dont l'ANP (Maroc) est l'hote de la COPAF 2026. Values alignees
