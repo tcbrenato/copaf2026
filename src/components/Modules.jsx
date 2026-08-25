@@ -29,8 +29,8 @@ const AxesThematiques = () => {
   const outcomes = t('modules.outcomes', { returnObjects: true })
   const axesMeta = [
     { icon: icons.compass, color: '#0073f4', bg: 'rgba(0,115,244,0.08)' },
-    { icon: icons.shield, color: '#a78bfa', bg: 'rgba(167,139,250,0.08)' },
-    { icon: icons.gauge, color: '#10b981', bg: 'rgba(16,185,129,0.08)' },
+    { icon: icons.shield, color: '#000e91', bg: 'rgba(0,14,145,0.08)' },
+    { icon: icons.gauge, color: '#3391f6', bg: 'rgba(51,145,246,0.08)' },
   ]
 
   return (
@@ -145,7 +145,7 @@ const AxesThematiques = () => {
         <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", marginTop: 32 }}>
           {[
             { titre: "AGPAOC", desc: "Secrétariat Général", color: C.blue },
-            { titre: "CRF Perfection", desc: "Expertise Panafricaine", color: "#10b981" },
+            { titre: "CRF Perfection", desc: "Expertise Panafricaine", color: C.navy },
           ].map((c, i) => (
             <div key={i} style={{
               display: "flex", alignItems: "center", gap: 14,
