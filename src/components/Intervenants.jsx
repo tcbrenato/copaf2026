@@ -52,14 +52,6 @@ const intervenants = [
     bioKey: 'biegniebeBio',
   },
   {
-    initiales: 'TM',
-    photo: '/intervenant2.jpg',
-    nom: 'M. Tarik Maaouni',
-    titre: 'Directeur Organisation et Systèmes d\'Information',
-    organisation: 'ANP',
-    bioKey: 'bioComingSoon',
-  },
-  {
     initiales: 'RT',
     photo: '/renato.jpg',
     nom: 'Rénato TCHOBO',

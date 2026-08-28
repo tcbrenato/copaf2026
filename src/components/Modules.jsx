@@ -60,7 +60,7 @@ const RESEAUX = {
   },
   uapna: {
     titre: 'UAPNA',
-    sousTitre: "Union des Ports de l'Afrique du Nord",
+    sousTitre: "Union des Administrations Portuaires du Nord de l'Afrique",
     color: '#3391F6',
     pays: [
       { nom: 'Maroc', code: 'ma' },
