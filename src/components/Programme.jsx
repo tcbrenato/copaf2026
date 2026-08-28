@@ -369,7 +369,7 @@ const Programme = () => {
         {/* ── INFOS LOGISTIQUES ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16, marginTop: 40 }}>
           {[
-            { icon: icons.pin, label: t('hero.card.location'), value: 'Casablanca, Maroc' },
+            { icon: icons.pin, label: t('hero.card.location'), value: 'Bâtiment Communautaire Portuaire, Casablanca' },
             { icon: icons.cal, label: t('hero.card.dates'), value: '15 – 17 Septembre 2026' },
             { icon: icons.globe, label: 'Langues', value: 'Français & Anglais (traduction simultanée)' },
           ].map((info, i) => (

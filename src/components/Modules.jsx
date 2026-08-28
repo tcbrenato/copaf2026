@@ -31,29 +31,33 @@ const RESEAUX = {
     titre: 'AGPAOC',
     sousTitre: "Association de Gestion des Ports de l'Afrique de l'Ouest et du Centre",
     color: C.blue,
+    // Statut visa Maroc (passeport ordinaire) communique par le DG —
+    // 'exempt' : entree sans visa, sejour touristique/affaires 90 jours max.
+    // 'requis' : visa / eVisa / AEVM necessaire avant le voyage.
+    // Non renseigne (Tchad, Centrafrique) : pas de badge, a verifier au cas par cas.
     pays: [
-      { nom: 'Mauritanie', code: 'mr' },
-      { nom: 'Sénégal', code: 'sn' },
-      { nom: 'Gambie', code: 'gm' },
-      { nom: 'Guinée-Bissau', code: 'gw' },
-      { nom: 'Guinée', code: 'gn' },
-      { nom: 'Sierra Leone', code: 'sl' },
-      { nom: 'Liberia', code: 'lr' },
-      { nom: "Côte d'Ivoire", code: 'ci' },
-      { nom: 'Ghana', code: 'gh' },
-      { nom: 'Togo', code: 'tg' },
-      { nom: 'Bénin', code: 'bj' },
-      { nom: 'Nigeria', code: 'ng' },
-      { nom: 'Cameroun', code: 'cm' },
-      { nom: 'Guinée Équatoriale', code: 'gq' },
-      { nom: 'Gabon', code: 'ga' },
-      { nom: 'Congo', code: 'cg' },
-      { nom: 'RD Congo', code: 'cd' },
-      { nom: 'Angola', code: 'ao' },
-      { nom: 'Cap-Vert', code: 'cv' },
-      { nom: 'Mali', code: 'ml', associe: true },
-      { nom: 'Burkina Faso', code: 'bf', associe: true },
-      { nom: 'Niger', code: 'ne', associe: true },
+      { nom: 'Mauritanie', code: 'mr', visa: 'requis' },
+      { nom: 'Sénégal', code: 'sn', visa: 'exempt' },
+      { nom: 'Gambie', code: 'gm', visa: 'requis' },
+      { nom: 'Guinée-Bissau', code: 'gw', visa: 'requis' },
+      { nom: 'Guinée', code: 'gn', visa: 'exempt' },
+      { nom: 'Sierra Leone', code: 'sl', visa: 'requis' },
+      { nom: 'Liberia', code: 'lr', visa: 'requis' },
+      { nom: "Côte d'Ivoire", code: 'ci', visa: 'exempt' },
+      { nom: 'Ghana', code: 'gh', visa: 'requis' },
+      { nom: 'Togo', code: 'tg', visa: 'requis' },
+      { nom: 'Bénin', code: 'bj', visa: 'requis' },
+      { nom: 'Nigeria', code: 'ng', visa: 'requis' },
+      { nom: 'Cameroun', code: 'cm', visa: 'requis' },
+      { nom: 'Guinée Équatoriale', code: 'gq', visa: 'requis' },
+      { nom: 'Gabon', code: 'ga', visa: 'exempt' },
+      { nom: 'Congo', code: 'cg', visa: 'requis' },
+      { nom: 'RD Congo', code: 'cd', visa: 'requis' },
+      { nom: 'Angola', code: 'ao', visa: 'requis' },
+      { nom: 'Cap-Vert', code: 'cv', visa: 'exempt' },
+      { nom: 'Mali', code: 'ml', associe: true, visa: 'exempt' },
+      { nom: 'Burkina Faso', code: 'bf', associe: true, visa: 'exempt' },
+      { nom: 'Niger', code: 'ne', associe: true, visa: 'exempt' },
       { nom: 'Tchad', code: 'td', associe: true },
       { nom: 'Centrafrique', code: 'cf', associe: true },
     ],
@@ -259,21 +263,47 @@ const AxesThematiques = () => {
               </div>
 
               <div style={{ padding: "clamp(20px, 4vw, 26px)" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 }}>
+                {r.pays.some(p => p.visa) && (
+                  <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 16, fontSize: 11.5, color: "#64748b", fontWeight: 600 }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e" }} /> Sans visa pour le Maroc
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b" }} /> Visa / eVisa requis
+                    </span>
+                  </div>
+                )}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 10 }}>
                   {r.pays.map((p, i) => (
                     <div key={i} title={p.associe ? 'Membre associé' : undefined} style={{
-                      display: "flex", alignItems: "center", gap: 9, padding: "10px 12px",
-                      background: p.associe ? "#fff" : "#F8FAFC", border: `1px solid ${p.associe ? '#E2E8F0' : '#E2E8F0'}`,
+                      display: "flex", flexDirection: "column", gap: 7, padding: "10px 12px",
+                      background: p.associe ? "#fff" : "#F8FAFC", border: "1px solid #E2E8F0",
                       borderStyle: p.associe ? 'dashed' : 'solid', borderRadius: 12,
                     }}>
-                      <span className={`fi fi-${p.code}`} style={{ borderRadius: 3, flexShrink: 0, boxShadow: '0 0 0 1px rgba(0,0,0,0.08)' }} />
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: C.navy, lineHeight: 1.25 }}>{p.nom}{p.associe && <sup style={{ marginLeft: 2 }}>*</sup>}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                        <span className={`fi fi-${p.code}`} style={{ borderRadius: 3, flexShrink: 0, boxShadow: '0 0 0 1px rgba(0,0,0,0.08)' }} />
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: C.navy, lineHeight: 1.25 }}>{p.nom}{p.associe && <sup style={{ marginLeft: 2 }}>*</sup>}</span>
+                      </div>
+                      {p.visa && (
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, alignSelf: "flex-start", padding: "2px 8px", borderRadius: 20,
+                          background: p.visa === 'exempt' ? '#DCFCE7' : '#FEF3C7',
+                          color: p.visa === 'exempt' ? '#15803d' : '#92400e',
+                        }}>
+                          {p.visa === 'exempt' ? 'Sans visa' : 'Visa requis'}
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
                 {r.pays.some(p => p.associe) && (
                   <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 16, lineHeight: 1.6 }}>
                     * Pays sans façade maritime, membres associés.
+                  </div>
+                )}
+                {r.pays.some(p => p.visa) && (
+                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8, lineHeight: 1.6 }}>
+                    Statut à titre indicatif pour un passeport ordinaire (séjour ≤ 90 jours) — vérifiez toujours auprès du consulat du Maroc avant votre voyage.
                   </div>
                 )}
               </div>
