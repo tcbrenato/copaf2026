@@ -52,11 +52,22 @@ export default defineConfig({
         // visitees sont mises en cache a la volee (NetworkFirst) pour
         // fonctionner hors-ligne sans jamais servir un contenu perime.
         globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,webp,woff2}'],
+        // Les ~140 SVG de drapeaux (flag-icons) ne meritent pas d'etre
+        // precaches d'office : ils ne servent que dans une modale rarement
+        // ouverte. Mis en cache a la demande (CacheFirst) au lieu de gonfler
+        // le precache de plusieurs Mo pour des icones que la plupart des
+        // visiteurs ne verront jamais.
+        globIgnores: ['**/assets/*.svg'],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
             handler: 'NetworkFirst',
             options: { cacheName: 'pages-cache' },
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.endsWith('.svg') && url.pathname.includes('/assets/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'flag-icons-cache', expiration: { maxEntries: 60 } },
           },
         ],
       },

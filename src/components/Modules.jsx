@@ -21,10 +21,62 @@ const categorieBadge = {
   Recruté:    { bg: '#FFF4E8', color: '#A35F00' },
 }
 
+// Reseaux regionaux de ports membres — memes pays que ceux deja utilises
+// dans le formulaire d'inscription (voir src/utils/portsData.js), pour ne
+// jamais afficher une liste differente de celle utilisee ailleurs sur le
+// site. Structure generique pour pouvoir ajouter l'UAPNA sans dupliquer le
+// composant modal.
+const RESEAUX = {
+  agpaoc: {
+    titre: 'AGPAOC',
+    sousTitre: "Association de Gestion des Ports de l'Afrique de l'Ouest et du Centre",
+    color: C.blue,
+    pays: [
+      { nom: 'Mauritanie', code: 'mr' },
+      { nom: 'Sénégal', code: 'sn' },
+      { nom: 'Gambie', code: 'gm' },
+      { nom: 'Guinée-Bissau', code: 'gw' },
+      { nom: 'Guinée', code: 'gn' },
+      { nom: 'Sierra Leone', code: 'sl' },
+      { nom: 'Liberia', code: 'lr' },
+      { nom: "Côte d'Ivoire", code: 'ci' },
+      { nom: 'Ghana', code: 'gh' },
+      { nom: 'Togo', code: 'tg' },
+      { nom: 'Bénin', code: 'bj' },
+      { nom: 'Nigeria', code: 'ng' },
+      { nom: 'Cameroun', code: 'cm' },
+      { nom: 'Guinée Équatoriale', code: 'gq' },
+      { nom: 'Gabon', code: 'ga' },
+      { nom: 'Congo', code: 'cg' },
+      { nom: 'RD Congo', code: 'cd' },
+      { nom: 'Angola', code: 'ao' },
+      { nom: 'Cap-Vert', code: 'cv' },
+      { nom: 'Mali', code: 'ml', associe: true },
+      { nom: 'Burkina Faso', code: 'bf', associe: true },
+      { nom: 'Niger', code: 'ne', associe: true },
+      { nom: 'Tchad', code: 'td', associe: true },
+      { nom: 'Centrafrique', code: 'cf', associe: true },
+    ],
+  },
+  uapna: {
+    titre: 'UAPNA',
+    sousTitre: "Union des Ports de l'Afrique du Nord",
+    color: '#3391F6',
+    pays: [
+      { nom: 'Maroc', code: 'ma' },
+      { nom: 'Algérie', code: 'dz' },
+      { nom: 'Tunisie', code: 'tn' },
+      { nom: 'Libye', code: 'ly' },
+      { nom: 'Égypte', code: 'eg' },
+    ],
+  },
+}
+
 const AxesThematiques = () => {
   const { t } = useTranslation()
   const [activeAxe, setActiveAxe] = useState(null);
   const [hovered, setHovered] = useState(null);
+  const [activeReseau, setActiveReseau] = useState(null);
   const axesData = t('modules.axes', { returnObjects: true })
   const outcomes = t('modules.outcomes', { returnObjects: true })
   const axesMeta = [
@@ -144,26 +196,91 @@ const AxesThematiques = () => {
         {/* CERTIFICATIONS */}
         <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", marginTop: 32 }}>
           {[
-            { titre: "AGPAOC", desc: "Secrétariat Général", color: C.blue },
+            { titre: "AGPAOC", desc: "Secrétariat Général", color: C.blue, reseau: 'agpaoc' },
+            { titre: "UAPNA", desc: "Union Portuaire Afrique du Nord", color: RESEAUX.uapna.color, reseau: 'uapna' },
             { titre: "CRF Perfection", desc: "Expertise Panafricaine", color: C.navy },
           ].map((c, i) => (
-            <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 14,
-              background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 16,
-              padding: "16px 22px", minWidth: 220, flex: "1 1 220px", maxWidth: 320,
-            }}>
+            <div key={i}
+              onClick={c.reseau ? () => setActiveReseau(c.reseau) : undefined}
+              onMouseEnter={c.reseau ? () => setHovered('reseau-' + c.reseau) : undefined}
+              onMouseLeave={c.reseau ? () => setHovered(null) : undefined}
+              style={{
+                display: "flex", alignItems: "center", gap: 14,
+                background: "#F8FAFC", border: `1px solid ${hovered === 'reseau-' + c.reseau ? c.color : '#E2E8F0'}`, borderRadius: 16,
+                padding: "16px 22px", minWidth: 220, flex: "1 1 220px", maxWidth: 320,
+                cursor: c.reseau ? 'pointer' : 'default', transition: 'border-color .2s, transform .2s',
+                transform: hovered === 'reseau-' + c.reseau ? 'translateY(-2px)' : 'none',
+              }}>
               <div style={{
                 width: 42, height: 42, borderRadius: 12, background: `${c.color}15`,
                 display: "flex", alignItems: "center", justifyContent: "center", color: c.color, flexShrink: 0, fontWeight: 900,
               }}>{c.titre[0]}</div>
-              <div style={{ minWidth: 0 }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontWeight: 800, fontSize: 14, color: C.navy }}>{c.titre}</div>
                 <div style={{ fontSize: 10.5, color: c.color, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>{c.desc}</div>
               </div>
+              {c.reseau && (
+                <div style={{ color: c.color, flexShrink: 0, display: 'flex' }}>{icons.arrow}</div>
+              )}
             </div>
           ))}
         </div>
       </div>
+
+      {/* MODAL RESEAU (pays membres AGPAOC / UAPNA) */}
+      {activeReseau && RESEAUX[activeReseau] && (() => {
+        const r = RESEAUX[activeReseau]
+        return (
+          <div onClick={() => setActiveReseau(null)} style={{
+            position: "fixed", inset: 0, background: "rgba(0,14,145,0.45)",
+            backdropFilter: "blur(6px)", display: "flex", alignItems: "center",
+            justifyContent: "center", zIndex: 9999, padding: 20,
+          }}>
+            <div className="modal-animate" onClick={e => e.stopPropagation()} style={{
+              background: "#fff", borderRadius: 24, maxWidth: 640, width: "100%",
+              maxHeight: "88vh", overflowY: "auto", boxShadow: "0 40px 100px rgba(0,14,145,0.3)",
+            }}>
+              <div style={{
+                background: `linear-gradient(135deg, ${r.color}, ${r.color}cc)`,
+                padding: "clamp(20px, 4vw, 28px)", display: "flex", justifyContent: "space-between",
+                alignItems: "flex-start", gap: 12, position: "sticky", top: 0, zIndex: 1,
+              }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: "clamp(18px, 3vw, 22px)", fontWeight: 900, color: "#fff", marginBottom: 6 }}>
+                    Réseau {r.titre} · {r.pays.length} pays
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>{r.sousTitre}</div>
+                </div>
+                <button onClick={() => setActiveReseau(null)} style={{
+                  background: "rgba(255,255,255,0.2)", border: "none", color: "#fff",
+                  width: 32, height: 32, borderRadius: "50%", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>{icons.close}</button>
+              </div>
+
+              <div style={{ padding: "clamp(20px, 4vw, 26px)" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 }}>
+                  {r.pays.map((p, i) => (
+                    <div key={i} title={p.associe ? 'Membre associé' : undefined} style={{
+                      display: "flex", alignItems: "center", gap: 9, padding: "10px 12px",
+                      background: p.associe ? "#fff" : "#F8FAFC", border: `1px solid ${p.associe ? '#E2E8F0' : '#E2E8F0'}`,
+                      borderStyle: p.associe ? 'dashed' : 'solid', borderRadius: 12,
+                    }}>
+                      <span className={`fi fi-${p.code}`} style={{ borderRadius: 3, flexShrink: 0, boxShadow: '0 0 0 1px rgba(0,0,0,0.08)' }} />
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: C.navy, lineHeight: 1.25 }}>{p.nom}{p.associe && <sup style={{ marginLeft: 2 }}>*</sup>}</span>
+                    </div>
+                  ))}
+                </div>
+                {r.pays.some(p => p.associe) && (
+                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 16, lineHeight: 1.6 }}>
+                    * Pays sans façade maritime, membres associés.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* MODAL DU JOUR */}
       {activeAxe && (
