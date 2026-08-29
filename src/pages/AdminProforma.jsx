@@ -50,6 +50,142 @@ const newParticipantRow = () => ({
   prenom: '', nom: '', fonction: '', tarif: 3500, dossier: '',
 })
 
+// Date/heure du correctif "titulaire bancaire = CRF PERFECTION" (avant, les
+// PDF generes portaient encore l'ancien titulaire "COPAF 2026"). Sert a
+// reperer les dossiers dont la proforma deja envoyee doit etre corrigee et
+// renvoyee manuellement — voir CorrectionsRIB ci-dessous.
+const RIB_FIX_CUTOFF = '2026-08-29T04:47:33+01:00'
+
+// Liste des dossiers ayant genere une proforma AVANT le correctif du RIB,
+// avec pour chacun un bouton "Telecharger" (regenere le PDF, qui utilise
+// deja le titulaire corrige) et un lien "Email" qui ouvre le client de
+// messagerie de l'utilisateur (mailto:), pret a recevoir le PDF telecharge
+// en piece jointe manuelle — on ne renvoie jamais d'email automatiquement.
+function CorrectionsRIB({ onClose }) {
+  const [loading, setLoading] = useState(true)
+  const [rows, setRows] = useState([])
+  const [genDossier, setGenDossier] = useState('')
+
+  useEffect(() => {
+    (async () => {
+      const { data: docs } = await supabase
+        .from('documents_generes')
+        .select('dossier, generated_at, langue')
+        .eq('type', 'proforma')
+        .lt('generated_at', RIB_FIX_CUTOFF)
+        .order('generated_at', { ascending: false })
+
+      // Un dossier peut avoir genere plusieurs proforma avant le correctif —
+      // une seule ligne par dossier (la plus recente, docs deja trie desc).
+      const parDossier = new Map()
+      ;(docs || []).forEach(d => { if (!parDossier.has(d.dossier)) parDossier.set(d.dossier, d) })
+      const dossiers = [...parDossier.keys()]
+
+      if (dossiers.length === 0) { setRows([]); setLoading(false); return }
+
+      const { data: inscriptions } = await supabase
+        .from('inscriptions')
+        .select('dossier, participants, montant, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
+        .in('dossier', dossiers)
+
+      const merged = (inscriptions || [])
+        .map(ins => ({
+          ...ins,
+          generatedAt: parDossier.get(ins.dossier)?.generated_at,
+          langue: parDossier.get(ins.dossier)?.langue || 'fr',
+        }))
+        .sort((a, b) => new Date(b.generatedAt) - new Date(a.generatedAt))
+
+      setRows(merged)
+      setLoading(false)
+    })()
+  }, [])
+
+  const handleDownload = async row => {
+    setGenDossier(row.dossier)
+    try {
+      await generateProformaPDF({
+        form: {
+          nom: row.contacts?.nom, prenom: row.contacts?.prenom, organisation: row.contacts?.organisation,
+          poste: row.contacts?.poste, pays: row.contacts?.pays, email: row.contacts?.email, telephone: row.contacts?.telephone,
+        },
+        dossier: row.dossier,
+        nb: Number(row.participants) || 1,
+        total: Number(row.montant) || 0,
+        lang: row.langue,
+        participants: [],
+        delegationName: '',
+      })
+    } finally { setGenDossier('') }
+  }
+
+  const mailtoHref = row => {
+    const subject = encodeURIComponent(`COPAF 2026 — Facture proforma corrigée (Dossier ${row.dossier})`)
+    const body = encodeURIComponent(
+      `Bonjour ${row.contacts?.prenom || ''},\n\n` +
+      `Veuillez trouver ci-joint votre facture proforma corrigée : le titulaire du compte bancaire est désormais CRF PERFECTION (au lieu de COPAF 2026). L'IBAN et le BIC restent inchangés.\n\n` +
+      `Merci de privilégier cette version pour votre virement.\n\n` +
+      `Cordialement,\nL'équipe COPAF 2026`
+    )
+    return `mailto:${row.contacts?.email || ''}?subject=${subject}&body=${body}`
+  }
+
+  return (
+    <div style={{ background: '#fff', border: '1.5px solid #fde68a', borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14, gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: '#92400e', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Ico name="alert" size={16} color="#92400e" /> Proformas à renvoyer (RIB corrigé)
+          </div>
+          <div style={{ fontSize: 12.5, color: '#64748b', marginTop: 4, lineHeight: 1.5 }}>
+            Générées avant la correction du titulaire bancaire. Téléchargez le PDF corrigé puis renvoyez-le manuellement en pièce jointe.
+          </div>
+        </div>
+        <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
+          Fermer
+        </button>
+      </div>
+
+      {loading ? (
+        <div style={{ fontSize: 13, color: '#94a3b8', padding: '12px 0' }}>Chargement...</div>
+      ) : rows.length === 0 ? (
+        <div style={{ fontSize: 13, color: '#94a3b8', padding: '12px 0' }}>Aucun dossier concerné.</div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {rows.map(row => (
+            <div key={row.dossier} style={{
+              display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+              padding: '10px 12px', background: '#FFFBEB', borderRadius: 10, border: '1px solid #fde68a',
+            }}>
+              <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+                  {row.contacts?.prenom} {row.contacts?.nom} — {row.contacts?.organisation}
+                </div>
+                <div style={{ fontSize: 11.5, color: '#64748b' }}>
+                  {row.dossier} · {row.contacts?.email} · généré le {fmtDateTime(row.generatedAt)}
+                </div>
+              </div>
+              <button onClick={() => handleDownload(row)} disabled={genDossier === row.dossier} style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: 'none',
+                background: NAVY, color: '#fff', fontWeight: 700, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+                opacity: genDossier === row.dossier ? 0.6 : 1,
+              }}>
+                <Ico name="file" size={13} color="#fff" /> {genDossier === row.dossier ? '...' : 'Télécharger'}
+              </button>
+              <a href={mailtoHref(row)} style={{
+                display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8,
+                background: '#fff', border: `1.5px solid ${NAVY}`, color: NAVY, fontWeight: 700, fontSize: 12, textDecoration: 'none',
+              }}>
+                Email
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // Badge affiche uniquement cote secretariat (jamais visible participant) —
 // permet de savoir en un coup d'oeil si le tarif preferentiel ANP/UAPNA a
 // ete applique, et par quel canal (pays automatique ou code partenaire).
@@ -86,6 +222,7 @@ export default function AdminProforma() {
   const [historique, setHistorique] = useState([])
   const [toast, setToast] = useState('')
   const [lang, setLang] = useState('fr') // langue des documents générés (fr | en)
+  const [showCorrections, setShowCorrections] = useState(false)
 
   // ── Recherche d'un participant par pays / organisation (mode individuel) ──
   const [searchMode, setSearchMode] = useState('dossier') // 'dossier' | 'pays'
@@ -458,8 +595,19 @@ export default function AdminProforma() {
         </div>
       )}
 
+      {!data && !showCorrections && (
+        <button onClick={() => setShowCorrections(true)} style={{
+          display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
+          background: '#FFFBEB', border: '1.5px solid #fde68a', borderRadius: 12, padding: '12px 16px',
+          marginBottom: 16, fontSize: 13, fontWeight: 700, color: '#92400e', cursor: 'pointer', fontFamily: 'inherit',
+        }}>
+          <Ico name="alert" size={15} color="#92400e" /> Proformas à renvoyer (RIB corrigé) →
+        </button>
+      )}
+      {!data && showCorrections && <CorrectionsRIB onClose={() => setShowCorrections(false)} />}
+
       {/* Bascule mode de recherche */}
-      {!data && (
+      {!data && !showCorrections && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
           <button onClick={() => setSearchMode('dossier')} style={{
             padding: '8px 16px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
@@ -475,7 +623,7 @@ export default function AdminProforma() {
       )}
 
       {/* Recherche par dossier */}
-      {!data && searchMode === 'dossier' && (
+      {!data && !showCorrections && searchMode === 'dossier' && (
         <form onSubmit={handleSearch} style={{
           background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20,
           marginBottom: 16, display: 'flex', gap: 10, flexWrap: 'wrap', boxShadow: '0 4px 16px rgba(0,14,145,.05)',
@@ -499,7 +647,7 @@ export default function AdminProforma() {
       )}
 
       {/* Recherche par pays / organisation (selection individuelle) */}
-      {!data && searchMode === 'pays' && (
+      {!data && !showCorrections && searchMode === 'pays' && (
         <div style={{
           background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20,
           marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)',
@@ -563,7 +711,7 @@ export default function AdminProforma() {
       )}
 
       {/* Dossiers recents */}
-      {!data && searchMode === 'dossier' && recents.length > 0 && (
+      {!data && !showCorrections && searchMode === 'dossier' && recents.length > 0 && (
         <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>Dossiers récents</div>
           {recents.map((r, i) => {
