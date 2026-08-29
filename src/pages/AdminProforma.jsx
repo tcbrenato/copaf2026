@@ -50,11 +50,13 @@ const newParticipantRow = () => ({
   prenom: '', nom: '', fonction: '', tarif: 3500, dossier: '',
 })
 
-// Date/heure du correctif "titulaire bancaire = CRF PERFECTION" (avant, les
-// PDF generes portaient encore l'ancien titulaire "COPAF 2026"). Sert a
-// reperer les dossiers dont la proforma deja envoyee doit etre corrigee et
-// renvoyee manuellement — voir CorrectionsRIB ci-dessous.
-const RIB_FIX_CUTOFF = '2026-08-29T04:47:33+01:00'
+// Date/heure du DERNIER correctif RIB en date : correction complete de la
+// banque/IBAN/BIC (le premier correctif du 29/08 au matin n'avait corrige
+// que le nom du titulaire — l'IBAN et le BIC etaient encore faux jusqu'a
+// celui-ci). Sert a reperer les dossiers dont la proforma deja envoyee
+// doit etre corrigee et renvoyee manuellement — voir CorrectionsRIB
+// ci-dessous. Toujours pointer vers le correctif RIB le plus recent.
+const RIB_FIX_CUTOFF = '2026-08-29T14:52:28+01:00'
 
 // Liste des dossiers ayant genere une proforma AVANT le correctif du RIB,
 // avec pour chacun un bouton "Telecharger" (regenere le PDF, qui utilise
@@ -123,7 +125,7 @@ function CorrectionsRIB({ onClose }) {
     const subject = encodeURIComponent(`COPAF 2026 — Facture proforma corrigée (Dossier ${row.dossier})`)
     const body = encodeURIComponent(
       `Bonjour ${row.contacts?.prenom || ''},\n\n` +
-      `Veuillez trouver ci-joint votre facture proforma corrigée : le titulaire du compte bancaire est désormais CRF PERFECTION (au lieu de COPAF 2026). L'IBAN et le BIC restent inchangés.\n\n` +
+      `Veuillez trouver ci-joint votre facture proforma corrigée : nos coordonnées bancaires ont été mises à jour (banque, IBAN, BIC et titulaire). Merci de ne considérer QUE cette version pour votre virement, en ignorant tout document précédent.\n\n` +
       `Merci de privilégier cette version pour votre virement.\n\n` +
       `Cordialement,\nL'équipe COPAF 2026`
     )
@@ -138,7 +140,7 @@ function CorrectionsRIB({ onClose }) {
             <Ico name="alert" size={16} color="#92400e" /> Proformas à renvoyer (RIB corrigé)
           </div>
           <div style={{ fontSize: 12.5, color: '#64748b', marginTop: 4, lineHeight: 1.5 }}>
-            Générées avant la correction du titulaire bancaire. Téléchargez le PDF corrigé puis renvoyez-le manuellement en pièce jointe.
+            Générées avant la correction des coordonnées bancaires (banque, IBAN, BIC, titulaire). Téléchargez le PDF corrigé puis renvoyez-le manuellement en pièce jointe — l'ancien IBAN était incorrect.
           </div>
         </div>
         <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
