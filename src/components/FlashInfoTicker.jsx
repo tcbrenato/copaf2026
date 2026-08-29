@@ -7,6 +7,7 @@ const registeredPorts = [
   { url: '/sierraport.png', name: 'Sierra Leone Ports and Harbours Authority', country: 'Sierra Leone' },
   { url: '/portdouala.png', name: 'Port Autonome de Douala', country: 'Cameroun' },
   { url: '/portkribi.png', name: 'Port Autonome de Kribi', country: 'Cameroun' },
+  { url: '/lome.png', name: 'Port Autonome de Lomé', country: 'Togo' },
 ]
 
 const FlashInfoTicker = () => {

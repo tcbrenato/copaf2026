@@ -27,6 +27,7 @@ import Actualites from './pages/Actualites'
 import ActualiteDetail from './pages/ActualiteDetail'
 import MentionsLegales from './pages/MentionsLegales'
 import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite'
+import MarqueeBand from './components/MarqueeBand'
 import LiveStreaming from './pages/LiveStreaming'
 import Documentation from './pages/Documentation'
 import RecommandationsActes from './pages/RecommandationsActes'
@@ -82,6 +83,7 @@ const MainSite = () => (
     <HeaderStack />
     <main style={{ paddingTop: 'var(--copaf-header-h, 130px)' }}>
       <Hero />
+      <MarqueeBand />
       <Partners />
       <About />
       <Programme />
