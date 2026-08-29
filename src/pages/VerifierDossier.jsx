@@ -563,6 +563,9 @@ export default function VerifierDossier() {
               <span style={{ fontSize: item.empha ? 14 : 13, color: item.empha ? '#000E91' : '#0f172a', fontWeight: 700, textAlign: 'right', wordBreak: 'break-all' }}>{item.v}</span>
             </div>
           ))}
+          <div style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 12, paddingTop: 12, borderTop: '1px solid #f1f5f9' }}>
+            ℹ️ NB : Virement RTGS préféré
+          </div>
         </div>
 
         <div style={{ background: '#fffbeb', border: '1.5px solid #fcd34d', borderRadius: 16, padding: '18px 20px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>

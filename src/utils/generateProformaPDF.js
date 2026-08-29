@@ -100,6 +100,7 @@ const TXT = {
     prestationsIncluses: 'Prestations incluses dans ce montant',
     coordBancaires: 'Coordonnées bancaires pour règlement',
     banque: 'Banque', iban: 'IBAN', bic: 'BIC', titulaire: 'Titulaire',
+    ribNote: 'NB : Virement RTGS préféré',
     reglementNote: "Règlement par virement bancaire aux coordonnées ci-dessus. Frais de virement à la charge du donneur d'ordre.",
     qrCaption: 'Scannez pour vérifier nos coordonnées bancaires officielles',
     mention: "Ce document est une facture proforma établie à titre indicatif pour faciliter l'autorisation interne du virement par les services financiers du client. Elle ne constitue pas une facture définitive au sens comptable et ne peut être utilisée comme justificatif de paiement. Une facture définitive sera émise après réception effective du règlement.",
@@ -138,6 +139,7 @@ const TXT = {
     prestationsIncluses: 'Services included in this amount',
     coordBancaires: 'Bank details for payment',
     banque: 'Bank', iban: 'IBAN', bic: 'BIC', titulaire: 'Account holder',
+    ribNote: 'NB: RTGS transfer preferred',
     reglementNote: "Payment by bank transfer to the details above. Transfer fees are the responsibility of the remitter.",
     qrCaption: 'Scan to verify our official bank details',
     mention: "This document is a proforma invoice issued for informational purposes to facilitate internal authorisation of the transfer by the client's financial department. It does not constitute a final invoice for accounting purposes and cannot be used as proof of payment. A final invoice will be issued upon actual receipt of payment.",
@@ -653,7 +655,8 @@ export async function generateProformaPDF({
   const ribBoxW = contentW - qrSize - qrGap
   const ribRows = [[L.banque, RIB.banque], [L.iban, RIB.iban], [L.bic, RIB.bic], [L.titulaire, RIB.titulaire]]
   const ribLineH = 13.5
-  const ribH = ribRows.length * ribLineH + 8
+  const ribNoteH = 14
+  const ribH = ribRows.length * ribLineH + 8 + ribNoteH
 
   if (y + Math.max(ribH, qrSize + 20) > FOOTER_TOP - 10) {
     drawFooter()
@@ -677,6 +680,10 @@ export async function generateProformaPDF({
     doc.text(value, M + ribBoxW - 16, ry, { align: 'right' })
     ry += ribLineH
   })
+  doc.setFont('helvetica', 'italic')
+  doc.setFontSize(7.5)
+  doc.setTextColor(...GRAY)
+  doc.text(L.ribNote, M + 16, ry + 3)
 
   // QR code -> page de verification des coordonnees bancaires officielles
   try {
