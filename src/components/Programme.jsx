@@ -389,6 +389,37 @@ const Programme = () => {
             </div>
           ))}
         </div>
+
+        {/* ── CARTE INTERACTIVE ── */}
+        <div style={{
+          marginTop: 16, background: C.white, border: `1.5px solid ${C.navyAlpha10}`,
+          borderRadius: 16, overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,14,145,0.05)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '16px 20px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: C.bluePale, display: 'flex', alignItems: 'center', justifyContent: 'center', color: C.blue, flexShrink: 0 }}>
+                {icons.map}
+              </div>
+              <div>
+                <div style={{ fontSize: 10, color: C.blue, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 2 }}>Carte interactive</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.navy }}>Bâtiment Communautaire Portuaire — Port de Casablanca</div>
+              </div>
+            </div>
+            <a href="https://share.google/TuPWU0lXbXr8RWSvm" target="_blank" rel="noopener noreferrer" style={{
+              flexShrink: 0, fontSize: 12.5, fontWeight: 700, color: C.blue, textDecoration: 'none',
+              border: `1.5px solid ${C.navyAlpha10}`, borderRadius: 10, padding: '9px 16px', whiteSpace: 'nowrap',
+            }}>
+              Ouvrir dans Google Maps →
+            </a>
+          </div>
+          <iframe
+            title="Localisation — Port de Casablanca"
+            src="https://www.google.com/maps?q=Port+de+Casablanca,+Maroc&output=embed"
+            style={{ width: '100%', height: 320, border: 0, display: 'block' }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
       </div>
 
       {/* ── MODAL ── */}
