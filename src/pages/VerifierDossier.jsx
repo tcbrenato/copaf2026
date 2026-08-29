@@ -6,7 +6,7 @@ import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitivePDF'
 import { generateICS } from '../utils/generateICS'
 
-const CONTACT_PHONE = '+229 69 30 30 19'
+const CONTACT_PHONE = '+229 01 69 30 30 19'
 const OFFICIAL_IBAN = 'BJ66BJ1040010003762812010162'
 
 const STATUT_LABEL = {
@@ -55,7 +55,7 @@ const TR = {
     notFoundText: (phone) => <>Si un tiers vous a fourni cet IBAN ou ce numéro en prétendant représenter COPAF 2026, contactez-nous immédiatement au <strong>{phone}</strong> avant tout virement bancaire.</>,
     bankTitle: 'Coordonnées bancaires officielles — les SEULES valables',
     bankLabels: { banque: 'Banque', titulaire: 'Titulaire' },
-    fraudWarning: (phone) => <><strong>Nous ne changerons JAMAIS ces coordonnées bancaires</strong> par e-mail, SMS ou WhatsApp. Si une personne vous contacte avec un RIB différent en se faisant passer pour COPAF 2026, il s'agit d'une tentative de fraude. Vérifiez toujours sur <strong>copaf-ports.com/verifier</strong> avant tout virement, ou appelez-nous directement au <strong>{phone}</strong>.</>,
+    fraudWarning: (phone) => <><strong>Nos coordonnées bancaires ne seront JAMAIS modifiées</strong> par e-mail, SMS ou WhatsApp. Si une personne vous contacte en se faisant passer pour <strong>CRF PERFECTION</strong>, organisateur de la COPAF, veuillez ne communiquer aucune information et nous le signaler immédiatement au <strong>{phone}</strong> ou par e-mail à <strong>contact@copaf-ports.com</strong>.</>,
     dateLocale: 'fr-FR',
   },
   en: {
@@ -88,7 +88,7 @@ const TR = {
     notFoundText: (phone) => <>If someone provided you this IBAN or reference claiming to represent COPAF 2026, contact us immediately at <strong>{phone}</strong> before making any bank transfer.</>,
     bankTitle: 'Official bank details — the ONLY valid ones',
     bankLabels: { banque: 'Bank', titulaire: 'Account holder' },
-    fraudWarning: (phone) => <>We will <strong>NEVER change these bank details</strong> by email, SMS or WhatsApp. If someone contacts you with different bank details claiming to represent COPAF 2026, this is a fraud attempt. Always verify at <strong>copaf-ports.com/verifier</strong> before any transfer, or call us directly at <strong>{phone}</strong>.</>,
+    fraudWarning: (phone) => <>Our <strong>bank details will NEVER be changed</strong> by email, SMS or WhatsApp. If someone contacts you claiming to represent <strong>CRF PERFECTION</strong>, organiser of COPAF, please do not share any information and report it to us immediately at <strong>{phone}</strong> or by email at <strong>contact@copaf-ports.com</strong>.</>,
     dateLocale: 'en-GB',
   },
 }

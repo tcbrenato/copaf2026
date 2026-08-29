@@ -14,7 +14,7 @@ const EMAILJS_SVC   = 'service_hvuj5ra'
 const EMAILJS_TPL_FR = 'template_7wrkmm1'
 const EMAILJS_TPL_EN = 'template_y2q8tlq'
 const EMAILJS_KEY   = 'zBZAZxCfznICTKLJK'
-const WHATSAPP_NUM  = '22997672200'
+const WHATSAPP_NUM  = '2290169303019'
 const CONTACT_EMAIL = 'contact@copaf-ports.com'
 
 const Ico = ({ name, size = 18, color = 'currentColor' }) => {
