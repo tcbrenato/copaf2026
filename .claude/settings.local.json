@@ -110,7 +110,26 @@
       "Bash(curl -s -L \"https://copaf-ports.com/actualites/visite-travail-casablanca-dg-crf-perfection-anp/\")",
       "Bash(tasklist //FI \"IMAGENAME eq node.exe\")",
       "Bash(wmic process *)",
-      "Bash(powershell -Command \"Stop-Process -Id 16712 -Force -ErrorAction SilentlyContinue; Stop-Process -Id 2584 -Force -ErrorAction SilentlyContinue\")"
+      "Bash(powershell -Command \"Stop-Process -Id 16712 -Force -ErrorAction SilentlyContinue; Stop-Process -Id 2584 -Force -ErrorAction SilentlyContinue\")",
+      "Bash(git fetch *)",
+      "Bash(powershell -Command \"Stop-Process -Id 15684 -Force -ErrorAction SilentlyContinue; Stop-Process -Id 14436 -Force -ErrorAction SilentlyContinue\")",
+      "Bash(tasklist //FI \"IMAGENAME eq chrome.exe\")",
+      "Bash(powershell -Command \"Stop-Process -Id 888 -Force -ErrorAction SilentlyContinue; Stop-Process -Id 17460 -Force -ErrorAction SilentlyContinue\")",
+      "Bash(node scripts/_debug_route.mjs)",
+      "Bash(NO_COLUMNS=1 node scripts/_debug_route.mjs)",
+      "Bash(powershell -Command \"Stop-Process -Id 17684 -Force -ErrorAction SilentlyContinue\")",
+      "Bash(tee \"C:\\\\Users\\\\HomePC\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-HomePC-Desktop-copaf2026-main\\\\8c1e81fd-a028-4338-93d3-523d5a7c5cd8\\\\scratchpad\\\\build.log\")",
+      "Bash(grep -n \"script\\\\|</\\\\|<script\" -i src/utils/articlesData.js)",
+      "Bash(node scripts/_debug2.mjs)",
+      "Bash(powershell -Command \"Stop-Process -Id 1040 -Force -ErrorAction SilentlyContinue; Stop-Process -Id 17588 -Force -ErrorAction SilentlyContinue\")",
+      "Bash(tee \"C:\\\\Users\\\\HomePC\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-HomePC-Desktop-copaf2026-main\\\\8c1e81fd-a028-4338-93d3-523d5a7c5cd8\\\\scratchpad\\\\build2.log\")",
+      "Bash(node scripts/_debug3.mjs)",
+      "Bash(powershell -Command \"Stop-Process -Id 18896 -Force -ErrorAction SilentlyContinue; Stop-Process -Id 3088 -Force -ErrorAction SilentlyContinue\")",
+      "Bash(tee \"C:\\\\Users\\\\HomePC\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-HomePC-Desktop-copaf2026-main\\\\8c1e81fd-a028-4338-93d3-523d5a7c5cd8\\\\scratchpad\\\\build3.log\")",
+      "Bash(mkdir -p \"C:\\\\Users\\\\HomePC\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-HomePC-Desktop-copaf2026-main\\\\8c1e81fd-a028-4338-93d3-523d5a7c5cd8\\\\scratchpad\\\\other_ai_files\")",
+      "Bash(unzip -o \"C:\\\\Users\\\\HomePC\\\\Downloads\\\\files.zip\")",
+      "WebSearch",
+      "WebFetch(domain:www.consulat.ma)"
     ]
   }
 }

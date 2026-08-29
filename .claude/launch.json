@@ -30,6 +30,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "C:/Users/HomePC/macartedigitale", "run", "dev", "--", "--port", "5182"],
       "port": 5182
+    },
+    {
+      "name": "perazim-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/HomePC/Desktop/perazim", "run", "dev", "--", "--port", "5183"],
+      "port": 5183
     }
   ]
 }
