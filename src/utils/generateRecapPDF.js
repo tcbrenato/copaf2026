@@ -37,7 +37,7 @@ const RIB = {
   banque: 'SGBE Bénin',
   iban: 'BJ66 BJ083 01001 00050273980 97',
   bic: 'SGBEBJ BX',
-  titulaire: 'COPAF 2026',
+  titulaire: 'CRF PERFECTION',
 }
 
 const CONTACT = {

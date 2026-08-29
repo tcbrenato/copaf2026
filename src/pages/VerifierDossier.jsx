@@ -356,7 +356,7 @@ export default function VerifierDossier() {
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#065f46' }}>{t.ibanTitle}</div>
                 <div style={{ fontSize: 13, color: '#047857', marginTop: 2, lineHeight: 1.4 }}>
-                  {t.ibanText('COPAF 2026 (SGBE Bénin)')}
+                  {t.ibanText('CRF PERFECTION (SGBE Bénin)')}
                 </div>
               </div>
             </div>
@@ -556,7 +556,7 @@ export default function VerifierDossier() {
             { l: t.bankLabels.banque,    v: 'SGBE Bénin', empha: false },
             { l: 'IBAN',      v: 'BJ66 BJ083 01001 00050273980 97', empha: true },
             { l: 'BIC',       v: 'SGBEBJ BX', empha: true },
-            { l: t.bankLabels.titulaire, v: 'COPAF 2026', empha: false },
+            { l: t.bankLabels.titulaire, v: 'CRF PERFECTION', empha: false },
           ].map((item, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '11px 0', borderBottom: i < 3 ? '1px solid #f1f5f9' : 'none' }}>
               <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>{item.l}</span>

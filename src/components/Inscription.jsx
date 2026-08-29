@@ -1059,7 +1059,7 @@ export default function Inscription() {
                     </div>
                     <div style={{ fontSize:13, fontWeight:700, color:'#0f172a' }}>{t.virementTitle}</div>
                   </div>
-                  {[{l:lang==='fr'?'Banque':'Bank',v:'SGBE Benin'},{l:'IBAN',v:'BJ66 BJ083 01001 00050273980 97'},{l:'BIC',v:'SGBEBJ BX'},{l:lang==='fr'?'Titulaire':'Account holder',v:'COPAF 2026'}].map((item,i) => (
+                  {[{l:lang==='fr'?'Banque':'Bank',v:'SGBE Benin'},{l:'IBAN',v:'BJ66 BJ083 01001 00050273980 97'},{l:'BIC',v:'SGBEBJ BX'},{l:lang==='fr'?'Titulaire':'Account holder',v:'CRF PERFECTION'}].map((item,i) => (
                     <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8, padding:'8px 0', borderBottom:i<3?'1px solid #f1f5f9':'none' }}>
                       <span style={{ fontSize:12, color:'#94a3b8', fontWeight:600, flexShrink:0 }}>{item.l}</span>
                       <span style={{ fontSize:12, color:'#0f172a', fontWeight:700, textAlign:'right', wordBreak:'break-all' }}>{item.v}</span>
