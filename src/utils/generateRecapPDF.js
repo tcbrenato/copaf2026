@@ -34,9 +34,9 @@ const EVENT = {
 }
 
 const RIB = {
-  banque: 'SGBE Bénin',
-  iban: 'BJ66 BJ083 01001 00050273980 97',
-  bic: 'SGBEBJ BX',
+  banque: 'Société Générale Bénin (SGB)',
+  iban: 'BJ66 BJ10 4001 0003 7628 1201 0162',
+  bic: 'SOGEBJBJ',
   titulaire: 'CRF PERFECTION',
 }
 

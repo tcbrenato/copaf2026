@@ -7,7 +7,7 @@ import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitive
 import { generateICS } from '../utils/generateICS'
 
 const CONTACT_PHONE = '+229 69 30 30 19'
-const OFFICIAL_IBAN = 'BJ66BJ083010010005027398097'
+const OFFICIAL_IBAN = 'BJ66BJ1040010003762812010162'
 
 const STATUT_LABEL = {
   fr: {
@@ -356,7 +356,7 @@ export default function VerifierDossier() {
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#065f46' }}>{t.ibanTitle}</div>
                 <div style={{ fontSize: 13, color: '#047857', marginTop: 2, lineHeight: 1.4 }}>
-                  {t.ibanText('CRF PERFECTION (SGBE Bénin)')}
+                  {t.ibanText('CRF PERFECTION (Société Générale Bénin)')}
                 </div>
               </div>
             </div>
@@ -553,9 +553,9 @@ export default function VerifierDossier() {
             <div style={{ fontSize: 14.5, fontWeight: 800, color: '#0f172a' }}>{t.bankTitle}</div>
           </div>
           {[
-            { l: t.bankLabels.banque,    v: 'SGBE Bénin', empha: false },
-            { l: 'IBAN',      v: 'BJ66 BJ083 01001 00050273980 97', empha: true },
-            { l: 'BIC',       v: 'SGBEBJ BX', empha: true },
+            { l: t.bankLabels.banque,    v: 'Société Générale Bénin (SGB)', empha: false },
+            { l: 'IBAN',      v: 'BJ66 BJ10 4001 0003 7628 1201 0162', empha: true },
+            { l: 'BIC',       v: 'SOGEBJBJ', empha: true },
             { l: t.bankLabels.titulaire, v: 'CRF PERFECTION', empha: false },
           ].map((item, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, padding: '11px 0', borderBottom: i < 3 ? '1px solid #f1f5f9' : 'none' }}>
