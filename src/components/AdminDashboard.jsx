@@ -294,27 +294,31 @@ const EXTRAS_LABEL = { fontSize: 10, color: '#94a3b8', textTransform: 'uppercase
 const EXTRAS_ROW = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '9px 12px', border: '1px solid #eef1f8', borderRadius: 10, marginBottom: 6, background: '#f8fafc' }
 const EXTRAS_INPUT = { flex: 1, padding: '9px 12px', fontSize: 12.5, fontFamily: 'inherit', border: '1.5px solid #e2e8f0', borderRadius: 9, outline: 'none', boxSizing: 'border-box' }
 const EXTRAS_ICONBTN = { background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }
+const PREUVE_STATUT_LABEL = { en_attente: 'En attente', validee: 'Validee', rejetee: 'Rejetee' }
+const PREUVE_STATUT_COLOR = { en_attente: { bg: '#fef3c7', color: '#92400e' }, validee: { bg: '#d1fae5', color: '#065f46' }, rejetee: { bg: '#fee2e2', color: '#991b1b' } }
 
 function DossierExtras({ dossier }) {
   const [docs, setDocs] = useState([])
   const [infos, setInfos] = useState([])
-  const [programme, setProgramme] = useState([])
+  const [agenda, setAgenda] = useState([])
+  const [preuves, setPreuves] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [newInfo, setNewInfo] = useState('')
-  const [newProg, setNewProg] = useState({ jour: '', heure: '', titre: '' })
   const fileRef = useRef(null)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [docsRes, infosRes, inscRes] = await Promise.all([
+    const [docsRes, infosRes, agendaRes, preuvesRes] = await Promise.all([
       supabase.from('documents_participants').select('*').eq('dossier', dossier).order('created_at'),
       supabase.from('infos_importantes').select('*').eq('dossier', dossier).order('created_at', { ascending: false }),
-      supabase.from('inscriptions').select('programme_personnalise').eq('dossier', dossier).maybeSingle(),
+      supabase.from('agenda_participant').select('*').eq('dossier', dossier).order('jour').order('heure'),
+      supabase.from('preuves_paiement').select('*').eq('dossier', dossier).order('created_at', { ascending: false }),
     ])
     setDocs(docsRes.data || [])
     setInfos(infosRes.data || [])
-    setProgramme(inscRes.data?.programme_personnalise || [])
+    setAgenda(agendaRes.data || [])
+    setPreuves(preuvesRes.data || [])
     setLoading(false)
   }, [dossier])
 
@@ -361,18 +365,18 @@ function DossierExtras({ dossier }) {
     load()
   }
 
-  const saveProgramme = async next => {
-    setProgramme(next)
-    await supabase.from('inscriptions').update({ programme_personnalise: next.length ? next : null }).eq('dossier', dossier)
+  const setPreuveStatut = async (preuve, statut) => {
+    const { data: userData } = await supabase.auth.getUser()
+    await supabase.from('preuves_paiement').update({
+      statut, valide_par: userData?.user?.email || null, valide_le: new Date().toISOString(),
+    }).eq('id', preuve.id)
+    load()
   }
 
-  const addProgItem = () => {
-    if (!newProg.titre.trim()) return
-    saveProgramme([...programme, newProg])
-    setNewProg({ jour: '', heure: '', titre: '' })
+  const viewPreuve = async preuve => {
+    const { data } = await supabase.storage.from('preuves-paiement').createSignedUrl(preuve.storage_path, 300)
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank', 'noreferrer')
   }
-
-  const removeProgItem = idx => saveProgramme(programme.filter((_, i) => i !== idx))
 
   if (loading) return <div style={{ padding: '0 28px 8px', fontSize: 12, color: '#94a3b8' }}>Chargement de l'espace personnel...</div>
 
@@ -406,26 +410,47 @@ function DossierExtras({ dossier }) {
         </label>
       </div>
 
-      {/* Programme personnalise */}
-      <div style={{ marginTop: 20 }}>
-        <div style={EXTRAS_LABEL}>Programme personnalise (vide = programme general par defaut)</div>
-        {programme.map((item, i) => (
-          <div key={i} style={EXTRAS_ROW}>
-            <span style={{ fontSize: 12.5, color: '#0f172a', flex: 1 }}>
-              <strong>{item.jour}</strong> · {item.heure} — {item.titre}
-            </span>
-            <button type="button" onClick={() => removeProgItem(i)} title="Supprimer" style={EXTRAS_ICONBTN}>
-              <Icon name="trash" size={13} color="#ef4444" />
-            </button>
-          </div>
-        ))}
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          <input placeholder="Jour 1" value={newProg.jour} onChange={e => setNewProg(p => ({ ...p, jour: e.target.value }))} style={{ ...EXTRAS_INPUT, flex: '0 1 90px' }} />
-          <input placeholder="10h15" value={newProg.heure} onChange={e => setNewProg(p => ({ ...p, heure: e.target.value }))} style={{ ...EXTRAS_INPUT, flex: '0 1 80px' }} />
-          <input placeholder="Titre de la session" value={newProg.titre} onChange={e => setNewProg(p => ({ ...p, titre: e.target.value }))} style={{ ...EXTRAS_INPUT, flex: '1 1 140px' }} />
-          <button type="button" onClick={addProgItem} style={EXTRAS_ICONBTN}><Icon name="plus" size={14} color="#0f172a" /></button>
+      {/* Agenda personnalise (libre-service cote participant, lecture seule ici) */}
+      {agenda.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <div style={EXTRAS_LABEL}>Agenda du participant (construit en libre-service, lecture seule)</div>
+          {agenda.map(item => (
+            <div key={item.id} style={EXTRAS_ROW}>
+              <span style={{ fontSize: 12.5, color: '#0f172a', flex: 1 }}>
+                <strong>{item.jour}</strong> · {item.heure} — {item.titre}
+              </span>
+            </div>
+          ))}
         </div>
-      </div>
+      )}
+
+      {/* Preuves de virement */}
+      {preuves.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <div style={EXTRAS_LABEL}>Preuves de virement</div>
+          {preuves.map(preuve => {
+            const cfg = PREUVE_STATUT_COLOR[preuve.statut] || PREUVE_STATUT_COLOR.en_attente
+            return (
+              <div key={preuve.id} style={{ ...EXTRAS_ROW, flexWrap: 'wrap' }}>
+                <span style={{ background: cfg.bg, color: cfg.color, borderRadius: 100, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>
+                  {PREUVE_STATUT_LABEL[preuve.statut] || preuve.statut}
+                </span>
+                <button type="button" onClick={() => viewPreuve(preuve)} style={{ background: 'none', border: 'none', color: '#0073F4', fontWeight: 700, fontSize: 11.5, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                  Voir le fichier
+                </button>
+                <div style={{ display: 'flex', gap: 6, marginLeft: 'auto' }}>
+                  <button type="button" onClick={() => setPreuveStatut(preuve, 'validee')} title="Valider" style={EXTRAS_ICONBTN}>
+                    <Icon name="check" size={13} color="#059669" />
+                  </button>
+                  <button type="button" onClick={() => setPreuveStatut(preuve, 'rejetee')} title="Rejeter" style={EXTRAS_ICONBTN}>
+                    <Icon name="trash" size={13} color="#ef4444" />
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Infos importantes specifiques a ce dossier */}
       <div style={{ margin: '20px 0 4px' }}>
