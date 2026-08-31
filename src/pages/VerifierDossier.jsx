@@ -54,10 +54,18 @@ const TR = {
     dossierVerifSub: 'Ce numéro correspond bien à une inscription COPAF 2026 réelle.',
     recapLabels: { dossier: 'Dossier', titulaire: 'Titulaire', participants: 'Participants', statut: 'Statut', date: "Date d'inscription" },
     espacePerso: 'Mon espace personnel',
-    espacePersoText: 'Confirmez l\'email utilisé lors de votre inscription pour accéder à votre badge numérique, vos documents et le suivi détaillé de votre dossier.',
+    espacePersoText: "Recevez un lien de connexion sécurisé par e-mail pour accéder à votre badge numérique, vos documents et le suivi détaillé de votre dossier — sans mot de passe.",
     emailPh: 'votre@email.com',
     validerBtn: 'Valider',
-    emailNoMatch: "Cet email ne correspond pas au dossier renseigné. Vérifiez l'adresse utilisée lors de votre inscription.",
+    magicLinkBtn: 'Recevoir le lien magique',
+    magicLinkSentTitle: 'Vérifiez votre boîte mail',
+    magicLinkSentText: email => <>Un lien de connexion a été envoyé à <strong>{email}</strong>. Cliquez dessus pour accéder à votre espace personnel.</>,
+    magicLinkChangeEmail: 'Utiliser une autre adresse',
+    magicLinkError: "Impossible d'envoyer le lien. Vérifiez l'adresse et réessayez.",
+    signOut: 'Se déconnecter',
+    noDossierTitle: 'Aucune inscription trouvée',
+    noDossierText: "Aucun dossier COPAF 2026 n'est associé à ce compte. Si vous venez de vous inscrire, réessayez dans quelques minutes, ou contactez-nous.",
+    loadingDossier: 'Chargement de votre espace personnel...',
     timelineSteps: ['Inscription reçue', 'Paiement', 'Confirmé'],
     timelineAnnule: 'Dossier annulé',
     badgeTip: 'Astuce : faites une capture d\'écran ou ajoutez cette page à votre écran d\'accueil pour un accès rapide le jour J.',
@@ -99,10 +107,18 @@ const TR = {
     dossierVerifSub: 'This reference number matches a real COPAF 2026 registration.',
     recapLabels: { dossier: 'File', titulaire: 'Holder', participants: 'Participants', statut: 'Status', date: 'Registration date' },
     espacePerso: 'My personal space',
-    espacePersoText: 'Confirm the email used during your registration to access your digital badge, your documents and detailed tracking of your file.',
+    espacePersoText: 'Receive a secure sign-in link by email to access your digital badge, your documents and detailed tracking of your file — no password needed.',
     emailPh: 'your@email.com',
     validerBtn: 'Confirm',
-    emailNoMatch: 'This email does not match the provided file. Please check the address used during your registration.',
+    magicLinkBtn: 'Send me the magic link',
+    magicLinkSentTitle: 'Check your inbox',
+    magicLinkSentText: email => <>A sign-in link has been sent to <strong>{email}</strong>. Click it to access your personal space.</>,
+    magicLinkChangeEmail: 'Use a different address',
+    magicLinkError: 'Could not send the link. Check the address and try again.',
+    signOut: 'Sign out',
+    noDossierTitle: 'No registration found',
+    noDossierText: 'No COPAF 2026 file is linked to this account. If you just registered, try again in a few minutes, or contact us.',
+    loadingDossier: 'Loading your personal space...',
     timelineSteps: ['Registration received', 'Payment', 'Confirmed'],
     timelineAnnule: 'File cancelled',
     badgeTip: 'Tip: take a screenshot or add this page to your home screen for quick access on the day.',
@@ -246,17 +262,20 @@ export default function VerifierDossier() {
   const [result,  setResult]  = useState(undefined)
   const [error,   setError]   = useState('')
 
-  const [trackEmail,   setTrackEmail]   = useState('')
-  const [trackLoading, setTrackLoading] = useState(false)
-  const [trackResult,  setTrackResult]  = useState(undefined)
-  const [trackError,   setTrackError]   = useState('')
-  const [genLoading,   setGenLoading]   = useState('')
+  const [session,         setSession]         = useState(null)
+  const [authEmail,       setAuthEmail]       = useState('')
+  const [magicLinkLoading, setMagicLinkLoading] = useState(false)
+  const [magicLinkSent,   setMagicLinkSent]   = useState(false)
+  const [magicLinkError,  setMagicLinkError]  = useState('')
+  const [myDossier,       setMyDossier]       = useState(undefined)
+  const [myDossierLoading, setMyDossierLoading] = useState(false)
+  const [genLoading,      setGenLoading]      = useState('')
 
   const executeVerification = async (rawValue) => {
     const cleanedInput = rawValue.trim()
     if (!cleanedInput) return
 
-    setLoading(true); setError(''); setResult(undefined); setTrackResult(undefined); setTrackEmail('')
+    setLoading(true); setError(''); setResult(undefined)
 
     const inputAsIban = cleanedInput.replace(/\s+/g, '')
     if (inputAsIban === OFFICIAL_IBAN) {
@@ -285,56 +304,89 @@ export default function VerifierDossier() {
     if (dossierParam) { setInput(dossierParam); executeVerification(dossierParam) }
   }, [])
 
-  const handleTrackSubmit = async e => {
-    e.preventDefault()
-    if (!trackEmail.trim() || !result?.dossier) return
-    setTrackLoading(true); setTrackError(''); setTrackResult(undefined)
+  // ── Session Supabase Auth (lien magique) ──
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session))
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => setSession(newSession))
+    return () => sub.subscription.unsubscribe()
+  }, [])
+
+  const fetchMyDossier = async () => {
+    setMyDossierLoading(true)
     try {
-      const { data, error: err } = await supabase.rpc('suivi_dossier', { p_dossier: result.dossier, p_email: trackEmail.trim() })
+      const { data, error: err } = await supabase.rpc('mon_dossier')
       if (err) throw new Error(err.message)
-      setTrackResult(data && data.length > 0 ? data[0] : null)
-    } catch (err) {
-      setTrackError(t.genericError)
-      setTrackResult(undefined)
+      setMyDossier(data && data.length > 0 ? data[0] : null)
+    } catch {
+      setMyDossier(null)
     }
-    setTrackLoading(false)
+    setMyDossierLoading(false)
+  }
+
+  useEffect(() => {
+    if (session?.user) fetchMyDossier()
+    else setMyDossier(undefined)
+  }, [session?.user?.id])
+
+  const handleMagicLinkSubmit = async e => {
+    e.preventDefault()
+    if (!authEmail.trim()) return
+    setMagicLinkLoading(true); setMagicLinkError(''); setMagicLinkSent(false)
+    try {
+      const { error: err } = await supabase.auth.signInWithOtp({
+        email: authEmail.trim(),
+        options: { emailRedirectTo: `${window.location.origin}/verifier` },
+      })
+      if (err) throw new Error(err.message)
+      setMagicLinkSent(true)
+    } catch {
+      setMagicLinkError(t.magicLinkError)
+    }
+    setMagicLinkLoading(false)
+  }
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    setMyDossier(undefined)
+    setMagicLinkSent(false)
+    setAuthEmail('')
   }
 
   const formData = () => ({
-    nom: trackResult.nom, prenom: trackResult.prenom, organisation: trackResult.organisation,
-    poste: trackResult.poste, pays: trackResult.pays, email: trackResult.email,
+    nom: myDossier.nom, prenom: myDossier.prenom, organisation: myDossier.organisation,
+    poste: myDossier.poste, pays: myDossier.pays, email: myDossier.email,
   })
 
   const handleDownloadRecap = async () => {
     setGenLoading('recap')
     try {
-      await generateRecapPDF({ form: formData(), dossier: trackResult.dossier, nb: trackResult.participants, total: trackResult.montant, paiementMode: trackResult.paiement_mode, lang })
+      await generateRecapPDF({ form: formData(), dossier: myDossier.dossier, nb: myDossier.participants, total: myDossier.montant, paiementMode: myDossier.paiement_mode, lang })
     } finally { setGenLoading('') }
   }
 
   const handleDownloadProforma = async () => {
     setGenLoading('proforma')
     try {
-      await generateProformaPDF({ form: formData(), dossier: trackResult.dossier, nb: trackResult.participants, total: trackResult.montant, lang })
+      await generateProformaPDF({ form: formData(), dossier: myDossier.dossier, nb: myDossier.participants, total: myDossier.montant, lang })
     } finally { setGenLoading('') }
   }
 
   const handleDownloadFacture = async () => {
-    if (!trackResult.numero_facture) return
+    if (!myDossier.numero_facture) return
     setGenLoading('facture')
     try {
-      await generateFactureDefinitivePDF({ form: formData(), dossier: trackResult.dossier, numeroFacture: trackResult.numero_facture, nb: trackResult.participants, total: trackResult.montant, lang })
+      await generateFactureDefinitivePDF({ form: formData(), dossier: myDossier.dossier, numeroFacture: myDossier.numero_facture, nb: myDossier.participants, total: myDossier.montant, lang })
     } finally { setGenLoading('') }
   }
 
   const handleDownloadBadge = async () => {
     setGenLoading('badge')
     try {
-      await generateBadge({ nomPrenom: `${trackResult.prenom} ${trackResult.nom}`, fonction: trackResult.poste || '', dossier: trackResult.dossier, photoSrc: trackResult.photo_url || null })
+      await generateBadge({ nomPrenom: `${myDossier.prenom} ${myDossier.nom}`, fonction: myDossier.poste || '', dossier: myDossier.dossier, photoSrc: myDossier.photo_url || null })
     } finally { setGenLoading('') }
   }
 
-  const handleAddToCalendar = () => generateICS({ dossier: trackResult?.dossier, lang })
+  const handleAddToCalendar = () => generateICS({ dossier: myDossier?.dossier, lang })
 
   return (
     <section style={{
@@ -454,155 +506,6 @@ export default function VerifierDossier() {
                 </div>
               ))}
             </div>
-
-            {/* ── Espace personnel deverrouille par email ── */}
-            <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: 22 }}>
-              <div style={{ fontSize: 10, color: '#0073F4', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 10 }}>
-                {t.espacePerso}
-              </div>
-              <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, marginBottom: 14 }}>
-                {t.espacePersoText}
-              </p>
-
-              <form onSubmit={handleTrackSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-                <input
-                  type="email" required value={trackEmail}
-                  onChange={e => setTrackEmail(e.target.value)}
-                  placeholder={t.emailPh}
-                  style={{ flex: '1 1 200px', padding: '11px 14px', fontSize: 13.5, fontFamily: 'inherit', color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }}
-                />
-                <button type="submit" disabled={trackLoading} style={{
-                  display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px',
-                  background: '#000E91', border: 'none', borderRadius: 10, color: '#fff',
-                  fontWeight: 700, fontSize: 12.5, cursor: trackLoading ? 'not-allowed' : 'pointer',
-                  fontFamily: 'inherit', opacity: trackLoading ? 0.7 : 1, flexShrink: 0,
-                }}>
-                  {trackLoading ? <div className="spinner" style={{ width: 14, height: 14 }} /> : <Ico name="mail" size={14} color="#fff" />}
-                  {t.validerBtn}
-                </button>
-              </form>
-
-              {trackError && <div style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 8 }}>{trackError}</div>}
-
-              {trackResult === null && (
-                <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 10, padding: '10px 14px', fontSize: 12.5, color: '#991b1b' }}>
-                  {t.emailNoMatch}
-                </div>
-              )}
-
-              {trackResult && (() => {
-                const paiementSub = trackResult.statut === 'confirme'
-                  ? t.paiementConfirme
-                  : trackResult.paiement_mode === 'plus_tard'
-                    ? t.paiementDifferee
-                    : t.paiementEnAttente
-                const progItems = (trackResult.programme_personnalise && trackResult.programme_personnalise.length)
-                  ? trackResult.programme_personnalise
-                  : DEFAULT_PROGRAMME_PREVIEW[lang]
-                const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.whatsappMsg(trackResult.dossier))}`
-                const scrollToRib = () => document.getElementById('rib-officiel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-
-                return (
-                  <div style={{ marginTop: 14 }}>
-
-                    {/* Bandeau dossier */}
-                    <div style={{
-                      background: 'linear-gradient(135deg,#000E91,#0073F4)', borderRadius: 18, padding: '20px 24px',
-                      color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-                      flexWrap: 'wrap', gap: 14, marginBottom: 18,
-                    }}>
-                      <div>
-                        <div style={{ fontSize: 11.5, opacity: 0.75, fontWeight: 600 }}>{t.recapLabels.dossier} {trackResult.dossier}</div>
-                        <div style={{ fontSize: 20, fontWeight: 900, marginTop: 4 }}>{trackResult.prenom} {trackResult.nom}</div>
-                        {(trackResult.organisation || trackResult.poste) && (
-                          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
-                            {[trackResult.organisation, trackResult.poste].filter(Boolean).join(' — ')}
-                          </div>
-                        )}
-                      </div>
-                      <span style={{
-                        background: 'rgba(255,255,255,.18)', padding: '8px 16px', borderRadius: 100,
-                        fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
-                      }}>
-                        {(STATUTS[trackResult.statut] || {}).label || trackResult.statut}
-                      </span>
-                    </div>
-
-                    {/* Stepper */}
-                    <div style={{ marginBottom: 22 }}>
-                      <ProgressTimeline statut={trackResult.statut} t={t} />
-                    </div>
-
-                    {/* Grille 4 blocs */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 14, marginBottom: 18 }}>
-
-                      <Card icon="receipt" title={t.mesDocuments}>
-                        <DocRow icon="download" label={t.docRecap} onClick={handleDownloadRecap} loading={genLoading === 'recap'} />
-                        <DocRow icon="receipt" label={t.docProforma} onClick={handleDownloadProforma} loading={genLoading === 'proforma'} />
-                        {trackResult.numero_facture && (
-                          <DocRow icon="receipt" label={t.docFactureDef} onClick={handleDownloadFacture} loading={genLoading === 'facture'} />
-                        )}
-                        {(trackResult.documents || []).map(doc => (
-                          <DocRow key={doc.id} icon="receipt" label={doc.label} href={doc.url} />
-                        ))}
-                        <DocRow
-                          icon="badge" label={t.docBadge}
-                          disabled={trackResult.statut !== 'confirme'}
-                          onClick={trackResult.statut === 'confirme' ? handleDownloadBadge : undefined}
-                          loading={genLoading === 'badge'}
-                        />
-                        <DocRow icon="calendar" label={t.docCalendar} onClick={handleAddToCalendar} />
-                      </Card>
-
-                      <Card icon="calendar" title={t.programmeTitle}>
-                        {progItems.map((item, i) => (
-                          <div key={i} style={{ marginBottom: 10 }}>
-                            <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700 }}>{item.jour} · {item.heure}</div>
-                            <div style={{ fontSize: 13, color: '#0f172a', fontWeight: 600, marginTop: 2 }}>{item.titre}</div>
-                          </div>
-                        ))}
-                        <a href="/#programme" style={cardBtnStyle}>{t.voirProgrammeComplet}</a>
-                      </Card>
-
-                      <Card icon="bank" title={t.paiementTitle}>
-                        <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a' }}>{fmtEur(trackResult.montant)}</div>
-                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, marginBottom: 4 }}>{paiementSub}</div>
-                        <button type="button" onClick={scrollToRib} style={cardBtnStyle}>{t.voirRib}</button>
-                      </Card>
-
-                      <Card icon="headset" title={t.aideTitle}>
-                        <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, margin: '0 0 8px' }}>{t.aideText}</p>
-                        <a href={whatsappHref} target="_blank" rel="noreferrer" style={cardBtnStyle}>
-                          <Ico name="mail" size={14} color="#0f172a" />
-                          {t.contacterOrg}
-                        </a>
-                      </Card>
-                    </div>
-
-                    {/* Infos importantes (pilotees par le secretariat) */}
-                    {trackResult.infos_importantes && trackResult.infos_importantes.length > 0 && (
-                      <div style={{ background: '#EBF3FF', border: '1.5px solid #bfdbfe', borderRadius: 16, padding: '16px 20px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                        <Ico name="info" size={18} color="#0073F4" />
-                        <div>
-                          <div style={{ fontSize: 11, color: '#0073F4', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 }}>
-                            {t.infosImportantes}
-                          </div>
-                          {trackResult.infos_importantes.map(info => (
-                            <p key={info.id} style={{ fontSize: 13, color: '#0f172a', lineHeight: 1.6, margin: '0 0 6px' }}>{info.contenu}</p>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {trackResult.statut === 'confirme' && (
-                      <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 14, textAlign: 'center', lineHeight: 1.6 }}>
-                        {t.badgeTip}
-                      </p>
-                    )}
-                  </div>
-                )
-              })()}
-            </div>
           </div>
         )}
 
@@ -622,6 +525,189 @@ export default function VerifierDossier() {
             </p>
           </div>
         )}
+
+        {/* ── Mon espace personnel (authentification par lien magique, independante de la verification ci-dessus) ── */}
+        <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: 28, marginBottom: 24, boxShadow: '0 8px 32px rgba(0,14,145,.08)' }}>
+          <div style={{ fontSize: 10, color: '#0073F4', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 10 }}>
+            {t.espacePerso}
+          </div>
+
+          {!session && (
+            <>
+              {!magicLinkSent ? (
+                <>
+                  <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, marginBottom: 14 }}>
+                    {t.espacePersoText}
+                  </p>
+                  <form onSubmit={handleMagicLinkSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <input
+                      type="email" required value={authEmail}
+                      onChange={e => setAuthEmail(e.target.value)}
+                      placeholder={t.emailPh}
+                      style={{ flex: '1 1 200px', padding: '11px 14px', fontSize: 13.5, fontFamily: 'inherit', color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }}
+                    />
+                    <button type="submit" disabled={magicLinkLoading} style={{
+                      display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px',
+                      background: '#000E91', border: 'none', borderRadius: 10, color: '#fff',
+                      fontWeight: 700, fontSize: 12.5, cursor: magicLinkLoading ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit', opacity: magicLinkLoading ? 0.7 : 1, flexShrink: 0,
+                    }}>
+                      {magicLinkLoading ? <div className="spinner" style={{ width: 14, height: 14 }} /> : <Ico name="mail" size={14} color="#fff" />}
+                      {t.magicLinkBtn}
+                    </button>
+                  </form>
+                  {magicLinkError && <div style={{ fontSize: 12.5, color: '#dc2626', marginTop: 8 }}>{magicLinkError}</div>}
+                </>
+              ) : (
+                <div style={{ background: '#EBF3FF', border: '1px solid #bfdbfe', borderRadius: 12, padding: '16px 18px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                    <Ico name="mail" size={16} color="#0073F4" />
+                    <span style={{ fontSize: 13.5, fontWeight: 800, color: '#000E91' }}>{t.magicLinkSentTitle}</span>
+                  </div>
+                  <p style={{ fontSize: 12.5, color: '#334155', lineHeight: 1.6, margin: '0 0 10px' }}>
+                    {t.magicLinkSentText(authEmail)}
+                  </p>
+                  <button type="button" onClick={() => setMagicLinkSent(false)} style={{ background: 'none', border: 'none', color: '#0073F4', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                    {t.magicLinkChangeEmail}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {session && myDossierLoading && (
+            <p style={{ fontSize: 12.5, color: '#64748b' }}>{t.loadingDossier}</p>
+          )}
+
+          {session && !myDossierLoading && myDossier === null && (
+            <div>
+              <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 10, padding: '12px 14px', fontSize: 12.5, color: '#991b1b', marginBottom: 12 }}>
+                <strong>{t.noDossierTitle}</strong>
+                <div style={{ marginTop: 4 }}>{t.noDossierText}</div>
+              </div>
+              <button type="button" onClick={handleSignOut} style={{ background: 'none', border: 'none', color: '#64748b', fontWeight: 600, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                {t.signOut}
+              </button>
+            </div>
+          )}
+
+          {session && myDossier && (() => {
+            const paiementSub = myDossier.statut === 'confirme'
+              ? t.paiementConfirme
+              : myDossier.paiement_mode === 'plus_tard'
+                ? t.paiementDifferee
+                : t.paiementEnAttente
+            const progItems = (myDossier.programme_personnalise && myDossier.programme_personnalise.length)
+              ? myDossier.programme_personnalise
+              : DEFAULT_PROGRAMME_PREVIEW[lang]
+            const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.whatsappMsg(myDossier.dossier))}`
+            const scrollToRib = () => document.getElementById('rib-officiel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+            return (
+              <div style={{ marginTop: 14 }}>
+
+                {/* Bandeau dossier */}
+                <div style={{
+                  background: 'linear-gradient(135deg,#000E91,#0073F4)', borderRadius: 18, padding: '20px 24px',
+                  color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                  flexWrap: 'wrap', gap: 14, marginBottom: 18,
+                }}>
+                  <div>
+                    <div style={{ fontSize: 11.5, opacity: 0.75, fontWeight: 600 }}>{t.recapLabels.dossier} {myDossier.dossier}</div>
+                    <div style={{ fontSize: 20, fontWeight: 900, marginTop: 4 }}>{myDossier.prenom} {myDossier.nom}</div>
+                    {(myDossier.organisation || myDossier.poste) && (
+                      <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
+                        {[myDossier.organisation, myDossier.poste].filter(Boolean).join(' — ')}
+                      </div>
+                    )}
+                  </div>
+                  <span style={{
+                    background: 'rgba(255,255,255,.18)', padding: '8px 16px', borderRadius: 100,
+                    fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
+                  }}>
+                    {(STATUTS[myDossier.statut] || {}).label || myDossier.statut}
+                  </span>
+                </div>
+
+                {/* Stepper */}
+                <div style={{ marginBottom: 22 }}>
+                  <ProgressTimeline statut={myDossier.statut} t={t} />
+                </div>
+
+                {/* Grille 4 blocs */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 14, marginBottom: 18 }}>
+
+                  <Card icon="receipt" title={t.mesDocuments}>
+                    <DocRow icon="download" label={t.docRecap} onClick={handleDownloadRecap} loading={genLoading === 'recap'} />
+                    <DocRow icon="receipt" label={t.docProforma} onClick={handleDownloadProforma} loading={genLoading === 'proforma'} />
+                    {myDossier.numero_facture && (
+                      <DocRow icon="receipt" label={t.docFactureDef} onClick={handleDownloadFacture} loading={genLoading === 'facture'} />
+                    )}
+                    {(myDossier.documents || []).map(doc => (
+                      <DocRow key={doc.id} icon="receipt" label={doc.label} href={doc.url} />
+                    ))}
+                    <DocRow
+                      icon="badge" label={t.docBadge}
+                      disabled={myDossier.statut !== 'confirme'}
+                      onClick={myDossier.statut === 'confirme' ? handleDownloadBadge : undefined}
+                      loading={genLoading === 'badge'}
+                    />
+                    <DocRow icon="calendar" label={t.docCalendar} onClick={handleAddToCalendar} />
+                  </Card>
+
+                  <Card icon="calendar" title={t.programmeTitle}>
+                    {progItems.map((item, i) => (
+                      <div key={i} style={{ marginBottom: 10 }}>
+                        <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700 }}>{item.jour} · {item.heure}</div>
+                        <div style={{ fontSize: 13, color: '#0f172a', fontWeight: 600, marginTop: 2 }}>{item.titre}</div>
+                      </div>
+                    ))}
+                    <a href="/#programme" style={cardBtnStyle}>{t.voirProgrammeComplet}</a>
+                  </Card>
+
+                  <Card icon="bank" title={t.paiementTitle}>
+                    <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a' }}>{fmtEur(myDossier.montant)}</div>
+                    <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, marginBottom: 4 }}>{paiementSub}</div>
+                    <button type="button" onClick={scrollToRib} style={cardBtnStyle}>{t.voirRib}</button>
+                  </Card>
+
+                  <Card icon="headset" title={t.aideTitle}>
+                    <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, margin: '0 0 8px' }}>{t.aideText}</p>
+                    <a href={whatsappHref} target="_blank" rel="noreferrer" style={cardBtnStyle}>
+                      <Ico name="mail" size={14} color="#0f172a" />
+                      {t.contacterOrg}
+                    </a>
+                  </Card>
+                </div>
+
+                {/* Infos importantes (pilotees par le secretariat) */}
+                {myDossier.infos_importantes && myDossier.infos_importantes.length > 0 && (
+                  <div style={{ background: '#EBF3FF', border: '1.5px solid #bfdbfe', borderRadius: 16, padding: '16px 20px', display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
+                    <Ico name="info" size={18} color="#0073F4" />
+                    <div>
+                      <div style={{ fontSize: 11, color: '#0073F4', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 }}>
+                        {t.infosImportantes}
+                      </div>
+                      {myDossier.infos_importantes.map(info => (
+                        <p key={info.id} style={{ fontSize: 13, color: '#0f172a', lineHeight: 1.6, margin: '0 0 6px' }}>{info.contenu}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {myDossier.statut === 'confirme' && (
+                  <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 0, marginBottom: 14, textAlign: 'center', lineHeight: 1.6 }}>
+                    {t.badgeTip}
+                  </p>
+                )}
+
+                <button type="button" onClick={handleSignOut} style={{ background: 'none', border: 'none', color: '#94a3b8', fontWeight: 600, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
+                  {t.signOut}
+                </button>
+              </div>
+            )
+          })()}
+        </div>
 
         <div id="rib-officiel" style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: 24, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,14,145,.06)', scrollMarginTop: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
