@@ -7,7 +7,21 @@ import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitive
 import { generateICS } from '../utils/generateICS'
 
 const CONTACT_PHONE = '+229 01 69 30 30 19'
+const WHATSAPP_NUMBER = '2290169303019'
 const OFFICIAL_IBAN = 'BJ66BJ1040010003762812010162'
+
+const fmtEur = n => `${Number(n || 0).toLocaleString('fr-FR')} EUR`
+
+const DEFAULT_PROGRAMME_PREVIEW = {
+  fr: [
+    { jour: 'Jour 1', heure: '10h15', titre: 'IA et Smart Port africain' },
+    { jour: 'Jour 2', heure: '9h00', titre: 'Excellence opérationnelle & cybersécurité' },
+  ],
+  en: [
+    { jour: 'Day 1', heure: '10:15', titre: 'AI and the African Smart Port' },
+    { jour: 'Day 2', heure: '9:00', titre: 'Operational excellence & cybersecurity' },
+  ],
+}
 
 const STATUT_LABEL = {
   fr: {
@@ -48,8 +62,20 @@ const TR = {
     timelineAnnule: 'Dossier annulé',
     badgeTip: 'Astuce : faites une capture d\'écran ou ajoutez cette page à votre écran d\'accueil pour un accès rapide le jour J.',
     mesDocuments: 'Mes documents',
-    docRecap: 'Récapitulatif', docProforma: 'Facture proforma', docFactureDef: 'Facture définitive', docBadge: 'Badge (image)', docCalendar: 'Ajouter au calendrier',
+    docRecap: 'Récapitulatif', docProforma: 'Facture proforma', docFactureDef: 'Facture définitive', docBadge: 'Badge (après paiement)', docCalendar: 'Ajouter au calendrier',
     badgeWaiting: 'Le badge sera disponible ici dès que votre paiement sera confirmé par notre équipe.',
+    programmeTitle: 'Mon programme',
+    voirProgrammeComplet: 'Voir le programme complet',
+    paiementTitle: 'Paiement',
+    paiementConfirme: 'Paiement confirmé',
+    paiementDifferee: 'Règlement différé — à régler avant la conférence',
+    paiementEnAttente: 'Virement en attente de confirmation',
+    voirRib: 'Voir les coordonnées bancaires',
+    aideTitle: "Besoin d'aide",
+    aideText: 'Une question sur votre dossier, votre paiement ou votre venue ?',
+    contacterOrg: "Contacter l'organisation",
+    whatsappMsg: dossier => `Bonjour, j'ai une question concernant mon dossier ${dossier} (COPAF 2026).`,
+    infosImportantes: 'Infos importantes',
     notFoundTitle: "Cette référence n'existe pas dans notre base",
     notFoundSub: "Ne procédez à aucun virement avant d'avoir vérifié l'authenticité de cette coordonnée.",
     notFoundText: (phone) => <>Si un tiers vous a fourni cet IBAN ou ce numéro en prétendant représenter COPAF 2026, contactez-nous immédiatement au <strong>{phone}</strong> avant tout virement bancaire.</>,
@@ -81,8 +107,20 @@ const TR = {
     timelineAnnule: 'File cancelled',
     badgeTip: 'Tip: take a screenshot or add this page to your home screen for quick access on the day.',
     mesDocuments: 'My documents',
-    docRecap: 'Summary', docProforma: 'Proforma invoice', docFactureDef: 'Final invoice', docBadge: 'Badge (image)', docCalendar: 'Add to calendar',
+    docRecap: 'Summary', docProforma: 'Proforma invoice', docFactureDef: 'Final invoice', docBadge: 'Badge (after payment)', docCalendar: 'Add to calendar',
     badgeWaiting: 'Your badge will be available here as soon as your payment is confirmed by our team.',
+    programmeTitle: 'My programme',
+    voirProgrammeComplet: 'View the full programme',
+    paiementTitle: 'Payment',
+    paiementConfirme: 'Payment confirmed',
+    paiementDifferee: 'Deferred payment — due before the conference',
+    paiementEnAttente: 'Bank transfer awaiting confirmation',
+    voirRib: 'View bank details',
+    aideTitle: 'Need help',
+    aideText: 'A question about your file, your payment or your visit?',
+    contacterOrg: 'Contact the organisers',
+    whatsappMsg: dossier => `Hello, I have a question about my file ${dossier} (COPAF 2026).`,
+    infosImportantes: 'Important information',
     notFoundTitle: 'This reference does not exist in our database',
     notFoundSub: 'Do not proceed with any bank transfer before verifying the authenticity of this reference.',
     notFoundText: (phone) => <>If someone provided you this IBAN or reference claiming to represent COPAF 2026, contact us immediately at <strong>{phone}</strong> before making any bank transfer.</>,
@@ -108,6 +146,8 @@ const Ico = ({ name, size = 20, color = 'currentColor' }) => {
     calendar:<svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
     plus:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
     globe:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+    headset: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>,
+    info:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
   }
   return icons[name] || null
 }
@@ -152,33 +192,48 @@ function ProgressTimeline({ statut, t }) {
   )
 }
 
-// ── Carte badge numerique (style wallet, sans compte Apple/Google requis) ──
-function DigitalBadgeCard({ data, lang }) {
+// ── Carte de section du tableau de bord (Documents / Programme / Paiement / Aide) ──
+function Card({ icon, title, children }) {
   return (
-    <div style={{
-      background: 'linear-gradient(135deg,#000E91,#0073F4)', borderRadius: 20, padding: 24,
-      color: '#fff', boxShadow: '0 12px 32px rgba(0,14,145,.3)', position: 'relative', overflow: 'hidden',
-    }}>
-      <div style={{ position: 'absolute', top: -30, right: -30, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,.08)' }} />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-        <div>
-          <div style={{ fontSize: 11, opacity: 0.7, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700 }}>COPAF 2026</div>
-          <div style={{ fontSize: 10, opacity: 0.55 }}>{lang === 'en' ? 'Digital participant badge' : 'Badge participant numérique'}</div>
+    <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 18, padding: 20, boxShadow: '0 4px 16px rgba(15,23,42,.05)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+        <div style={{ width: 34, height: 34, borderRadius: 10, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Ico name={icon} size={17} color="#0073F4" />
         </div>
-        <Ico name="badge" size={22} color="rgba(255,255,255,.6)" />
+        <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f172a' }}>{title}</div>
       </div>
-      <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 4 }}>{data.prenom} {data.nom}</div>
-      <div style={{ fontSize: 13, opacity: 0.8, marginBottom: 2 }}>{data.poste}</div>
-      <div style={{ fontSize: 12, opacity: 0.65, marginBottom: 18 }}>{data.organisation}</div>
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        borderTop: '1px solid rgba(255,255,255,.2)', paddingTop: 14,
-      }}>
-        <span style={{ fontSize: 11, fontFamily: 'monospace', letterSpacing: 1, opacity: 0.85 }}>{data.dossier}</span>
-        <span style={{ fontSize: 10, opacity: 0.6 }}>15–17 {lang === 'en' ? 'Sept. Casablanca' : 'Sept. Casablanca'}</span>
-      </div>
+      {children}
     </div>
   )
+}
+
+// ── Bouton secondaire pleine largeur (bas de carte) ──
+const cardBtnStyle = {
+  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+  width: '100%', padding: '11px 14px', marginTop: 6, boxSizing: 'border-box',
+  background: '#fff', border: '1.5px solid #cbd5e1', borderRadius: 10,
+  color: '#0f172a', fontSize: 12.5, fontWeight: 700, textDecoration: 'none',
+  cursor: 'pointer', fontFamily: 'inherit',
+}
+
+// ── Ligne document telechargeable (ou grisee si indisponible) ──
+function DocRow({ icon, label, onClick, href, disabled, loading }) {
+  const row = (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+      padding: '12px 14px', border: '1.5px solid #e2e8f0', borderRadius: 12, marginBottom: 8,
+      background: disabled ? '#f8fafc' : '#fff', opacity: disabled ? 0.6 : 1,
+    }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, fontWeight: 600, color: disabled ? '#94a3b8' : '#0f172a' }}>
+        <Ico name={icon} size={15} color={disabled ? '#cbd5e1' : '#0073F4'} />
+        {label}
+      </span>
+      {loading ? <div className="spinner" style={{ width: 14, height: 14, borderTopColor: '#0073F4', borderColor: 'rgba(0,115,244,.25)' }} /> : <Ico name="download" size={13} color={disabled ? '#cbd5e1' : '#94a3b8'} />}
+    </div>
+  )
+  if (disabled) return row
+  if (href) return <a href={href} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', display: 'block' }}>{row}</a>
+  return <button type="button" onClick={onClick} style={{ all: 'unset', display: 'block', width: '100%', boxSizing: 'border-box', cursor: 'pointer' }}>{row}</button>
 }
 
 export default function VerifierDossier() {
@@ -435,95 +490,118 @@ export default function VerifierDossier() {
                 </div>
               )}
 
-              {trackResult && (
-                <div style={{ marginTop: 10 }}>
-                  {/* Timeline */}
-                  <div style={{ marginBottom: 22 }}>
-                    <ProgressTimeline statut={trackResult.statut} t={t} />
-                  </div>
+              {trackResult && (() => {
+                const paiementSub = trackResult.statut === 'confirme'
+                  ? t.paiementConfirme
+                  : trackResult.paiement_mode === 'plus_tard'
+                    ? t.paiementDifferee
+                    : t.paiementEnAttente
+                const progItems = (trackResult.programme_personnalise && trackResult.programme_personnalise.length)
+                  ? trackResult.programme_personnalise
+                  : DEFAULT_PROGRAMME_PREVIEW[lang]
+                const whatsappHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(t.whatsappMsg(trackResult.dossier))}`
+                const scrollToRib = () => document.getElementById('rib-officiel')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 8, borderRadius: 100,
-                    padding: '7px 16px', marginBottom: 20,
-                    background: (STATUTS[trackResult.statut] || {}).bg || '#f1f5f9',
-                    color: (STATUTS[trackResult.statut] || {}).color || '#334155',
-                    fontSize: 13, fontWeight: 700,
-                  }}>
-                    {(STATUTS[trackResult.statut] || {}).label || trackResult.statut}
-                  </div>
+                return (
+                  <div style={{ marginTop: 14 }}>
 
-                  {/* Badge numerique visuel */}
-                  {trackResult.statut === 'confirme' && (
-                    <div style={{ marginBottom: 22 }}>
-                      <DigitalBadgeCard data={trackResult} lang={lang} />
-                      <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 10, textAlign: 'center', lineHeight: 1.6 }}>
-                        {t.badgeTip}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Documents */}
-                  <div style={{ fontSize: 10, color: '#0073F4', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 10 }}>
-                    {t.mesDocuments}
-                  </div>
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-                    <button onClick={handleDownloadRecap} disabled={genLoading === 'recap'} style={{
-                      display: 'flex', alignItems: 'center', gap: 8, padding: '11px 16px',
-                      background: '#EBF3FF', border: '1.5px solid #bfdbfe', borderRadius: 10,
-                      color: '#000E91', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
+                    {/* Bandeau dossier */}
+                    <div style={{
+                      background: 'linear-gradient(135deg,#000E91,#0073F4)', borderRadius: 18, padding: '20px 24px',
+                      color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+                      flexWrap: 'wrap', gap: 14, marginBottom: 18,
                     }}>
-                      {genLoading === 'recap' ? <div className="spinner" style={{ width: 13, height: 13, borderTopColor: '#000E91', borderColor: 'rgba(0,14,145,.3)' }} /> : <Ico name="download" size={14} color="#000E91" />}
-                      {t.docRecap}
-                    </button>
-
-                    <button onClick={handleDownloadProforma} disabled={genLoading === 'proforma'} style={{
-                      display: 'flex', alignItems: 'center', gap: 8, padding: '11px 16px',
-                      background: '#fdf2f4', border: '1.5px solid #f3c9d0', borderRadius: 10,
-                      color: '#96182A', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
-                    }}>
-                      {genLoading === 'proforma' ? <div className="spinner" style={{ width: 13, height: 13, borderTopColor: '#96182A', borderColor: 'rgba(150,24,42,.3)' }} /> : <Ico name="receipt" size={14} color="#96182A" />}
-                      {t.docProforma}
-                    </button>
-
-                    {trackResult.numero_facture && (
-                      <button onClick={handleDownloadFacture} disabled={genLoading === 'facture'} style={{
-                        display: 'flex', alignItems: 'center', gap: 8, padding: '11px 16px',
-                        background: '#fef3c7', border: '1.5px solid #fcd34d', borderRadius: 10,
-                        color: '#92400e', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
+                      <div>
+                        <div style={{ fontSize: 11.5, opacity: 0.75, fontWeight: 600 }}>{t.recapLabels.dossier} {trackResult.dossier}</div>
+                        <div style={{ fontSize: 20, fontWeight: 900, marginTop: 4 }}>{trackResult.prenom} {trackResult.nom}</div>
+                        {(trackResult.organisation || trackResult.poste) && (
+                          <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
+                            {[trackResult.organisation, trackResult.poste].filter(Boolean).join(' — ')}
+                          </div>
+                        )}
+                      </div>
+                      <span style={{
+                        background: 'rgba(255,255,255,.18)', padding: '8px 16px', borderRadius: 100,
+                        fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
                       }}>
-                        {genLoading === 'facture' ? <div className="spinner" style={{ width: 13, height: 13, borderTopColor: '#92400e', borderColor: 'rgba(146,64,14,.3)' }} /> : <Ico name="receipt" size={14} color="#92400e" />}
-                        {t.docFactureDef}
-                      </button>
+                        {(STATUTS[trackResult.statut] || {}).label || trackResult.statut}
+                      </span>
+                    </div>
+
+                    {/* Stepper */}
+                    <div style={{ marginBottom: 22 }}>
+                      <ProgressTimeline statut={trackResult.statut} t={t} />
+                    </div>
+
+                    {/* Grille 4 blocs */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 14, marginBottom: 18 }}>
+
+                      <Card icon="receipt" title={t.mesDocuments}>
+                        <DocRow icon="download" label={t.docRecap} onClick={handleDownloadRecap} loading={genLoading === 'recap'} />
+                        <DocRow icon="receipt" label={t.docProforma} onClick={handleDownloadProforma} loading={genLoading === 'proforma'} />
+                        {trackResult.numero_facture && (
+                          <DocRow icon="receipt" label={t.docFactureDef} onClick={handleDownloadFacture} loading={genLoading === 'facture'} />
+                        )}
+                        {(trackResult.documents || []).map(doc => (
+                          <DocRow key={doc.id} icon="receipt" label={doc.label} href={doc.url} />
+                        ))}
+                        <DocRow
+                          icon="badge" label={t.docBadge}
+                          disabled={trackResult.statut !== 'confirme'}
+                          onClick={trackResult.statut === 'confirme' ? handleDownloadBadge : undefined}
+                          loading={genLoading === 'badge'}
+                        />
+                        <DocRow icon="calendar" label={t.docCalendar} onClick={handleAddToCalendar} />
+                      </Card>
+
+                      <Card icon="calendar" title={t.programmeTitle}>
+                        {progItems.map((item, i) => (
+                          <div key={i} style={{ marginBottom: 10 }}>
+                            <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700 }}>{item.jour} · {item.heure}</div>
+                            <div style={{ fontSize: 13, color: '#0f172a', fontWeight: 600, marginTop: 2 }}>{item.titre}</div>
+                          </div>
+                        ))}
+                        <a href="/#programme" style={cardBtnStyle}>{t.voirProgrammeComplet}</a>
+                      </Card>
+
+                      <Card icon="bank" title={t.paiementTitle}>
+                        <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a' }}>{fmtEur(trackResult.montant)}</div>
+                        <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, marginBottom: 4 }}>{paiementSub}</div>
+                        <button type="button" onClick={scrollToRib} style={cardBtnStyle}>{t.voirRib}</button>
+                      </Card>
+
+                      <Card icon="headset" title={t.aideTitle}>
+                        <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, margin: '0 0 8px' }}>{t.aideText}</p>
+                        <a href={whatsappHref} target="_blank" rel="noreferrer" style={cardBtnStyle}>
+                          <Ico name="mail" size={14} color="#0f172a" />
+                          {t.contacterOrg}
+                        </a>
+                      </Card>
+                    </div>
+
+                    {/* Infos importantes (pilotees par le secretariat) */}
+                    {trackResult.infos_importantes && trackResult.infos_importantes.length > 0 && (
+                      <div style={{ background: '#EBF3FF', border: '1.5px solid #bfdbfe', borderRadius: 16, padding: '16px 20px', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                        <Ico name="info" size={18} color="#0073F4" />
+                        <div>
+                          <div style={{ fontSize: 11, color: '#0073F4', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 }}>
+                            {t.infosImportantes}
+                          </div>
+                          {trackResult.infos_importantes.map(info => (
+                            <p key={info.id} style={{ fontSize: 13, color: '#0f172a', lineHeight: 1.6, margin: '0 0 6px' }}>{info.contenu}</p>
+                          ))}
+                        </div>
+                      </div>
                     )}
 
                     {trackResult.statut === 'confirme' && (
-                      <button onClick={handleDownloadBadge} disabled={genLoading === 'badge'} style={{
-                        display: 'flex', alignItems: 'center', gap: 8, padding: '11px 16px',
-                        background: '#d1fae5', border: '1.5px solid #6ee7b7', borderRadius: 10,
-                        color: '#065f46', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
-                      }}>
-                        {genLoading === 'badge' ? <div className="spinner" style={{ width: 13, height: 13, borderTopColor: '#065f46', borderColor: 'rgba(6,95,70,.3)' }} /> : <Ico name="badge" size={14} color="#065f46" />}
-                        {t.docBadge}
-                      </button>
+                      <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 14, textAlign: 'center', lineHeight: 1.6 }}>
+                        {t.badgeTip}
+                      </p>
                     )}
-
-                    <button onClick={handleAddToCalendar} style={{
-                      display: 'flex', alignItems: 'center', gap: 8, padding: '11px 16px',
-                      background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10,
-                      color: '#334155', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit',
-                    }}>
-                      <Ico name="calendar" size={14} color="#334155" />
-                      {t.docCalendar}
-                    </button>
                   </div>
-
-                  {trackResult.statut !== 'confirme' && (
-                    <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 6, marginBottom: 0 }}>
-                      {t.badgeWaiting}
-                    </p>
-                  )}
-                </div>
-              )}
+                )
+              })()}
             </div>
           </div>
         )}
@@ -545,7 +623,7 @@ export default function VerifierDossier() {
           </div>
         )}
 
-        <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: 24, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,14,145,.06)' }}>
+        <div id="rib-officiel" style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: 24, marginBottom: 24, boxShadow: '0 4px 20px rgba(0,14,145,.06)', scrollMarginTop: 24 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
             <div style={{ width: 36, height: 36, borderRadius: 10, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Ico name="bank" size={18} color="#0073F4" />

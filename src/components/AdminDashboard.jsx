@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { supabase } from '../supabase'
 import { generateBadge } from '../utils/generateBadge'
@@ -39,6 +39,10 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     menu: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
     copaf: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 2 17 12 22 22 17 22 7 12 2"/><polyline points="2 7 12 12 22 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>,
     gift: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>,
+    upload: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+    plus: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    eye: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+    eyeOff: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-3.22 4.35"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
   }
   return paths[name] || null
 }
@@ -185,7 +189,7 @@ function BarRow({ label, value, max, color }) {
 }
 
 // ─── MODAL GÉNÉRIQUE ─────────────────────────────────────────────────────────
-function Modal({ title, subtitle, accentColor, fields, status, statusField, onStatusChange, onSave, onDelete, onClose, saving, deleting, confirmDel, setConfirmDel, toast, onDownloadBadge, generatingBadge }) {
+function Modal({ title, subtitle, accentColor, fields, status, statusField, onStatusChange, onSave, onDelete, onClose, saving, deleting, confirmDel, setConfirmDel, toast, onDownloadBadge, generatingBadge, children }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={onClose}>
@@ -262,6 +266,8 @@ function Modal({ title, subtitle, accentColor, fields, status, statusField, onSt
           )}
         </div>
 
+        {children}
+
         {/* Suppression */}
         {onDelete && (
           <div style={{ padding: '0 28px 28px' }}>
@@ -278,6 +284,164 @@ function Modal({ title, subtitle, accentColor, fields, status, statusField, onSt
             </button>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+// ─── ESPACE PERSONNEL DU DOSSIER (documents, programme, infos) ────────────────
+const EXTRAS_LABEL = { fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 8 }
+const EXTRAS_ROW = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '9px 12px', border: '1px solid #eef1f8', borderRadius: 10, marginBottom: 6, background: '#f8fafc' }
+const EXTRAS_INPUT = { flex: 1, padding: '9px 12px', fontSize: 12.5, fontFamily: 'inherit', border: '1.5px solid #e2e8f0', borderRadius: 9, outline: 'none', boxSizing: 'border-box' }
+const EXTRAS_ICONBTN = { background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }
+
+function DossierExtras({ dossier }) {
+  const [docs, setDocs] = useState([])
+  const [infos, setInfos] = useState([])
+  const [programme, setProgramme] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [newInfo, setNewInfo] = useState('')
+  const [newProg, setNewProg] = useState({ jour: '', heure: '', titre: '' })
+  const fileRef = useRef(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const [docsRes, infosRes, inscRes] = await Promise.all([
+      supabase.from('documents_participants').select('*').eq('dossier', dossier).order('created_at'),
+      supabase.from('infos_importantes').select('*').eq('dossier', dossier).order('created_at', { ascending: false }),
+      supabase.from('inscriptions').select('programme_personnalise').eq('dossier', dossier).maybeSingle(),
+    ])
+    setDocs(docsRes.data || [])
+    setInfos(infosRes.data || [])
+    setProgramme(inscRes.data?.programme_personnalise || [])
+    setLoading(false)
+  }, [dossier])
+
+  useEffect(() => { load() }, [load])
+
+  const uploadDoc = async e => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    const path = `${dossier}/${Date.now()}_${file.name}`.replace(/\s+/g, '_')
+    const { error: upErr } = await supabase.storage.from('documents-participants').upload(path, file)
+    if (!upErr) {
+      const url = supabase.storage.from('documents-participants').getPublicUrl(path).data.publicUrl
+      const { data: userData } = await supabase.auth.getUser()
+      await supabase.from('documents_participants').insert({
+        dossier, type: 'autre', label: file.name, url, ajoute_par: userData?.user?.email || null,
+      })
+      await load()
+    }
+    setUploading(false)
+    if (fileRef.current) fileRef.current.value = ''
+  }
+
+  const toggleDocVisible = async doc => {
+    await supabase.from('documents_participants').update({ visible: !doc.visible }).eq('id', doc.id)
+    load()
+  }
+
+  const deleteDoc = async doc => {
+    await supabase.from('documents_participants').delete().eq('id', doc.id)
+    load()
+  }
+
+  const addInfo = async () => {
+    if (!newInfo.trim()) return
+    const { data: userData } = await supabase.auth.getUser()
+    await supabase.from('infos_importantes').insert({ dossier, contenu: newInfo.trim(), updated_par: userData?.user?.email || null })
+    setNewInfo('')
+    load()
+  }
+
+  const deleteInfo = async info => {
+    await supabase.from('infos_importantes').delete().eq('id', info.id)
+    load()
+  }
+
+  const saveProgramme = async next => {
+    setProgramme(next)
+    await supabase.from('inscriptions').update({ programme_personnalise: next.length ? next : null }).eq('dossier', dossier)
+  }
+
+  const addProgItem = () => {
+    if (!newProg.titre.trim()) return
+    saveProgramme([...programme, newProg])
+    setNewProg({ jour: '', heure: '', titre: '' })
+  }
+
+  const removeProgItem = idx => saveProgramme(programme.filter((_, i) => i !== idx))
+
+  if (loading) return <div style={{ padding: '0 28px 8px', fontSize: 12, color: '#94a3b8' }}>Chargement de l'espace personnel...</div>
+
+  return (
+    <div style={{ padding: '0 28px 8px', borderTop: '1px solid #f1f5f9', marginTop: 4 }}>
+
+      {/* Documents */}
+      <div style={{ marginTop: 20 }}>
+        <div style={EXTRAS_LABEL}>Documents deposes (visibles dans l'espace participant)</div>
+        {docs.map(doc => (
+          <div key={doc.id} style={EXTRAS_ROW}>
+            <a href={doc.url} target="_blank" rel="noreferrer" style={{ fontSize: 12.5, color: '#0f172a', fontWeight: 600, textDecoration: 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {doc.label}
+            </a>
+            <button type="button" onClick={() => toggleDocVisible(doc)} title={doc.visible ? 'Masquer' : 'Rendre visible'} style={EXTRAS_ICONBTN}>
+              <Icon name={doc.visible ? 'eye' : 'eyeOff'} size={13} color={doc.visible ? '#059669' : '#94a3b8'} />
+            </button>
+            <button type="button" onClick={() => deleteDoc(doc)} title="Supprimer" style={EXTRAS_ICONBTN}>
+              <Icon name="trash" size={13} color="#ef4444" />
+            </button>
+          </div>
+        ))}
+        <label style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          padding: '9px 12px', border: '1.5px dashed #cbd5e1', borderRadius: 10,
+          fontSize: 12, fontWeight: 600, color: '#64748b', cursor: uploading ? 'not-allowed' : 'pointer', marginTop: 4,
+        }}>
+          <Icon name="upload" size={13} color="#64748b" />
+          {uploading ? 'Envoi en cours...' : 'Deposer un document (badge, attestation...)'}
+          <input ref={fileRef} type="file" onChange={uploadDoc} disabled={uploading} style={{ display: 'none' }} />
+        </label>
+      </div>
+
+      {/* Programme personnalise */}
+      <div style={{ marginTop: 20 }}>
+        <div style={EXTRAS_LABEL}>Programme personnalise (vide = programme general par defaut)</div>
+        {programme.map((item, i) => (
+          <div key={i} style={EXTRAS_ROW}>
+            <span style={{ fontSize: 12.5, color: '#0f172a', flex: 1 }}>
+              <strong>{item.jour}</strong> · {item.heure} — {item.titre}
+            </span>
+            <button type="button" onClick={() => removeProgItem(i)} title="Supprimer" style={EXTRAS_ICONBTN}>
+              <Icon name="trash" size={13} color="#ef4444" />
+            </button>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <input placeholder="Jour 1" value={newProg.jour} onChange={e => setNewProg(p => ({ ...p, jour: e.target.value }))} style={{ ...EXTRAS_INPUT, flex: '0 1 90px' }} />
+          <input placeholder="10h15" value={newProg.heure} onChange={e => setNewProg(p => ({ ...p, heure: e.target.value }))} style={{ ...EXTRAS_INPUT, flex: '0 1 80px' }} />
+          <input placeholder="Titre de la session" value={newProg.titre} onChange={e => setNewProg(p => ({ ...p, titre: e.target.value }))} style={{ ...EXTRAS_INPUT, flex: '1 1 140px' }} />
+          <button type="button" onClick={addProgItem} style={EXTRAS_ICONBTN}><Icon name="plus" size={14} color="#0f172a" /></button>
+        </div>
+      </div>
+
+      {/* Infos importantes specifiques a ce dossier */}
+      <div style={{ margin: '20px 0 4px' }}>
+        <div style={EXTRAS_LABEL}>Infos importantes propres a ce dossier</div>
+        {infos.map(info => (
+          <div key={info.id} style={EXTRAS_ROW}>
+            <span style={{ fontSize: 12.5, color: '#0f172a', flex: 1 }}>{info.contenu}</span>
+            <button type="button" onClick={() => deleteInfo(info)} title="Supprimer" style={EXTRAS_ICONBTN}>
+              <Icon name="trash" size={13} color="#ef4444" />
+            </button>
+          </div>
+        ))}
+        <div style={{ display: 'flex', gap: 6 }}>
+          <input placeholder="Ex : merci de finaliser votre virement avant le..." value={newInfo} onChange={e => setNewInfo(e.target.value)} style={EXTRAS_INPUT} />
+          <button type="button" onClick={addInfo} style={EXTRAS_ICONBTN}><Icon name="plus" size={14} color="#0f172a" /></button>
+        </div>
       </div>
     </div>
   )
@@ -367,7 +531,9 @@ function ModalParticipant({ row, onClose, onUpdate }) {
       onClose={onClose} toast={toast}
       onDownloadBadge={status === 'confirme' ? downloadBadge : null}
       generatingBadge={genBadge}
-    />
+    >
+      {row.dossier && <DossierExtras dossier={row.dossier} />}
+    </Modal>
   )
 }
 
@@ -545,6 +711,67 @@ function Toolbar({ search, setSearch, filterStatus, setFilterStatus, onExport, o
   )
 }
 
+// ─── INFOS IMPORTANTES GENERALES (dossier = null, visibles pour tous les participants) ──
+function InfosGeneralesPanel() {
+  const [open,  setOpen]  = useState(false)
+  const [infos, setInfos] = useState([])
+  const [loaded, setLoaded] = useState(false)
+  const [newInfo, setNewInfo] = useState('')
+
+  const load = async () => {
+    const { data } = await supabase.from('infos_importantes').select('*').is('dossier', null).order('created_at', { ascending: false })
+    setInfos(data || [])
+    setLoaded(true)
+  }
+
+  useEffect(() => { if (open && !loaded) load() }, [open, loaded])
+
+  const addInfo = async () => {
+    if (!newInfo.trim()) return
+    const { data: userData } = await supabase.auth.getUser()
+    await supabase.from('infos_importantes').insert({ dossier: null, contenu: newInfo.trim(), updated_par: userData?.user?.email || null })
+    setNewInfo('')
+    load()
+  }
+
+  const deleteInfo = async info => {
+    await supabase.from('infos_importantes').delete().eq('id', info.id)
+    load()
+  }
+
+  return (
+    <div style={{ ...CARD_STYLE, padding: 18, marginBottom: 20 }}>
+      <button type="button" onClick={() => setOpen(o => !o)} style={{
+        all: 'unset', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        width: '100%', cursor: 'pointer', boxSizing: 'border-box',
+      }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5, fontWeight: 800, color: '#0f172a' }}>
+          <Icon name="mail" size={16} color="#0073F4" />
+          Infos importantes générales (visibles dans l'espace de tous les participants)
+        </span>
+        <Icon name={open ? 'close' : 'menu'} size={14} color="#94a3b8" />
+      </button>
+
+      {open && (
+        <div style={{ marginTop: 16 }}>
+          {infos.map(info => (
+            <div key={info.id} style={EXTRAS_ROW}>
+              <span style={{ fontSize: 12.5, color: '#0f172a', flex: 1 }}>{info.contenu}</span>
+              <button type="button" onClick={() => deleteInfo(info)} title="Supprimer" style={EXTRAS_ICONBTN}>
+                <Icon name="trash" size={13} color="#ef4444" />
+              </button>
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input placeholder="Ex : le dress code est business formal..." value={newInfo} onChange={e => setNewInfo(e.target.value)} style={EXTRAS_INPUT} />
+            <button type="button" onClick={addInfo} style={EXTRAS_ICONBTN}><Icon name="plus" size={14} color="#0f172a" /></button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── SECTION PARTICIPANTS ─────────────────────────────────────────────────────
 function SectionParticipants({ data, setData }) {
   const [search,        setSearch]        = useState('')
@@ -614,6 +841,8 @@ function SectionParticipants({ data, setData }) {
 
   return (
     <div>
+      <InfosGeneralesPanel />
+
       {/* KPIs */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
         <KpiCard icon="users"  label="Dossiers"    value={total}           color="#6366f1" />
