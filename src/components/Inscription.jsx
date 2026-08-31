@@ -384,13 +384,14 @@ async function upsertContact(form) {
 // tarif_type / code_promo pour la tracabilite cote secretariat (jamais
 // affiches publiquement, voir AdminProforma.jsx). Necessite ces 2 colonnes
 // sur la table `inscriptions` (deja ajoutees en SQL).
-async function createInscription(contactId, form, nb, montant, paiementMode, dossier, lang, tarifInfo) {
+async function createInscription(contactId, form, nb, montant, paiementMode, dossier, lang, tarifInfo, espaceLinkToken) {
   const { error } = await supabase.from('inscriptions').insert([{
     contact_id: contactId, dossier, participants: nb, montant,
     paiement_status: paiementMode==='maintenant'?'en_attente':'reserve',
     paiement_mode: paiementMode, message: form.message, langue: lang,
     tarif_type: tarifInfo.estPreferentiel ? 'preferentiel' : 'standard',
     code_promo: tarifInfo.codeUtilise || null,
+    espace_link_token: espaceLinkToken,
   }])
   if (error) throw new Error(error.message)
 }
@@ -571,9 +572,11 @@ export default function Inscription() {
     const totalReel = nb * tarifInfo.prixUnitaire
     setTotalFinal(totalReel) // fige le montant pour le bouton post-soumission
 
+    const espaceLinkToken = crypto.randomUUID()
+
     try {
       const contactId = await upsertContact(form)
-      await createInscription(contactId, form, nb, totalReel, paiementMode, dossier, lang, tarifInfo)
+      await createInscription(contactId, form, nb, totalReel, paiementMode, dossier, lang, tarifInfo, espaceLinkToken)
       fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:totalReel,dossier,paiement:paiementMode,langue:lang,tarif_type:tarifInfo.estPreferentiel?'preferentiel':'standard'}) }).catch(()=>{})
 
       // ── Generation des 2 documents (Attestation + Proforma) ──
@@ -608,6 +611,21 @@ export default function Inscription() {
         try { generateRecapPDF({ form, dossier, nb, total: totalReel, paiementMode, lang }) } catch {}
       }
 
+      // Lien direct vers l'espace personnel (deja connecte), a inserer dans
+      // l'email de confirmation pour eviter au participant l'etape "demander
+      // un lien" au premier acces. Repli sur /verifier (sans connexion) si la
+      // generation echoue pour une raison quelconque — jamais bloquant pour
+      // l'inscription elle-meme.
+      let espaceUrl = 'https://copaf-ports.com/verifier'
+      try {
+        const { data: linkData, error: linkErr } = await supabase.functions.invoke('generate-espace-link', {
+          body: { dossier, token: espaceLinkToken },
+        })
+        if (!linkErr && linkData?.action_link) espaceUrl = linkData.action_link
+      } catch (linkCallErr) {
+        console.error('Erreur generation lien espace personnel:', linkCallErr)
+      }
+
       // L'envoi de l'email se fait APRES la generation/upload des documents,
       // pour que les liens {{attestation_url}} et {{proforma_url}} soient
       // deja disponibles au moment ou EmailJS construit le message.
@@ -619,7 +637,7 @@ export default function Inscription() {
         montant:`${totalReel.toLocaleString(locale)} EUR`, tarif:`${tarifInfo.prixUnitaire.toLocaleString(locale)} EUR/pers.`,
         dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee',
         paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'',
-        langue:lang, attestation_url: attestationUrl, proforma_url: proformaUrl,
+        langue:lang, attestation_url: attestationUrl, proforma_url: proformaUrl, espace_url: espaceUrl,
       }, EMAILJS_KEY)
 
       setDossierNum(dossier); setSubmitted(true)
