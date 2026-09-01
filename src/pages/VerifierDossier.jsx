@@ -242,32 +242,63 @@ export default function VerifierDossier() {
     poste: myDossier.poste, pays: myDossier.pays, email: myDossier.email,
   })
 
+  // Ouvre un onglet vide de maniere synchrone (dans le meme tick que le clic,
+  // avant tout await) pour eviter le blocage popup des navigateurs, puis y
+  // charge le PDF/PNG genere une fois pret : le participant voit d'abord le
+  // document dans la visionneuse native du navigateur, avec le telechargement
+  // toujours possible depuis cette visionneuse. Si le popup est bloque malgre
+  // tout, on retombe sur le telechargement direct habituel.
   const handleDownloadRecap = async () => {
+    const win = window.open('', '_blank')
     setGenLoading('recap')
     try {
-      await generateRecapPDF({ form: formData(), dossier: myDossier.dossier, nb: myDossier.participants, total: myDossier.montant, paiementMode: myDossier.paiement_mode, lang })
+      if (win) {
+        const doc = await generateRecapPDF({ form: formData(), dossier: myDossier.dossier, nb: myDossier.participants, total: myDossier.montant, paiementMode: myDossier.paiement_mode, lang, download: false })
+        win.location.href = doc.output('bloburl')
+      } else {
+        await generateRecapPDF({ form: formData(), dossier: myDossier.dossier, nb: myDossier.participants, total: myDossier.montant, paiementMode: myDossier.paiement_mode, lang })
+      }
     } finally { setGenLoading('') }
   }
 
   const handleDownloadProforma = async () => {
+    const win = window.open('', '_blank')
     setGenLoading('proforma')
     try {
-      await generateProformaPDF({ form: formData(), dossier: myDossier.dossier, nb: myDossier.participants, total: myDossier.montant, lang })
+      if (win) {
+        const doc = await generateProformaPDF({ form: formData(), dossier: myDossier.dossier, nb: myDossier.participants, total: myDossier.montant, lang, download: false })
+        win.location.href = doc.output('bloburl')
+      } else {
+        await generateProformaPDF({ form: formData(), dossier: myDossier.dossier, nb: myDossier.participants, total: myDossier.montant, lang })
+      }
     } finally { setGenLoading('') }
   }
 
   const handleDownloadFacture = async () => {
     if (!myDossier.numero_facture) return
+    const win = window.open('', '_blank')
     setGenLoading('facture')
     try {
-      await generateFactureDefinitivePDF({ form: formData(), dossier: myDossier.dossier, numeroFacture: myDossier.numero_facture, nb: myDossier.participants, total: myDossier.montant, lang })
+      if (win) {
+        const doc = await generateFactureDefinitivePDF({ form: formData(), dossier: myDossier.dossier, numeroFacture: myDossier.numero_facture, nb: myDossier.participants, total: myDossier.montant, lang, download: false })
+        win.location.href = doc.output('bloburl')
+      } else {
+        await generateFactureDefinitivePDF({ form: formData(), dossier: myDossier.dossier, numeroFacture: myDossier.numero_facture, nb: myDossier.participants, total: myDossier.montant, lang })
+      }
     } finally { setGenLoading('') }
   }
 
   const handleDownloadBadge = async () => {
+    const win = window.open('', '_blank')
     setGenLoading('badge')
     try {
-      await generateBadge({ nomPrenom: `${myDossier.prenom} ${myDossier.nom}`, fonction: myDossier.poste || '', dossier: myDossier.dossier, photoSrc: myDossier.photo_url || null })
+      if (win) {
+        const dataUrl = await generateBadge({ nomPrenom: `${myDossier.prenom} ${myDossier.nom}`, fonction: myDossier.poste || '', dossier: myDossier.dossier, photoSrc: myDossier.photo_url || null, download: false })
+        const blob = await (await fetch(dataUrl)).blob()
+        win.location.href = URL.createObjectURL(blob)
+      } else {
+        await generateBadge({ nomPrenom: `${myDossier.prenom} ${myDossier.nom}`, fonction: myDossier.poste || '', dossier: myDossier.dossier, photoSrc: myDossier.photo_url || null })
+      }
     } finally { setGenLoading('') }
   }
 

@@ -609,11 +609,13 @@ export default function Inscription() {
         attestationUrl = supabase.storage.from('documents-inscription').getPublicUrl(attestationPath).data.publicUrl
       } catch (attestationErr) {
         console.error('Erreur generation/upload attestation:', attestationErr)
-        // Repli : si l'upload echoue, on tente au moins le telechargement
-        // direct habituel pour que le participant reparte avec son document.
-        // attestationUrl reste vide : pas de lien casse dans l'email, le
-        // participant garde le lien vers son espace personnel en secours.
-        try { generateRecapPDF({ form, dossier, nb, total: totalReel, paiementMode, lang }) } catch {}
+        // Pas de nouveau telechargement ici : attestationDoc.save() ci-dessus
+        // s'est deja execute avant la tentative d'upload, que celle-ci
+        // reussisse ou non — le participant a donc deja son document en
+        // local. Regenerer un telechargement ici ne ferait que produire un
+        // second fichier strictement identique. attestationUrl reste vide :
+        // pas de lien casse dans l'email, le participant garde le lien vers
+        // son espace personnel en secours.
       }
 
       try {
