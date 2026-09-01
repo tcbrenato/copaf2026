@@ -13,9 +13,11 @@ const TR = {
     intro: "Évaluez le niveau de maturité digitale de votre port sur 10 dimensions, et repartez avec des recommandations personnalisées.",
     tabDossier: 'Par numéro de dossier',
     tabDirecte: 'Mes informations directement',
-    dossierLabel: "Votre numéro de dossier ou votre email d'inscription",
-    dossierPlaceholder: 'COPAF2026-XXXXX ou votre@email.com',
-    dossierErreur: "Aucune inscription trouvée avec cette référence ou cet email. Vérifiez, ou passez en saisie directe ci-dessus.",
+    dossierLabel: 'Votre numéro de dossier',
+    dossierPlaceholder: 'COPAF2026-XXXXX',
+    dossierEmailLabel: "Votre email d'inscription",
+    dossierEmailPlaceholder: 'votre@email.com',
+    dossierErreur: "Aucune inscription trouvée avec ce numéro de dossier et cet email. Vérifiez, ou passez en saisie directe ci-dessus.",
     recherche: 'Recherche en cours...',
     continuer: 'Continuer',
     prenom: 'Prénom *', prenomP: 'Votre prénom',
@@ -53,9 +55,11 @@ const TR = {
     intro: "Assess your port's digital maturity across 10 dimensions, and leave with personalised recommendations.",
     tabDossier: 'By registration number',
     tabDirecte: 'My information directly',
-    dossierLabel: 'Your registration number or registration email',
-    dossierPlaceholder: 'COPAF2026-XXXXX or your@email.com',
-    dossierErreur: 'No registration found with this reference or email. Please check, or switch to direct entry above.',
+    dossierLabel: 'Your registration number',
+    dossierPlaceholder: 'COPAF2026-XXXXX',
+    dossierEmailLabel: 'Your registration email',
+    dossierEmailPlaceholder: 'your@email.com',
+    dossierErreur: 'No registration found with this reference number and email. Please check, or switch to direct entry above.',
     recherche: 'Searching...',
     continuer: 'Continue',
     prenom: 'First name *', prenomP: 'Your first name',
@@ -123,7 +127,8 @@ export default function DiagnosticSmartPort() {
   const [etape, setEtape] = useState(-1)
 
   const [identMode, setIdentMode] = useState('dossier')
-  const [recherche, setRecherche] = useState('')
+  const [rechercheDossier, setRechercheDossier] = useState('')
+  const [rechercheEmail, setRechercheEmail] = useState('')
   const [chercheEnCours, setChercheEnCours] = useState(false)
   const [erreurRecherche, setErreurRecherche] = useState('')
 
@@ -230,15 +235,12 @@ export default function DiagnosticSmartPort() {
 
   const handleRechercheDossier = async e => {
     e.preventDefault()
-    if (!recherche.trim()) return
+    if (!rechercheDossier.trim() || !rechercheEmail.trim()) return
     setChercheEnCours(true); setErreurRecherche('')
 
-    const valeur = recherche.trim()
-    const isDossier = /^COPAF/i.test(valeur)
-
-    const { data: rows, error } = await supabase.rpc('lookup_contact_for_diagnostic', isDossier
-      ? { p_dossier: valeur, p_email: null }
-      : { p_dossier: null, p_email: valeur.toLowerCase() })
+    const { data: rows, error } = await supabase.rpc('lookup_contact_for_diagnostic', {
+      p_dossier: rechercheDossier.trim(), p_email: rechercheEmail.trim().toLowerCase(),
+    })
     setChercheEnCours(false)
 
     if (error || !rows || rows.length === 0) {
@@ -366,9 +368,17 @@ export default function DiagnosticSmartPort() {
             <form onSubmit={handleRechercheDossier} style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 20, padding: 30, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
               <label style={labelStyle}>{t.dossierLabel}</label>
               <input
-                value={recherche}
-                onChange={e => setRecherche(e.target.value)}
+                value={rechercheDossier}
+                onChange={e => setRechercheDossier(e.target.value)}
                 placeholder={t.dossierPlaceholder}
+                style={{ ...inputStyle, marginBottom: 16 }}
+              />
+              <label style={labelStyle}>{t.dossierEmailLabel}</label>
+              <input
+                type="email"
+                value={rechercheEmail}
+                onChange={e => setRechercheEmail(e.target.value)}
+                placeholder={t.dossierEmailPlaceholder}
                 style={{ ...inputStyle, marginBottom: 16 }}
               />
               {erreurRecherche && <p style={{ fontSize: 13, color: '#f87171', marginBottom: 16, lineHeight: 1.4 }}>{erreurRecherche}</p>}
