@@ -589,6 +589,14 @@ export default function Inscription() {
       // Les deux documents utilisent totalReel : ce sont des documents
       // PRIVES propres a ce participant, c'est la que le tarif preferentiel
       // (s'il s'applique) devient visible pour lui — jamais sur le site.
+      // Chaque document est upload individuellement, avec verification
+      // explicite de l'erreur retournee par Supabase Storage : upload() ne
+      // rejette PAS la promesse en cas de refus cote serveur (RLS, quota...),
+      // il resout avec { error }. Sans cette verification, un upload
+      // silencieusement en echec produisait quand meme une URL "valide" via
+      // getPublicUrl (getPublicUrl ne verifie pas que le fichier existe), et
+      // ce lien casse (404 NoSuchKey) quand le participant clique dessus
+      // depuis l'email de confirmation.
       let attestationUrl = ''
       let proformaUrl = ''
       try {
@@ -596,19 +604,27 @@ export default function Inscription() {
         attestationDoc.save(`COPAF2026-Attestation-${dossier}.pdf`)
         const attestationBlob = attestationDoc.output('blob')
         const attestationPath = `${dossier}-attestation-${lang}.pdf`
-        await supabase.storage.from('documents-inscription').upload(attestationPath, attestationBlob, { upsert: true, contentType: 'application/pdf' })
+        const { error: attestationUploadErr } = await supabase.storage.from('documents-inscription').upload(attestationPath, attestationBlob, { upsert: true, contentType: 'application/pdf' })
+        if (attestationUploadErr) throw attestationUploadErr
         attestationUrl = supabase.storage.from('documents-inscription').getPublicUrl(attestationPath).data.publicUrl
+      } catch (attestationErr) {
+        console.error('Erreur generation/upload attestation:', attestationErr)
+        // Repli : si l'upload echoue, on tente au moins le telechargement
+        // direct habituel pour que le participant reparte avec son document.
+        // attestationUrl reste vide : pas de lien casse dans l'email, le
+        // participant garde le lien vers son espace personnel en secours.
+        try { generateRecapPDF({ form, dossier, nb, total: totalReel, paiementMode, lang }) } catch {}
+      }
 
+      try {
         const proformaDoc = await generateProformaPDF({ form, dossier, nb, total: totalReel, lang, download: false })
         const proformaBlob = proformaDoc.output('blob')
         const proformaPath = `${dossier}-proforma-${lang}.pdf`
-        await supabase.storage.from('documents-inscription').upload(proformaPath, proformaBlob, { upsert: true, contentType: 'application/pdf' })
+        const { error: proformaUploadErr } = await supabase.storage.from('documents-inscription').upload(proformaPath, proformaBlob, { upsert: true, contentType: 'application/pdf' })
+        if (proformaUploadErr) throw proformaUploadErr
         proformaUrl = supabase.storage.from('documents-inscription').getPublicUrl(proformaPath).data.publicUrl
-      } catch (uploadErr) {
-        console.error('Erreur generation/upload documents:', uploadErr)
-        // Repli : si l'upload echoue, on tente au moins le telechargement
-        // direct habituel pour que le participant reparte avec son document.
-        try { generateRecapPDF({ form, dossier, nb, total: totalReel, paiementMode, lang }) } catch {}
+      } catch (proformaErr) {
+        console.error('Erreur generation/upload proforma:', proformaErr)
       }
 
       // Lien direct vers l'espace personnel (deja connecte), a inserer dans

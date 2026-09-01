@@ -42,14 +42,12 @@ const TR = {
     dossierVerifSub: 'Ce numéro correspond bien à une inscription COPAF 2026 réelle.',
     recapLabels: { dossier: 'Dossier', titulaire: 'Titulaire', participants: 'Participants', statut: 'Statut', date: "Date d'inscription" },
     espacePerso: 'Mon espace personnel',
-    espacePersoText: "Recevez un lien de connexion sécurisé par e-mail pour accéder à votre badge numérique, vos documents et le suivi détaillé de votre dossier — sans mot de passe.",
+    espacePersoText: 'Entrez votre numéro de dossier et l\'email utilisé lors de votre inscription pour accéder directement à votre badge numérique, vos documents et le suivi de votre dossier — sans rien recevoir par e-mail.',
+    dossierPh: 'N° de dossier (ex. COPAF2026-12345)',
     emailPh: 'votre@email.com',
     validerBtn: 'Valider',
-    magicLinkBtn: 'Recevoir le lien magique',
-    magicLinkSentTitle: 'Vérifiez votre boîte mail',
-    magicLinkSentText: email => <>Un lien de connexion a été envoyé à <strong>{email}</strong>. Cliquez dessus pour accéder à votre espace personnel.</>,
-    magicLinkChangeEmail: 'Utiliser une autre adresse',
-    magicLinkError: "Impossible d'envoyer le lien. Vérifiez l'adresse et réessayez.",
+    accessBtn: 'Accéder à mon espace',
+    accessError: "Dossier ou email introuvable. Vérifiez ces informations et réessayez.",
     signOut: 'Se déconnecter',
     noDossierTitle: 'Aucune inscription trouvée',
     noDossierText: "Aucun dossier COPAF 2026 n'est associé à ce compte. Si vous venez de vous inscrire, réessayez dans quelques minutes, ou contactez-nous.",
@@ -95,14 +93,12 @@ const TR = {
     dossierVerifSub: 'This reference number matches a real COPAF 2026 registration.',
     recapLabels: { dossier: 'File', titulaire: 'Holder', participants: 'Participants', statut: 'Status', date: 'Registration date' },
     espacePerso: 'My personal space',
-    espacePersoText: 'Receive a secure sign-in link by email to access your digital badge, your documents and detailed tracking of your file — no password needed.',
+    espacePersoText: 'Enter your file reference number and the email used at registration to access your digital badge, your documents and your file tracking directly — nothing to receive by email.',
+    dossierPh: 'File reference (e.g. COPAF2026-12345)',
     emailPh: 'your@email.com',
     validerBtn: 'Confirm',
-    magicLinkBtn: 'Send me the magic link',
-    magicLinkSentTitle: 'Check your inbox',
-    magicLinkSentText: email => <>A sign-in link has been sent to <strong>{email}</strong>. Click it to access your personal space.</>,
-    magicLinkChangeEmail: 'Use a different address',
-    magicLinkError: 'Could not send the link. Check the address and try again.',
+    accessBtn: 'Access my space',
+    accessError: 'File or email not found. Check these details and try again.',
     signOut: 'Sign out',
     noDossierTitle: 'No registration found',
     noDossierText: 'No COPAF 2026 file is linked to this account. If you just registered, try again in a few minutes, or contact us.',
@@ -146,10 +142,10 @@ export default function VerifierDossier() {
   const [error,   setError]   = useState('')
 
   const [session,         setSession]         = useState(null)
-  const [authEmail,       setAuthEmail]       = useState('')
-  const [magicLinkLoading, setMagicLinkLoading] = useState(false)
-  const [magicLinkSent,   setMagicLinkSent]   = useState(false)
-  const [magicLinkError,  setMagicLinkError]  = useState('')
+  const [accessDossier,   setAccessDossier]   = useState('')
+  const [accessEmail,     setAccessEmail]     = useState('')
+  const [accessLoading,   setAccessLoading]   = useState(false)
+  const [accessError,     setAccessError]     = useState('')
   const [myDossier,       setMyDossier]       = useState(undefined)
   const [myDossierLoading, setMyDossierLoading] = useState(false)
   const [genLoading,      setGenLoading]      = useState('')
@@ -170,8 +166,10 @@ export default function VerifierDossier() {
     try {
       const { data, error: err } = await supabase.rpc('verifier_dossier', { p_dossier: cleanedInput })
       if (err) throw new Error(err.message)
-      if (data && data.length > 0) setResult({ type: 'dossier', ...data[0] })
-      else setResult(null)
+      if (data && data.length > 0) {
+        setResult({ type: 'dossier', ...data[0] })
+        setAccessDossier(data[0].dossier) // pre-remplit le formulaire d'acces ci-dessous
+      } else setResult(null)
     } catch (err) {
       setError(t.genericError)
       setResult(undefined)
@@ -211,28 +209,32 @@ export default function VerifierDossier() {
     else setMyDossier(undefined)
   }, [session?.user?.id])
 
-  const handleMagicLinkSubmit = async e => {
+  // Connexion directe par dossier + email (voir supabase/functions/access-espace) :
+  // pas d'aller-retour par e-mail a chaque visite. La fonction verifie le
+  // couple cote serveur puis renvoie un lien magique deja pret ; on suit ce
+  // lien immediatement pour etablir une vraie session Supabase Auth, comme
+  // si le participant avait clique un lien recu par e-mail.
+  const handleAccessSubmit = async e => {
     e.preventDefault()
-    if (!authEmail.trim()) return
-    setMagicLinkLoading(true); setMagicLinkError(''); setMagicLinkSent(false)
+    if (!accessDossier.trim() || !accessEmail.trim()) return
+    setAccessLoading(true); setAccessError('')
     try {
-      const { error: err } = await supabase.auth.signInWithOtp({
-        email: authEmail.trim(),
-        options: { emailRedirectTo: `${window.location.origin}/verifier` },
+      const { data, error: err } = await supabase.functions.invoke('access-espace', {
+        body: { dossier: accessDossier.trim(), email: accessEmail.trim() },
       })
-      if (err) throw new Error(err.message)
-      setMagicLinkSent(true)
+      if (err || !data?.action_link) throw new Error(err?.message || 'Connexion impossible')
+      window.location.href = data.action_link
     } catch {
-      setMagicLinkError(t.magicLinkError)
+      setAccessError(t.accessError)
+      setAccessLoading(false)
     }
-    setMagicLinkLoading(false)
   }
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     setMyDossier(undefined)
-    setMagicLinkSent(false)
-    setAuthEmail('')
+    setAccessDossier('')
+    setAccessEmail('')
   }
 
   const formData = () => ({
@@ -409,7 +411,7 @@ export default function VerifierDossier() {
           </div>
         )}
 
-        {/* ── Mon espace personnel (authentification par lien magique, independante de la verification ci-dessus) ── */}
+        {/* ── Mon espace personnel (acces direct par dossier + email, independant de la verification ci-dessus) ── */}
         <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 20, padding: 28, marginBottom: 24, boxShadow: '0 8px 32px rgba(0,14,145,.08)' }}>
           <div style={{ fontSize: 10, color: '#0073F4', fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 10 }}>
             {t.espacePerso}
@@ -417,44 +419,33 @@ export default function VerifierDossier() {
 
           {!session && (
             <>
-              {!magicLinkSent ? (
-                <>
-                  <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, marginBottom: 14 }}>
-                    {t.espacePersoText}
-                  </p>
-                  <form onSubmit={handleMagicLinkSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <input
-                      type="email" required value={authEmail}
-                      onChange={e => setAuthEmail(e.target.value)}
-                      placeholder={t.emailPh}
-                      style={{ flex: '1 1 200px', padding: '11px 14px', fontSize: 13.5, fontFamily: 'inherit', color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }}
-                    />
-                    <button type="submit" disabled={magicLinkLoading} style={{
-                      display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px',
-                      background: '#000E91', border: 'none', borderRadius: 10, color: '#fff',
-                      fontWeight: 700, fontSize: 12.5, cursor: magicLinkLoading ? 'not-allowed' : 'pointer',
-                      fontFamily: 'inherit', opacity: magicLinkLoading ? 0.7 : 1, flexShrink: 0,
-                    }}>
-                      {magicLinkLoading ? <div className="spinner" style={{ width: 14, height: 14 }} /> : <Ico name="mail" size={14} color="#fff" />}
-                      {t.magicLinkBtn}
-                    </button>
-                  </form>
-                  {magicLinkError && <div style={{ fontSize: 12.5, color: '#dc2626', marginTop: 8 }}>{magicLinkError}</div>}
-                </>
-              ) : (
-                <div style={{ background: '#EBF3FF', border: '1px solid #bfdbfe', borderRadius: 12, padding: '16px 18px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                    <Ico name="mail" size={16} color="#0073F4" />
-                    <span style={{ fontSize: 13.5, fontWeight: 800, color: '#000E91' }}>{t.magicLinkSentTitle}</span>
-                  </div>
-                  <p style={{ fontSize: 12.5, color: '#334155', lineHeight: 1.6, margin: '0 0 10px' }}>
-                    {t.magicLinkSentText(authEmail)}
-                  </p>
-                  <button type="button" onClick={() => setMagicLinkSent(false)} style={{ background: 'none', border: 'none', color: '#0073F4', fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
-                    {t.magicLinkChangeEmail}
-                  </button>
-                </div>
-              )}
+              <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, marginBottom: 14 }}>
+                {t.espacePersoText}
+              </p>
+              <form onSubmit={handleAccessSubmit} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <input
+                  type="text" required value={accessDossier}
+                  onChange={e => setAccessDossier(e.target.value)}
+                  placeholder={t.dossierPh}
+                  style={{ flex: '1 1 200px', padding: '11px 14px', fontSize: 13.5, fontFamily: 'inherit', color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }}
+                />
+                <input
+                  type="email" required value={accessEmail}
+                  onChange={e => setAccessEmail(e.target.value)}
+                  placeholder={t.emailPh}
+                  style={{ flex: '1 1 200px', padding: '11px 14px', fontSize: 13.5, fontFamily: 'inherit', color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }}
+                />
+                <button type="submit" disabled={accessLoading} style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '11px 18px',
+                  background: '#000E91', border: 'none', borderRadius: 10, color: '#fff',
+                  fontWeight: 700, fontSize: 12.5, cursor: accessLoading ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit', opacity: accessLoading ? 0.7 : 1, flexShrink: 0,
+                }}>
+                  {accessLoading ? <div className="spinner" style={{ width: 14, height: 14 }} /> : <Ico name="mail" size={14} color="#fff" />}
+                  {t.accessBtn}
+                </button>
+              </form>
+              {accessError && <div style={{ fontSize: 12.5, color: '#dc2626', marginTop: 8 }}>{accessError}</div>}
             </>
           )}
 
