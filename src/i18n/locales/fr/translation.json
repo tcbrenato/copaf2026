@@ -29,7 +29,7 @@
     "card": {
       "location": "Lieu", "locationValue": "Casablanca",
       "dates": "Dates", "datesValue": "19–21 Oct.",
-      "deadline": "Limite", "deadlineValue": "31 Août"
+      "deadline": "Limite", "deadlineValue": "09 Oct."
     }
   },
   "about": {
@@ -294,7 +294,7 @@
     "paiementLabel": "Mode de paiement *",
     "paiementOpts": [
       { "value": "maintenant", "title": "Payer maintenant", "desc": "Virement sous 7 jours ouvrables" },
-      { "value": "plus_tard", "title": "Réserver ma place", "desc": "Paiement avant le 31 août 2026" }
+      { "value": "plus_tard", "title": "Réserver ma place", "desc": "Paiement avant le 09 octobre 2026" }
     ],
     "beforeSubmitTitle": "À savoir avant de valider",
     "beforeSubmit1": "Les inscriptions sont fermes et définitives : aucun remboursement, quel que soit le motif (un collègue peut vous remplacer avec notification 72h avant).",

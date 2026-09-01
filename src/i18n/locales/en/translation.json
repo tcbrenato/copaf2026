@@ -29,7 +29,7 @@
     "card": {
       "location": "Location", "locationValue": "Casablanca",
       "dates": "Dates", "datesValue": "Oct 19–21",
-      "deadline": "Deadline", "deadlineValue": "Aug 31"
+      "deadline": "Deadline", "deadlineValue": "Oct 09"
     }
   },
   "about": {
@@ -294,7 +294,7 @@
     "paiementLabel": "Payment method *",
     "paiementOpts": [
       { "value": "maintenant", "title": "Pay now", "desc": "Bank transfer within 7 business days" },
-      { "value": "plus_tard", "title": "Reserve my spot", "desc": "Payment before August 31, 2026" }
+      { "value": "plus_tard", "title": "Reserve my spot", "desc": "Payment before October 9, 2026" }
     ],
     "beforeSubmitTitle": "Before you confirm",
     "beforeSubmit1": "Registrations are final: no refunds for any reason (a colleague may replace you with 72h notice).",

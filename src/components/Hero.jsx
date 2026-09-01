@@ -234,7 +234,7 @@ const Hero = () => {
                 <div className="glass-badge-divider" style={{ height: '26px', width: '1px', background: 'rgba(255,255,255,0.12)' }} />
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ margin: 0, fontSize: '9.5px', color: '#FF9D5C', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Limite</p>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>31 Août</p>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>09 Oct.</p>
                 </div>
               </div>
             </div>
@@ -247,7 +247,7 @@ const Hero = () => {
               color: 'rgba(255,255,255,0.45)',
               textAlign: 'center',
             }}>
-              Organisé par <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 700 }}>CRF Perfection</span> · sous l'égide de l'AGPAOC
+              Organisé par <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 700 }}>CRF Perfection</span> · sous l'égide conjointe de l'AGPAOC et l'UAPNA et sous le haut patronage de l'ANP
             </p>
           </div>
         </div>
