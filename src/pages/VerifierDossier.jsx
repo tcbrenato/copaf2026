@@ -170,7 +170,7 @@ export default function VerifierDossier() {
         setResult({ type: 'dossier', ...data[0] })
         setAccessDossier(data[0].dossier) // pre-remplit le formulaire d'acces ci-dessous
       } else setResult(null)
-    } catch (err) {
+    } catch {
       setError(t.genericError)
       setResult(undefined)
     }

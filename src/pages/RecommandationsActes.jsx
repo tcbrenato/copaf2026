@@ -246,7 +246,7 @@ export default function RecommandationsActes() {
         }} className="copaf-reco-tabs">
           {TABS.map(tab => (
             <button key={tab.id} onClick={() => goTo(tab.id)} style={{
-              flexShrink: 0, padding: '9px 16px', borderRadius: 50, border: 'none', cursor: 'pointer',
+              flexShrink: 0, padding: '9px 16px', borderRadius: 50, cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap', transition: 'all .18s',
               background: activeTab === tab.id ? `linear-gradient(135deg,${BLUE},${NAVY})` : '#fff',
               color: activeTab === tab.id ? '#fff' : '#475569',

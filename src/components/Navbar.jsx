@@ -36,6 +36,13 @@ const Navbar = () => {
     return () => window.removeEventListener('resize', fn)
   }, [])
 
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 20)
+    fn()
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
+  }, [])
+
   const openConference  = () => { clearTimeout(conferenceTimer.current); setConferenceOpen(true) }
   const closeConference = () => { conferenceTimer.current = setTimeout(() => setConferenceOpen(false), 120) }
   const openDropdown    = () => { clearTimeout(dropdownTimer.current);   setDropdownOpen(true) }

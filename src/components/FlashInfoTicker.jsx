@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 // Liste des ports/autorités déjà inscrites à la COPAF 2026 (mise à jour manuelle
@@ -12,7 +11,6 @@ const registeredPorts = [
 
 const FlashInfoTicker = () => {
   const { t } = useTranslation()
-  const trackRef = useRef(null)
   const items = [...registeredPorts, ...registeredPorts, ...registeredPorts]
 
   if (registeredPorts.length === 0) return null

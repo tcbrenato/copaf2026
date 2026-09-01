@@ -145,7 +145,6 @@ async function loadLogoCompressed(src, targetHeightPx = 220) {
 /**
  * @param {object} params
  * @param {object} params.form
- * @param {string} params.dossier
  * @param {string} params.numeroFacture - ex: 'FACT-2026-0001'
  * @param {number} params.nb
  * @param {number} params.total
@@ -153,7 +152,7 @@ async function loadLogoCompressed(src, targetHeightPx = 220) {
  * @param {boolean} [params.download=true]
  * @param {string} [params.logoSrc='/crflogo.png']
  */
-export async function generateFactureDefinitivePDF({ form, dossier, numeroFacture, nb, total, lang = 'fr', download = true, logoSrc = '/crflogo.png' }) {
+export async function generateFactureDefinitivePDF({ form, numeroFacture, nb, total, lang = 'fr', download = true, logoSrc = '/crflogo.png' }) {
   const L = TXT[lang] || TXT.fr
   const PRESTATIONS_INCLUSES = PRESTATIONS[lang] || PRESTATIONS.fr
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })

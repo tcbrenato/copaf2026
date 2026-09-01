@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 
 const partners = [
@@ -16,7 +15,6 @@ const partners = [
 
 const Partners = () => {
   const { t } = useTranslation()
-  const trackRef = useRef(null)
   const items = [...partners, ...partners, ...partners]
 
   return (
