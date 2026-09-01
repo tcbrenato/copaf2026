@@ -297,7 +297,7 @@
       { "value": "plus_tard", "title": "Réserver ma place", "desc": "Paiement avant le 09 octobre 2026" }
     ],
     "beforeSubmitTitle": "À savoir avant de valider",
-    "beforeSubmit1": "Les inscriptions sont fermes et définitives : aucun remboursement, quel que soit le motif (un collègue peut vous remplacer avec notification 72h avant).",
+    "beforeSubmit1": "Les inscriptions sont définitives et non annulables : aucun remboursement, quel que soit le motif (un collègue peut vous remplacer avec notification 72h avant).",
     "beforeSubmit2": "Après votre email de confirmation, contactez-nous par WhatsApp ou email pour finaliser le paiement.",
     "securityTitle": "🔒 Sécurité de vos paiements",
     "securityText": "Avant tout virement, vérifiez toujours nos coordonnées bancaires officielles sur notre page sécurisée copaf-ports.com/verifier. Toute demande de virement vers un RIB non listé sur cette page doit être considérée comme suspecte.",
@@ -328,6 +328,6 @@
     "verifyRib": "Vérifiez toujours le RIB avant de payer sur notre page dédiée.",
     "verifyNow": "Vérifier maintenant →",
     "reminderTitle": "Rappel :",
-    "reminderText": " Les inscriptions sont fermes et définitives. Aucun remboursement ne sera effectué. En cas d'empêchement, vous pouvez vous faire remplacer par un collègue (notification 72h avant)."
+    "reminderText": " Les inscriptions sont définitives et non annulables. Aucun remboursement ne sera effectué. En cas d'empêchement, vous pouvez vous faire remplacer par un collègue (notification 72h avant)."
   }
 }
