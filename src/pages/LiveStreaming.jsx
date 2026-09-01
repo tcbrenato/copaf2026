@@ -14,8 +14,8 @@ const YOUTUBE_CHANNEL_URL = 'https://www.youtube.com/@copafports'
 // Fenetre de la conference : avant cette date, on affiche un compte a
 // rebours plutot que d'essayer d'integrer un flux qui n'existe pas encore
 // (l'embed peut sinon afficher un cadre vide ou une erreur YouTube).
-const DEBUT_CONFERENCE = new Date('2026-09-15T08:00:00+01:00')
-const FIN_CONFERENCE   = new Date('2026-09-18T00:00:00+01:00')
+const DEBUT_CONFERENCE = new Date('2026-10-19T08:00:00+01:00')
+const FIN_CONFERENCE   = new Date('2026-10-22T00:00:00+01:00')
 
 const Ico = ({ name, size = 22, color = 'currentColor' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
@@ -54,7 +54,7 @@ export default function LiveStreaming() {
     <div style={{ minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#f8fafc', background: '#0a1128' }}>
       <SeoHead
         title="Live Streaming — COPAF 2026"
-        description="Suivez la Conférence des Ports Africains (COPAF) 2026 en direct, du 15 au 17 septembre à Casablanca."
+        description="Suivez la Conférence des Ports Africains (COPAF) 2026 en direct, du 19 au 21 octobre à Casablanca."
         canonical="https://copaf-ports.com/live"
         type="website"
       />
@@ -81,7 +81,7 @@ export default function LiveStreaming() {
             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '48px 24px' }}>
               <Ico name="clock" size={36} color="#60a5fa" />
               <p style={{ fontSize: 15, color: '#cbd5e1', marginTop: 16, marginBottom: 0 }}>
-                La diffusion en direct commencera le <strong style={{ color: '#fff' }}>15 septembre 2026</strong>
+                La diffusion en direct commencera le <strong style={{ color: '#fff' }}>19 octobre 2026</strong>
               </p>
               <Compteur />
             </div>

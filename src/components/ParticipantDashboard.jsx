@@ -243,7 +243,7 @@ function TabBadge({ myDossier, t, tt, genLoading, onDownloadBadge }) {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,.2)', paddingTop: 14 }}>
           <span style={{ fontSize: 11, fontFamily: 'monospace', letterSpacing: 1, opacity: 0.85 }}>{myDossier.dossier}</span>
-          <span style={{ fontSize: 10, opacity: 0.6 }}>15–17 Sept. Casablanca</span>
+          <span style={{ fontSize: 10, opacity: 0.6 }}>19–21 Oct. Casablanca</span>
         </div>
       </div>
       <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '12px 0', lineHeight: 1.6, textAlign: 'center' }}>{tt.badgeConfirmeTip}</p>

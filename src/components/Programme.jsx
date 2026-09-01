@@ -41,11 +41,12 @@ const joursMeta = [
   { icon: icons.map, accent: C.blueLight },
 ]
 
-// ✅ Jour 2 mis a jour a 5 icones (ajout de "Remise d'attestation" = icons.award)
+// ✅ Jour 2 mis a jour a 7 icones (pauses dejeuner/cafe ajoutees + attestation)
+// ✅ Jour 3 mis a jour a 3 icones (visite port, infrastructures IT & IA, reseautage)
 const sessionIconsByDay = [
   [icons.mic, icons.cpu, icons.chart, icons.search, icons.handshake],
-  [icons.anchor, icons.lock, icons.shield, icons.clipboard, icons.award],
-  [icons.dollar],
+  [icons.anchor, icons.lock, icons.users, icons.shield, icons.users, icons.clipboard, icons.award],
+  [icons.anchor, icons.cpu, icons.handshake],
 ]
 
 const categorieBadgeMap = {
@@ -370,7 +371,7 @@ const Programme = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16, marginTop: 40 }}>
           {[
             { icon: icons.pin, label: t('hero.card.location'), value: 'Bâtiment Communautaire Portuaire, Casablanca' },
-            { icon: icons.cal, label: t('hero.card.dates'), value: '15 – 17 Septembre 2026' },
+            { icon: icons.cal, label: t('hero.card.dates'), value: '19 – 21 Octobre 2026' },
             { icon: icons.globe, label: 'Langues', value: 'Français & Anglais (traduction simultanée)' },
           ].map((info, i) => (
             <div key={i} className="prog-stat-card" style={{

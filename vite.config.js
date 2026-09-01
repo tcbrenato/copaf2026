@@ -35,7 +35,7 @@ export default defineConfig({
       manifest: {
         name: 'COPAF 2026',
         short_name: 'COPAF',
-        description: 'Conférence des Ports Africains 2026 — Casablanca, 15-17 septembre',
+        description: 'Conférence des Ports Africains 2026 — Casablanca, 19-21 octobre',
         lang: 'fr',
         start_url: '/',
         display: 'standalone',

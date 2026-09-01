@@ -28,7 +28,7 @@
     "downloadButton": "Download the brochure",
     "card": {
       "location": "Location", "locationValue": "Casablanca",
-      "dates": "Dates", "datesValue": "Sept 15–17",
+      "dates": "Dates", "datesValue": "Oct 19–21",
       "deadline": "Deadline", "deadlineValue": "Aug 31"
     }
   },
@@ -80,16 +80,16 @@
     "description": "A structured programme to transform your approach to African port management.",
     "downloadPdfButton": "Download the programme (PDF)",
     "tabs": [
-      { "jour": "Day 1", "date": "Sept 15", "titre": "Vision of the African Smart Port" },
-      { "jour": "Day 2", "date": "Sept 16", "titre": "Operational Excellence, Security & Cybersecurity" },
-      { "jour": "Day 3", "date": "Sept 17", "titre": "Field Immersion" }
+      { "jour": "Day 1", "date": "Oct 19", "titre": "Vision of the African Smart Port" },
+      { "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security & Cybersecurity" },
+      { "jour": "Day 3", "date": "Oct 21", "titre": "Field Immersion" }
     ],
     "statLabel": "Sessions",
     "sessionLabel": "Sessions",
     "viewDetails": "View details",
     "days": [
       {
-        "jour": "Day 1", "date": "Sept 15", "titre": "Vision of the African Smart Port",
+        "jour": "Day 1", "date": "Oct 19", "titre": "Vision of the African Smart Port",
         "objectif": "Understand the technological landscape and identify opportunities",
         "accent": "#0073f4",
         "sessions": [
@@ -97,27 +97,31 @@
           { "heure": "10:15 – 11:30 AM", "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specifics.", "intervenant": "M. Abiala", "categorie": "Recruté" },
           { "heure": "11:30 AM – 12:45 PM", "type": "Panel", "titre": "Digital maturity diagnosis", "desc": "Assess your port authority's digital maturity — flagship live session on tablet.", "intervenant": "Dr William ODAH / M. Tchobo", "categorie": "Maison" },
           { "heure": "1:45 – 3:00 PM", "type": "Workshop", "titre": "Business model for developing a port technology project", "desc": "ROI, success and failure case studies.", "intervenant": "Experts Maroc", "categorie": "Partenaire" },
-          { "heure": "3:30 – 4:45 PM", "type": "Round Table", "titre": "Automation and data governance", "desc": "AI-driven automation of port operations and data governance.", "intervenant": "M. Tchobo / M. Abiala", "categorie": "Maison" }
+          { "heure": "3:30 – 4:45 PM", "type": "Round Table", "titre": "Automation and data governance", "desc": "AI-driven automation of port operations and data governance.", "intervenant": "M. Tchobo / Mme Balsomi", "categorie": "Maison" }
         ]
       },
       {
-        "jour": "Day 2", "date": "Sept 16", "titre": "Operational Excellence, Security & Cybersecurity",
+        "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security & Cybersecurity",
         "objectif": "Making operations smoother and safer, leveraging AI and port cybersecurity",
         "accent": "#000e91",
         "sessions": [
           { "heure": "9:00 – 10:30 AM", "type": "Plenary", "titre": "Nautical operations and multimodal transport management", "desc": "Estimated time of arrival (ETA) predictions and smart management of multimodal transport (trucking and rail).", "intervenant": "Marc Biegniébé", "categorie": "Recruté" },
           { "heure": "11:00 AM – 12:30 PM", "type": "Panel", "titre": "Safety & Security", "desc": "AI for automatic anomaly detection (scanners, video surveillance).", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
-          { "heure": "1:30 – 2:15 PM", "type": "Workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Expert Babel BALSOMI", "categorie": "Recruté" },
-          { "heure": "2:45 – 4:15 PM", "type": "Round Table", "titre": "Roadmap", "desc": "Real-time monitoring and decision support.", "intervenant": "Dr ODAH", "categorie": "Maison" },
-          { "heure": "4:15 PM", "type": "Closing", "titre": "Certificate presentation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
+          { "heure": "12:30 – 1:30 PM", "type": "Break", "titre": "Lunch", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
+          { "heure": "1:30 – 2:45 PM", "type": "Workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Expert Babel BALSOMI", "categorie": "Recruté" },
+          { "heure": "2:45 – 3:15 PM", "type": "Break", "titre": "Coffee break", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
+          { "heure": "3:15 – 4:30 PM", "type": "Round Table", "titre": "Roadmap", "desc": "Real-time monitoring and decision support.", "intervenant": "Dr ODAH", "categorie": "Maison" },
+          { "heure": "4:30 PM", "type": "Closing", "titre": "Certificate presentation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
         ]
       },
       {
-        "jour": "Day 3", "date": "Sept 17", "titre": "Field Immersion",
+        "jour": "Day 3", "date": "Oct 21", "titre": "Field Immersion",
         "objectif": "See the Smart Port in practice, at the Port of Casablanca",
         "accent": "#3391f6",
         "sessions": [
-          { "heure": "All day", "type": "Technical Visit", "titre": "Field immersion", "desc": "Visit to the Port of Casablanca, IT & AI infrastructure tour, networking.", "intervenant": "ANP / UAPNA Teams", "categorie": "Partenaire" }
+          { "heure": "—", "type": "Technical Visit", "titre": "Visit to the Port of Casablanca", "desc": "Discover port facilities and operations in real conditions.", "intervenant": "ANP / UAPNA Teams", "categorie": "Partenaire" },
+          { "heure": "—", "type": "Technical Visit", "titre": "IT & AI infrastructure tour", "desc": "Immersion in the deployed technology infrastructure and AI solutions.", "intervenant": "ANP / UAPNA Teams", "categorie": "Partenaire" },
+          { "heure": "—", "type": "Networking", "titre": "Networking", "desc": "Informal exchanges between participants and industry stakeholders.", "intervenant": "ANP / UAPNA Teams", "categorie": "Partenaire" }
         ]
       }
     ]
@@ -131,7 +135,7 @@
     "navLinks": ["About", "Programme", "Thematic Tracks", "Registration"],
     "contactTitle": "Contact",
     "copyright": "© 2026 COPAF — CRF Perfection. All rights reserved.",
-    "location": "Casablanca, Morocco · September 15–17, 2026"
+    "location": "Casablanca, Morocco · October 19–21, 2026"
   },
   "contact": {
     "eyebrow": "Contact",
@@ -199,7 +203,7 @@
     "modalClose": "Close",
     "axes": [
       {
-        "num": "01", "jour": "Day 1", "date": "Sept 15", "titre": "Vision of the African Smart Port",
+        "num": "01", "jour": "Day 1", "date": "Oct 19", "titre": "Vision of the African Smart Port",
         "sousTitre": "Understand the technological landscape and identify opportunities",
         "level": "Vision & Strategy", "duration": "7h45",
         "activities": [
@@ -207,11 +211,11 @@
           { "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specifics.", "intervenant": "M. Abiala", "categorie": "Recruté" },
           { "type": "Panel", "titre": "Digital maturity diagnosis", "desc": "Flagship live session on tablet.", "intervenant": "Dr William ODAH / M. Tchobo", "categorie": "Maison" },
           { "type": "Workshop", "titre": "Business model for developing a port technology project", "desc": "ROI, success and failure case studies.", "intervenant": "Experts Maroc", "categorie": "Partenaire" },
-          { "type": "Round Table", "titre": "Automation and data governance", "desc": "AI-driven automation of port operations and data governance.", "intervenant": "M. Tchobo / M. Abiala", "categorie": "Maison" }
+          { "type": "Round Table", "titre": "Automation and data governance", "desc": "AI-driven automation of port operations and data governance.", "intervenant": "M. Tchobo / Mme Balsomi", "categorie": "Maison" }
         ]
       },
       {
-        "num": "02", "jour": "Day 2", "date": "Sept 16", "titre": "Operational Excellence, Security & Cybersecurity",
+        "num": "02", "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security & Cybersecurity",
         "sousTitre": "Making operations smoother and safer, leveraging AI and port cybersecurity",
         "level": "Operations & Security", "duration": "7h15",
         "activities": [
@@ -223,11 +227,13 @@
         ]
       },
       {
-        "num": "03", "jour": "Day 3", "date": "Sept 17", "titre": "Field Immersion",
+        "num": "03", "jour": "Day 3", "date": "Oct 21", "titre": "Field Immersion",
         "sousTitre": "See the Smart Port in practice, at the Port of Casablanca",
         "level": "Field & Practice", "duration": "7h",
         "activities": [
-          { "type": "Technical Visit", "titre": "Field immersion", "desc": "Visit to the Port of Casablanca, IT & AI infrastructure tour, networking.", "intervenant": "ANP / UAPNA Teams", "categorie": "Partenaire" }
+          { "type": "Technical Visit", "titre": "Visit to the Port of Casablanca", "desc": "Discover port facilities and operations in real conditions.", "intervenant": "ANP / UAPNA Teams", "categorie": "Partenaire" },
+          { "type": "Technical Visit", "titre": "IT & AI infrastructure tour", "desc": "Immersion in the deployed technology infrastructure and AI solutions.", "intervenant": "ANP / UAPNA Teams", "categorie": "Partenaire" },
+          { "type": "Networking", "titre": "Networking", "desc": "Informal exchanges between participants and industry stakeholders.", "intervenant": "ANP / UAPNA Teams", "categorie": "Partenaire" }
         ]
       }
     ],
@@ -262,10 +268,10 @@
     "inclusList": [
       "Airport welcome and hotel check-in assistance",
       "Airport ↔ Hotel shuttle (round trip)",
-      "4 nights' accommodation in a 4-star hotel",
-      "Breakfast & lunch during the 3 days",
-      "Access to conferences, workshops & networking",
-      "Guided tour of the Port of Casablanca",
+      "4 nights' accommodation in a hotel",
+      "Breakfast & lunch throughout the stay",
+      "Access to conferences, workshops & networking (Days 1 and 2)",
+      "Technical visit to the Port of Casablanca (Day 3)",
       "Tablet preloaded with case studies",
       "Certificate of participation"
     ],

@@ -101,7 +101,7 @@ export default function ActualiteDetail() {
         <div style={{ marginTop: 40, padding: '20px 24px', borderRadius: 16, background: 'rgba(0,115,244,0.06)', border: '1px solid rgba(0,115,244,0.15)' }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: NAVY, marginBottom: 6 }}>COPAF 2026 — Conférence des Ports Africains</div>
           <p style={{ fontSize: 13.5, color: '#475569', margin: 0, lineHeight: 1.6 }}>
-            Du 15 au 17 septembre 2026 à Casablanca. Plus d'informations et inscription sur <a href="/inscription" style={{ color: BLUE, fontWeight: 700 }}>copaf-ports.com/inscription</a>.
+            Du 19 au 21 octobre 2026 à Casablanca. Plus d'informations et inscription sur <a href="/inscription" style={{ color: BLUE, fontWeight: 700 }}>copaf-ports.com/inscription</a>.
           </p>
         </div>
 

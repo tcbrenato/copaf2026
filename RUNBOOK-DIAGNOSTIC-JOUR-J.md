@@ -1,6 +1,6 @@
 # Runbook Jour J — Diagnostic Smart Port (COPAF 2026)
 
-Document de poche pour la personne qui pilote le Diagnostic Smart Port sur place (15-18 septembre 2026). Objectif : ne jamais avoir à chercher où cliquer en pleine session.
+Document de poche pour la personne qui pilote le Diagnostic Smart Port sur place (19-22 octobre 2026). Objectif : ne jamais avoir à chercher où cliquer en pleine session.
 
 ---
 

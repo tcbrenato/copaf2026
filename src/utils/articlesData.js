@@ -69,14 +69,14 @@ export const ARTICLES = [
   {
     slug: 'copaf-2026-conference-ports-africains-ia-cybersecurite',
     title: 'COPAF 2026 réunit les ports africains autour de l\'intelligence artificielle et de la cybersécurité, à Casablanca',
-    metaDescription: "Du 15 au 17 septembre 2026 à Casablanca, la Conférence des Ports Africains (COPAF 2026) rassemble dirigeants portuaires, experts et partenaires autour du thème « Smart Port Africain : IA et cybersécurité au service de la performance ».",
-    excerpt: "Communiqué — La Conférence des Ports Africains (COPAF 2026) se tiendra du 15 au 17 septembre 2026 à Casablanca, autour de la transformation digitale et de la cybersécurité des ports du continent.",
+    metaDescription: "Du 19 au 21 octobre 2026 à Casablanca, la Conférence des Ports Africains (COPAF 2026) rassemble dirigeants portuaires, experts et partenaires autour du thème « Smart Port Africain : IA et cybersécurité au service de la performance ».",
+    excerpt: "Communiqué — La Conférence des Ports Africains (COPAF 2026) se tiendra du 19 au 21 octobre 2026 à Casablanca, autour de la transformation digitale et de la cybersécurité des ports du continent.",
     imageUrl: '/hero1.png',
     publishedDate: '2026-08-15',
     releaseDate: '2026-09-04',
     readingTime: 4,
     content: [
-      { type: 'p', text: "Casablanca accueillera, du 15 au 17 septembre 2026, la Conférence des Ports Africains (COPAF 2026), un rendez-vous consacré à la transformation digitale du secteur portuaire africain. Organisée par CRF Perfection en partenariat avec l'AGPAOC (Association de Gestion des Ports de l'Afrique de l'Ouest et du Centre) et l'ANP/UAPNA, cette édition a pour thème « Smart Port Africain : Intelligence Artificielle et cybersécurité au service de la performance »." },
+      { type: 'p', text: "Casablanca accueillera, du 19 au 21 octobre 2026, la Conférence des Ports Africains (COPAF 2026), un rendez-vous consacré à la transformation digitale du secteur portuaire africain. Organisée par CRF Perfection en partenariat avec l'AGPAOC (Association de Gestion des Ports de l'Afrique de l'Ouest et du Centre) et l'ANP/UAPNA, cette édition a pour thème « Smart Port Africain : Intelligence Artificielle et cybersécurité au service de la performance »." },
       { type: 'h2', text: "Trois jours, entre réflexion stratégique et immersion terrain" },
       { type: 'p', text: "Le programme s'articule autour de trois journées thématiques. La première pose le cadre général de la « vision Smart Port africain », avec des plénières et panels consacrés au rôle de l'intelligence artificielle dans la modernisation des opérations portuaires. La deuxième journée se concentre sur l'excellence opérationnelle, la sécurité et la cybersécurité, avec des ateliers dédiés à la protection des systèmes portuaires connectés face aux menaces informatiques. La troisième journée propose une immersion terrain, avec une visite du Port de Casablanca et de ses infrastructures technologiques, portée par les équipes de l'Agence Nationale des Ports (ANP) et de l'UAPNA." },
       { type: 'h2', text: "Un espace d'échange entre dirigeants portuaires et experts sectoriels" },
@@ -96,7 +96,7 @@ export const ARTICLES = [
     content: [
       { type: 'p', text: "Dans le cadre des préparatifs de la Conférence des Ports Africains (COPAF 2026), le Directeur Général du Cabinet CRF PERFECTION, Dr William ODAH, a effectué une visite de travail à Casablanca, au Royaume du Maroc, où il a été reçu ce mercredi 12 août 2026 à la salle communautaire du Port de Casablanca par une équipe de l'Agence Nationale des Ports (ANP)." },
       { type: 'p', text: "La délégation marocaine était composée de M. Abdellatif LHOUAOUI, Directeur de la Communication et Relations Institutionnelles, de M. Abdelaziz FROUNI, Chef du Département Support, et de M. Ait Ali ABDERRAHIM, Chef du Département Infrastructures." },
-      { type: 'p', text: "Cette rencontre s'inscrit dans le cadre de la préparation de la prochaine édition de la Conférence des Ports Africains, qui se tiendra du 15 au 17 septembre 2026 à Casablanca, autour du thème « Smart Port Africain : IA et Cybersécurité au service de la performance »." },
+      { type: 'p', text: "Cette rencontre s'inscrit dans le cadre de la préparation de la prochaine édition de la Conférence des Ports Africains, qui se tiendra du 19 au 21 octobre 2026 à Casablanca, autour du thème « Smart Port Africain : IA et Cybersécurité au service de la performance »." },
       { type: 'h2', text: "Une rencontre consacrée aux préparatifs de la COPAF" },
       { type: 'p', text: "Les échanges ont essentiellement porté sur les dispositions pratiques liées à l'organisation de la conférence, ainsi que sur la mobilisation des représentants de l'ANP et des ports membres de l'UAPNA." },
       { type: 'p', text: "Cette rencontre intervient dans le prolongement des échanges engagés autour de la COPAF entre le Cabinet CRF PERFECTION, organisateur de la conférence, l'Association de Gestion des Ports de l'Afrique de l'Ouest et du Centre (AGPAOC) et les différents acteurs portuaires marocains." },
@@ -118,7 +118,7 @@ export const ARTICLES = [
       { type: 'h2', text: "Une étape importante dans la préparation de la COPAF 2026" },
       { type: 'p', text: "Cette mission de travail à Casablanca constitue une étape importante dans le processus de préparation de la COPAF 2026. Elle témoigne également de la volonté du Cabinet CRF PERFECTION de construire cette rencontre avec les institutions et acteurs directement concernés par l'avenir du secteur portuaire africain." },
       { type: 'p', text: "Les travaux de préparation se poursuivent désormais avec la finalisation des dispositions techniques, logistiques et scientifiques, ainsi que la mobilisation des différents participants et intervenants attendus à Casablanca." },
-      { type: 'p', text: "Rendez-vous est donc pris les 15, 16 et 17 septembre 2026 à Casablanca pour trois journées consacrées à l'avenir du Smart Port africain." },
+      { type: 'p', text: "Rendez-vous est donc pris les 19, 20 et 21 octobre 2026 à Casablanca pour trois journées consacrées à l'avenir du Smart Port africain." },
     ],
   },
 ]

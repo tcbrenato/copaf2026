@@ -34,8 +34,8 @@ export function generateICS({
   title,
   description,
   location,
-  start = new Date('2026-09-15T09:00:00'),
-  end = new Date('2026-09-17T17:30:00'),
+  start = new Date('2026-10-19T09:00:00'),
+  end = new Date('2026-10-21T17:30:00'),
 } = {}) {
   const L = TXT[lang] || TXT.fr
   const finalTitle = title || L.title

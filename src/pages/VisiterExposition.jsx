@@ -98,11 +98,11 @@ function GalleryLightbox({ images, index, onClose, onNav }) {
 
 // ─── PRISE DE RENDEZ-VOUS DIRECTE ──────────────────────────────────────────────
 // Formulaire de demande de rencontre individuelle avec un exposant, sur son
-// stand, pendant la COPAF 2026 (Casablanca, 15-17 septembre 2026). Le contact
+// stand, pendant la COPAF 2026 (Casablanca, 19-21 octobre 2026). Le contact
 // est enregistre via la meme RPC publique que les autres formulaires du site,
 // puis la demande est journalisee dans rendezvous_exposants pour suivi.
 
-const JOURS_COPAF = ['15 septembre 2026', '16 septembre 2026', '17 septembre 2026', 'Peu importe le jour']
+const JOURS_COPAF = ['19 octobre 2026', '20 octobre 2026', '21 octobre 2026', 'Peu importe le jour']
 
 function AppointmentModal({ exposant, onClose }) {
   const [formData, setFormData] = useState({ nom: '', email: '', telephone: '', organisation: '', jour: '', message: '' })
@@ -173,7 +173,7 @@ function AppointmentModal({ exposant, onClose }) {
             </div>
             <h2 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>Rencontrer {exposant.nom}</h2>
             <p style={{ color: '#64748b', fontSize: 13.5, lineHeight: 1.7, marginBottom: 22 }}>
-              Planifiez une rencontre individuelle sur son stand, pendant les 3 jours de la COPAF 2026 à Casablanca (15–17 septembre 2026).
+              Planifiez une rencontre individuelle sur son stand, pendant les 3 jours de la COPAF 2026 à Casablanca (19–21 octobre 2026).
             </p>
 
             <form onSubmit={submit} noValidate>

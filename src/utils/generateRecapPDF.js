@@ -27,8 +27,8 @@ const GREEN_WA = [37, 211, 102]
 const EVENT = {
   nom: 'COPAF 2026',
   titreLong: { fr: 'Conférence des Ports Africains', en: 'Conference of African Ports' },
-  dates: { fr: 'Du 15 au 17 Septembre 2026', en: '15 to 17 September 2026' },
-  datesSentence: { fr: 'du 15 au 17 septembre 2026', en: '15 to 17 September 2026' },
+  dates: { fr: 'Du 19 au 21 Octobre 2026', en: '19 to 21 October 2026' },
+  datesSentence: { fr: 'du 19 au 21 octobre 2026', en: '19 to 21 October 2026' },
   lieu: { fr: 'Casablanca, Royaume du Maroc', en: 'Casablanca, Kingdom of Morocco' },
   organisateur: 'CRF Perfection',
 }

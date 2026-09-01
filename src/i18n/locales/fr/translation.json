@@ -28,7 +28,7 @@
     "downloadButton": "Télécharger la brochure",
     "card": {
       "location": "Lieu", "locationValue": "Casablanca",
-      "dates": "Dates", "datesValue": "15–17 Sept.",
+      "dates": "Dates", "datesValue": "19–21 Oct.",
       "deadline": "Limite", "deadlineValue": "31 Août"
     }
   },
@@ -80,16 +80,16 @@
     "description": "Un programme structuré pour transformer votre approche de la gestion portuaire africaine.",
     "downloadPdfButton": "Télécharger le programme (PDF)",
     "tabs": [
-      { "jour": "Jour 1", "date": "15 Sept.", "titre": "Vision Smart Port Africain" },
-      { "jour": "Jour 2", "date": "16 Sept.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité" },
-      { "jour": "Jour 3", "date": "17 Sept.", "titre": "Immersion Terrain" }
+      { "jour": "Jour 1", "date": "19 Oct.", "titre": "Vision Smart Port Africain" },
+      { "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité" },
+      { "jour": "Jour 3", "date": "21 Oct.", "titre": "Immersion Terrain" }
     ],
     "statLabel": "Sessions",
     "sessionLabel": "Sessions",
     "viewDetails": "Voir le détail",
     "days": [
       {
-        "jour": "Jour 1", "date": "15 Sept.", "titre": "Vision Smart Port Africain",
+        "jour": "Jour 1", "date": "19 Oct.", "titre": "Vision Smart Port Africain",
         "objectif": "Comprendre le paysage technologique et identifier les opportunités",
         "accent": "#0073f4",
         "sessions": [
@@ -97,27 +97,31 @@
           { "heure": "10h15 – 11h30", "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Abiala", "categorie": "Recruté" },
           { "heure": "11h30 – 12h45", "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire — session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Tchobo", "categorie": "Maison" },
           { "heure": "13h45 – 15h00", "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Experts Maroc", "categorie": "Partenaire" },
-          { "heure": "15h30 – 16h45", "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Tchobo / M. Abiala", "categorie": "Maison" }
+          { "heure": "15h30 – 16h45", "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Tchobo / Mme Balsomi", "categorie": "Maison" }
         ]
       },
       {
-        "jour": "Jour 2", "date": "16 Sept.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
+        "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
         "objectif": "Rendre les opérations plus fluides et plus sûres, en s'appuyant sur l'IA et la cybersécurité portuaire",
         "accent": "#000e91",
         "sessions": [
           { "heure": "09h00 – 10h30", "type": "Plénière", "titre": "Opérations nautiques et gestion des transports multimodaux", "desc": "Prédictions des arrivées (ETA) et gestion intelligente des transports multimodaux (camions et ferroviaires).", "intervenant": "Marc Biegniébé", "categorie": "Recruté" },
           { "heure": "11h00 – 12h30", "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
-          { "heure": "13h30 – 14h15", "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Expert Babel BALSOMI", "categorie": "Recruté" },
-          { "heure": "14h45 – 16h15", "type": "Table Ronde", "titre": "Feuille de route", "desc": "Pilotage en temps réel et aide à la décision.", "intervenant": "Dr ODAH", "categorie": "Maison" },
-          { "heure": "16h15", "type": "Clôture", "titre": "Remise d'attestation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
+          { "heure": "12h30 – 13h30", "type": "Pause", "titre": "Déjeuner", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
+          { "heure": "13h30 – 14h45", "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Expert Babel BALSOMI", "categorie": "Recruté" },
+          { "heure": "14h45 – 15h15", "type": "Pause", "titre": "Pause café", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
+          { "heure": "15h15 – 16h30", "type": "Table Ronde", "titre": "Feuille de route", "desc": "Pilotage en temps réel et aide à la décision.", "intervenant": "Dr ODAH", "categorie": "Maison" },
+          { "heure": "16h30", "type": "Clôture", "titre": "Remise d'attestation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
         ]
       },
       {
-        "jour": "Jour 3", "date": "17 Sept.", "titre": "Immersion Terrain",
+        "jour": "Jour 3", "date": "21 Oct.", "titre": "Immersion Terrain",
         "objectif": "Voir le Smart Port en pratique, au Port de Casablanca",
         "accent": "#3391f6",
         "sessions": [
-          { "heure": "Journée", "type": "Visite Technique", "titre": "Immersion terrain", "desc": "Visite du Port de Casablanca, visite d'infrastructures IT & IA, réseautage.", "intervenant": "Équipes ANP / UAPNA", "categorie": "Partenaire" }
+          { "heure": "—", "type": "Visite Technique", "titre": "Visite du Port de Casablanca", "desc": "Découverte des installations et opérations portuaires en conditions réelles.", "intervenant": "Équipes ANP / UAPNA", "categorie": "Partenaire" },
+          { "heure": "—", "type": "Visite Technique", "titre": "Visite d'infrastructures IT & IA", "desc": "Immersion dans les infrastructures technologiques et les solutions IA déployées.", "intervenant": "Équipes ANP / UAPNA", "categorie": "Partenaire" },
+          { "heure": "—", "type": "Networking", "titre": "Réseautage", "desc": "Échanges informels entre participants et acteurs du secteur portuaire.", "intervenant": "Équipes ANP / UAPNA", "categorie": "Partenaire" }
         ]
       }
     ]
@@ -131,7 +135,7 @@
     "navLinks": ["À Propos", "Programme", "Axes Thématiques", "Inscription"],
     "contactTitle": "Contact",
     "copyright": "© 2026 COPAF — CRF Perfection. Tous droits réservés.",
-    "location": "Casablanca, Maroc · 15–17 Septembre 2026"
+    "location": "Casablanca, Maroc · 19–21 Octobre 2026"
   },
   "contact": {
     "eyebrow": "Contact",
@@ -199,7 +203,7 @@
     "modalClose": "Fermer",
     "axes": [
       {
-        "num": "01", "jour": "Jour 1", "date": "15 Sept.", "titre": "Vision Smart Port Africain",
+        "num": "01", "jour": "Jour 1", "date": "19 Oct.", "titre": "Vision Smart Port Africain",
         "sousTitre": "Comprendre le paysage technologique et identifier les opportunités",
         "level": "Vision & Stratégie", "duration": "7h45",
         "activities": [
@@ -207,11 +211,11 @@
           { "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Abiala", "categorie": "Recruté" },
           { "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Tchobo", "categorie": "Maison" },
           { "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Experts Maroc", "categorie": "Partenaire" },
-          { "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Tchobo / M. Abiala", "categorie": "Maison" }
+          { "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Tchobo / Mme Balsomi", "categorie": "Maison" }
         ]
       },
       {
-        "num": "02", "jour": "Jour 2", "date": "16 Sept.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
+        "num": "02", "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
         "sousTitre": "Rendre les opérations plus fluides et plus sûres, en s'appuyant sur l'IA et la cybersécurité portuaire",
         "level": "Opérations & Sécurité", "duration": "7h15",
         "activities": [
@@ -223,11 +227,13 @@
         ]
       },
       {
-        "num": "03", "jour": "Jour 3", "date": "17 Sept.", "titre": "Immersion Terrain",
+        "num": "03", "jour": "Jour 3", "date": "21 Oct.", "titre": "Immersion Terrain",
         "sousTitre": "Voir le Smart Port en pratique, au Port de Casablanca",
         "level": "Terrain & Pratique", "duration": "7h",
         "activities": [
-          { "type": "Visite Technique", "titre": "Immersion terrain", "desc": "Visite du Port de Casablanca, visite d'infrastructures IT & IA, réseautage.", "intervenant": "Équipes ANP / UAPNA", "categorie": "Partenaire" }
+          { "type": "Visite Technique", "titre": "Visite du Port de Casablanca", "desc": "Découverte des installations et opérations portuaires en conditions réelles.", "intervenant": "Équipes ANP / UAPNA", "categorie": "Partenaire" },
+          { "type": "Visite Technique", "titre": "Visite d'infrastructures IT & IA", "desc": "Immersion dans les infrastructures technologiques et les solutions IA déployées.", "intervenant": "Équipes ANP / UAPNA", "categorie": "Partenaire" },
+          { "type": "Networking", "titre": "Réseautage", "desc": "Échanges informels entre participants et acteurs du secteur portuaire.", "intervenant": "Équipes ANP / UAPNA", "categorie": "Partenaire" }
         ]
       }
     ],
@@ -262,11 +268,11 @@
     "inclusList": [
       "Accueil à l'aéroport et installation à l'hôtel",
       "Navette Aéroport ↔ Hôtel (aller-retour)",
-      "Hébergement 4 nuits en Hôtel 4 étoiles",
-      "Petit-déjeuner & déjeuner pendant les 3 jours",
-      "Accès aux conférences, ateliers & networking",
-      "Visite guidée du port de Casablanca",
-      "Tablette préchargée avec études de cas",
+      "Hébergement 4 nuitées en hôtel",
+      "Petit-déjeuner & déjeuner pendant le séjour",
+      "Accès aux conférences, ateliers & networking (Jours 1 et 2)",
+      "Visite technique du Port de Casablanca (Jour 3)",
+      "Tablette pré-chargée avec études de cas",
       "Attestation de participation"
     ],
     "formTitle": "Vos informations",

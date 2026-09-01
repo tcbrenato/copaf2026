@@ -26,23 +26,23 @@ const Ico = ({ name, size = 20, color = 'currentColor' }) => {
 // programme (voir Programme.jsx / translation.json) — pas d'invention.
 // En revanche les "recommandations" elles-memes n'existent pas encore : ce
 // sont les decisions issues des tables rondes EN direct pendant la COPAF
-// (15-17 sept 2026). Chaque jour reste donc en etat "a venir" (tableau vide)
+// (19-21 oct 2026). Chaque jour reste donc en etat "a venir" (tableau vide)
 // jusqu'a ce que l'equipe COPAF fournisse le contenu reel a integrer ici.
 const JOURS = [
   {
-    id: 'jour1', badge: 'JOUR 1', titre: 'Vision Smart Port Africain', date: '15 Septembre 2026',
+    id: 'jour1', badge: 'JOUR 1', titre: 'Vision Smart Port Africain', date: '19 Octobre 2026',
     tags: ['IA', 'Diagnostic digital', 'Automatisation', 'Gouvernance de la donnée'],
     recommandations: [],
     pdfHref: null,
   },
   {
-    id: 'jour2', badge: 'JOUR 2', titre: 'Excellence Opérationnelle, Sécurité & Cybersécurité', date: '16 Septembre 2026',
+    id: 'jour2', badge: 'JOUR 2', titre: 'Excellence Opérationnelle, Sécurité & Cybersécurité', date: '20 Octobre 2026',
     tags: ['Cybersécurité', 'Sûreté portuaire', 'Opérations nautiques', 'Pilotage temps réel'],
     recommandations: [],
     pdfHref: null,
   },
   {
-    id: 'jour3', badge: 'JOUR 3', titre: 'Immersion Terrain — Port de Casablanca', date: '17 Septembre 2026',
+    id: 'jour3', badge: 'JOUR 3', titre: 'Immersion Terrain — Port de Casablanca', date: '21 Octobre 2026',
     tags: ['Visite technique', 'Infrastructures IA', 'Réseautage'],
     recommandations: [],
     pdfHref: null,
@@ -126,7 +126,7 @@ function JourCard({ jour, register }) {
           }}>
             <Ico name="clock" size={18} color="#94a3b8" />
             <p style={{ margin: 0, fontSize: 13, color: '#64748b', lineHeight: 1.6 }}>
-              Les recommandations de cette journée seront publiées ici pendant la conférence (15–17 septembre 2026 à Casablanca).
+              Les recommandations de cette journée seront publiées ici pendant la conférence (19–21 octobre 2026 à Casablanca).
             </p>
           </div>
         )}

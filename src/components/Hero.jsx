@@ -229,7 +229,7 @@ const Hero = () => {
                 <div className="glass-badge-divider" style={{ height: '26px', width: '1px', background: 'rgba(255,255,255,0.12)' }} />
                 <div style={{ textAlign: 'center' }}>
                   <p style={{ margin: 0, fontSize: '9.5px', color: '#4DA6FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dates</p>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>15–17 Sept.</p>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>19–21 Oct.</p>
                 </div>
                 <div className="glass-badge-divider" style={{ height: '26px', width: '1px', background: 'rgba(255,255,255,0.12)' }} />
                 <div style={{ textAlign: 'right' }}>
