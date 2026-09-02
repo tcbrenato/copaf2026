@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { Navigate } from 'react-router-dom'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import QRCode from 'qrcode'
 import { supabase } from '../supabase'
@@ -1487,7 +1488,11 @@ export default function AdminPage() {
     setLoading(false)
   }, [activeModule])
 
-  useEffect(() => { loadAll() }, [])
+  // Scope 'checkin' (personnel d'accueil) : ne charge jamais les donnees du
+  // tableau de bord (RLS les bloquerait de toute facon, is_admin('proforma')
+  // etc. ne passe pas pour ce scope), et est redirige vers /staff/scan plus
+  // bas — inutile de lancer la requete.
+  useEffect(() => { if (scope !== 'checkin') loadAll() }, [])
 
   // Changement d'onglet
   useEffect(() => {
@@ -1530,6 +1535,12 @@ export default function AdminPage() {
   }
 
   const activeM = MODULES.find(m => m.id === activeModule)
+
+  // Le personnel d'accueil (scope 'checkin') n'a pas d'onglet dans MODULES
+  // (visibleModules est vide pour ce scope) : plutot que de retomber sur le
+  // tableau de bord general par defaut, on l'envoie directement sur l'outil
+  // qui le concerne.
+  if (scope === 'checkin') return <Navigate to="/staff/scan" replace />
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#f4f6fb', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif" }}>
@@ -1612,6 +1623,12 @@ export default function AdminPage() {
               )}
             </button>
           ))}
+          {(scope === 'all' || scope === 'checkin') && (
+            <a href="/staff/scan" className="nav-item" style={{ textDecoration: 'none' }}>
+              <Icon name="search" size={18} color="rgba(255,255,255,.55)" />
+              <span style={{ whiteSpace: 'nowrap' }}>Scanner badges</span>
+            </a>
+          )}
         </nav>
 
         {/* Derniere sync */}
