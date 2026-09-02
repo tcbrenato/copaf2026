@@ -56,6 +56,15 @@ jobs:
             **/node_modules/**
             documents/**
             documents
+          # state-name renomme : le fichier d'etat suivi par l'action avait derive
+          # de la realite du serveur (il croyait que d'anciens fichiers generes
+          # avec un hash different, ex. assets/index-CJNWMunQ.js, existaient encore
+          # -> tentative de suppression distante en echec, "550 ... No such file or
+          # directory", meme symptome que documents/ mais sur un fichier different
+          # a chaque build). Un nouveau nom de fichier d'etat repart de zero : ce
+          # run traite tout comme neuf (aucune suppression tentee), et ecrit un
+          # etat propre pour les prochains déploiements.
+          state-name: .ftp-deploy-sync-state-v2.json
         continue-on-error: true
         id: ftp-attempt-1
 
@@ -75,13 +84,15 @@ jobs:
           # IMPORTANT : on ne met PAS dangerous-clean-slate ici,
           # pour ne jamais supprimer les images (hero*.png, intervenant*.png, copaf.png, etc.)
           # que tu uploades manuellement et qui ne sont pas versionnées dans Git.
-          # documents/** exclu : voir commentaire equivalent sur la tentative FTPS ci-dessus.
+          # documents/** exclu + state-name renomme : voir commentaires equivalents
+          # sur la tentative FTPS ci-dessus.
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
             documents/**
             documents
+          state-name: .ftp-deploy-sync-state-v2.json
         id: ftp-attempt-2
 
       - name: ❌ Échec final si les deux tentatives ont échoué
