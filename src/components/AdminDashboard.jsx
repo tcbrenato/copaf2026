@@ -928,7 +928,7 @@ function InfosGeneralesPanel() {
 }
 
 // ─── SECTION PARTICIPANTS ─────────────────────────────────────────────────────
-function SectionParticipants({ data, setData }) {
+function SectionParticipants({ data, membres = [], setData }) {
   const [search,        setSearch]        = useState('')
   const [filterStatus,  setFilterStatus]  = useState('tous')
   const [selected,      setSelected]      = useState(null)
@@ -940,14 +940,44 @@ function SectionParticipants({ data, setData }) {
   const totalMontant= data.reduce((s, r) => s + (r.montant || 0), 0)
   const confirmes   = data.filter(r => r.paiement_status === 'confirme').length
   const enAttente   = data.filter(r => ['en_attente', 'reserve'].includes(r.paiement_status)).length
-  const arrives     = data.filter(r => r.arrived).length
+  const arrives     = data.filter(r => r.arrived).length + membres.filter(m => m.arrived).length
 
-  const filtered = useMemo(() => data.filter(r => {
+  // Les membres de delegation (inscription_participants) n'ont pas leur
+  // propre ligne financiere -- on les affiche quand meme dans le tableau,
+  // en heritant organisation/pays/statut de paiement de leur inscription
+  // parente, pour que chaque personne individuelle (pas seulement le
+  // contact principal du groupe) soit visible et cliquable.
+  const combinedRows = useMemo(() => {
+    const byId = new Map(data.map(r => [r.id, r]))
+    const memberRows = membres.map(m => {
+      const parent = byId.get(m.inscription_id)
+      return {
+        id: `membre-${m.id}`,
+        _isMember: true,
+        dossier: m.dossier,
+        badge_token: m.badge_token,
+        participants: 1,
+        montant: null,
+        paiement_status: parent?.paiement_status,
+        paiement_mode: parent?.paiement_mode,
+        created_at: parent?.created_at,
+        arrived: m.arrived,
+        arrived_at: m.arrived_at,
+        contacts: {
+          prenom: m.prenom, nom: m.nom, poste: m.poste, email: m.email, telephone: m.telephone,
+          organisation: parent?.contacts?.organisation, pays: parent?.contacts?.pays,
+        },
+      }
+    })
+    return [...data, ...memberRows]
+  }, [data, membres])
+
+  const filtered = useMemo(() => combinedRows.filter(r => {
     const s   = search.toLowerCase()
     const ok  = [r.contacts?.nom, r.contacts?.prenom, r.contacts?.email, r.contacts?.organisation, r.contacts?.pays, r.dossier].some(v => (v || '').toLowerCase().includes(s))
     const st  = filterStatus === 'tous' || r.paiement_status === filterStatus
     return ok && st
-  }), [data, search, filterStatus])
+  }), [combinedRows, search, filterStatus])
 
   const CSV_COLS = [
     { label: 'Dossier',         key: 'dossier' },
@@ -986,11 +1016,19 @@ function SectionParticipants({ data, setData }) {
 
   const TABLE_COLS = [
     { key: 'dossier',         label: 'Dossier',       render: v => <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#6366f1', fontWeight: 600, background: '#eef2ff', padding: '2px 8px', borderRadius: 6 }}>{v || '—'}</span> },
-    { key: 'nom',             label: 'Nom & Prenom',  render: (v, r) => <div><div style={{ fontWeight: 700, color: '#0f172a' }}>{r.contacts?.prenom} {r.contacts?.nom}</div><div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{r.contacts?.poste || '—'}</div></div> },
+    { key: 'nom',             label: 'Nom & Prenom',  render: (v, r) => <div>
+      <div style={{ fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
+        {r.contacts?.prenom} {r.contacts?.nom}
+        {r._isMember && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#7c3aed', background: '#ede9fe', borderRadius: 20, padding: '1px 7px', textTransform: 'uppercase', letterSpacing: .3 }}>Délégation</span>}
+      </div>
+      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{r.contacts?.poste || '—'}</div>
+    </div> },
     { key: 'organisation',    label: 'Organisation',  muted: true, maxW: 180, render: (v, r) => r.contacts?.organisation || '—' },
     { key: 'pays',            label: 'Pays',          render: (v, r) => <span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 6, padding: '3px 8px', fontSize: 11 }}>{r.contacts?.pays || '—'}</span> },
     { key: 'participants',    label: 'Pers.',         render: v => <span style={{ fontWeight: 700 }}>{v}</span> },
-    { key: 'montant',         label: 'Montant',       render: v => <span style={{ fontWeight: 800, color: '#d97706' }}>{fmtEur(v)}</span> },
+    { key: 'montant',         label: 'Montant',       render: (v, r) => r._isMember
+      ? <span style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>Partagé</span>
+      : <span style={{ fontWeight: 800, color: '#d97706' }}>{fmtEur(v)}</span> },
     { key: 'paiement_status', label: 'Statut',        render: v => <StatusBadge status={v} /> },
     { key: 'arrived',         label: 'Présence',      render: (v, r) => v
       ? <span style={{ background: '#d1fae5', color: '#065f46', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>Arrivé{r.arrived_at ? ` ${fmtTime(r.arrived_at)}` : ''}</span>
@@ -1032,7 +1070,7 @@ function SectionParticipants({ data, setData }) {
         {filtered.length} enregistrement{filtered.length > 1 ? 's' : ''} affiches
       </div>
 
-      <DataTable cols={TABLE_COLS} rows={filtered} onRow={setSelected} />
+      <DataTable cols={TABLE_COLS} rows={filtered} onRow={r => r._isMember ? window.open(`https://copaf-ports.com/badge/${r.badge_token}`, '_blank') : setSelected(r)} />
 
       {selected && (
         <ModalParticipant
@@ -1527,7 +1565,7 @@ export default function AdminPage() {
   const visibleModules = useMemo(() => scope === 'all' ? MODULES : MODULES.filter(m => m.scope === scope), [scope])
   const [activeModule,   setActiveModule]   = useState(() => visibleModules[0]?.id || 'dashboard')
   const [sidebarOpen,    setSidebarOpen]    = useState(true)
-  const [allData,        setAllData]        = useState({ inscriptions: [], sponsors: [], partenaires: [], exposants: [] })
+  const [allData,        setAllData]        = useState({ inscriptions: [], sponsors: [], partenaires: [], exposants: [], membres: [] })
   const [sectionData,    setSectionData]    = useState([])
   const [loading,        setLoading]        = useState(true)
   const [lastSync,       setLastSync]       = useState(null)
@@ -1542,17 +1580,23 @@ export default function AdminPage() {
       { data: spons },
       { data: part },
       { data: expo },
+      { data: membresRes },
     ] = await Promise.all([
       supabase.from('inscriptions').select('*, contacts(nom,prenom,email,telephone,organisation,pays,poste)').order('created_at', { ascending: false }),
       supabase.from('sponsorships').select('*, contacts(nom,email,telephone,organisation,pays)').eq('type', 'sponsor').order('created_at', { ascending: false }),
       supabase.from('sponsorships').select('*, contacts(nom,email,telephone,organisation,pays)').eq('type', 'partenaire_strategique').order('created_at', { ascending: false }),
       supabase.from('exposants').select('*, contacts(nom,email,telephone,organisation)').order('created_at', { ascending: false }),
+      // Membres de delegations (inscription_participants) : personnes a
+      // part entiere sous une inscription groupee, invisibles sinon dans
+      // le tableau principal alors qu'elles ont chacune leur propre badge.
+      supabase.from('inscription_participants').select('*'),
     ])
     const d = {
       inscriptions: insc  || [],
       sponsors:     spons || [],
       partenaires:  part  || [],
       exposants:    expo  || [],
+      membres:      membresRes || [],
     }
     setAllData(d)
     setSectionData(d[activeModule] || [])
@@ -1802,6 +1846,7 @@ export default function AdminPage() {
               {activeModule === 'participants' && (
                 <SectionParticipants
                   data={allData.inscriptions}
+                  membres={allData.membres}
                   setData={d => setAllData(prev => ({ ...prev, inscriptions: typeof d === 'function' ? d(prev.inscriptions) : d }))}
                 />
               )}
