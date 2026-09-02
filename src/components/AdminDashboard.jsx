@@ -300,19 +300,98 @@ const EXTRAS_ICONBTN = { background: '#fff', border: '1.5px solid #e2e8f0', bord
 const PREUVE_STATUT_LABEL = { en_attente: 'En attente', validee: 'Validee', rejetee: 'Rejetee' }
 const PREUVE_STATUT_COLOR = { en_attente: { bg: '#fef3c7', color: '#92400e' }, validee: { bg: '#d1fae5', color: '#065f46' }, rejetee: { bg: '#fee2e2', color: '#991b1b' } }
 
-function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt, onArrivedChange }) {
+// ─── DOCUMENTS D'UN DOSSIER ─────────────────────────────────────────────────
+// Composant autonome (charge/upload/masque/supprime lui-meme), reutilise
+// pour le dossier principal ET pour le dossier propre de chaque membre de
+// delegation -- meme mecanisme partout, pas de systeme different a
+// apprendre selon qui on regarde. Deposer ici un fichier pour le dossier
+// d'un membre (ex. COPAF2026-68908) le rend visible UNIQUEMENT dans son
+// espace personnel a lui ; deposer sur le dossier principal du groupe le
+// rend visible a tout le monde dans ce groupe (voir mon_dossier() cote SQL).
+function DocumentsSection({ dossier }) {
   const [docs, setDocs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    const { data } = await supabase.from('documents_participants').select('*').eq('dossier', dossier).order('created_at')
+    setDocs(data || [])
+    setLoading(false)
+  }, [dossier])
+
+  useEffect(() => { load() }, [load])
+
+  const uploadDoc = async e => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    const path = `${dossier}/${Date.now()}_${file.name}`.replace(/\s+/g, '_')
+    const { error: upErr } = await supabase.storage.from('documents-participants').upload(path, file)
+    if (!upErr) {
+      const url = supabase.storage.from('documents-participants').getPublicUrl(path).data.publicUrl
+      const { data: userData } = await supabase.auth.getUser()
+      await supabase.from('documents_participants').insert({
+        dossier, type: 'autre', label: file.name, url, ajoute_par: userData?.user?.email || null,
+      })
+      await load()
+    }
+    setUploading(false)
+    if (fileRef.current) fileRef.current.value = ''
+  }
+
+  const toggleDocVisible = async doc => {
+    await supabase.from('documents_participants').update({ visible: !doc.visible }).eq('id', doc.id)
+    load()
+  }
+
+  const deleteDoc = async doc => {
+    await supabase.from('documents_participants').delete().eq('id', doc.id)
+    load()
+  }
+
+  if (loading) return null
+
+  return (
+    <div style={{ marginTop: 20 }}>
+      <div style={EXTRAS_LABEL}>Documents déposés (visibles dans son espace personnel)</div>
+      {docs.map(doc => (
+        <div key={doc.id} style={EXTRAS_ROW}>
+          <a href={doc.url} target="_blank" rel="noreferrer" style={{ fontSize: 12.5, color: '#0f172a', fontWeight: 600, textDecoration: 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {doc.label}
+          </a>
+          <button type="button" onClick={() => toggleDocVisible(doc)} title={doc.visible ? 'Masquer' : 'Rendre visible'} style={EXTRAS_ICONBTN}>
+            <Icon name={doc.visible ? 'eye' : 'eyeOff'} size={13} color={doc.visible ? '#059669' : '#94a3b8'} />
+          </button>
+          <button type="button" onClick={() => deleteDoc(doc)} title="Supprimer" style={EXTRAS_ICONBTN}>
+            <Icon name="trash" size={13} color="#ef4444" />
+          </button>
+        </div>
+      ))}
+      <label style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        padding: '9px 12px', border: '1.5px dashed #cbd5e1', borderRadius: 10,
+        fontSize: 12, fontWeight: 600, color: '#64748b', cursor: uploading ? 'not-allowed' : 'pointer', marginTop: 4,
+      }}>
+        <Icon name="upload" size={13} color="#64748b" />
+        {uploading ? 'Envoi en cours...' : 'Déposer un document (badge, attestation...)'}
+        <input ref={fileRef} type="file" onChange={uploadDoc} disabled={uploading} style={{ display: 'none' }} />
+      </label>
+    </div>
+  )
+}
+
+function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt, onArrivedChange }) {
   const [infos, setInfos] = useState([])
   const [agenda, setAgenda] = useState([])
   const [preuves, setPreuves] = useState([])
   const [membres, setMembres] = useState([])
   const [loading, setLoading] = useState(true)
-  const [uploading, setUploading] = useState(false)
   const [newInfo, setNewInfo] = useState('')
   const [badgeQr, setBadgeQr] = useState('')
   const [tokenCopied, setTokenCopied] = useState(false)
   const [togglingArrivee, setTogglingArrivee] = useState(null)
-  const fileRef = useRef(null)
 
   const badgeUrl = badgeToken ? `https://copaf-ports.com/badge/${badgeToken}` : ''
 
@@ -343,8 +422,7 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [docsRes, infosRes, agendaRes, preuvesRes, membresRes] = await Promise.all([
-      supabase.from('documents_participants').select('*').eq('dossier', dossier).order('created_at'),
+    const [infosRes, agendaRes, preuvesRes, membresRes] = await Promise.all([
       supabase.from('infos_importantes').select('*').eq('dossier', dossier).order('created_at', { ascending: false }),
       supabase.from('agenda_participant').select('*').eq('dossier', dossier).order('jour').order('heure'),
       supabase.from('preuves_paiement').select('*').eq('dossier', dossier).order('created_at', { ascending: false }),
@@ -352,7 +430,6 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
         ? supabase.from('inscription_participants').select('*').eq('inscription_id', inscriptionId).order('ordre')
         : Promise.resolve({ data: [] }),
     ])
-    setDocs(docsRes.data || [])
     setInfos(infosRes.data || [])
     setAgenda(agendaRes.data || [])
     setPreuves(preuvesRes.data || [])
@@ -378,34 +455,6 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
     if (targetId) await load()
     else onArrivedChange?.(patch)
     setTogglingArrivee(null)
-  }
-
-  const uploadDoc = async e => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    const path = `${dossier}/${Date.now()}_${file.name}`.replace(/\s+/g, '_')
-    const { error: upErr } = await supabase.storage.from('documents-participants').upload(path, file)
-    if (!upErr) {
-      const url = supabase.storage.from('documents-participants').getPublicUrl(path).data.publicUrl
-      const { data: userData } = await supabase.auth.getUser()
-      await supabase.from('documents_participants').insert({
-        dossier, type: 'autre', label: file.name, url, ajoute_par: userData?.user?.email || null,
-      })
-      await load()
-    }
-    setUploading(false)
-    if (fileRef.current) fileRef.current.value = ''
-  }
-
-  const toggleDocVisible = async doc => {
-    await supabase.from('documents_participants').update({ visible: !doc.visible }).eq('id', doc.id)
-    load()
-  }
-
-  const deleteDoc = async doc => {
-    await supabase.from('documents_participants').delete().eq('id', doc.id)
-    load()
   }
 
   const addInfo = async () => {
@@ -507,32 +556,7 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
         </div>
       )}
 
-      {/* Documents */}
-      <div style={{ marginTop: 20 }}>
-        <div style={EXTRAS_LABEL}>Documents deposes (visibles dans l'espace participant)</div>
-        {docs.map(doc => (
-          <div key={doc.id} style={EXTRAS_ROW}>
-            <a href={doc.url} target="_blank" rel="noreferrer" style={{ fontSize: 12.5, color: '#0f172a', fontWeight: 600, textDecoration: 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {doc.label}
-            </a>
-            <button type="button" onClick={() => toggleDocVisible(doc)} title={doc.visible ? 'Masquer' : 'Rendre visible'} style={EXTRAS_ICONBTN}>
-              <Icon name={doc.visible ? 'eye' : 'eyeOff'} size={13} color={doc.visible ? '#059669' : '#94a3b8'} />
-            </button>
-            <button type="button" onClick={() => deleteDoc(doc)} title="Supprimer" style={EXTRAS_ICONBTN}>
-              <Icon name="trash" size={13} color="#ef4444" />
-            </button>
-          </div>
-        ))}
-        <label style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          padding: '9px 12px', border: '1.5px dashed #cbd5e1', borderRadius: 10,
-          fontSize: 12, fontWeight: 600, color: '#64748b', cursor: uploading ? 'not-allowed' : 'pointer', marginTop: 4,
-        }}>
-          <Icon name="upload" size={13} color="#64748b" />
-          {uploading ? 'Envoi en cours...' : 'Deposer un document (badge, attestation...)'}
-          <input ref={fileRef} type="file" onChange={uploadDoc} disabled={uploading} style={{ display: 'none' }} />
-        </label>
-      </div>
+      <DocumentsSection dossier={dossier} />
 
       {/* Agenda personnalise (libre-service cote participant, lecture seule ici) */}
       {agenda.length > 0 && (
@@ -791,8 +815,15 @@ function ModalMembre({ membre, onClose, onUpdate }) {
               : 'Marquer arrivé et installé'}
           </button>
 
-          <p style={{ fontSize: 11.5, color: '#94a3b8', textAlign: 'center', marginTop: 12, lineHeight: 1.5 }}>
-            Fait partie du dossier groupé. Statut de paiement et documents partagés avec le contact principal.
+          <p style={{ fontSize: 11.5, color: '#94a3b8', textAlign: 'center', marginTop: 12, marginBottom: 4, lineHeight: 1.5 }}>
+            Fait partie du dossier groupé — statut de paiement partagé avec le contact principal.
+          </p>
+        </div>
+
+        <div style={{ padding: '0 28px 28px' }}>
+          <DocumentsSection dossier={membre.dossier} />
+          <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 8, lineHeight: 1.5 }}>
+            Ces documents sont visibles uniquement dans l'espace personnel de {membre.contacts?.prenom} — pour un document partagé par tout le groupe, déposez-le plutôt depuis la fiche du contact principal.
           </p>
         </div>
       </div>
