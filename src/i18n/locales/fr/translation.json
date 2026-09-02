@@ -81,7 +81,7 @@
     "downloadPdfButton": "Télécharger le programme (PDF)",
     "tabs": [
       { "jour": "Jour 1", "date": "19 Oct.", "titre": "Vision Smart Port Africain" },
-      { "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité" },
+      { "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité et Cybersécurité" },
       { "jour": "Jour 3", "date": "21 Oct.", "titre": "Immersion Terrain" }
     ],
     "statLabel": "Sessions",
@@ -101,7 +101,7 @@
         ]
       },
       {
-        "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
+        "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité et Cybersécurité",
         "objectif": "Rendre les opérations plus fluides et plus sûres, en s'appuyant sur l'IA et la cybersécurité portuaire",
         "accent": "#000e91",
         "sessions": [
@@ -215,7 +215,7 @@
         ]
       },
       {
-        "num": "02", "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
+        "num": "02", "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité et Cybersécurité",
         "sousTitre": "Rendre les opérations plus fluides et plus sûres, en s'appuyant sur l'IA et la cybersécurité portuaire",
         "level": "Opérations & Sécurité", "duration": "7h15",
         "activities": [

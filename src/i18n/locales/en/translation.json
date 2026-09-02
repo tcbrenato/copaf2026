@@ -81,7 +81,7 @@
     "downloadPdfButton": "Download the programme (PDF)",
     "tabs": [
       { "jour": "Day 1", "date": "Oct 19", "titre": "Vision of the African Smart Port" },
-      { "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security & Cybersecurity" },
+      { "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security and Cybersecurity" },
       { "jour": "Day 3", "date": "Oct 21", "titre": "Field Immersion" }
     ],
     "statLabel": "Sessions",
@@ -101,7 +101,7 @@
         ]
       },
       {
-        "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security & Cybersecurity",
+        "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security and Cybersecurity",
         "objectif": "Making operations smoother and safer, leveraging AI and port cybersecurity",
         "accent": "#000e91",
         "sessions": [
@@ -215,7 +215,7 @@
         ]
       },
       {
-        "num": "02", "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security & Cybersecurity",
+        "num": "02", "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security and Cybersecurity",
         "sousTitre": "Making operations smoother and safer, leveraging AI and port cybersecurity",
         "level": "Operations & Security", "duration": "7h15",
         "activities": [
