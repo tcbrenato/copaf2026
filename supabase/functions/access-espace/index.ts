@@ -14,6 +14,12 @@
 // classique : tout le reste de l'application (RLS, upload de preuve de
 // virement, etc.) continue de fonctionner sans aucun changement.
 //
+// Le dossier peut correspondre soit au contact principal d'une inscription
+// (table inscriptions/contacts), soit a un membre d'un groupe enregistre
+// individuellement (table inscription_participants — ex. delegation avec
+// plusieurs personnes sous un seul paiement). Les deux sont verifies ; le
+// premier trouve gagne.
+//
 // Compromis de securite assume : contrairement a generate-espace-link (qui
 // exige un jeton secret a usage unique), l'acces ici repose sur la seule
 // connaissance du couple (dossier, email). Le numero de dossier est deja
@@ -64,18 +70,36 @@ Deno.serve(async req => {
       return new Response(JSON.stringify({ error: 'Trop de tentatives, reessayez plus tard' }), { status: 429, headers: corsHeaders })
     }
 
-    const { data: insc, error: inscErr } = await supabase
+    const dossierTrim = dossier.trim()
+    const emailTrim = String(email).trim().toLowerCase()
+    let realEmail: string | null = null
+
+    const { data: insc } = await supabase
       .from('inscriptions')
       .select('id, contacts(email)')
-      .eq('dossier', dossier.trim())
+      .eq('dossier', dossierTrim)
       .single()
+    const contactEmail = (insc?.contacts as { email?: string } | null)?.email
+    if (contactEmail && contactEmail.trim().toLowerCase() === emailTrim) {
+      realEmail = contactEmail
+    }
 
-    const realEmail = (insc?.contacts as { email?: string } | null)?.email
-    const matches = !inscErr && !!insc && !!realEmail && realEmail.trim().toLowerCase() === String(email).trim().toLowerCase()
+    if (!realEmail) {
+      const { data: membre } = await supabase
+        .from('inscription_participants')
+        .select('email')
+        .eq('dossier', dossierTrim)
+        .single()
+      if (membre?.email && membre.email.trim().toLowerCase() === emailTrim) {
+        realEmail = membre.email
+      }
+    }
+
+    const matches = !!realEmail
 
     // Journalise chaque tentative (succes ou echec) pour le calcul du debit
     // ci-dessus, sans jamais logger l'email fourni par l'appelant.
-    await supabase.from('espace_login_attempts').insert({ ip: clientIp, success: !!matches })
+    await supabase.from('espace_login_attempts').insert({ ip: clientIp, success: matches })
 
     if (!matches) {
       // Reponse volontairement generique : ne pas reveler si c'est le
