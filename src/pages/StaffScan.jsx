@@ -69,25 +69,14 @@ export default function StaffScan() {
     e.preventDefault()
     if (!query.trim()) return
     setSearching(true); setSearchError(''); setResults([])
-    const { data, error } = await supabase
-      .from('inscriptions')
-      .select('dossier, badge_token, contacts(nom, prenom, organisation)')
-      .or(`dossier.ilike.%${query.trim()}%`)
-      .limit(10)
+    // staff_search() couvre a la fois les inscriptions principales et les
+    // membres de groupe (inscription_participants, ex. delegations) —
+    // chercher uniquement dans inscriptions manquait les BIO/KAMARA de ce
+    // monde, invisibles depuis /admin mais bien de vrais participants.
+    const { data, error } = await supabase.rpc('staff_search', { p_query: query.trim() })
     setSearching(false)
     if (error) { setSearchError('Erreur de recherche.'); return }
-    // Recherche par nom en plus (contacts n'est pas filtrable directement
-    // dans le .or() ci-dessus car c'est une table jointe) : on filtre cote
-    // client sur nom/prenom en complement du dossier deja filtre cote serveur.
-    const { data: byName } = await supabase
-      .from('inscriptions')
-      .select('dossier, badge_token, contacts!inner(nom, prenom, organisation)')
-      .or(`nom.ilike.%${query.trim()}%,prenom.ilike.%${query.trim()}%`, { foreignTable: 'contacts' })
-      .limit(10)
-    const merged = [...(data || []), ...(byName || [])]
-    const seen = new Set()
-    const unique = merged.filter(r => (seen.has(r.dossier) ? false : (seen.add(r.dossier), true)))
-    setResults(unique)
+    setResults(data || [])
   }
 
   if (!authorized) {
@@ -134,8 +123,8 @@ export default function StaffScan() {
               borderRadius: 10, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
             }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
-                {r.contacts?.prenom} {r.contacts?.nom}
-                <span style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#94a3b8' }}>{r.contacts?.organisation} · {r.dossier}</span>
+                {r.prenom} {r.nom}
+                <span style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#94a3b8' }}>{r.organisation} · {r.dossier}</span>
               </span>
               <span style={{ color: '#94a3b8', fontSize: 18 }}>›</span>
             </button>
