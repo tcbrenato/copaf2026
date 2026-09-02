@@ -205,14 +205,18 @@ function TabBadge({ myDossier, t, tt, genLoading, onDownloadBadge }) {
   const confirme = myDossier.statut === 'confirme'
 
   useEffect(() => {
-    if (!confirme) return
+    if (!confirme || !myDossier.badge_token) return
     let cancelled = false
-    const verifUrl = `https://copaf-ports.com/verifier?dossier=${encodeURIComponent(myDossier.dossier)}`
-    QRCode.toDataURL(verifUrl, { width: 220, margin: 1, color: { dark: '#000E91', light: '#FFFFFF' } })
+    // Pointe vers /badge/{token} (pas le dossier en clair) : cette meme
+    // page affiche soit la fiche complete + pointage arrivee (staff
+    // accueil connecte), soit une simple carte de visite numerique
+    // (n'importe qui d'autre qui scanne) — voir src/pages/BadgeToken.jsx.
+    const badgeUrl = `https://copaf-ports.com/badge/${myDossier.badge_token}`
+    QRCode.toDataURL(badgeUrl, { width: 220, margin: 1, color: { dark: '#000E91', light: '#FFFFFF' } })
       .then(url => { if (!cancelled) setQrDataUrl(url) })
       .catch(() => { if (!cancelled) setQrDataUrl('') })
     return () => { cancelled = true }
-  }, [confirme, myDossier.dossier])
+  }, [confirme, myDossier.badge_token])
 
   if (!confirme) {
     return (

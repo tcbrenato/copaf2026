@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import { generateBadge } from '../utils/generateBadge'
 import { useAdminAuth } from '../adminAuth'
@@ -43,6 +44,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     plus: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
     eye: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
     eyeOff: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-3.22 4.35"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
+    copy: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
   }
   return paths[name] || null
 }
@@ -297,7 +299,7 @@ const EXTRAS_ICONBTN = { background: '#fff', border: '1.5px solid #e2e8f0', bord
 const PREUVE_STATUT_LABEL = { en_attente: 'En attente', validee: 'Validee', rejetee: 'Rejetee' }
 const PREUVE_STATUT_COLOR = { en_attente: { bg: '#fef3c7', color: '#92400e' }, validee: { bg: '#d1fae5', color: '#065f46' }, rejetee: { bg: '#fee2e2', color: '#991b1b' } }
 
-function DossierExtras({ dossier }) {
+function DossierExtras({ dossier, badgeToken }) {
   const [docs, setDocs] = useState([])
   const [infos, setInfos] = useState([])
   const [agenda, setAgenda] = useState([])
@@ -305,7 +307,36 @@ function DossierExtras({ dossier }) {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [newInfo, setNewInfo] = useState('')
+  const [badgeQr, setBadgeQr] = useState('')
+  const [tokenCopied, setTokenCopied] = useState(false)
   const fileRef = useRef(null)
+
+  const badgeUrl = badgeToken ? `https://copaf-ports.com/badge/${badgeToken}` : ''
+
+  useEffect(() => {
+    if (!badgeUrl) { setBadgeQr(''); return }
+    let cancelled = false
+    QRCode.toDataURL(badgeUrl, { width: 320, margin: 1, color: { dark: '#000E91', light: '#FFFFFF' } })
+      .then(url => { if (!cancelled) setBadgeQr(url) })
+      .catch(() => { if (!cancelled) setBadgeQr('') })
+    return () => { cancelled = true }
+  }, [badgeUrl])
+
+  const copyToken = async () => {
+    try {
+      await navigator.clipboard.writeText(badgeToken)
+      setTokenCopied(true)
+      setTimeout(() => setTokenCopied(false), 2000)
+    } catch { /* clipboard indisponible */ }
+  }
+
+  const downloadBadgeQr = () => {
+    if (!badgeQr) return
+    const a = document.createElement('a')
+    a.href = badgeQr
+    a.download = `QR-badge-${dossier}.png`
+    a.click()
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -382,6 +413,37 @@ function DossierExtras({ dossier }) {
 
   return (
     <div style={{ padding: '0 28px 8px', borderTop: '1px solid #f1f5f9', marginTop: 4 }}>
+
+      {/* Badge QR — token a coller dans Canva pour composer le visuel du badge */}
+      {badgeToken && (
+        <div style={{ marginTop: 20 }}>
+          <div style={EXTRAS_LABEL}>Badge — QR code (a integrer dans Canva)</div>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            {badgeQr && (
+              <img src={badgeQr} alt="QR code badge" style={{ width: 96, height: 96, borderRadius: 10, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />
+            )}
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <div style={{ ...EXTRAS_ROW, marginBottom: 6 }}>
+                <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#0f172a', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {badgeToken}
+                </span>
+                <button type="button" onClick={copyToken} title="Copier le token" style={EXTRAS_ICONBTN}>
+                  <Icon name={tokenCopied ? 'check' : 'copy'} size={13} color={tokenCopied ? '#059669' : '#64748b'} />
+                </button>
+              </div>
+              <button type="button" onClick={downloadBadgeQr} disabled={!badgeQr} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '9px 12px', border: '1.5px solid #e2e8f0', borderRadius: 10,
+                fontSize: 12, fontWeight: 600, color: '#64748b', cursor: badgeQr ? 'pointer' : 'not-allowed',
+                background: '#fff', width: '100%', boxSizing: 'border-box',
+              }}>
+                <Icon name="download" size={13} color="#64748b" />
+                Télécharger le QR (PNG)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Documents */}
       <div style={{ marginTop: 20 }}>
@@ -557,7 +619,7 @@ function ModalParticipant({ row, onClose, onUpdate }) {
       onDownloadBadge={status === 'confirme' ? downloadBadge : null}
       generatingBadge={genBadge}
     >
-      {row.dossier && <DossierExtras dossier={row.dossier} />}
+      {row.dossier && <DossierExtras dossier={row.dossier} badgeToken={row.badge_token} />}
     </Modal>
   )
 }

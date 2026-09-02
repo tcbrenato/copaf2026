@@ -31,6 +31,8 @@ import MarqueeBand from './components/MarqueeBand'
 import LiveStreaming from './pages/LiveStreaming'
 import Documentation from './pages/Documentation'
 import RecommandationsActes from './pages/RecommandationsActes'
+import BadgeToken from './pages/BadgeToken'
+import StaffScan from './pages/StaffScan'
 import CookieBanner from './components/CookieBanner'
 import ContactHub from './components/ContactHub'
 import InstallPrompt from './components/InstallPrompt'
@@ -128,6 +130,14 @@ const AdminPage = () => (
   </AuthGate>
 )
 
+// ─── Scan badges (accueil) : meme mecanisme de connexion que /admin, mais
+// pour le personnel d'accueil (scope 'checkin') plutot que l'administration.
+const StaffScanPage = () => (
+  <AuthGate title="COPAF 2026" subtitle="Accès réservé au personnel d'accueil">
+    <StaffScan />
+  </AuthGate>
+)
+
 // ─── Application principale ───────────────────────────────────────────────────
 function App() {
   return (
@@ -150,6 +160,8 @@ function App() {
         <Route path="/documentation"          element={<Documentation />} />
         <Route path="/recommandations"        element={<RecommandationsActes />} />
         <Route path="/admin"                  element={<AdminPage />} />
+        <Route path="/badge/:token"           element={<BadgeToken />} />
+        <Route path="/staff/scan"             element={<StaffScanPage />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/diagnostics"      element={<Navigate to="/admin" replace />} />
