@@ -300,16 +300,18 @@ const EXTRAS_ICONBTN = { background: '#fff', border: '1.5px solid #e2e8f0', bord
 const PREUVE_STATUT_LABEL = { en_attente: 'En attente', validee: 'Validee', rejetee: 'Rejetee' }
 const PREUVE_STATUT_COLOR = { en_attente: { bg: '#fef3c7', color: '#92400e' }, validee: { bg: '#d1fae5', color: '#065f46' }, rejetee: { bg: '#fee2e2', color: '#991b1b' } }
 
-function DossierExtras({ dossier, badgeToken }) {
+function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt, onArrivedChange }) {
   const [docs, setDocs] = useState([])
   const [infos, setInfos] = useState([])
   const [agenda, setAgenda] = useState([])
   const [preuves, setPreuves] = useState([])
+  const [membres, setMembres] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [newInfo, setNewInfo] = useState('')
   const [badgeQr, setBadgeQr] = useState('')
   const [tokenCopied, setTokenCopied] = useState(false)
+  const [togglingArrivee, setTogglingArrivee] = useState(null)
   const fileRef = useRef(null)
 
   const badgeUrl = badgeToken ? `https://copaf-ports.com/badge/${badgeToken}` : ''
@@ -341,20 +343,42 @@ function DossierExtras({ dossier, badgeToken }) {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [docsRes, infosRes, agendaRes, preuvesRes] = await Promise.all([
+    const [docsRes, infosRes, agendaRes, preuvesRes, membresRes] = await Promise.all([
       supabase.from('documents_participants').select('*').eq('dossier', dossier).order('created_at'),
       supabase.from('infos_importantes').select('*').eq('dossier', dossier).order('created_at', { ascending: false }),
       supabase.from('agenda_participant').select('*').eq('dossier', dossier).order('jour').order('heure'),
       supabase.from('preuves_paiement').select('*').eq('dossier', dossier).order('created_at', { ascending: false }),
+      inscriptionId
+        ? supabase.from('inscription_participants').select('*').eq('inscription_id', inscriptionId).order('ordre')
+        : Promise.resolve({ data: [] }),
     ])
     setDocs(docsRes.data || [])
     setInfos(infosRes.data || [])
     setAgenda(agendaRes.data || [])
     setPreuves(preuvesRes.data || [])
+    setMembres(membresRes.data || [])
     setLoading(false)
-  }, [dossier])
+  }, [dossier, inscriptionId])
 
   useEffect(() => { load() }, [load])
+
+  // Pointage manuel depuis le dashboard (en plus du scan sur place) : utile
+  // pour corriger une erreur de scan ou marquer quelqu'un arrive/absent
+  // sans repasser par /staff/scan. targetId=null -> inscription principale,
+  // sinon id de la ligne inscription_participants (membre de groupe).
+  const toggleArrivee = async (targetId, currentlyArrived) => {
+    setTogglingArrivee(targetId || 'principal')
+    const table = targetId ? 'inscription_participants' : 'inscriptions'
+    const match = targetId ? { id: targetId } : { dossier }
+    const { data: userData } = await supabase.auth.getUser()
+    const patch = currentlyArrived
+      ? { arrived: false, arrived_at: null, checked_in_by: null }
+      : { arrived: true, arrived_at: new Date().toISOString(), checked_in_by: userData?.user?.id || null }
+    await supabase.from(table).update(patch).match(match)
+    if (targetId) await load()
+    else onArrivedChange?.(patch)
+    setTogglingArrivee(null)
+  }
 
   const uploadDoc = async e => {
     const file = e.target.files?.[0]
@@ -441,8 +465,45 @@ function DossierExtras({ dossier, badgeToken }) {
                 <Icon name="download" size={13} color="#64748b" />
                 Télécharger le QR (PNG)
               </button>
+              <button type="button" onClick={() => toggleArrivee(null, arrived)} disabled={togglingArrivee === 'principal'} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                padding: '9px 12px', border: 'none', borderRadius: 10, marginTop: 6,
+                fontSize: 12, fontWeight: 700, cursor: 'pointer', width: '100%', boxSizing: 'border-box',
+                color: arrived ? '#065f46' : '#fff', background: arrived ? '#d1fae5' : '#000E91',
+              }}>
+                <Icon name={arrived ? 'check' : 'users'} size={13} color={arrived ? '#065f46' : '#fff'} />
+                {arrived
+                  ? `Arrivé${arrivedAt ? ` à ${fmtTime(arrivedAt)}` : ''} — marquer non arrivé`
+                  : 'Marquer arrivé et installé'}
+              </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Membres de la delegation (inscription groupee, ex. plusieurs
+          personnes sous un seul paiement) — chacun a son propre badge/QR
+          et son propre pointage, independant du contact principal ci-dessus. */}
+      {membres.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <div style={EXTRAS_LABEL}>Membres de la délégation ({membres.length})</div>
+          {membres.map(m => (
+            <div key={m.id} style={{ ...EXTRAS_ROW, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 12.5, color: '#0f172a', fontWeight: 700, flex: 1, minWidth: 140 }}>
+                {m.prenom} {m.nom}
+                <span style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#94a3b8' }}>{m.poste} · {m.dossier}</span>
+              </span>
+              <a href={`https://copaf-ports.com/badge/${m.badge_token}`} target="_blank" rel="noreferrer" style={{ fontSize: 11, fontWeight: 700, color: '#0073F4', textDecoration: 'none' }}>
+                Voir le badge
+              </a>
+              <button type="button" onClick={() => toggleArrivee(m.id, m.arrived)} disabled={togglingArrivee === m.id} style={{
+                border: 'none', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                color: m.arrived ? '#065f46' : '#92400e', background: m.arrived ? '#d1fae5' : '#fef3c7',
+              }}>
+                {m.arrived ? `Arrivé${m.arrived_at ? ` ${fmtTime(m.arrived_at)}` : ''}` : 'Non arrivé'}
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
@@ -620,7 +681,13 @@ function ModalParticipant({ row, onClose, onUpdate }) {
       onDownloadBadge={status === 'confirme' ? downloadBadge : null}
       generatingBadge={genBadge}
     >
-      {row.dossier && <DossierExtras dossier={row.dossier} badgeToken={row.badge_token} />}
+      {row.dossier && (
+        <DossierExtras
+          dossier={row.dossier} badgeToken={row.badge_token} inscriptionId={row.id}
+          arrived={row.arrived} arrivedAt={row.arrived_at}
+          onArrivedChange={patch => onUpdate({ ...row, ...patch })}
+        />
+      )}
     </Modal>
   )
 }
@@ -873,6 +940,7 @@ function SectionParticipants({ data, setData }) {
   const totalMontant= data.reduce((s, r) => s + (r.montant || 0), 0)
   const confirmes   = data.filter(r => r.paiement_status === 'confirme').length
   const enAttente   = data.filter(r => ['en_attente', 'reserve'].includes(r.paiement_status)).length
+  const arrives     = data.filter(r => r.arrived).length
 
   const filtered = useMemo(() => data.filter(r => {
     const s   = search.toLowerCase()
@@ -924,6 +992,9 @@ function SectionParticipants({ data, setData }) {
     { key: 'participants',    label: 'Pers.',         render: v => <span style={{ fontWeight: 700 }}>{v}</span> },
     { key: 'montant',         label: 'Montant',       render: v => <span style={{ fontWeight: 800, color: '#d97706' }}>{fmtEur(v)}</span> },
     { key: 'paiement_status', label: 'Statut',        render: v => <StatusBadge status={v} /> },
+    { key: 'arrived',         label: 'Présence',      render: (v, r) => v
+      ? <span style={{ background: '#d1fae5', color: '#065f46', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>Arrivé{r.arrived_at ? ` ${fmtTime(r.arrived_at)}` : ''}</span>
+      : <span style={{ background: '#f1f5f9', color: '#94a3b8', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>Non arrivé</span> },
     { key: 'created_at',      label: 'Date',          render: v => <span style={{ color: '#94a3b8', fontSize: 11 }}>{fmtDate(v)}</span> },
   ]
 
@@ -938,6 +1009,7 @@ function SectionParticipants({ data, setData }) {
         <KpiCard icon="euro"   label="Revenus"      value={fmtEur(totalMontant)} color="#d97706" />
         <KpiCard icon="check"  label="Confirmes"    value={confirmes}       color="#10b981" sub={`${Math.round((confirmes/total||0)*100)}% de conversion`} />
         <KpiCard icon="clock"  label="En attente"   value={enAttente}       color="#2563eb" />
+        <KpiCard icon="search" label="Arrivés"      value={arrives}         color="#0891b2" sub="Contacts principaux — voir la fiche pour les délégations" />
       </div>
 
       <Toolbar
