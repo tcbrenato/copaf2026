@@ -23,8 +23,8 @@ function BrochureModal({ onClose }) {
   const [done, setDone] = useState(false)
 
   const isEn = i18n.language && i18n.language.toLowerCase().startsWith('en')
-  const brochureUrl = isEn ? '/brochure-copaf-2026-en.pdf' : '/brochure-copaf-2026.pdf'
-  const brochureFilename = isEn ? 'brochure-copaf-2026-en.pdf' : 'brochure-copaf-2026.pdf'
+  const brochureUrl = isEn ? '/copafbrochureEN.pdf' : '/Brochurecopaf2026FR.pdf'
+  const brochureFilename = isEn ? 'copafbrochureEN.pdf' : 'Brochurecopaf2026FR.pdf'
 
   const handleSubmit = async e => {
     e.preventDefault()

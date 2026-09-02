@@ -16,10 +16,10 @@ const Ico = ({ name, size = 22, color = 'currentColor' }) => {
 }
 
 const DOCUMENTS = [
-  { titre: 'Programme officiel', langue: 'Français', desc: 'Le déroulé complet des 3 jours de conférence, session par session.', href: '/programmecopaf2026FR.pdf' },
-  { titre: 'Official Programme', langue: 'English', desc: 'The full 3-day conference schedule, session by session.', href: '/COPAF_2026_Programme_English.pdf' },
-  { titre: 'Brochure de présentation', langue: 'Français', desc: "Présentation générale de la conférence, ses thématiques et ses partenaires.", href: '/brochure-copaf-2026.pdf' },
-  { titre: 'Presentation Brochure', langue: 'English', desc: 'General overview of the conference, its themes and partners.', href: '/brochure-copaf-2026-en.pdf' },
+  { titre: 'Programme officiel', langue: 'Français', desc: 'Le déroulé complet des 3 jours de conférence, session par session.', href: '/ProgrammecopafFR.pdf' },
+  { titre: 'Official Programme', langue: 'English', desc: 'The full 3-day conference schedule, session by session.', href: '/ProgrammcopafENG.pdf' },
+  { titre: 'Brochure de présentation', langue: 'Français', desc: "Présentation générale de la conférence, ses thématiques et ses partenaires.", href: '/Brochurecopaf2026FR.pdf' },
+  { titre: 'Presentation Brochure', langue: 'English', desc: 'General overview of the conference, its themes and partners.', href: '/copafbrochureEN.pdf' },
 ]
 
 function DocCard({ doc }) {
