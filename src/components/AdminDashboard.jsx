@@ -692,6 +692,114 @@ function ModalParticipant({ row, onClose, onUpdate }) {
   )
 }
 
+// ─── MODAL MEMBRE DE DELEGATION ────────────────────────────────────────────────
+// Fiche allegee pour un membre de groupe (inscription_participants) :
+// pas de statut/montant a modifier (partages avec l'inscription parente,
+// une seule transaction reelle), juste son identite, son badge et son
+// propre pointage. Ouverte au clic sur sa ligne, comme les autres lignes
+// du tableau -- coherent avec le reste, plutot qu'un lien qui echappe
+// vers un nouvel onglet.
+function ModalMembre({ membre, onClose, onUpdate }) {
+  const [badgeQr, setBadgeQr] = useState('')
+  const [toggling, setToggling] = useState(false)
+  const badgeUrl = membre.badge_token ? `https://copaf-ports.com/badge/${membre.badge_token}` : ''
+
+  useEffect(() => {
+    if (!badgeUrl) { setBadgeQr(''); return }
+    let cancelled = false
+    QRCode.toDataURL(badgeUrl, { width: 320, margin: 1, color: { dark: '#000E91', light: '#FFFFFF' } })
+      .then(url => { if (!cancelled) setBadgeQr(url) })
+      .catch(() => { if (!cancelled) setBadgeQr('') })
+    return () => { cancelled = true }
+  }, [badgeUrl])
+
+  const downloadBadgeQr = () => {
+    if (!badgeQr) return
+    const a = document.createElement('a')
+    a.href = badgeQr
+    a.download = `QR-badge-${membre.dossier}.png`
+    a.click()
+  }
+
+  const toggleArrivee = async () => {
+    setToggling(true)
+    const { data: userData } = await supabase.auth.getUser()
+    const patch = membre.arrived
+      ? { arrived: false, arrived_at: null, checked_in_by: null }
+      : { arrived: true, arrived_at: new Date().toISOString(), checked_in_by: userData?.user?.id || null }
+    await supabase.from('inscription_participants').update(patch).eq('id', membre._memberId)
+    onUpdate(patch)
+    setToggling(false)
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+      onClick={onClose}>
+      <div style={{ background: '#fff', borderRadius: 24, width: '100%', maxWidth: 420, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,.15)', animation: 'modalIn .2s ease' }}
+        onClick={e => e.stopPropagation()}>
+
+        <div style={{ padding: '28px 28px 20px', borderBottom: '1px solid #f1f5f9' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 10, color: '#7c3aed', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Membre de délégation</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a' }}>{membre.contacts?.prenom} {membre.contacts?.nom}</div>
+              <div style={{ fontSize: 13, color: '#6366f1', fontWeight: 600, marginTop: 2 }}>{membre.dossier}</div>
+            </div>
+            <button onClick={onClose} style={{ background: '#f8fafc', border: 'none', width: 34, height: 34, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Icon name="close" size={16} color="#64748b" />
+            </button>
+          </div>
+        </div>
+
+        <div style={{ padding: '20px 28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px 24px' }}>
+          {[
+            { label: 'Fonction',     value: membre.contacts?.poste },
+            { label: 'Organisation', value: membre.contacts?.organisation, full: true },
+            { label: 'Pays',         value: membre.contacts?.pays },
+            { label: 'Statut',       value: STATUS_CONFIG[membre.paiement_status]?.label || membre.paiement_status },
+            { label: 'Email',        value: membre.contacts?.email, full: true },
+            { label: 'Téléphone',    value: membre.contacts?.telephone },
+          ].filter(f => f.value).map((f, i) => (
+            <div key={i} style={{ gridColumn: f.full ? '1 / -1' : 'auto' }}>
+              <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 5 }}>{f.label}</div>
+              <div style={{ fontSize: 14, color: '#334155', fontWeight: 500, lineHeight: 1.5, wordBreak: 'break-word' }}>{f.value}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ padding: '4px 28px 28px' }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 10 }}>Badge — QR code (à intégrer dans Canva)</div>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 16 }}>
+            {badgeQr && <img src={badgeQr} alt="QR code badge" style={{ width: 96, height: 96, borderRadius: 10, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />}
+            <button type="button" onClick={downloadBadgeQr} disabled={!badgeQr} style={{
+              flex: 1, minWidth: 160, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '9px 12px', border: '1.5px solid #e2e8f0', borderRadius: 10,
+              fontSize: 12, fontWeight: 600, color: '#64748b', cursor: badgeQr ? 'pointer' : 'not-allowed', background: '#fff',
+            }}>
+              <Icon name="download" size={13} color="#64748b" />
+              Télécharger le QR (PNG)
+            </button>
+          </div>
+
+          <button type="button" onClick={toggleArrivee} disabled={toggling} style={{
+            width: '100%', padding: '13px', border: 'none', borderRadius: 12,
+            fontSize: 14, fontWeight: 700, cursor: toggling ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+            color: membre.arrived ? '#065f46' : '#fff', background: membre.arrived ? '#d1fae5' : '#0f172a',
+          }}>
+            {membre.arrived
+              ? `Arrivé${membre.arrived_at ? ` à ${fmtTime(membre.arrived_at)}` : ''} — marquer non arrivé`
+              : 'Marquer arrivé et installé'}
+          </button>
+
+          <p style={{ fontSize: 11.5, color: '#94a3b8', textAlign: 'center', marginTop: 12, lineHeight: 1.5 }}>
+            Fait partie du dossier groupé. Statut de paiement et documents partagés avec le contact principal.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── MODAL SPONSORSHIP (sponsor + partenaire) ─────────────────────────────────
 function ModalSponsorship({ row, onClose, onUpdate, type }) {
   const [status,  setStatus]  = useState(row.statut || 'nouveau')
@@ -928,12 +1036,13 @@ function InfosGeneralesPanel() {
 }
 
 // ─── SECTION PARTICIPANTS ─────────────────────────────────────────────────────
-function SectionParticipants({ data, membres = [], setData }) {
-  const [search,        setSearch]        = useState('')
-  const [filterStatus,  setFilterStatus]  = useState('tous')
-  const [selected,      setSelected]      = useState(null)
-  const [syncing,       setSyncing]       = useState(false)
-  const [syncOk,        setSyncOk]        = useState(false)
+function SectionParticipants({ data, membres = [], setData, setMembres }) {
+  const [search,          setSearch]          = useState('')
+  const [filterStatus,    setFilterStatus]    = useState('tous')
+  const [selected,        setSelected]        = useState(null)
+  const [selectedMembre,  setSelectedMembre]  = useState(null)
+  const [syncing,         setSyncing]         = useState(false)
+  const [syncOk,          setSyncOk]          = useState(false)
 
   const total       = data.length
   const totalParts  = data.reduce((s, r) => s + (r.participants || 0), 0)
@@ -954,6 +1063,7 @@ function SectionParticipants({ data, membres = [], setData }) {
       return {
         id: `membre-${m.id}`,
         _isMember: true,
+        _memberId: m.id,
         dossier: m.dossier,
         badge_token: m.badge_token,
         participants: 1,
@@ -1070,7 +1180,7 @@ function SectionParticipants({ data, membres = [], setData }) {
         {filtered.length} enregistrement{filtered.length > 1 ? 's' : ''} affiches
       </div>
 
-      <DataTable cols={TABLE_COLS} rows={filtered} onRow={r => r._isMember ? window.open(`https://copaf-ports.com/badge/${r.badge_token}`, '_blank') : setSelected(r)} />
+      <DataTable cols={TABLE_COLS} rows={filtered} onRow={r => r._isMember ? setSelectedMembre(r) : setSelected(r)} />
 
       {selected && (
         <ModalParticipant
@@ -1079,6 +1189,17 @@ function SectionParticipants({ data, membres = [], setData }) {
           onUpdate={updated => {
             if (!updated) setData(prev => prev.filter(r => r.id !== selected.id))
             else { setData(prev => prev.map(r => r.id === updated.id ? updated : r)); setSelected(updated) }
+          }}
+        />
+      )}
+
+      {selectedMembre && (
+        <ModalMembre
+          membre={selectedMembre}
+          onClose={() => setSelectedMembre(null)}
+          onUpdate={patch => {
+            setMembres?.(prev => prev.map(m => m.id === selectedMembre._memberId ? { ...m, ...patch } : m))
+            setSelectedMembre(prev => prev && { ...prev, ...patch })
           }}
         />
       )}
@@ -1848,6 +1969,7 @@ export default function AdminPage() {
                   data={allData.inscriptions}
                   membres={allData.membres}
                   setData={d => setAllData(prev => ({ ...prev, inscriptions: typeof d === 'function' ? d(prev.inscriptions) : d }))}
+                  setMembres={d => setAllData(prev => ({ ...prev, membres: typeof d === 'function' ? d(prev.membres) : d }))}
                 />
               )}
               {(activeModule === 'sponsors' || activeModule === 'partenaires' || activeModule === 'exposants') && (
