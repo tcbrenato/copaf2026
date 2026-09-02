@@ -9,7 +9,7 @@
 // fiche publique limitee.
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { Ico } from '../utils/dossierUi'
 
@@ -18,6 +18,7 @@ const BLUE = '#0073F4'
 
 export default function BadgeToken() {
   const { token } = useParams()
+  const navigate = useNavigate()
   const [data, setData] = useState(undefined)
   const [error, setError] = useState('')
   const [checkinLoading, setCheckinLoading] = useState(false)
@@ -123,6 +124,14 @@ export default function BadgeToken() {
           {checkinResult?.deja_arrive && (
             <p style={{ fontSize: 11.5, color: '#94a3b8', textAlign: 'center', marginTop: 8 }}>Ce badge avait déjà été pointé.</p>
           )}
+          <button type="button" onClick={() => navigate('/staff/scan')} style={{
+            width: '100%', padding: '13px', marginTop: 10, background: '#fff',
+            color: NAVY, border: `1.5px solid ${NAVY}`, borderRadius: 12, fontSize: 13.5, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          }}>
+            <Ico name="search" size={14} color={NAVY} />
+            Scanner le badge suivant
+          </button>
         </div>
       </div>
     </div>
