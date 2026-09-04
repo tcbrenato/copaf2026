@@ -143,9 +143,9 @@ export async function generateConfirmationInscriptionPDF({
 
   drawField(doc, `${ville}, le ${fmtDateJJMMAAAA()}`, FIELDS_CM.lieuDate, { fontFamily })
   drawField(doc, `Réf : ${dossier}`, FIELDS_CM.reference, { fontFamily })
-  drawField(doc, `M. / Mme : ${form.prenom || ''} ${form.nom || ''} - ${form.poste || ''}`, FIELDS_CM.identite, { fontFamily })
-  drawField(doc, `Organisme : ${form.organisation || ''}`, FIELDS_CM.organisme, { fontFamily })
-  drawField(doc, `Passeport N° : ${numeroPasseport || ''}`, FIELDS_CM.passeport, { fontFamily })
+  drawField(doc, `•  M. / Mme : ${form.prenom || ''} ${form.nom || ''} - ${form.poste || ''}`, FIELDS_CM.identite, { fontFamily })
+  drawField(doc, `•  Organisme : ${form.organisation || ''}`, FIELDS_CM.organisme, { fontFamily })
+  drawField(doc, `•  Passeport N° : ${numeroPasseport || ''}`, FIELDS_CM.passeport, { fontFamily })
 
   const nomFichier = `${sanitizeFilenamePart(form.prenom)}${sanitizeFilenamePart(form.nom)}` || dossier
 
