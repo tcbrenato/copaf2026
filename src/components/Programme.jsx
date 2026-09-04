@@ -199,8 +199,8 @@ const Programme = () => {
         {/* ── BOUTON TÉLÉCHARGEMENT PDF ── */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <a
-            href={i18n.language === 'en' ? '/ProgrammcopafENG.pdf' : '/programmecopaf2026FRmaj.pdf'}
-            download={i18n.language === 'en' ? 'ProgrammcopafENG.pdf' : 'programmecopaf2026FRmaj.pdf'}
+            href={i18n.language === 'en' ? '/programmecopaf2026ENGmaj.pdf' : '/programmecopaf2026FRmaj.pdf'}
+            download={i18n.language === 'en' ? 'programmecopaf2026ENGmaj.pdf' : 'programmecopaf2026FRmaj.pdf'}
             className="prog-download-btn"
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 10,

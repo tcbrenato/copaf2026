@@ -25,8 +25,8 @@ const EXHIBITORS = [
     videoUrl: '/inscriptioncopaf.mp4',
     videoLabel: "Comment s'inscrire à la COPAF 2026",
     videoPoster: '/lieucopaf.jpg',
-    brochureUrl: '/Brochurecopaf2026FR.pdf',
-    catalogueUrl: '/Brochurecopaf2026FR.pdf', // à remplacer par un vrai fichier catalogue quand disponible
+    brochureUrl: '/BrochureCOPAF2026FRmaj.pdf',
+    catalogueUrl: '/BrochureCOPAF2026FRmaj.pdf', // à remplacer par un vrai fichier catalogue quand disponible
     galerie: ['/hero1.png', '/hero2.png', '/hero3.png', '/lieucopaf.jpg'],
     email: 'contactcrfperfection@gmail.com',
     telephone: '+229 0169 30 30 19',
