@@ -36,6 +36,7 @@ import StaffScan from './pages/StaffScan'
 import CookieBanner from './components/CookieBanner'
 import ContactHub from './components/ContactHub'
 import InstallPrompt from './components/InstallPrompt'
+import PromoPopup from './components/PromoPopup'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -73,6 +74,20 @@ const InstallPromptGate = () => {
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
   return <InstallPrompt />
+}
+
+// ─── Popup promo (visuel COPAF 2026, une seule apparition par visite) : memes
+// exclusions que ContactHub/InstallPrompt, + pas de sens sur la page
+// d'inscription elle-meme (le visiteur y est deja).
+const PromoPopupGate = () => {
+  const location = useLocation()
+  const { pathname } = location
+  if (pathname.includes('/admin')) return null
+  if (pathname === '/inscription') return null
+  if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
+  if (pathname === '/diagnostic/projection') return null
+  if (pathname === '/staff/scan' || pathname.startsWith('/badge/')) return null
+  return <PromoPopup />
 }
 
 // NOTE SUR L'ESPACEMENT : --copaf-header-h est mise a jour en continu par
@@ -146,6 +161,7 @@ function App() {
       <CookieBannerGate />
       <ContactHubGate />
       <InstallPromptGate />
+      <PromoPopupGate />
       <Routes>
         <Route path="/"                       element={<MainSite />} />
         <Route path="/inscription"            element={<InscriptionPage />} />
