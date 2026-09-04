@@ -4,6 +4,7 @@ import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
 import { generateBadge } from '../utils/generateBadge'
 import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitivePDF'
+import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmationInscriptionPDF'
 
 const NAVY = '#000E91'
 const MAROON = '#96182A'
@@ -42,7 +43,7 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
 
 const fmtDateTime = d => new Date(d).toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
-const DOC_LABELS = { proforma: 'Facture proforma', recap: 'Récapitulatif', badge: 'Badge', facture_definitive: 'Facture définitive' }
+const DOC_LABELS = { proforma: 'Facture proforma', recap: 'Récapitulatif', badge: 'Badge', facture_definitive: 'Facture définitive', confirmation_inscription: "Confirmation d'inscription" }
 
 // Génère un id local unique pour chaque ligne participant (React key + suivi des éditions)
 const newParticipantRow = () => ({
@@ -319,7 +320,7 @@ export default function AdminProforma() {
     setLoading(true); setError(''); setData(null)
     const { data: rows, error: err } = await supabase
       .from('inscriptions')
-      .select('dossier, participants, montant, paiement_status, note_interne, numero_facture, delegation_nom, participants_liste, tarif_type, code_promo, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
+      .select('dossier, participants, montant, paiement_status, note_interne, numero_facture, numero_passeport, delegation_nom, participants_liste, tarif_type, code_promo, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
       .eq('dossier', dossier.trim())
       .limit(1)
 
@@ -334,6 +335,7 @@ export default function AdminProforma() {
       statut: row.paiement_status,
       noteInterne: row.note_interne || '',
       numeroFacture: row.numero_facture || null,
+      numeroPasseport: row.numero_passeport || '',
       tarifType: row.tarif_type || null,
       codePromo: row.code_promo || '',
       nom: row.contacts?.nom || '',
@@ -546,6 +548,23 @@ export default function AdminProforma() {
       }
       await generateFactureDefinitivePDF({ form: formData(), dossier: data.dossier, numeroFacture: numero, nb: Number(data.participants) || 1, total: Number(data.montant) || 0, lang })
       await logDocument(data.dossier, 'facture_definitive')
+    } catch (err) {
+      showToast('Erreur : ' + err.message)
+    } finally { setGenLoading('') }
+  }
+
+  const handleGenerateConfirmationInscription = async () => {
+    const numeroPasseport = (data.numeroPasseport || '').trim()
+    if (!numeroPasseport) { showToast('Renseignez le numéro de passeport avant de générer ce document'); return }
+    setGenLoading('confirmation')
+    try {
+      if (numeroPasseport !== (data._numeroPasseportSaved || '')) {
+        const { error: err } = await supabase.from('inscriptions').update({ numero_passeport: numeroPasseport }).eq('dossier', data.dossier)
+        if (err) throw new Error(err.message)
+        setData(d => ({ ...d, _numeroPasseportSaved: numeroPasseport }))
+      }
+      await generateConfirmationInscriptionPDF({ form: formData(), dossier: data.dossier, numeroPasseport })
+      await logDocument(data.dossier, 'confirmation_inscription')
     } catch (err) {
       showToast('Erreur : ' + err.message)
     } finally { setGenLoading('') }
@@ -980,6 +999,16 @@ export default function AdminProforma() {
               </div>
             </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>N° Passeport</label>
+              <input
+                value={data.numeroPasseport || ''}
+                onChange={e => handleField('numeroPasseport', e.target.value)}
+                placeholder="Requis pour la confirmation d'inscription"
+                style={{ ...smallInputStyle, width: 220 }}
+              />
+            </div>
+
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button onClick={handleGenerateProforma} disabled={genLoading === 'proforma'} style={actionBtn('#fdf2f4', MAROON, '#f3c9d0')}>
                 <Ico name="file" size={15} color={MAROON} />
@@ -989,6 +1018,11 @@ export default function AdminProforma() {
               <button onClick={handleGenerateRecap} disabled={genLoading === 'recap'} style={actionBtn('#EBF3FF', NAVY, '#bfdbfe')}>
                 <Ico name="file" size={15} color={NAVY} />
                 {genLoading === 'recap' ? 'Génération...' : (isGroup ? 'Facture groupée (récap)' : 'Récapitulatif')}
+              </button>
+
+              <button onClick={handleGenerateConfirmationInscription} disabled={genLoading === 'confirmation'} style={actionBtn('#ecfeff', '#0e7490', '#a5f3fc')}>
+                <Ico name="badge" size={15} color="#0e7490" />
+                {genLoading === 'confirmation' ? 'Génération...' : "Confirmation d'inscription"}
               </button>
 
               {data.statut === 'confirme' && (
