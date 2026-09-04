@@ -22,7 +22,7 @@ const intervenants = [
   {
     initiales: 'WO',
     photo: '/william.jpg',
-    nom: 'Dr. William ODAH',
+    nom: 'Dr William ODAH',
     titre: 'Directeur Général',
     organisation: 'CRF Perfection',
     bioKey: 'odahBio',
@@ -30,7 +30,7 @@ const intervenants = [
   {
     initiales: 'BB',
     photo: '/babel.jpg',
-    nom: 'Babel BALSOMI',
+    nom: 'Mme Babel BALSOMI',
     titre: 'CEO & Experte en Cybersécurité Offensive et Transformation Digitale',
     organisation: 'Hiero Digital International',
     bioKey: 'balsomiBio',
@@ -46,7 +46,7 @@ const intervenants = [
   {
     initiales: 'MB',
     photo: '/marc.jpg',
-    nom: 'Marc BIEGNIEBE',
+    nom: 'Marc BIEGNIÉBÉ',
     titre: 'Directeur Général',
     organisation: 'ANAXAR',
     bioKey: 'biegniebeBio',
@@ -54,7 +54,7 @@ const intervenants = [
   {
     initiales: 'RT',
     photo: '/renato.jpg',
-    nom: 'Rénato TCHOBO',
+    nom: 'M. Rénato TCHOBO',
     titreKey: 'tchoboTitre',
     organisation: 'CRF Perfection',
     bioKey: 'tchoboBio',
@@ -82,6 +82,11 @@ const Intervenants = () => {
       backgroundSize: 'cover',
       backgroundPosition: 'center',
     }}>
+      <style>{`
+        .interv-card { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .interv-arrow { display: inline-block; transition: transform 0.25s cubic-bezier(.34,1.56,.64,1); }
+        .interv-card:hover .interv-arrow { transform: translateX(5px); }
+      `}</style>
       {/* Overlay subtil */}
       <div style={{
         position: 'absolute', inset: 0,
@@ -129,8 +134,9 @@ const Intervenants = () => {
           {intervenants.map((raw, i) => {
             const p = resolve(raw)
             return (
-              <div 
-                key={i} 
+              <div
+                key={i}
+                className="interv-card"
                 onClick={() => setActiveModal(p)}
                 style={{
                   background: '#ffffff',
@@ -139,7 +145,6 @@ const Intervenants = () => {
                   cursor: 'pointer',
                   border: '1px solid rgba(0, 115, 244, 0.08)',
                   boxShadow: '0 10px 30px -5px rgba(0, 14, 145, 0.05)',
-                  transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                   display: 'flex',
                   flexDirection: 'column',
                 }}
@@ -214,7 +219,7 @@ const Intervenants = () => {
                     paddingTop: 12, borderTop: '1px solid #f1f5f9',
                   }}>
                     {t('intervenants.readBio')}
-                    <span style={{ transition: 'transform 0.2s' }}>→</span>
+                    <span className="interv-arrow">→</span>
                   </div>
                 </div>
               </div>

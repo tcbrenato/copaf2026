@@ -98,8 +98,14 @@ const AxesThematiques = () => {
     }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap');
-        .axe-card { transition: all 0.25s cubic-bezier(.4,0,.2,1) !important; }
-        .axe-card:hover { transform: translateY(-5px); }
+        .axe-card { transition: all 0.3s cubic-bezier(.34,1.56,.64,1) !important; }
+        .axe-card:hover { transform: translateY(-8px) scale(1.015); }
+        .axe-card-bar { transition: height 0.25s ease; }
+        .axe-card:hover .axe-card-bar { height: 6px; }
+        .axe-card-icon { transition: transform 0.35s cubic-bezier(.34,1.56,.64,1); }
+        .axe-card:hover .axe-card-icon { transform: scale(1.1) rotate(-6deg); }
+        .axe-card-arrow { transition: transform 0.25s cubic-bezier(.34,1.56,.64,1); display: inline-flex; }
+        .axe-card:hover .axe-card-arrow { transform: translateX(5px); }
         @keyframes modalIn { from { opacity: 0; transform: scale(0.94) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .modal-animate { animation: modalIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards; }
         .axes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
@@ -144,8 +150,8 @@ const AxesThematiques = () => {
                   boxShadow: isHover ? `0 20px 44px ${meta.color}30` : "0 4px 16px rgba(0,14,145,0.05)",
                 }}
               >
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: meta.color }} />
-                <div style={{
+                <div className="axe-card-bar" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: meta.color }} />
+                <div className="axe-card-icon" style={{
                   width: 56, height: 56, borderRadius: 16, marginBottom: 18,
                   background: meta.bg, border: `1px solid ${meta.color}30`,
                   display: "flex", alignItems: "center", justifyContent: "center", color: meta.color,
@@ -160,7 +166,7 @@ const AxesThematiques = () => {
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: meta.color, background: meta.bg, borderRadius: 20, padding: "4px 10px" }}>{t('modules.activitiesCount')}</span>
                   <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: meta.color }}>
-                    {t('modules.viewDetails')} {icons.arrow}
+                    {t('modules.viewDetails')} <span className="axe-card-arrow">{icons.arrow}</span>
                   </span>
                 </div>
               </div>

@@ -82,8 +82,13 @@ const Programme = () => {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap');
         .prog-tab { transition: all 0.25s cubic-bezier(.4,0,.2,1); }
-        .prog-tab:hover { transform: translateY(-2px); }
-        .prog-row { transition: all 0.18s ease; }
+        .prog-tab:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,14,145,0.18); }
+        .prog-row { transition: all 0.22s cubic-bezier(.4,0,.2,1); }
+        .prog-row:hover { transform: translateX(6px); }
+        .prog-row-icon { transition: transform 0.3s cubic-bezier(.34,1.56,.64,1); }
+        .prog-row:hover .prog-row-icon { transform: scale(1.1) rotate(-4deg); }
+        .prog-row-arrow { transition: transform 0.25s cubic-bezier(.34,1.56,.64,1); }
+        .prog-row:hover .prog-row-arrow { transform: scale(1.12) translateX(3px); }
         .prog-stat-card { transition: all 0.2s ease; }
         .prog-stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,115,244,0.18); }
         .prog-download-btn { transition: all 0.2s ease; }
@@ -293,6 +298,7 @@ const Programme = () => {
                   style={{
                     background: hovered ? C.bluePale : (k % 2 === 0 ? C.white : '#FAFBFF'),
                     borderBottom: k < jour.sessions.length - 1 ? `1px solid ${C.navyAlpha10}` : 'none',
+                    boxShadow: hovered ? `inset 4px 0 0 ${jour.accent}` : 'inset 4px 0 0 transparent',
                     cursor: 'pointer',
                   }}
                 >
@@ -322,12 +328,12 @@ const Programme = () => {
 
                       <div style={{ width: '100%' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 6 }}>
-                          <div style={{
+                          <div className="prog-row-icon" style={{
                             width: 42, height: 42, borderRadius: 12,
                             background: hovered ? C.blue : C.bluePale,
                             border: `1.5px solid ${hovered ? C.blue : C.blueMid}`,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: hovered ? C.white : C.blue, flexShrink: 0, transition: 'all 0.18s',
+                            color: hovered ? C.white : C.blue, flexShrink: 0, transition: 'background 0.18s, border-color 0.18s, color 0.18s',
                           }}>{sIcon}</div>
                           <div style={{ flex: 1 }}>
                             <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase', color: jour.accent, marginBottom: 2 }}>
@@ -349,11 +355,11 @@ const Programme = () => {
                             {s.intervenant}
                           </div>
 
-                          <div style={{
+                          <div className="prog-row-arrow" style={{
                             width: 28, height: 28, borderRadius: '50%',
                             background: hovered ? C.blue : C.bluePale,
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: hovered ? C.white : C.blue, fontSize: 16, flexShrink: 0, transition: 'all 0.18s',
+                            color: hovered ? C.white : C.blue, fontSize: 16, flexShrink: 0, transition: 'background 0.18s, color 0.18s',
                           }}>›</div>
                         </div>
                       </div>
