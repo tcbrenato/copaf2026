@@ -556,6 +556,11 @@ export default function AdminProforma() {
   const handleGenerateConfirmationInscription = async () => {
     const numeroPasseport = (data.numeroPasseport || '').trim()
     if (!numeroPasseport) { showToast('Renseignez le numéro de passeport avant de générer ce document'); return }
+    // Ouvert de maniere synchrone, avant tout await, pour eviter le blocage
+    // popup des navigateurs (meme pattern que VerifierDossier.jsx) : l'admin
+    // voit d'abord le document dans la visionneuse PDF native de l'onglet,
+    // avec le telechargement toujours possible depuis cette visionneuse.
+    const win = window.open('', '_blank')
     setGenLoading('confirmation')
     try {
       if (numeroPasseport !== (data._numeroPasseportSaved || '')) {
@@ -563,7 +568,12 @@ export default function AdminProforma() {
         if (err) throw new Error(err.message)
         setData(d => ({ ...d, _numeroPasseportSaved: numeroPasseport }))
       }
-      await generateConfirmationInscriptionPDF({ form: formData(), dossier: data.dossier, numeroPasseport })
+      if (win) {
+        const doc = await generateConfirmationInscriptionPDF({ form: formData(), dossier: data.dossier, numeroPasseport, download: false })
+        win.location.href = doc.output('bloburl')
+      } else {
+        await generateConfirmationInscriptionPDF({ form: formData(), dossier: data.dossier, numeroPasseport })
+      }
       await logDocument(data.dossier, 'confirmation_inscription')
     } catch (err) {
       showToast('Erreur : ' + err.message)
