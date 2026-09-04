@@ -93,24 +93,27 @@
         "objectif": "Understand the technological landscape and identify opportunities",
         "accent": "#0073f4",
         "sessions": [
-          { "heure": "9:00 – 9:45 AM", "type": "Opening", "titre": "Opening addresses and presentation", "desc": "Welcome address and official launch of COPAF 2026.", "intervenant": "—", "categorie": "Partenaire" },
-          { "heure": "10:15 – 11:30 AM", "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specifics.", "intervenant": "M. Abiala", "categorie": "Recruté" },
-          { "heure": "11:30 AM – 12:45 PM", "type": "Panel", "titre": "Digital maturity diagnosis", "desc": "Assess your port authority's digital maturity — flagship live session on tablet.", "intervenant": "Dr William ODAH / M. Tchobo", "categorie": "Maison" },
-          { "heure": "1:45 – 3:00 PM", "type": "Workshop", "titre": "Business model for developing a port technology project", "desc": "ROI, success and failure case studies.", "intervenant": "Experts Maroc", "categorie": "Partenaire" },
-          { "heure": "3:30 – 4:45 PM", "type": "Round Table", "titre": "Automation and data governance", "desc": "AI-driven automation of port operations and data governance.", "intervenant": "M. Tchobo / Mme Balsomi", "categorie": "Maison" }
+          { "heure": "9:00 – 9:45 AM", "type": "Opening", "titre": "Opening addresses and presentation", "desc": "Welcome address and official launch of COPAF 2026.", "intervenant": "CRF PERFECTION / AGPAOC / ANPUAPNA", "categorie": "Partenaire" },
+          { "heure": "10:15 – 11:30 AM", "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specifics.", "intervenant": "M. Abiala MODESTE", "categorie": "Recruté" },
+          { "heure": "11:30 AM – 12:45 PM", "type": "Panel", "titre": "Digital maturity diagnosis", "desc": "Assess your port authority's digital maturity — flagship live session on tablet.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
+          { "heure": "12:45 – 1:45 PM", "type": "Break", "titre": "Lunch", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
+          { "heure": "1:45 – 3:00 PM", "type": "Workshop", "titre": "Business model for developing a port technology project", "desc": "ROI, success and failure case studies.", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
+          { "heure": "3:00 – 3:30 PM", "type": "Break", "titre": "Coffee break", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
+          { "heure": "3:30 – 4:45 PM", "type": "Round Table", "titre": "Automation and data governance", "desc": "AI-driven automation of port operations and data governance.", "intervenant": "M. Rénato TCHOBO / Mme Babel BALSOMI", "categorie": "Maison" }
         ]
       },
       {
-        "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security and Cybersecurity",
+        "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security & Cybersecurity",
         "objectif": "Making operations smoother and safer, leveraging AI and port cybersecurity",
         "accent": "#000e91",
         "sessions": [
-          { "heure": "9:00 – 10:30 AM", "type": "Plenary", "titre": "Nautical operations and multimodal transport management", "desc": "Estimated time of arrival (ETA) predictions and smart management of multimodal transport (trucking and rail).", "intervenant": "Marc Biegniébé", "categorie": "Recruté" },
+          { "heure": "9:00 – 10:30 AM", "type": "Plenary", "titre": "Nautical operations and multimodal transport management", "desc": "Estimated time of arrival (ETA) predictions and smart management of multimodal transport (trucking and rail).", "intervenant": "Marc BIEGNIÉBÉ", "categorie": "Recruté" },
+          { "heure": "10:30 – 11:00 AM", "type": "Break", "titre": "Coffee break", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
           { "heure": "11:00 AM – 12:30 PM", "type": "Panel", "titre": "Safety & Security", "desc": "AI for automatic anomaly detection (scanners, video surveillance).", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
           { "heure": "12:30 – 1:30 PM", "type": "Break", "titre": "Lunch", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
-          { "heure": "1:30 – 2:45 PM", "type": "Workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Expert Babel BALSOMI", "categorie": "Recruté" },
+          { "heure": "1:30 – 2:45 PM", "type": "Workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Mme Babel BALSOMI", "categorie": "Recruté" },
           { "heure": "2:45 – 3:15 PM", "type": "Break", "titre": "Coffee break", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
-          { "heure": "3:15 – 4:30 PM", "type": "Round Table", "titre": "Roadmap", "desc": "Real-time monitoring and decision support.", "intervenant": "Dr ODAH", "categorie": "Maison" },
+          { "heure": "3:15 – 4:30 PM", "type": "Round Table", "titre": "Roadmap", "desc": "Real-time monitoring and decision support.", "intervenant": "Dr William ODAH", "categorie": "Maison" },
           { "heure": "4:30 PM", "type": "Closing", "titre": "Certificate presentation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
         ]
       },
@@ -184,7 +187,7 @@
     "bioComingSoon": "Biography coming soon. This speaker will be announced shortly.",
     "odahTitre": "Expert in Strategic Governance and Port Development",
     "odahBio": "Chief Executive Officer of CRF Perfection, Dr. William ODAH is an international expert in strategic governance, active across the United States, Canada, Europe and Africa. For many years, he has supported institutions and companies in West Africa and beyond in their port development, training and organizational structuring projects. His expertise is built around three levers of performance to meet the challenges of digital transformation: strategic marketing, for competitive positioning and service value creation; process digitalization, for operational optimization and efficiency; and organizational compliance, for resilience, governance and regulatory conformity. Working with public and private stakeholders in the maritime and logistics sector across four continents, he is recognized for his pragmatic approach combining institutional change management, executive capacity building and strategic support for high-stakes port projects.",
-    "biegniebeBio": "Marc BIEGNIEBE is Chief Executive Officer of ANAXAR, a road transport company operating along the corridors linking the Port of Lomé to hinterland countries — Burkina Faso, Mali and Niger. With over 10 years of experience in the port and cross-border logistics chain, he works on corridor fluidity, customs clearance and transport digitalization issues in West Africa.",
+    "biegniebeBio": "Marc BIEGNIÉBÉ is Chief Executive Officer of ANAXAR, a road transport company operating along the corridors linking the Port of Lomé to hinterland countries — Burkina Faso, Mali and Niger. With over 10 years of experience in the port and cross-border logistics chain, he works on corridor fluidity, customs clearance and transport digitalization issues in West Africa.",
     "tchoboTitre": "Expert in Digital Transformation & Digital Solutions Consultant",
     "tchoboBio": "Rénato TCHOBO is Chief Digital & IT Officer at CRF Perfection, where he leads web development, digital strategy and the digital transformation of institutional and event-related projects. A freelance consultant in web development and community management, he designs and deploys complete digital platforms — from concept to production — for organizations based in Cotonou and internationally. His expertise covers structuring complex digital projects, process automation and strategic support for digital transformation.",
     "balsomiBio": "Babel BALSOMI is CEO of the HIERO DIGITAL INTERNATIONAL group, active in Africa, Europe and Canada. An expert in offensive cybersecurity, artificial intelligence and digital transformation, she is notably recognized for her research on the security of large language models. Founder of several organizations dedicated to cybersecurity, training and digital inclusion in Africa (HDI, Hiero Academy, H&C IT Academy, CONNECT-IA), she supports institutions and businesses in strengthening their digital resilience. She regularly speaks at international forums dedicated to cybersecurity and artificial intelligence.",
@@ -207,22 +210,22 @@
         "sousTitre": "Understand the technological landscape and identify opportunities",
         "level": "Vision & Strategy", "duration": "7h45",
         "activities": [
-          { "type": "Opening", "titre": "Opening addresses and presentation", "desc": "Welcome address and official launch of COPAF 2026.", "intervenant": "—", "categorie": "Partenaire" },
-          { "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specifics.", "intervenant": "M. Abiala", "categorie": "Recruté" },
-          { "type": "Panel", "titre": "Digital maturity diagnosis", "desc": "Flagship live session on tablet.", "intervenant": "Dr William ODAH / M. Tchobo", "categorie": "Maison" },
-          { "type": "Workshop", "titre": "Business model for developing a port technology project", "desc": "ROI, success and failure case studies.", "intervenant": "Experts Maroc", "categorie": "Partenaire" },
-          { "type": "Round Table", "titre": "Automation and data governance", "desc": "AI-driven automation of port operations and data governance.", "intervenant": "M. Tchobo / Mme Balsomi", "categorie": "Maison" }
+          { "type": "Opening", "titre": "Opening addresses and presentation", "desc": "Welcome address and official launch of COPAF 2026.", "intervenant": "CRF PERFECTION / AGPAOC / ANPUAPNA", "categorie": "Partenaire" },
+          { "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specifics.", "intervenant": "M. Abiala MODESTE", "categorie": "Recruté" },
+          { "type": "Panel", "titre": "Digital maturity diagnosis", "desc": "Assess your port authority's digital maturity — flagship live session on tablet.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
+          { "type": "Workshop", "titre": "Business model for developing a port technology project", "desc": "ROI, success and failure case studies.", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
+          { "type": "Round Table", "titre": "Automation and data governance", "desc": "AI-driven automation of port operations and data governance.", "intervenant": "M. Rénato TCHOBO / Mme Babel BALSOMI", "categorie": "Maison" }
         ]
       },
       {
-        "num": "02", "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security and Cybersecurity",
+        "num": "02", "jour": "Day 2", "date": "Oct 20", "titre": "Operational Excellence, Security & Cybersecurity",
         "sousTitre": "Making operations smoother and safer, leveraging AI and port cybersecurity",
         "level": "Operations & Security", "duration": "7h15",
         "activities": [
-          { "type": "Plenary", "titre": "Nautical operations and multimodal transport management", "desc": "Estimated time of arrival (ETA) predictions and smart management of multimodal transport (trucking and rail).", "intervenant": "Marc Biegniébé", "categorie": "Recruté" },
+          { "type": "Plenary", "titre": "Nautical operations and multimodal transport management", "desc": "Estimated time of arrival (ETA) predictions and smart management of multimodal transport (trucking and rail).", "intervenant": "Marc BIEGNIÉBÉ", "categorie": "Recruté" },
           { "type": "Panel", "titre": "Safety & Security", "desc": "AI for automatic anomaly detection (scanners, video surveillance).", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
-          { "type": "Workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Expert Babel BALSOMI", "categorie": "Recruté" },
-          { "type": "Round Table", "titre": "Roadmap", "desc": "Real-time monitoring and decision support.", "intervenant": "Dr ODAH", "categorie": "Maison" },
+          { "type": "Workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Mme Babel BALSOMI", "categorie": "Recruté" },
+          { "type": "Round Table", "titre": "Roadmap", "desc": "Real-time monitoring and decision support.", "intervenant": "Dr William ODAH", "categorie": "Maison" },
           { "type": "Closing", "titre": "Certificate presentation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
         ]
       },

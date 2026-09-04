@@ -93,24 +93,27 @@
         "objectif": "Comprendre le paysage technologique et identifier les opportunités",
         "accent": "#0073f4",
         "sessions": [
-          { "heure": "09h00 – 09h45", "type": "Ouverture", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "—", "categorie": "Partenaire" },
-          { "heure": "10h15 – 11h30", "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Abiala", "categorie": "Recruté" },
-          { "heure": "11h30 – 12h45", "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire — session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Tchobo", "categorie": "Maison" },
-          { "heure": "13h45 – 15h00", "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Experts Maroc", "categorie": "Partenaire" },
-          { "heure": "15h30 – 16h45", "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Tchobo / Mme Balsomi", "categorie": "Maison" }
+          { "heure": "09h00 – 09h45", "type": "Ouverture", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "CRF PERFECTION / AGPAOC / ANPUAPNA", "categorie": "Partenaire" },
+          { "heure": "10h15 – 11h30", "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Abiala MODESTE", "categorie": "Recruté" },
+          { "heure": "11h30 – 12h45", "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire — session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
+          { "heure": "12h45 – 13h45", "type": "Pause", "titre": "Déjeuner", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
+          { "heure": "13h45 – 15h00", "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
+          { "heure": "15h00 – 15h30", "type": "Pause", "titre": "Pause café", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
+          { "heure": "15h30 – 16h45", "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Rénato TCHOBO / Mme Babel BALSOMI", "categorie": "Maison" }
         ]
       },
       {
-        "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité et Cybersécurité",
+        "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
         "objectif": "Rendre les opérations plus fluides et plus sûres, en s'appuyant sur l'IA et la cybersécurité portuaire",
         "accent": "#000e91",
         "sessions": [
-          { "heure": "09h00 – 10h30", "type": "Plénière", "titre": "Opérations nautiques et gestion des transports multimodaux", "desc": "Prédictions des arrivées (ETA) et gestion intelligente des transports multimodaux (camions et ferroviaires).", "intervenant": "Marc Biegniébé", "categorie": "Recruté" },
+          { "heure": "09h00 – 10h30", "type": "Plénière", "titre": "Opérations nautiques et gestion des transports multimodaux", "desc": "Prédictions des arrivées (ETA) et gestion intelligente des transports multimodaux (camions et ferroviaires).", "intervenant": "Marc BIEGNIÉBÉ", "categorie": "Recruté" },
+          { "heure": "10h30 – 11h00", "type": "Pause", "titre": "Pause café", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
           { "heure": "11h00 – 12h30", "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
           { "heure": "12h30 – 13h30", "type": "Pause", "titre": "Déjeuner", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
-          { "heure": "13h30 – 14h45", "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Expert Babel BALSOMI", "categorie": "Recruté" },
+          { "heure": "13h30 – 14h45", "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Mme Babel BALSOMI", "categorie": "Recruté" },
           { "heure": "14h45 – 15h15", "type": "Pause", "titre": "Pause café", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
-          { "heure": "15h15 – 16h30", "type": "Table Ronde", "titre": "Feuille de route", "desc": "Pilotage en temps réel et aide à la décision.", "intervenant": "Dr ODAH", "categorie": "Maison" },
+          { "heure": "15h15 – 16h30", "type": "Table Ronde", "titre": "Feuille de route", "desc": "Pilotage en temps réel et aide à la décision.", "intervenant": "Dr William ODAH", "categorie": "Maison" },
           { "heure": "16h30", "type": "Clôture", "titre": "Remise d'attestation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
         ]
       },
@@ -184,7 +187,7 @@
     "bioComingSoon": "Biographie à venir. Cet intervenant sera annoncé prochainement.",
     "odahTitre": "Expert en Gouvernance Stratégique et Développement Portuaire",
     "odahBio": "Directeur Général de CRF Perfection, le Dr. William ODAH est un expert international en gouvernance stratégique, actif aux États-Unis, au Canada, en Europe et en Afrique. Depuis de nombreuses années, il accompagne institutions et entreprises d'Afrique de l'Ouest et d'ailleurs dans leurs projets de développement portuaire, de formation et de structuration organisationnelle. Son expertise s'articule autour de trois leviers de performance pour répondre aux défis de la transformation numérique : le marketing stratégique, pour le positionnement concurrentiel et la valorisation des services ; la digitalisation des processus, pour l'optimisation opérationnelle et l'efficience ; et la mise en conformité organisationnelle, pour la résilience, la gouvernance et la conformité réglementaire. Intervenant auprès d'acteurs publics et privés du secteur maritime et logistique sur quatre continents, il est reconnu pour son approche pragmatique alliant conduite du changement institutionnel, renforcement des capacités des cadres et accompagnement stratégique des projets à fort enjeu portuaire.",
-    "biegniebeBio": "Marc BIEGNIEBE est Directeur Général d'ANAXAR, entreprise de transport routier opérant sur les corridors reliant le port de Lomé aux pays de l'hinterland — Burkina Faso, Mali et Niger. Fort de plus de 10 ans d'expérience dans la chaîne logistique portuaire et transfrontalière, il intervient sur les enjeux de fluidité des corridors, de dédouanement et de digitalisation du transport en Afrique de l'Ouest.",
+    "biegniebeBio": "Marc BIEGNIÉBÉ est Directeur Général d'ANAXAR, entreprise de transport routier opérant sur les corridors reliant le port de Lomé aux pays de l'hinterland — Burkina Faso, Mali et Niger. Fort de plus de 10 ans d'expérience dans la chaîne logistique portuaire et transfrontalière, il intervient sur les enjeux de fluidité des corridors, de dédouanement et de digitalisation du transport en Afrique de l'Ouest.",
     "tchoboTitre": "Expert en Transformation Digitale & Consultant en Solutions Numériques",
     "tchoboBio": "Rénato TCHOBO est Chief Digital & IT Officer chez CRF Perfection, où il pilote le développement web, la stratégie digitale et la transformation numérique des projets institutionnels et événementiels. Consultant freelance en développement web et community management, il conçoit et déploie des plateformes numériques complètes — de la conception à la mise en production — pour des organisations basées à Cotonou et à l'international. Son expertise couvre la structuration de projets digitaux complexes, l'automatisation des processus et l'accompagnement stratégique de la transformation numérique.",
     "balsomiBio": "Babel BALSOMI est CEO du groupe HIERO DIGITAL INTERNATIONAL, actif en Afrique, en Europe et au Canada. Experte en cybersécurité offensive, intelligence artificielle et transformation digitale, elle est notamment reconnue pour ses travaux de recherche sur la sécurité des grands modèles de langage. Fondatrice de plusieurs structures dédiées à la cybersécurité, à la formation et à l'inclusion numérique en Afrique (HDI, Hiero Academy, H&C IT Academy, CONNECT-IA), elle accompagne institutions et entreprises dans le renforcement de leur résilience numérique. Elle intervient régulièrement dans des forums internationaux dédiés à la cybersécurité et à l'intelligence artificielle.",
@@ -207,22 +210,22 @@
         "sousTitre": "Comprendre le paysage technologique et identifier les opportunités",
         "level": "Vision & Stratégie", "duration": "7h45",
         "activities": [
-          { "type": "Ouverture", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "—", "categorie": "Partenaire" },
-          { "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Abiala", "categorie": "Recruté" },
-          { "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Tchobo", "categorie": "Maison" },
-          { "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Experts Maroc", "categorie": "Partenaire" },
-          { "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Tchobo / Mme Balsomi", "categorie": "Maison" }
+          { "type": "Ouverture", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "CRF PERFECTION / AGPAOC / ANPUAPNA", "categorie": "Partenaire" },
+          { "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Abiala MODESTE", "categorie": "Recruté" },
+          { "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire — session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
+          { "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
+          { "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Rénato TCHOBO / Mme Babel BALSOMI", "categorie": "Maison" }
         ]
       },
       {
-        "num": "02", "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité et Cybersécurité",
+        "num": "02", "jour": "Jour 2", "date": "20 Oct.", "titre": "Excellence Opérationnelle, Sécurité & Cybersécurité",
         "sousTitre": "Rendre les opérations plus fluides et plus sûres, en s'appuyant sur l'IA et la cybersécurité portuaire",
         "level": "Opérations & Sécurité", "duration": "7h15",
         "activities": [
-          { "type": "Plénière", "titre": "Opérations nautiques et gestion des transports multimodaux", "desc": "Prédictions des arrivées (ETA) et gestion intelligente des transports multimodaux (camions et ferroviaires).", "intervenant": "Marc Biegniébé", "categorie": "Recruté" },
+          { "type": "Plénière", "titre": "Opérations nautiques et gestion des transports multimodaux", "desc": "Prédictions des arrivées (ETA) et gestion intelligente des transports multimodaux (camions et ferroviaires).", "intervenant": "Marc BIEGNIÉBÉ", "categorie": "Recruté" },
           { "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
-          { "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Expert Babel BALSOMI", "categorie": "Recruté" },
-          { "type": "Table Ronde", "titre": "Feuille de route", "desc": "Pilotage en temps réel et aide à la décision.", "intervenant": "Dr ODAH", "categorie": "Maison" },
+          { "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Mme Babel BALSOMI", "categorie": "Recruté" },
+          { "type": "Table Ronde", "titre": "Feuille de route", "desc": "Pilotage en temps réel et aide à la décision.", "intervenant": "Dr William ODAH", "categorie": "Maison" },
           { "type": "Clôture", "titre": "Remise d'attestation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
         ]
       },
