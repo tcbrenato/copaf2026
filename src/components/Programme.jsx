@@ -66,6 +66,12 @@ const Programme = () => {
 
   const days = t('programme.days', { returnObjects: true })
   const jour = { ...days[activeJour], ...joursMeta[activeJour] }
+  // Le compteur affiche les vraies sessions de contenu (plenieres, panels,
+  // ateliers, tables rondes...) — les pauses, l'ouverture et la cloture sont
+  // logistiques, pas des "sessions", et ne doivent pas gonfler ce chiffre.
+  const contentSessionsCount = jour.sessions.filter(
+    s => !/pause|break|ouverture|opening|clôture|closing/i.test(s.type)
+  ).length
 
   return (
     <section id="programme" style={{
@@ -275,7 +281,7 @@ const Programme = () => {
               background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)',
               borderRadius: 14, padding: '14px 24px', textAlign: 'center', flexShrink: 0, backdropFilter: 'blur(8px)',
             }}>
-              <div style={{ fontSize: 28, fontWeight: 900, color: C.white, lineHeight: 1 }}>{jour.sessions.length}</div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: C.white, lineHeight: 1 }}>{contentSessionsCount}</div>
               <div style={{ fontSize: 10, color: C.blueMid, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, marginTop: 4 }}>{t('programme.statLabel')}</div>
             </div>
           </div>
