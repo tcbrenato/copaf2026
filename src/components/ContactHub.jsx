@@ -29,7 +29,7 @@ const SHORTCUTS = [
   // avec objet pre-rempli, a remplacer par une vraie URL Calendly des qu'un
   // compte est cree (je ne peux pas creer ce compte a votre place).
   { key: 'rdv', label: 'Rendez-vous', icon: 'calendar', href: 'mailto:contact@copaf-ports.com?subject=Demande%20de%20rendez-vous%20COPAF%202026', color: '#000E91' },
-  { key: 'programme', label: 'Programme', icon: 'file', href: '/ProgrammecopafFR.pdf', color: '#0073F4', external: true },
+  { key: 'programme', label: 'Programme', icon: 'file', href: '/programmecopaf2026FRmaj.pdf', color: '#0073F4', external: true },
   { key: 'inscription', label: 'Inscription', icon: 'ticket', href: '/inscription', color: '#000E91' },
 ]
 
