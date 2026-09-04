@@ -176,7 +176,17 @@
     "submitLoading": "Un instant...",
     "note": "Vos coordonnées servent uniquement à vous informer sur la COPAF 2026. Aucune revente à des tiers."
   },
-  "flashInfoTicker": { "title": "Ports déjà inscrits" },
+  "flashInfoTicker": {
+    "title": "Ports déjà inscrits",
+    "ports": [
+      { "url": "/lome.png", "name": "Port Autonome de Lomé", "country": "Togo" },
+      { "url": "/portdouala.png", "name": "Port Autonome de Douala", "country": "Cameroun" },
+      { "url": "/portkribi.png", "name": "Port Autonome de Kribi", "country": "Cameroun" },
+      { "url": "/sierraport.png", "name": "Sierra Leone Ports and Harbours Authority", "country": "Sierra Leone" },
+      { "url": "https://i.ibb.co/4nB4hykm/logo-tmpa.png", "name": "Tanger Med", "country": "Maroc" },
+      { "url": "/omegamarine.png", "name": "Omega Marine", "country": "" }
+    ]
+  },
   "partners": { "eyebrow": "Partenariats Stratégiques", "title": "Ils soutiennent la COPAF 2026" },
   "intervenants": {
     "eyebrow": "COPAF 2026",

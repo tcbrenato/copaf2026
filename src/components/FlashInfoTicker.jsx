@@ -1,16 +1,12 @@
 import { useTranslation } from 'react-i18next'
 
-// Liste des ports/autorités déjà inscrites à la COPAF 2026 (mise à jour manuelle
-// à chaque nouvelle inscription confirmée). Chaque logo doit exister dans /public.
-const registeredPorts = [
-  { url: '/sierraport.png', name: 'Sierra Leone Ports and Harbours Authority', country: 'Sierra Leone' },
-  { url: '/portdouala.png', name: 'Port Autonome de Douala', country: 'Cameroun' },
-  { url: '/portkribi.png', name: 'Port Autonome de Kribi', country: 'Cameroun' },
-  { url: '/lome.png', name: 'Port Autonome de Lomé', country: 'Togo' },
-]
-
 const FlashInfoTicker = () => {
   const { t } = useTranslation()
+  // Liste des ports/autorités déjà inscrites à la COPAF 2026 (mise à jour manuelle
+  // à chaque nouvelle inscription confirmée) — noms/pays traduits via
+  // flashInfoTicker.ports dans les deux fichiers de langue ; chaque logo doit
+  // exister dans /public.
+  const registeredPorts = t('flashInfoTicker.ports', { returnObjects: true })
   const items = [...registeredPorts, ...registeredPorts, ...registeredPorts]
 
   if (registeredPorts.length === 0) return null
@@ -85,7 +81,7 @@ const FlashInfoTicker = () => {
                   fontSize: 12.5, fontWeight: 600, color: '#fff', whiteSpace: 'nowrap',
                   fontFamily: "'Inter', sans-serif",
                 }}>
-                  {p.name} <span style={{ opacity: 0.65, fontWeight: 400 }}>· {p.country}</span>
+                  {p.name} {p.country && <span style={{ opacity: 0.65, fontWeight: 400 }}>· {p.country}</span>}
                 </span>
                 <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>&bull;</span>
               </div>

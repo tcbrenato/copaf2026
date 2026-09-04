@@ -1,16 +1,14 @@
 import { useTranslation } from 'react-i18next'
 
+// Les 4 seuls soutiens institutionnels reels de la conference (a ne pas
+// confondre avec les ports deja inscrits, affiches dans la bande defilante
+// FlashInfoTicker — voir ce composant pour Lome, Douala, Kribi, Sierra
+// Leone, Tanger Med, Omega Marine).
 const partners = [
   { url: 'https://i.ibb.co/7dNZJQN5/agpaoc-0.jpg', name: 'AGPAOC' },
   { url: 'https://i.ibb.co/5WvKCqt8/logo-CRF-PERFECTION-4x-1761998753526.png', name: 'CRF Perfection' },
   { url: '/ANP.png', name: 'ANP' },
   { url: '/uapna.png', name: 'UAPNA' },
-  { url: 'https://i.ibb.co/4nB4hykm/logo-tmpa.png', name: 'Tanger Med' },
-  { url: '/beninmanutentions.png', name: 'Benin Manutention' },
-  { url: '/pac.png', name: 'PAC' },
-  { url: '/portdouala.png', name: 'Port Autonome de Douala' },
-  { url: '/portkribi.png', name: 'Port Autonome de Kribi' },
-  { url: '/sierraport.png', name: 'Sierra Leone Ports and Harbours Authority' },
 ]
 
 const Partners = () => {

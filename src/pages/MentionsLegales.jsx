@@ -45,7 +45,7 @@ export default function MentionsLegales() {
         </Section>
 
         <Section titre="Directeur de la publication">
-          M. TCHOBO Rénato
+          Direction Générale CRFP
         </Section>
 
         <Section titre="Hébergement">
