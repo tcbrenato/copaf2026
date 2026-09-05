@@ -83,6 +83,7 @@ const fmtEur  = n  => `${fmt(n)} €`
 const fmtDate = d  => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 const fmtTime = d  => d ? new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
 const MASKED_EUR = '•••••• €'
+const MASKED_NUM = '•••'
 
 // Masque une valeur sensible (passeport, etc.) : garde les 4 premiers et 2
 // derniers caracteres visibles — ex. "SLS0****81". Meme convention que
@@ -1228,6 +1229,7 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
   const [syncOk,          setSyncOk]          = useState(false)
   const [montantsRevealed, setMontantsRevealed] = useState(false)
   const showEur = n => montantsRevealed ? fmtEur(n) : MASKED_EUR
+  const showNum = n => montantsRevealed ? n : MASKED_NUM
 
   const total       = data.length
   const totalParts  = data.reduce((s, r) => s + (r.participants || 0), 0)
@@ -1356,16 +1358,16 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
           color: '#64748b', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 4,
         }}>
           <Icon name={montantsRevealed ? 'eyeOff' : 'eye'} size={14} color="#64748b" />
-          {montantsRevealed ? 'Masquer les montants' : 'Afficher les montants'}
+          {montantsRevealed ? 'Masquer les données' : 'Afficher les données'}
         </button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
-        <KpiCard icon="users"  label="Dossiers"    value={total}           color="#6366f1" />
-        <KpiCard icon="chart"  label="Participants" value={totalParts}      color="#8b5cf6" />
+        <KpiCard icon="users"  label="Dossiers"    value={showNum(total)}           color="#6366f1" />
+        <KpiCard icon="chart"  label="Participants" value={showNum(totalParts)}      color="#8b5cf6" />
         <KpiCard icon="euro"   label="Revenus"      value={showEur(totalMontant)} color="#d97706" />
-        <KpiCard icon="check"  label="Confirmés"    value={confirmes}       color="#10b981" tint sub={`${Math.round((confirmes/total||0)*100)}% de conversion`} />
-        <KpiCard icon="clock"  label="En attente"   value={enAttente}       color="#d97706" tint />
-        <KpiCard icon="search" label="Arrivés"      value={arrives}         color="#0891b2" subTitle="Contacts principaux — voir la fiche pour les délégations" />
+        <KpiCard icon="check"  label="Confirmés"    value={showNum(confirmes)}       color="#10b981" tint sub={montantsRevealed ? `${Math.round((confirmes/total||0)*100)}% de conversion` : undefined} />
+        <KpiCard icon="clock"  label="En attente"   value={showNum(enAttente)}       color="#d97706" tint />
+        <KpiCard icon="search" label="Arrivés"      value={showNum(arrives)}         color="#0891b2" subTitle="Contacts principaux — voir la fiche pour les délégations" />
       </div>
 
       <Toolbar
@@ -1445,6 +1447,7 @@ function SectionGeneric({ data, setData, moduleId, accentColor }) {
   const [syncOk,       setSyncOk]       = useState(false)
   const [montantsRevealed, setMontantsRevealed] = useState(false)
   const showEur = n => montantsRevealed ? fmtEur(n) : MASKED_EUR
+  const showNum = n => montantsRevealed ? n : MASKED_NUM
 
   const filtered = useMemo(() => data.filter(r => {
     const s  = search.toLowerCase()
@@ -1513,21 +1516,21 @@ function SectionGeneric({ data, setData, moduleId, accentColor }) {
 
   const kpis = {
     sponsors:    [
-      { icon: 'diamond',  label: 'Total Sponsors',  value: data.length,                                        color: '#d97706' },
-      { icon: 'check',    label: 'Confirmés',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981', tint: true },
-      { icon: 'clock',    label: 'Nouveaux',         value: data.filter(r => !r.statut || r.statut === 'nouveau').length, color: '#6366f1' },
+      { icon: 'diamond',  label: 'Total Sponsors',  value: showNum(data.length),                                        color: '#d97706' },
+      { icon: 'check',    label: 'Confirmés',        value: showNum(data.filter(r => r.statut === 'confirme').length),   color: '#10b981', tint: true },
+      { icon: 'clock',    label: 'Nouveaux',         value: showNum(data.filter(r => !r.statut || r.statut === 'nouveau').length), color: '#6366f1' },
       { icon: 'euro',     label: 'Valeur estimee',   value: showEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
     ],
     partenaires: [
-      { icon: 'building', label: 'Partenaires',      value: data.length,                                        color: '#000E91' },
-      { icon: 'check',    label: 'Confirmés',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981', tint: true },
-      { icon: 'clock',    label: 'En attente',       value: data.filter(r => r.statut === 'en_attente').length, color: '#d97706', tint: true },
+      { icon: 'building', label: 'Partenaires',      value: showNum(data.length),                                        color: '#000E91' },
+      { icon: 'check',    label: 'Confirmés',        value: showNum(data.filter(r => r.statut === 'confirme').length),   color: '#10b981', tint: true },
+      { icon: 'clock',    label: 'En attente',       value: showNum(data.filter(r => r.statut === 'en_attente').length), color: '#d97706', tint: true },
       { icon: 'euro',     label: 'Valeur estimee',   value: showEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
     ],
     exposants:   [
-      { icon: 'monitor',  label: 'Total Exposants',  value: data.length,                                        color: '#0891b2' },
-      { icon: 'check',    label: 'Confirmés',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981', tint: true },
-      { icon: 'clock',    label: 'Nouveaux',         value: data.filter(r => !r.statut || r.statut === 'nouveau').length, color: '#6366f1' },
+      { icon: 'monitor',  label: 'Total Exposants',  value: showNum(data.length),                                        color: '#0891b2' },
+      { icon: 'check',    label: 'Confirmés',        value: showNum(data.filter(r => r.statut === 'confirme').length),   color: '#10b981', tint: true },
+      { icon: 'clock',    label: 'Nouveaux',         value: showNum(data.filter(r => !r.statut || r.statut === 'nouveau').length), color: '#6366f1' },
     ],
   }
 
@@ -1550,7 +1553,7 @@ function SectionGeneric({ data, setData, moduleId, accentColor }) {
           color: '#64748b', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 4,
         }}>
           <Icon name={montantsRevealed ? 'eyeOff' : 'eye'} size={14} color="#64748b" />
-          {montantsRevealed ? 'Masquer les montants' : 'Afficher les montants'}
+          {montantsRevealed ? 'Masquer les données' : 'Afficher les données'}
         </button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
@@ -1735,6 +1738,7 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
   // une fiche individuelle.
   const [montantsRevealed, setMontantsRevealed] = useState(false)
   const showEur = n => montantsRevealed ? fmtEur(n) : MASKED_EUR
+  const showNum = n => montantsRevealed ? n : MASKED_NUM
 
   const totalRevenu  = inscriptions.reduce((s, r) => s + (r.montant || 0), 0)
     + sponsors.reduce((s, r) => s + (r.montant || 0), 0)
@@ -1799,16 +1803,16 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
           color: '#64748b', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 4,
         }}>
           <Icon name={montantsRevealed ? 'eyeOff' : 'eye'} size={14} color="#64748b" />
-          {montantsRevealed ? 'Masquer les montants' : 'Afficher les montants'}
+          {montantsRevealed ? 'Masquer les données' : 'Afficher les données'}
         </button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 20 }}>
-        <KpiCard icon="users"    label="Participants" value={inscriptions.reduce((s, r) => s + (r.participants || 0), 0)} color="#6366f1" sub={`${inscriptions.length} dossiers`} />
+        <KpiCard icon="users"    label="Participants" value={showNum(inscriptions.reduce((s, r) => s + (r.participants || 0), 0))} color="#6366f1" sub={`${showNum(inscriptions.length)} dossiers`} />
         <KpiCard icon="euro"     label="Revenus totaux" value={showEur(totalRevenu)} color="#10b981" />
-        <KpiCard icon="check"    label="Confirmés"    value={confirmes} color="#10b981" tint sub={`${Math.round((confirmes / (inscriptions.length || 1)) * 100)}% conv.`} />
-        <KpiCard icon="diamond"  label="Sponsors"     value={sponsors.length} color="#d97706" />
-        <KpiCard icon="building" label="Partenaires"  value={partenaires.length} color="#000E91" />
-        <KpiCard icon="monitor"  label="Exposants"    value={exposants.length} color="#0891b2" />
+        <KpiCard icon="check"    label="Confirmés"    value={showNum(confirmes)} color="#10b981" tint sub={montantsRevealed ? `${Math.round((confirmes / (inscriptions.length || 1)) * 100)}% conv.` : undefined} />
+        <KpiCard icon="diamond"  label="Sponsors"     value={showNum(sponsors.length)} color="#d97706" />
+        <KpiCard icon="building" label="Partenaires"  value={showNum(partenaires.length)} color="#000E91" />
+        <KpiCard icon="monitor"  label="Exposants"    value={showNum(exposants.length)} color="#0891b2" />
       </div>
 
       {/* Finances & logistique */}
@@ -1834,23 +1838,23 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
             <span style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a' }}>Remplissage de l'événement</span>
           </div>
           <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>
-            {totalParticipantsReels} <span style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>/ {CAPACITE_MAX_SALLE} places</span>
+            {showNum(totalParticipantsReels)} <span style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>/ {CAPACITE_MAX_SALLE} places</span>
           </div>
           <div style={{ background: '#f1f5f9', borderRadius: 4, height: 8, overflow: 'hidden' }}>
             <div style={{ width: `${tauxRemplissage}%`, background: tauxRemplissage > 85 ? '#ef4444' : '#0073F4', height: '100%', borderRadius: 4, transition: 'width .8s ease' }} />
           </div>
-          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>{tauxRemplissage}% de la capacité de la salle</div>
+          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>{montantsRevealed ? `${tauxRemplissage}%` : MASKED_NUM} de la capacité de la salle</div>
         </div>
 
         <div style={{ ...CARD_STYLE, padding: '20px 22px' }}>
           <div style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a', marginBottom: 14 }}>Accréditation</div>
           <div style={{ display: 'flex', gap: 20 }}>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a' }}>{badgesEmis}</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a' }}>{showNum(badgesEmis)}</div>
               <div style={{ fontSize: 11, color: '#94a3b8' }}>badges émis</div>
             </div>
             <div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: '#0891b2' }}>{arrivesTotal}</div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: '#0891b2' }}>{showNum(arrivesTotal)}</div>
               <div style={{ fontSize: 11, color: '#94a3b8' }}>déjà accueillis</div>
             </div>
           </div>

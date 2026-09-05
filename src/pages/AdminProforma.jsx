@@ -47,6 +47,7 @@ const fmtDateTime = d => new Date(d).toLocaleString('fr-FR', { day: '2-digit', m
 const fmtDate = d => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 const fmtEur = n => `${Number(n || 0).toLocaleString('fr-FR')} EUR`
 const MASKED_EUR = '•••••• EUR'
+const MASKED_NUM = '•••'
 
 // Filtres rapides par statut de paiement — repris tels quels de STATUT_OPTIONS
 // (pas de statut "acompte verse" distinct dans le systeme actuel, seulement
@@ -249,6 +250,7 @@ export default function AdminProforma() {
   const [passeportRevealed, setPasseportRevealed] = useState(false)
   const [montantsRevealed, setMontantsRevealed] = useState(false)
   const showEur = n => montantsRevealed ? fmtEur(n) : MASKED_EUR
+  const showNum = n => montantsRevealed ? n : MASKED_NUM
   const [ribCount, setRibCount] = useState(0)
   const [metrics, setMetrics] = useState({ total: 0, encaisse: 0, enAttente: 0 })
 
@@ -691,7 +693,7 @@ export default function AdminProforma() {
           </div>
           <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a' }}>{metrics.total}</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a' }}>{showNum(metrics.total)}</div>
               <div style={{ fontSize: 11.5, color: '#94a3b8' }}>dossiers actifs</div>
             </div>
             <div>
