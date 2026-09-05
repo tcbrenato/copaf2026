@@ -52,6 +52,12 @@ export default defineConfig({
         // visitees sont mises en cache a la volee (NetworkFirst) pour
         // fonctionner hors-ligne sans jamais servir un contenu perime.
         globPatterns: ['**/*.{js,css,html,png,jpg,jpeg,svg,webp,woff2}'],
+        // Le chunk principal a depasse la limite par defaut de 2 Mo (le
+        // build echoue sinon, cf. incident du 05/09/2026 — deploiement
+        // bloque par cette limite workbox). Relevee avec de la marge
+        // plutot que fixee au plus juste, pour eviter de re-bloquer le
+        // build a chaque petit ajout de code.
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         // Les ~140 SVG de drapeaux (flag-icons) ne meritent pas d'etre
         // precaches d'office : ils ne servent que dans une modale rarement
         // ouverte. Mis en cache a la demande (CacheFirst) au lieu de gonfler
