@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../supabase'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
@@ -44,6 +44,15 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
 }
 
 const fmtDateTime = d => new Date(d).toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+const fmtDate = d => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+const fmtEur = n => `${Number(n || 0).toLocaleString('fr-FR')} EUR`
+const MASKED_EUR = '•••••• EUR'
+
+// Filtres rapides par statut de paiement — repris tels quels de STATUT_OPTIONS
+// (pas de statut "acompte verse" distinct dans le systeme actuel, seulement
+// en_attente/reserve/confirme/annule : mieux vaut refleter les vrais
+// statuts que d'en inventer un qui n'existe pas en base).
+const QUICK_STATUT_FILTERS = [{ value: 'tous', label: 'Tous' }, ...STATUT_OPTIONS]
 
 // Masque une valeur sensible (passeport, etc.) : garde les 4 premiers et 2
 // derniers caracteres visibles, le reste en etoiles — ex. "SLS0****81".
@@ -226,7 +235,6 @@ function TarifBadge({ tarifType, codePromo }) {
 }
 
 export default function AdminProforma() {
-  const [dossierInput, setDossierInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [data, setData] = useState(null)
@@ -239,16 +247,22 @@ export default function AdminProforma() {
   const [lang, setLang] = useState('fr') // langue des documents générés (fr | en)
   const [showCorrections, setShowCorrections] = useState(false)
   const [passeportRevealed, setPasseportRevealed] = useState(false)
+  const [montantsRevealed, setMontantsRevealed] = useState(false)
+  const showEur = n => montantsRevealed ? fmtEur(n) : MASKED_EUR
+  const [ribCount, setRibCount] = useState(0)
+  const [metrics, setMetrics] = useState({ total: 0, encaisse: 0, enAttente: 0 })
 
-  // ── Recherche d'un participant par pays / organisation (mode individuel) ──
-  const [searchMode, setSearchMode] = useState('dossier') // 'dossier' | 'pays'
-  const [browsePays, setBrowsePays] = useState('')
-  const [browseOrg, setBrowseOrg] = useState('')
+  // ── Recherche globale unique (remplace les 2 onglets dossier / pays) ──
+  const [globalSearch,    setGlobalSearch]    = useState('')
+  const [globalSearching, setGlobalSearching] = useState(false)
+  const [globalResults,   setGlobalResults]   = useState([])
+  const [globalSearched,  setGlobalSearched]  = useState(false)
+  const [quickStatut,     setQuickStatut]     = useState('tous')
+
+  // Pays disponibles — utilise uniquement par l'import de delegation
+  // maintenant (la recherche par pays/organisation a ete remplacee par la
+  // recherche globale unique ci-dessus).
   const [paysOptions, setPaysOptions] = useState([])
-  const [browseOrgOptions, setBrowseOrgOptions] = useState([])
-  const [browseResults, setBrowseResults] = useState([])
-  const [browseLoading, setBrowseLoading] = useState(false)
-  const [browseSearched, setBrowseSearched] = useState(false)
 
   // ── Inscription groupée (délégation) ──
   const [isGroup, setIsGroup] = useState(false)
@@ -266,7 +280,58 @@ export default function AdminProforma() {
 
   useEffect(() => {
     loadRecents()
+    loadMetrics()
+    loadRibCount()
   }, [])
+
+  // Bandeau de metriques financieres — montant encaisse (confirme) / en
+  // attente (en_attente + reserve) / total des dossiers, tous statuts sauf
+  // annule. Chiffres masques par defaut (voir showEur), comme sur le
+  // Dashboard.
+  const loadMetrics = async () => {
+    const { data: rows } = await supabase.from('inscriptions').select('montant, paiement_status').neq('paiement_status', 'annule')
+    const encaisse  = (rows || []).filter(r => r.paiement_status === 'confirme').reduce((s, r) => s + (r.montant || 0), 0)
+    const enAttente = (rows || []).filter(r => r.paiement_status !== 'confirme').reduce((s, r) => s + (r.montant || 0), 0)
+    setMetrics({ total: (rows || []).length, encaisse, enAttente })
+  }
+
+  // Compteur pour le bandeau RIB — meme critere que CorrectionsRIB, en plus
+  // leger (juste le compte de dossiers distincts concernes).
+  const loadRibCount = async () => {
+    const { data: docs } = await supabase.from('documents_generes').select('dossier').eq('type', 'proforma').lt('generated_at', RIB_FIX_CUTOFF)
+    setRibCount(new Set((docs || []).map(d => d.dossier)).size)
+  }
+
+  // Recherche globale : dossier (ilike) + champs du contact lie (nom,
+  // prenom, email, organisation), fusionnes et dedupliques par dossier.
+  const handleGlobalSearch = async e => {
+    e?.preventDefault()
+    const q = globalSearch.trim()
+    if (!q) { setGlobalResults([]); setGlobalSearched(false); return }
+    setGlobalSearching(true); setGlobalSearched(true)
+    const [byDossier, byContact] = await Promise.all([
+      supabase.from('inscriptions')
+        .select('dossier, paiement_status, participants, montant, created_at, contacts(nom, prenom, organisation, email, pays, poste)')
+        .ilike('dossier', `%${q}%`).limit(20),
+      supabase.from('inscriptions')
+        .select('dossier, paiement_status, participants, montant, created_at, contacts!inner(nom, prenom, organisation, email, pays, poste)')
+        .or(`nom.ilike.%${q}%,prenom.ilike.%${q}%,email.ilike.%${q}%,organisation.ilike.%${q}%`, { foreignTable: 'contacts' })
+        .limit(20),
+    ])
+    const byId = new Map()
+    ;[...(byDossier.data || []), ...(byContact.data || [])].forEach(r => byId.set(r.dossier, r))
+    setGlobalResults([...byId.values()])
+    setGlobalSearching(false)
+  }
+
+  const filteredGlobalResults = useMemo(
+    () => globalResults.filter(r => quickStatut === 'tous' || r.paiement_status === quickStatut),
+    [globalResults, quickStatut],
+  )
+  const filteredRecents = useMemo(
+    () => recents.filter(r => quickStatut === 'tous' || r.paiement_status === quickStatut),
+    [recents, quickStatut],
+  )
 
   // Recalcule automatiquement le nombre de participants et le montant global
   // à partir de la liste, tant que le mode groupé est actif.
@@ -290,17 +355,6 @@ export default function AdminProforma() {
   }, [paysOptions.length])
 
   useEffect(() => {
-    if (!browsePays) { setBrowseOrgOptions([]); return }
-    ;(async () => {
-      const { data: rows } = await supabase
-        .from('contacts').select('organisation')
-        .eq('pays', browsePays).not('organisation', 'is', null)
-      const uniques = [...new Set((rows || []).map(r => r.organisation).filter(Boolean))].sort((a, b) => a.localeCompare(b))
-      setBrowseOrgOptions(uniques)
-    })()
-  }, [browsePays])
-
-  useEffect(() => {
     if (!importPays) { setPortOptions([]); return }
     ;(async () => {
       const { data: rows } = await supabase
@@ -314,9 +368,9 @@ export default function AdminProforma() {
   const loadRecents = async () => {
     const { data: rows } = await supabase
       .from('inscriptions')
-      .select('dossier, paiement_status, created_at, contacts(nom, prenom, organisation)')
+      .select('dossier, paiement_status, montant, participants, created_at, contacts(nom, prenom, organisation)')
       .order('created_at', { ascending: false })
-      .limit(8)
+      .limit(10)
     setRecents(rows || [])
   }
 
@@ -375,33 +429,6 @@ export default function AdminProforma() {
     setLoading(false)
   }
 
-  const handleSearch = e => {
-    e.preventDefault()
-    if (!dossierInput.trim()) return
-    loadDossier(dossierInput)
-  }
-
-  const handleBrowseSearch = async () => {
-    if (!browsePays) { showToast('Choisissez un pays'); return }
-    setBrowseLoading(true)
-    setBrowseSearched(true)
-    let query = supabase
-      .from('inscriptions')
-      .select('dossier, paiement_status, participants, montant, contacts!inner(nom, prenom, organisation, poste, pays, email)')
-      .eq('contacts.pays', browsePays)
-      .order('created_at', { ascending: false })
-      .limit(50)
-    if (browseOrg) query = query.eq('contacts.organisation', browseOrg)
-
-    const { data: rows, error: err } = await query
-    setBrowseLoading(false)
-    if (err) { showToast('Erreur : ' + err.message); return }
-    setBrowseResults(rows || [])
-  }
-
-  const handlePickBrowseResult = dossier => {
-    loadDossier(dossier)
-  }
 
   const handleField = (field, value) => setData(d => ({ ...d, [field]: value }))
 
@@ -645,136 +672,127 @@ export default function AdminProforma() {
           background: '#FFFBEB', border: '1.5px solid #fde68a', borderRadius: 12, padding: '12px 16px',
           marginBottom: 16, fontSize: 13, fontWeight: 700, color: '#92400e', cursor: 'pointer', fontFamily: 'inherit',
         }}>
-          <Ico name="alert" size={15} color="#92400e" /> Proformas à renvoyer (RIB corrigé) →
+          <Ico name="alert" size={15} color="#92400e" />
+          {ribCount > 0 ? `${ribCount} proforma${ribCount > 1 ? 's' : ''} à renvoyer (RIB corrigé)` : 'Proformas à renvoyer (RIB corrigé)'} →
         </button>
       )}
       {!data && showCorrections && <CorrectionsRIB onClose={() => setShowCorrections(false)} />}
 
-      {/* Bascule mode de recherche */}
+      {/* Bandeau de metriques financieres — montants masques par defaut,
+          comme sur le Dashboard (donnee confidentielle). */}
       {!data && !showCorrections && (
-        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-          <button onClick={() => setSearchMode('dossier')} style={{
-            padding: '8px 16px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
-            fontFamily: 'inherit', border: `1.5px solid ${searchMode === 'dossier' ? NAVY : '#e2e8f0'}`,
-            background: searchMode === 'dossier' ? '#EBF3FF' : '#fff', color: searchMode === 'dossier' ? NAVY : '#64748b',
-          }}>Par numéro de dossier</button>
-          <button onClick={() => setSearchMode('pays')} style={{
-            padding: '8px 16px', borderRadius: 20, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
-            fontFamily: 'inherit', border: `1.5px solid ${searchMode === 'pays' ? NAVY : '#e2e8f0'}`,
-            background: searchMode === 'pays' ? '#EBF3FF' : '#fff', color: searchMode === 'pays' ? NAVY : '#64748b',
-          }}>Par pays / organisation</button>
-        </div>
-      )}
-
-      {/* Recherche par dossier */}
-      {!data && !showCorrections && searchMode === 'dossier' && (
-        <form onSubmit={handleSearch} style={{
-          background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20,
-          marginBottom: 16, display: 'flex', gap: 10, flexWrap: 'wrap', boxShadow: '0 4px 16px rgba(0,14,145,.05)',
-        }}>
-          <input
-            value={dossierInput}
-            onChange={e => setDossierInput(e.target.value)}
-            placeholder="Numéro de dossier (ex: COPAF2026-30561)"
-            style={{ ...inputStyle, flex: '1 1 220px' }}
-          />
-          <button type="submit" disabled={loading} style={{
-            display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-            background: NAVY, border: 'none', borderRadius: 10, color: '#fff',
-            fontWeight: 700, fontSize: 13.5, cursor: loading ? 'not-allowed' : 'pointer',
-            fontFamily: 'inherit', opacity: loading ? 0.7 : 1,
-          }}>
-            <Ico name="search" size={15} color="#fff" />
-            {loading ? 'Recherche...' : 'Rechercher'}
-          </button>
-        </form>
-      )}
-
-      {/* Recherche par pays / organisation (selection individuelle) */}
-      {!data && !showCorrections && searchMode === 'pays' && (
-        <div style={{
-          background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20,
-          marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)',
-        }}>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
-            <select
-              value={browsePays}
-              onChange={e => { setBrowsePays(e.target.value); setBrowseOrg(''); setBrowseResults([]); setBrowseSearched(false) }}
-              style={{ ...inputStyle, flex: '1 1 200px' }}
-            >
-              <option value="">Choisir un pays...</option>
-              {paysOptions.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-            <select
-              value={browseOrg}
-              onChange={e => setBrowseOrg(e.target.value)}
-              disabled={!browsePays}
-              style={{ ...inputStyle, flex: '1 1 220px', opacity: browsePays ? 1 : 0.6 }}
-            >
-              <option value="">Toutes les organisations</option>
-              {browseOrgOptions.map(o => <option key={o} value={o}>{o}</option>)}
-            </select>
-            <button onClick={handleBrowseSearch} disabled={browseLoading || !browsePays} style={{
-              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
-              background: NAVY, border: 'none', borderRadius: 10, color: '#fff',
-              fontWeight: 700, fontSize: 13.5, cursor: (browseLoading || !browsePays) ? 'not-allowed' : 'pointer',
-              fontFamily: 'inherit', opacity: (browseLoading || !browsePays) ? 0.6 : 1,
-            }}>
-              <Ico name="search" size={15} color="#fff" />
-              {browseLoading ? 'Recherche...' : 'Rechercher'}
+        <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: '16px 20px', marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', letterSpacing: 1, textTransform: 'uppercase' }}>Vue d'ensemble financière</div>
+            <button type="button" onClick={() => setMontantsRevealed(v => !v)} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'none', border: 'none', color: '#64748b', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 2 }}>
+              <Ico name={montantsRevealed ? 'eyeOff' : 'eye'} size={13} color="#64748b" />
+              {montantsRevealed ? 'Masquer' : 'Afficher'}
             </button>
           </div>
-
-          {browseSearched && !browseLoading && browseResults.length === 0 && (
-            <div style={{ fontSize: 12.5, color: '#94a3b8' }}>Aucune inscription trouvée pour ce filtre.</div>
-          )}
-
-          {browseResults.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 340, overflowY: 'auto' }}>
-              {browseResults.map(r => {
-                const cfg = STATUT_CFG(r.paiement_status)
-                return (
-                  <div key={r.dossier} onClick={() => handlePickBrowseResult(r.dossier)} style={{
-                    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
-                    background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, cursor: 'pointer',
-                  }}>
-                    <div style={{ width: 30, height: 30, borderRadius: 8, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Ico name="user" size={14} color={NAVY} />
-                    </div>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{r.contacts?.prenom} {r.contacts?.nom}</div>
-                      <div style={{ fontSize: 11.5, color: '#94a3b8' }}>{r.contacts?.organisation} · {r.contacts?.poste} · {r.dossier}</div>
-                    </div>
-                    <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: cfg.bg, color: cfg.color, flexShrink: 0 }}>{cfg.label}</span>
-                  </div>
-                )
-              })}
+          <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a' }}>{metrics.total}</div>
+              <div style={{ fontSize: 11.5, color: '#94a3b8' }}>dossiers actifs</div>
             </div>
-          )}
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: '#059669' }}>{showEur(metrics.encaisse)}</div>
+              <div style={{ fontSize: 11.5, color: '#94a3b8' }}>encaissé</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: '#d97706' }}>{showEur(metrics.enAttente)}</div>
+              <div style={{ fontSize: 11.5, color: '#94a3b8' }}>en attente</div>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Dossiers recents */}
-      {!data && !showCorrections && searchMode === 'dossier' && recents.length > 0 && (
-        <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12 }}>Dossiers récents</div>
-          {recents.map((r, i) => {
-            const cfg = STATUT_CFG(r.paiement_status)
+      {/* Recherche globale unique — remplace les 2 anciens onglets (par
+          dossier / par pays-organisation) : un seul champ qui cherche a la
+          fois le numero de dossier et le nom/prenom/email/organisation. */}
+      {!data && !showCorrections && (
+        <>
+          <form onSubmit={handleGlobalSearch} style={{
+            background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20,
+            marginBottom: 12, display: 'flex', gap: 10, flexWrap: 'wrap', boxShadow: '0 4px 16px rgba(0,14,145,.05)',
+          }}>
+            <input
+              value={globalSearch}
+              onChange={e => setGlobalSearch(e.target.value)}
+              placeholder="Nom, numéro de dossier, email, entreprise, pays..."
+              style={{ ...inputStyle, flex: '1 1 220px' }}
+            />
+            <button type="submit" disabled={globalSearching || loading} style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px',
+              background: NAVY, border: 'none', borderRadius: 10, color: '#fff',
+              fontWeight: 700, fontSize: 13.5, cursor: (globalSearching || loading) ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit', opacity: (globalSearching || loading) ? 0.7 : 1,
+            }}>
+              <Ico name="search" size={15} color="#fff" />
+              {loading ? 'Chargement du dossier...' : globalSearching ? 'Recherche...' : 'Rechercher'}
+            </button>
+          </form>
+
+          {/* Filtres rapides par statut de paiement */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+            {QUICK_STATUT_FILTERS.map(f => (
+              <button key={f.value} onClick={() => setQuickStatut(f.value)} style={{
+                padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                fontFamily: 'inherit', border: `1.5px solid ${quickStatut === f.value ? NAVY : '#e2e8f0'}`,
+                background: quickStatut === f.value ? '#EBF3FF' : '#fff', color: quickStatut === f.value ? NAVY : '#64748b',
+              }}>{f.label}</button>
+            ))}
+          </div>
+
+          {/* Resultats : soit ceux de la recherche, soit les dossiers
+              recents par defaut — meme tableau structure dans les 2 cas
+              (Nom, Organisation, N Dossier, Date, Montant, Statut). */}
+          {(() => {
+            const rows = globalSearched ? filteredGlobalResults : filteredRecents
+            const titre = globalSearched ? `${rows.length} résultat${rows.length > 1 ? 's' : ''}` : 'Dossiers récents'
+            if (globalSearched && globalSearching) return null
+            if (globalSearched && rows.length === 0) {
+              return <div style={{ fontSize: 12.5, color: '#94a3b8', padding: '8px 4px' }}>Aucune inscription trouvée pour « {globalSearch} ».</div>
+            }
+            if (rows.length === 0) return null
             return (
-              <div key={i} onClick={() => loadDossier(r.dossier)} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-                padding: '10px 4px', borderBottom: i < recents.length - 1 ? '1px solid #f1f5f9' : 'none',
-                cursor: 'pointer',
-              }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{r.contacts?.prenom} {r.contacts?.nom}</div>
-                  <div style={{ fontSize: 11.5, color: '#94a3b8' }}>{r.dossier} · {r.contacts?.organisation}</div>
+              <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, overflow: 'hidden', marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', letterSpacing: 1, textTransform: 'uppercase', padding: '14px 16px 10px' }}>{titre}</div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                    <thead>
+                      <tr style={{ borderTop: '1px solid #f1f5f9', borderBottom: '1.5px solid #f1f5f9', background: '#f8fafc' }}>
+                        {['Nom', 'Organisation', 'N° Dossier', 'Date', 'Montant', 'Statut', ''].map(h => (
+                          <th key={h} style={{ padding: '9px 14px', textAlign: 'left', fontSize: 9.5, color: '#64748b', letterSpacing: .5, textTransform: 'uppercase', fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((r, i) => {
+                        const cfg = STATUT_CFG(r.paiement_status)
+                        return (
+                          <tr key={r.dossier || i} onClick={() => loadDossier(r.dossier)}
+                            style={{ borderBottom: i < rows.length - 1 ? '1px solid #f8fafc' : 'none', cursor: 'pointer' }}
+                            onMouseEnter={e => e.currentTarget.style.background = '#f8faff'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                            <td style={{ padding: '10px 14px', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap' }}>{r.contacts?.prenom} {r.contacts?.nom}</td>
+                            <td style={{ padding: '10px 14px', color: '#64748b', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.contacts?.organisation || '—'}</td>
+                            <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#6366f1', whiteSpace: 'nowrap' }}>{r.dossier}</td>
+                            <td style={{ padding: '10px 14px', color: '#94a3b8', whiteSpace: 'nowrap' }}>{fmtDate(r.created_at)}</td>
+                            <td style={{ padding: '10px 14px', fontWeight: 700, color: '#d97706', whiteSpace: 'nowrap' }}>{showEur(r.montant)}</td>
+                            <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                              <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: cfg.bg, color: cfg.color }}>{cfg.label}</span>
+                            </td>
+                            <td style={{ padding: '10px 14px', color: NAVY, fontWeight: 700, whiteSpace: 'nowrap' }}>Ouvrir →</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-                <span style={{ fontSize: 10.5, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: cfg.bg, color: cfg.color, flexShrink: 0 }}>{cfg.label}</span>
               </div>
             )
-          })}
-        </div>
+          })()}
+        </>
       )}
 
       {error && (
@@ -790,7 +808,7 @@ export default function AdminProforma() {
           <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 24, marginBottom: 16, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: NAVY, letterSpacing: 1.5, textTransform: 'uppercase' }}>Dossier {data.dossier}</div>
-              <button onClick={() => { setData(null); setDossierInput(''); setBrowseResults([]); setBrowseSearched(false) }} style={{ background: 'none', border: 'none', fontSize: 12, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
+              <button onClick={() => { setData(null); setGlobalSearch(''); setGlobalResults([]); setGlobalSearched(false) }} style={{ background: 'none', border: 'none', fontSize: 12, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'underline' }}>
                 &larr; Nouvelle recherche
               </button>
             </div>
