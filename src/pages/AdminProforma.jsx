@@ -37,11 +37,23 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
     users:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
     user:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
     tag:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+    eye:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+    eyeOff: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
   }
   return icons[name] || null
 }
 
 const fmtDateTime = d => new Date(d).toLocaleString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+
+// Masque une valeur sensible (passeport, etc.) : garde les 4 premiers et 2
+// derniers caracteres visibles, le reste en etoiles — ex. "SLS0****81".
+// Reste lisible pour reperer un enregistrement sans exposer la valeur
+// complete tant qu'un admin n'a pas explicitement demande a la voir.
+const maskSensitive = value => {
+  const v = String(value || '')
+  if (v.length <= 6) return '*'.repeat(v.length)
+  return `${v.slice(0, 4)}****${v.slice(-2)}`
+}
 
 const DOC_LABELS = { proforma: 'Facture proforma', recap: 'Récapitulatif', badge: 'Badge', facture_definitive: 'Facture définitive', confirmation_inscription: "Confirmation d'inscription" }
 
@@ -226,6 +238,7 @@ export default function AdminProforma() {
   const [toast, setToast] = useState('')
   const [lang, setLang] = useState('fr') // langue des documents générés (fr | en)
   const [showCorrections, setShowCorrections] = useState(false)
+  const [passeportRevealed, setPasseportRevealed] = useState(false)
 
   // ── Recherche d'un participant par pays / organisation (mode individuel) ──
   const [searchMode, setSearchMode] = useState('dossier') // 'dossier' | 'pays'
@@ -317,7 +330,7 @@ export default function AdminProforma() {
   }
 
   const loadDossier = async dossier => {
-    setLoading(true); setError(''); setData(null)
+    setLoading(true); setError(''); setData(null); setPasseportRevealed(false)
     const { data: rows, error: err } = await supabase
       .from('inscriptions')
       .select('dossier, participants, montant, paiement_status, note_interne, numero_facture, numero_passeport, delegation_nom, participants_liste, tarif_type, code_promo, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
@@ -569,10 +582,10 @@ export default function AdminProforma() {
         setData(d => ({ ...d, _numeroPasseportSaved: numeroPasseport }))
       }
       if (win) {
-        const doc = await generateConfirmationInscriptionPDF({ form: formData(), dossier: data.dossier, numeroPasseport, download: false })
+        const doc = await generateConfirmationInscriptionPDF({ form: formData(), dossier: data.dossier, numeroPasseport, lang, download: false })
         win.location.href = doc.output('bloburl')
       } else {
-        await generateConfirmationInscriptionPDF({ form: formData(), dossier: data.dossier, numeroPasseport })
+        await generateConfirmationInscriptionPDF({ form: formData(), dossier: data.dossier, numeroPasseport, lang })
       }
       await logDocument(data.dossier, 'confirmation_inscription')
     } catch (err) {
@@ -1011,12 +1024,28 @@ export default function AdminProforma() {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>N° Passeport</label>
-              <input
-                value={data.numeroPasseport || ''}
-                onChange={e => handleField('numeroPasseport', e.target.value)}
-                placeholder="Requis pour la confirmation d'inscription"
-                style={{ ...smallInputStyle, width: 220 }}
-              />
+              {passeportRevealed || !data.numeroPasseport ? (
+                <input
+                  value={data.numeroPasseport || ''}
+                  onChange={e => handleField('numeroPasseport', e.target.value)}
+                  placeholder="Requis pour la confirmation d'inscription"
+                  style={{ ...smallInputStyle, width: 220 }}
+                />
+              ) : (
+                <span style={{ ...smallInputStyle, width: 220, display: 'inline-flex', alignItems: 'center', letterSpacing: 1, color: '#334155', fontWeight: 700 }}>
+                  {maskSensitive(data.numeroPasseport)}
+                </span>
+              )}
+              {!!data.numeroPasseport && (
+                <button
+                  type="button"
+                  onClick={() => setPasseportRevealed(v => !v)}
+                  title={passeportRevealed ? 'Masquer' : 'Afficher'}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', padding: 4 }}
+                >
+                  <Ico name={passeportRevealed ? 'eyeOff' : 'eye'} size={16} color="#64748b" />
+                </button>
+              )}
             </div>
 
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
