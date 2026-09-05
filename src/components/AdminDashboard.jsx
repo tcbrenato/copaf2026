@@ -198,13 +198,21 @@ function KpiCard({ icon, label, value, sub, subTitle, color, trend, tint }) {
 }
 
 // ─── BARRE HORIZONTALE ───────────────────────────────────────────────────────
-function BarRow({ label, value, max, color }) {
+// `pctBase` (optionnel) : quand fourni, affiche un vrai pourcentage
+// (value / pctBase) a cote du chiffre — ex. "869 (29,6 %)" — plutot que la
+// hauteur de la barre seule, qui n'exprime qu'une proportion relative au
+// plus gros element de la liste, pas un pourcentage reel du total.
+function BarRow({ label, value, max, color, pctBase }) {
   const pct = max > 0 ? Math.max(3, Math.round((value / max) * 100)) : 0
+  const realPct = pctBase > 0 ? Math.round((value / pctBase) * 1000) / 10 : null
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#334155', marginBottom: 6, gap: 8 }}>
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '70%' }}>{label}</span>
-        <span style={{ fontWeight: 700, color: '#0f172a', flexShrink: 0 }}>{value}</span>
+        <span style={{ fontWeight: 700, color: '#0f172a', flexShrink: 0 }}>
+          {typeof value === 'number' ? fmt(value) : value}
+          {realPct !== null && <span style={{ fontWeight: 600, color: '#94a3b8', marginLeft: 5 }}>({realPct.toLocaleString('fr-FR')} %)</span>}
+        </span>
       </div>
       <div style={{ background: '#f1f5f9', borderRadius: 4, height: 6, overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, background: color, borderRadius: 4, height: '100%', transition: 'width .8s ease' }} />
@@ -1918,9 +1926,35 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
 // ─── SECTION ANALYTICS (façon Google Analytics) ───────────────────────────────
 const AUTO_REFRESH_MS   = 15000  // 15 secondes
 const ACTIVE_WINDOW_MIN = 5      // fenêtre "actifs maintenant"
-const ANALYTICS_LOOKBACK_DAYS = 30
 
-function SectionAnalytics() {
+const PERIOD_OPTIONS = [
+  { value: 'today',  label: "Aujourd'hui" },
+  { value: '7d',     label: '7 derniers jours' },
+  { value: '30d',    label: '30 derniers jours' },
+  { value: 'custom', label: 'Période personnalisée' },
+]
+
+// Calcule la fenêtre [since, until] selon la periode choisie. `custom`
+// retombe sur les 30 derniers jours tant que les 2 dates n'ont pas ete
+// saisies, pour ne jamais interroger avec une fenetre invalide.
+function periodRange(period, customFrom, customTo) {
+  const now = new Date()
+  if (period === 'today') {
+    const start = new Date(now); start.setHours(0, 0, 0, 0)
+    return { since: start, until: now }
+  }
+  if (period === '7d') {
+    return { since: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), until: now }
+  }
+  if (period === 'custom' && customFrom) {
+    const since = new Date(`${customFrom}T00:00:00`)
+    const until = customTo ? new Date(`${customTo}T23:59:59`) : now
+    return { since, until }
+  }
+  return { since: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), until: now }
+}
+
+function SectionAnalytics({ inscriptions = [] }) {
   const [sessions,     setSessions]     = useState([])
   const [pageViews,    setPageViews]    = useState([])
   const [topPages,     setTopPages]     = useState([])
@@ -1931,19 +1965,24 @@ function SectionAnalytics() {
   const [syncOk,       setSyncOk]       = useState(false)
   const [clearing,     setClearing]     = useState(false)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [period,       setPeriod]       = useState('30d')
+  const [customFrom,   setCustomFrom]   = useState('')
+  const [customTo,     setCustomTo]     = useState('')
+
+  const { since, until } = useMemo(() => periodRange(period, customFrom, customTo), [period, customFrom, customTo])
+  const periodLabel = PERIOD_OPTIONS.find(o => o.value === period)?.label || '30 derniers jours'
 
   const load = useCallback(async () => {
-    const since = new Date(Date.now() - 1000 * 60 * 60 * 24 * ANALYTICS_LOOKBACK_DAYS).toISOString()
     const [
       { data: sess },
       { data: pv },
       { data: tp },
       { data: fn },
     ] = await Promise.all([
-      supabase.from('sessions').select('*').gte('started_at', since).order('started_at', { ascending: false }).limit(1000),
-      supabase.from('page_views').select('*').gte('viewed_at', since).order('viewed_at', { ascending: false }).limit(2000),
-      supabase.from('v_top_pages').select('*').order('visites', { ascending: false }),
-      supabase.from('v_funnel').select('*').order('ordre', { ascending: true }),
+      supabase.from('sessions').select('*').gte('started_at', since.toISOString()).lte('started_at', until.toISOString()).order('started_at', { ascending: false }).limit(1000),
+      supabase.from('page_views').select('*').gte('viewed_at', since.toISOString()).lte('viewed_at', until.toISOString()).order('viewed_at', { ascending: false }).limit(2000),
+      supabase.rpc('get_top_pages', { p_since: since.toISOString(), p_until: until.toISOString() }),
+      supabase.rpc('get_funnel', { p_since: since.toISOString(), p_until: until.toISOString() }),
     ])
     setSessions(sess || [])
     setPageViews(pv || [])
@@ -1951,9 +1990,9 @@ function SectionAnalytics() {
     setFunnel(fn || [])
     setLastLoad(new Date())
     setLoading(false)
-  }, [])
+  }, [since, until])
 
-  // Chargement initial + auto-refresh
+  // Chargement initial + a chaque changement de periode + auto-refresh
   useEffect(() => {
     load()
     const interval = setInterval(load, AUTO_REFRESH_MS)
@@ -1974,6 +2013,46 @@ function SectionAnalytics() {
   const totalVisites   = funnel.find(f => f.etape === 'Visites')?.nb || 0
   const totalConfirmes = funnel.find(f => f.etape === 'Confirmés')?.nb || 0
   const tauxConv        = totalVisites > 0 ? Math.round((totalConfirmes / totalVisites) * 100) : 0
+
+  // Abandon de formulaire : ecart entre "formulaire demarre" et "formulaire
+  // soumis" dans le tunnel — c'est la seule granularite d'abandon reellement
+  // instrumentee aujourd'hui (pas de suivi champ par champ cote formulaire).
+  const formDemarre = funnel.find(f => f.etape === 'Form démarré')?.nb || 0
+  const formSoumis  = funnel.find(f => f.etape === 'Form soumis')?.nb || 0
+  const tauxAbandon = formDemarre > 0 ? Math.round(((formDemarre - formSoumis) / formDemarre) * 100) : 0
+
+  // Trafic dans le temps : sessions + inscriptions par jour, sur la meme
+  // fenetre que le reste de l'ecran.
+  const trafficChartData = useMemo(() => {
+    const days = {}
+    sessions.forEach(s => {
+      const d = fmtDate(s.started_at)
+      days[d] = days[d] || { name: d, visites: 0, inscriptions: 0 }
+      days[d].visites += 1
+    })
+    inscriptions
+      .filter(r => r.created_at && new Date(r.created_at) >= since && new Date(r.created_at) <= until)
+      .forEach(r => {
+        const d = fmtDate(r.created_at)
+        days[d] = days[d] || { name: d, visites: 0, inscriptions: 0 }
+        days[d].inscriptions += 1
+      })
+    return Object.values(days)
+  }, [sessions, inscriptions, since, until])
+
+  // Export CSV du rapport (funnel + pages les plus vues), pour partage hors
+  // de l'admin — reutilise exportCSV deja utilise ailleurs dans le tableau
+  // de bord.
+  const exportReport = () => {
+    exportCSV(
+      [
+        ...funnel.map(f => ({ section: 'Tunnel', libelle: f.etape, valeur: f.nb })),
+        ...topPages.map(p => ({ section: 'Pages', libelle: p.path, valeur: p.visites })),
+      ],
+      [{ label: 'Section', key: 'section' }, { label: 'Libellé', key: 'libelle' }, { label: 'Valeur', key: 'valeur' }],
+      `COPAF_analytics_${period}_${new Date().toISOString().slice(0, 10)}.csv`,
+    )
+  }
 
   // Répartition appareils
   const deviceEntries = useMemo(() => {
@@ -2046,8 +2125,8 @@ function SectionAnalytics() {
 
   return (
     <div>
-      {/* Barre du haut : indicateur live + actions */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 24 }}>
+      {/* Ligne 1 : indicateur live + selecteur de periode */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff', border: '1px solid #e8edf5', borderRadius: 12, padding: '9px 16px' }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', animation: 'pulseLive 1.6s infinite' }} />
           <span style={{ fontSize: 12, fontWeight: 700, color: '#0f172a' }}>Temps réel</span>
@@ -2056,48 +2135,100 @@ function SectionAnalytics() {
 
         <div style={{ flex: 1 }} />
 
+        <select value={period} onChange={e => setPeriod(e.target.value)} style={{ padding: '9px 14px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12, fontSize: 13, fontWeight: 600, outline: 'none', cursor: 'pointer', color: '#334155', fontFamily: 'inherit' }}>
+          {PERIOD_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        {period === 'custom' && (
+          <>
+            <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)} style={{ padding: '9px 12px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12, fontSize: 13, outline: 'none', fontFamily: 'inherit', color: '#334155' }} />
+            <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)} style={{ padding: '9px 12px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12, fontSize: 13, outline: 'none', fontFamily: 'inherit', color: '#334155' }} />
+          </>
+        )}
+      </div>
+
+      {/* Ligne 2 : actions groupees (l'action destructive est visuellement
+          separee des 2 autres par un espace supplementaire, pas melangee au
+          badge "Temps reel" comme avant) */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'flex-end', marginBottom: 24 }}>
+        <button onClick={exportReport} style={{
+          padding: '10px 14px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 12,
+          fontSize: 12.5, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7,
+          color: '#475569', fontFamily: 'inherit',
+        }}>
+          <Icon name="download" size={14} color="#475569" />
+          Exporter le rapport (CSV)
+        </button>
+
         <button onClick={doSync} disabled={syncing} style={{
-          padding: '11px 16px',
+          padding: '10px 14px',
           background: syncOk ? '#d1fae5' : '#000E91',
-          border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700,
+          border: 'none', borderRadius: 12, fontSize: 12.5, fontWeight: 700,
           cursor: syncing ? 'not-allowed' : 'pointer',
           display: 'flex', alignItems: 'center', gap: 7,
           color: syncOk ? '#065f46' : '#fff', fontFamily: 'inherit',
           opacity: syncing ? .7 : 1,
         }}>
-          <Icon name={syncOk ? 'check' : 'sheet'} size={15} color={syncOk ? '#065f46' : '#fff'} />
+          <Icon name={syncOk ? 'check' : 'sheet'} size={14} color={syncOk ? '#065f46' : '#fff'} />
           {syncing ? 'Synchronisation...' : syncOk ? 'Google Sheets à jour' : 'Sync Google Sheets'}
         </button>
 
         <button onClick={clearAnalytics} disabled={clearing} style={{
-          padding: '11px 16px',
-          background: confirmClear ? '#fef2f2' : '#fff',
-          border: `1.5px solid ${confirmClear ? '#ef4444' : '#e2e8f0'}`,
-          borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          marginLeft: 8,
+          padding: '10px 14px',
+          background: confirmClear ? '#fef2f2' : '#fff5f5',
+          border: `1.5px solid ${confirmClear ? '#ef4444' : '#fecaca'}`,
+          borderRadius: 12, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 7, color: '#ef4444', fontFamily: 'inherit',
         }}>
-          <Icon name="trash" size={15} color="#ef4444" />
+          <Icon name="trash" size={14} color="#ef4444" />
           {clearing ? 'Suppression...' : confirmClear ? 'Confirmer : tout supprimer ?' : 'Vider les données analytics'}
         </button>
       </div>
 
       {/* KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 20 }}>
         <KpiCard icon="users" label={`Actifs (${ACTIVE_WINDOW_MIN} min)`} value={activeNow} color="#10b981" />
-        <KpiCard icon="chart" label={`Sessions (${ANALYTICS_LOOKBACK_DAYS}j)`} value={fmt(totalSessions)} color="#6366f1" />
-        <KpiCard icon="globe" label={`Pages vues (${ANALYTICS_LOOKBACK_DAYS}j)`} value={fmt(totalPageViews)} color="#0073F4" />
-        <KpiCard icon="check" label="Taux de conversion" value={`${tauxConv}%`} color="#d97706" sub={`${totalConfirmes} / ${totalVisites} visites`} />
+        <KpiCard icon="chart" label={`Sessions (${periodLabel})`} value={fmt(totalSessions)} color="#6366f1" />
+        <KpiCard icon="globe" label={`Pages vues (${periodLabel})`} value={fmt(totalPageViews)} color="#0073F4" />
+        <KpiCard icon="check" label="Taux de conversion" value={`${tauxConv}%`} color="#d97706" sub={`${fmt(totalConfirmes)} / ${fmt(totalVisites)} visites`} />
+        <KpiCard icon="filter" label="Taux d'abandon formulaire" value={`${tauxAbandon}%`} color="#ef4444" sub={`${fmt(formSoumis)} / ${fmt(formDemarre)} démarrés`} />
+      </div>
+
+      {/* Trafic dans le temps */}
+      <div style={{ ...CARD_STYLE, padding: '22px 20px', marginBottom: 20 }}>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Trafic dans le temps</div>
+        <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8 }}>Visites et inscriptions — {periodLabel}</div>
+        {trafficChartData.length === 0 ? (
+          <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 12 }}>Aucune donnée</div>
+        ) : (
+          <ResponsiveContainer width="100%" height={180}>
+            <AreaChart data={trafficChartData} margin={{ top: 6, right: 6, left: -22, bottom: 0 }}>
+              <defs>
+                <linearGradient id="visitesFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#0073F4" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="#0073F4" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} allowDecimals={false} width={26} />
+              <Tooltip contentStyle={{ borderRadius: 10, border: '1px solid #e2e8f0', fontSize: 12, boxShadow: '0 8px 24px rgba(15,23,42,.12)' }} />
+              <Area type="monotone" dataKey="visites" name="Visites" stroke="#0073F4" strokeWidth={2.5} fill="url(#visitesFill)" activeDot={{ r: 5 }} />
+              <Area type="monotone" dataKey="inscriptions" name="Inscriptions" stroke="#10b981" strokeWidth={2.5} fill="none" activeDot={{ r: 5 }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
         {/* Pages les plus vues */}
         <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Pages les plus vues</div>
-          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Toutes périodes</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>{periodLabel}</div>
           {topPages.length === 0
             ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
             : topPages.slice(0, 8).map((p, i) => (
-              <BarRow key={i} label={p.path} value={p.visites} max={maxTopPage}
+              <BarRow key={i} label={p.path} value={p.visites} max={maxTopPage} pctBase={totalPageViews}
                 color={['#6366f1', '#0073F4', '#000E91', '#10b981', '#d97706', '#0891b2', '#8b5cf6', '#ef4444'][i % 8]} />
             ))
           }
@@ -2106,11 +2237,11 @@ function SectionAnalytics() {
         {/* Tunnel de conversion */}
         <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Tunnel de conversion</div>
-          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Visite → Inscription confirmée</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Visite → Inscription confirmée — {periodLabel}</div>
           {funnel.length === 0
             ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
             : funnel.map((f, i) => (
-              <BarRow key={i} label={f.etape} value={f.nb} max={maxFunnel}
+              <BarRow key={i} label={f.etape} value={f.nb} max={maxFunnel} pctBase={totalVisites}
                 color={['#6366f1', '#0073F4', '#000E91', '#10b981', '#d97706'][i % 5]} />
             ))
           }
@@ -2437,7 +2568,7 @@ export default function AdminPage() {
           ) : activeModule === 'tirage' ? (
             <AdminTirage />
           ) : activeModule === 'analytics' ? (
-            <SectionAnalytics />
+            <SectionAnalytics inscriptions={allData.inscriptions} />
           ) : loading ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60%', flexDirection: 'column', gap: 16 }}>
               <div style={{ width: 36, height: 36, border: '3px solid #e2e8f0', borderTopColor: '#000E91', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
