@@ -82,6 +82,7 @@ const fmt     = n  => (n || 0).toLocaleString('fr-FR')
 const fmtEur  = n  => `${fmt(n)} €`
 const fmtDate = d  => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 const fmtTime = d  => d ? new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
+const MASKED_EUR = '•••••• €'
 
 // Masque une valeur sensible (passeport, etc.) : garde les 4 premiers et 2
 // derniers caracteres visibles — ex. "SLS0****81". Meme convention que
@@ -1217,6 +1218,8 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
   const [selectedMembre,  setSelectedMembre]  = useState(null)
   const [syncing,         setSyncing]         = useState(false)
   const [syncOk,          setSyncOk]          = useState(false)
+  const [montantsRevealed, setMontantsRevealed] = useState(false)
+  const showEur = n => montantsRevealed ? fmtEur(n) : MASKED_EUR
 
   const total       = data.length
   const totalParts  = data.reduce((s, r) => s + (r.participants || 0), 0)
@@ -1323,7 +1326,7 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
     { key: 'participants',    label: 'Pers.',         render: v => <span style={{ fontWeight: 700 }}>{v}</span> },
     { key: 'montant',         label: 'Montant',       render: (v, r) => r._isMember
       ? <span style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>Partagé</span>
-      : <span style={{ fontWeight: 800, color: '#d97706' }}>{fmtEur(v)}</span> },
+      : <span style={{ fontWeight: 800, color: '#d97706' }}>{showEur(v)}</span> },
     { key: 'paiement_status', label: 'Statut',        render: v => <StatusBadge status={v} /> },
     { key: 'arrived',         label: 'Présence',      render: (v, r) => v
       ? <span style={{ background: '#d1fae5', color: '#065f46', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>Arrivé{r.arrived_at ? ` ${fmtTime(r.arrived_at)}` : ''}</span>
@@ -1339,10 +1342,19 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
       <InfosGeneralesPanel />
 
       {/* KPIs */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <button type="button" onClick={() => setMontantsRevealed(v => !v)} style={{
+          display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+          color: '#64748b', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 4,
+        }}>
+          <Icon name={montantsRevealed ? 'eyeOff' : 'eye'} size={14} color="#64748b" />
+          {montantsRevealed ? 'Masquer les montants' : 'Afficher les montants'}
+        </button>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
         <KpiCard icon="users"  label="Dossiers"    value={total}           color="#6366f1" />
         <KpiCard icon="chart"  label="Participants" value={totalParts}      color="#8b5cf6" />
-        <KpiCard icon="euro"   label="Revenus"      value={fmtEur(totalMontant)} color="#d97706" />
+        <KpiCard icon="euro"   label="Revenus"      value={showEur(totalMontant)} color="#d97706" />
         <KpiCard icon="check"  label="Confirmés"    value={confirmes}       color="#10b981" tint sub={`${Math.round((confirmes/total||0)*100)}% de conversion`} />
         <KpiCard icon="clock"  label="En attente"   value={enAttente}       color="#d97706" tint />
         <KpiCard icon="search" label="Arrivés"      value={arrives}         color="#0891b2" subTitle="Contacts principaux — voir la fiche pour les délégations" />
@@ -1423,6 +1435,8 @@ function SectionGeneric({ data, setData, moduleId, accentColor }) {
   const [selected,     setSelected]     = useState(null)
   const [syncing,      setSyncing]      = useState(false)
   const [syncOk,       setSyncOk]       = useState(false)
+  const [montantsRevealed, setMontantsRevealed] = useState(false)
+  const showEur = n => montantsRevealed ? fmtEur(n) : MASKED_EUR
 
   const filtered = useMemo(() => data.filter(r => {
     const s  = search.toLowerCase()
@@ -1441,7 +1455,7 @@ function SectionGeneric({ data, setData, moduleId, accentColor }) {
       { key: 'niveau',       label: 'Niveau',       render: v => <span style={{ color: accentColor, fontWeight: 700, textTransform: 'uppercase', fontSize: 11 }}>{v || '—'}</span> },
       { key: 'contact',      label: 'Contact',      render: (v, r) => r['contacts']?.nom || v || '—', muted: true },
       { key: 'email',        label: 'Email',        render: (v, r) => <span style={{ fontSize: 12, color: '#64748b' }}>{r['contacts']?.email || v || '—'}</span> },
-      { key: 'montant',      label: 'Montant',      render: v => v ? <span style={{ fontWeight: 800, color: '#d97706' }}>{fmtEur(v)}</span> : '—' },
+      { key: 'montant',      label: 'Montant',      render: v => v ? <span style={{ fontWeight: 800, color: '#d97706' }}>{showEur(v)}</span> : '—' },
       { key: 'statut',       label: 'Statut',       render: v => <StatusBadge status={v || 'nouveau'} /> },
       { key: 'created_at',   label: 'Date',         render: v => <span style={{ color: '#94a3b8', fontSize: 11 }}>{fmtDate(v)}</span> },
     ]
@@ -1494,13 +1508,13 @@ function SectionGeneric({ data, setData, moduleId, accentColor }) {
       { icon: 'diamond',  label: 'Total Sponsors',  value: data.length,                                        color: '#d97706' },
       { icon: 'check',    label: 'Confirmés',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981', tint: true },
       { icon: 'clock',    label: 'Nouveaux',         value: data.filter(r => !r.statut || r.statut === 'nouveau').length, color: '#6366f1' },
-      { icon: 'euro',     label: 'Valeur estimee',   value: fmtEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
+      { icon: 'euro',     label: 'Valeur estimee',   value: showEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
     ],
     partenaires: [
       { icon: 'building', label: 'Partenaires',      value: data.length,                                        color: '#000E91' },
       { icon: 'check',    label: 'Confirmés',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981', tint: true },
       { icon: 'clock',    label: 'En attente',       value: data.filter(r => r.statut === 'en_attente').length, color: '#d97706', tint: true },
-      { icon: 'euro',     label: 'Valeur estimee',   value: fmtEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
+      { icon: 'euro',     label: 'Valeur estimee',   value: showEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
     ],
     exposants:   [
       { icon: 'monitor',  label: 'Total Exposants',  value: data.length,                                        color: '#0891b2' },
@@ -1522,6 +1536,15 @@ function SectionGeneric({ data, setData, moduleId, accentColor }) {
 
   return (
     <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <button type="button" onClick={() => setMontantsRevealed(v => !v)} style={{
+          display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+          color: '#64748b', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 4,
+        }}>
+          <Icon name={montantsRevealed ? 'eyeOff' : 'eye'} size={14} color="#64748b" />
+          {montantsRevealed ? 'Masquer les montants' : 'Afficher les montants'}
+        </button>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 28 }}>
         {(kpis[moduleId] || []).map((k, i) => <KpiCard key={i} {...k} />)}
       </div>
@@ -1698,6 +1721,12 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
   const { inscriptions = [], sponsors = [], partenaires = [], exposants = [] } = allData
   const [showAjouter, setShowAjouter] = useState(false)
   const [showEmailMassif, setShowEmailMassif] = useState(false)
+  // Montants financiers masques par defaut (donnee confidentielle, meme
+  // logique que le passeport en Phase 1/2) : un seul interrupteur pour tout
+  // le tableau de bord, pas un par carte — c'est un ecran de synthese, pas
+  // une fiche individuelle.
+  const [montantsRevealed, setMontantsRevealed] = useState(false)
+  const showEur = n => montantsRevealed ? fmtEur(n) : MASKED_EUR
 
   const totalRevenu  = inscriptions.reduce((s, r) => s + (r.montant || 0), 0)
     + sponsors.reduce((s, r) => s + (r.montant || 0), 0)
@@ -1756,9 +1785,18 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
       </div>
 
       {/* KPIs globaux */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+        <button type="button" onClick={() => setMontantsRevealed(v => !v)} style={{
+          display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none',
+          color: '#64748b', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', padding: 4,
+        }}>
+          <Icon name={montantsRevealed ? 'eyeOff' : 'eye'} size={14} color="#64748b" />
+          {montantsRevealed ? 'Masquer les montants' : 'Afficher les montants'}
+        </button>
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 20 }}>
         <KpiCard icon="users"    label="Participants" value={inscriptions.reduce((s, r) => s + (r.participants || 0), 0)} color="#6366f1" sub={`${inscriptions.length} dossiers`} />
-        <KpiCard icon="euro"     label="Revenus totaux" value={fmtEur(totalRevenu)} color="#10b981" />
+        <KpiCard icon="euro"     label="Revenus totaux" value={showEur(totalRevenu)} color="#10b981" />
         <KpiCard icon="check"    label="Confirmés"    value={confirmes} color="#10b981" tint sub={`${Math.round((confirmes / (inscriptions.length || 1)) * 100)}% conv.`} />
         <KpiCard icon="diamond"  label="Sponsors"     value={sponsors.length} color="#d97706" />
         <KpiCard icon="building" label="Partenaires"  value={partenaires.length} color="#000E91" />
@@ -1770,14 +1808,14 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
         <div style={{ ...CARD_STYLE, padding: '20px 22px' }}>
           <div style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a', marginBottom: 14 }}>Recouvrement financier</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
-            <span style={{ fontSize: 20, fontWeight: 900, color: '#10b981' }}>{fmtEur(montantEncaisse)}</span>
+            <span style={{ fontSize: 20, fontWeight: 900, color: '#10b981' }}>{showEur(montantEncaisse)}</span>
             <span style={{ fontSize: 11, color: '#94a3b8' }}>encaissé</span>
           </div>
           <div style={{ background: '#f1f5f9', borderRadius: 4, height: 8, overflow: 'hidden', marginBottom: 8 }}>
             <div style={{ width: `${(montantEncaisse + montantEnAttente) > 0 ? Math.round(montantEncaisse / (montantEncaisse + montantEnAttente) * 100) : 0}%`, background: '#10b981', height: '100%', borderRadius: 4, transition: 'width .8s ease' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: '#d97706' }}>{fmtEur(montantEnAttente)}</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#d97706' }}>{showEur(montantEnAttente)}</span>
             <span style={{ fontSize: 11, color: '#94a3b8' }}>en attente</span>
           </div>
         </div>
