@@ -4,6 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import { generateBadge } from '../utils/generateBadge'
+import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmationInscriptionPDF'
 import { useAdminAuth } from '../adminAuth'
 import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
@@ -78,6 +79,15 @@ const fmt     = n  => (n || 0).toLocaleString('fr-FR')
 const fmtEur  = n  => `${fmt(n)} €`
 const fmtDate = d  => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 const fmtTime = d  => d ? new Date(d).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''
+
+// Masque une valeur sensible (passeport, etc.) : garde les 4 premiers et 2
+// derniers caracteres visibles — ex. "SLS0****81". Meme convention que
+// AdminProforma.jsx.
+const maskSensitive = value => {
+  const v = String(value || '')
+  if (v.length <= 6) return '*'.repeat(v.length)
+  return `${v.slice(0, 4)}****${v.slice(-2)}`
+}
 
 // Détection appareil à partir du user-agent stocké en base
 const parseDevice = ua => {
@@ -726,7 +736,34 @@ function ModalParticipant({ row, onClose, onUpdate }) {
 function ModalMembre({ membre, onClose, onUpdate }) {
   const [badgeQr, setBadgeQr] = useState('')
   const [toggling, setToggling] = useState(false)
+  const [passeport, setPasseport] = useState(membre.numero_passeport || '')
+  const [passeportRevealed, setPasseportRevealed] = useState(false)
+  const [lang, setLang] = useState('fr')
+  const [genLoading, setGenLoading] = useState(false)
   const badgeUrl = membre.badge_token ? `https://copaf-ports.com/badge/${membre.badge_token}` : ''
+
+  // Chaque membre genere son propre document, avec sa propre identite et
+  // son propre passeport — jamais celui du contact principal du groupe
+  // (c'etait le bug signale : un seul champ passeport partage par dossier).
+  const handleGenerateConfirmation = async () => {
+    const numeroPasseport = passeport.trim()
+    if (!numeroPasseport) return
+    const win = window.open('', '_blank')
+    setGenLoading(true)
+    try {
+      if (numeroPasseport !== (membre.numero_passeport || '')) {
+        await supabase.from('inscription_participants').update({ numero_passeport: numeroPasseport }).eq('id', membre._memberId)
+        onUpdate({ numero_passeport: numeroPasseport })
+      }
+      const form = { nom: membre.contacts?.nom, prenom: membre.contacts?.prenom, poste: membre.contacts?.poste, organisation: membre.contacts?.organisation }
+      if (win) {
+        const doc = await generateConfirmationInscriptionPDF({ form, dossier: membre.dossier, numeroPasseport, lang, download: false })
+        win.location.href = doc.output('bloburl')
+      } else {
+        await generateConfirmationInscriptionPDF({ form, dossier: membre.dossier, numeroPasseport, lang })
+      }
+    } finally { setGenLoading(false) }
+  }
 
   useEffect(() => {
     if (!badgeUrl) { setBadgeQr(''); return }
@@ -818,6 +855,50 @@ function ModalMembre({ membre, onClose, onUpdate }) {
           <p style={{ fontSize: 11.5, color: '#94a3b8', textAlign: 'center', marginTop: 12, marginBottom: 4, lineHeight: 1.5 }}>
             Fait partie du dossier groupé — statut de paiement partagé avec le contact principal.
           </p>
+        </div>
+
+        <div style={{ padding: '4px 28px 24px' }}>
+          <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 10 }}>Confirmation d'inscription</div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b' }}>N° Passeport</label>
+            {passeportRevealed || !membre.numero_passeport ? (
+              <input
+                value={passeport}
+                onChange={e => setPasseport(e.target.value)}
+                placeholder="Requis pour la confirmation d'inscription"
+                style={{ flex: 1, minWidth: 160, padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none' }}
+              />
+            ) : (
+              <span style={{ flex: 1, minWidth: 160, padding: '8px 10px', fontSize: 13, letterSpacing: 1, fontWeight: 700, color: '#334155', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10 }}>
+                {maskSensitive(membre.numero_passeport)}
+              </span>
+            )}
+            {!!membre.numero_passeport && (
+              <button type="button" onClick={() => setPasseportRevealed(v => !v)} title={passeportRevealed ? 'Masquer' : 'Afficher'}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', padding: 4 }}>
+                <Icon name={passeportRevealed ? 'eyeOff' : 'eye'} size={16} color="#64748b" />
+              </button>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {['fr', 'en'].map(l => (
+              <button key={l} type="button" onClick={() => setLang(l)} style={{
+                padding: '6px 12px', borderRadius: 20, fontSize: 11.5, fontWeight: 700, cursor: 'pointer',
+                fontFamily: 'inherit', border: `1.5px solid ${lang === l ? '#000E91' : '#e2e8f0'}`,
+                background: lang === l ? '#EBF3FF' : '#fff', color: lang === l ? '#000E91' : '#64748b',
+              }}>{l === 'fr' ? '🇫🇷 FR' : '🇬🇧 EN'}</button>
+            ))}
+            <button type="button" onClick={handleGenerateConfirmation} disabled={genLoading || !passeport.trim()} style={{
+              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '10px 14px', background: '#ecfeff', border: '1.5px solid #a5f3fc', borderRadius: 10,
+              fontSize: 12.5, fontWeight: 700, color: '#0e7490', cursor: genLoading || !passeport.trim() ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+              opacity: genLoading || !passeport.trim() ? .6 : 1,
+            }}>
+              {genLoading ? 'Génération...' : "Générer confirmation d'inscription"}
+            </button>
+          </div>
         </div>
 
         <div style={{ padding: '0 28px 28px' }}>
@@ -1104,6 +1185,7 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
         created_at: parent?.created_at,
         arrived: m.arrived,
         arrived_at: m.arrived_at,
+        numero_passeport: m.numero_passeport,
         contacts: {
           prenom: m.prenom, nom: m.nom, poste: m.poste, email: m.email, telephone: m.telephone,
           organisation: parent?.contacts?.organisation, pays: parent?.contacts?.pays,
