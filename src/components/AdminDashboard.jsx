@@ -5,6 +5,7 @@ import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import { generateBadge } from '../utils/generateBadge'
 import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmationInscriptionPDF'
+import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { useAdminAuth } from '../adminAuth'
 import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
@@ -47,6 +48,8 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     eye: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
     eyeOff: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-3.22 4.35"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>,
     copy: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
+    scan: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="3" y1="12" x2="21" y2="12"/></svg>,
+    gauge: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"/><path d="M12 12l4-3"/><path d="M12 3v2"/></svg>,
   }
   return paths[name] || null
 }
@@ -162,10 +165,18 @@ const CARD_STYLE = {
 }
 
 // ─── CARTE KPI ───────────────────────────────────────────────────────────────
-function KpiCard({ icon, label, value, sub, color, trend }) {
+// `tint` teinte legerement tout le fond de la carte (pas seulement le chip
+// d'icone) avec sa couleur — reserve aux cartes qui representent un statut
+// (vert = confirme, orange = en attente, etc.), pour que la couleur se
+// remarque au premier coup d'oeil sur toute la carte plutot que sur une
+// petite pastille. Les cartes neutres (volume, montant total...) restent
+// blanches.
+function KpiCard({ icon, label, value, sub, subTitle, color, trend, tint }) {
   return (
-    <div className="kpi-card" style={{
+    <div className="kpi-card" title={subTitle} style={{
       ...CARD_STYLE, padding: '20px 20px 18px', position: 'relative', overflow: 'hidden',
+      background: tint ? `${color}0d` : CARD_STYLE.background,
+      borderColor: tint ? `${color}33` : CARD_STYLE.border.split(' ').pop(),
     }}>
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${color}, ${color}33)` }} />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
@@ -1147,10 +1158,61 @@ function InfosGeneralesPanel() {
   )
 }
 
+// ─── ACTIONS RAPIDES PAR LIGNE (table Participants) ────────────────────────────
+// Boutons icone independants du clic sur la ligne (qui ouvre deja la fiche
+// complete) : telecharger la proforma directement, ou preparer un email de
+// relance pret a envoyer depuis le client mail de l'admin (jamais un envoi
+// automatique — voir la meme logique dans ModalEmailMassif).
+function RowActions({ row, onView }) {
+  const [loading, setLoading] = useState(false)
+  const stop = e => e.stopPropagation()
+
+  const downloadProforma = async e => {
+    stop(e)
+    if (row._isMember) return
+    const win = window.open('', '_blank')
+    setLoading(true)
+    try {
+      const form = { nom: row.contacts?.nom, prenom: row.contacts?.prenom, organisation: row.contacts?.organisation, poste: row.contacts?.poste, pays: row.contacts?.pays }
+      const doc = await generateProformaPDF({ form, dossier: row.dossier, nb: row.participants || 1, total: row.montant || 0, download: false })
+      if (win) win.location.href = doc.output('bloburl')
+    } finally { setLoading(false) }
+  }
+
+  const relancerEmail = e => {
+    stop(e)
+    const email = row.contacts?.email
+    if (!email) return
+    const nom = `${row.contacts?.prenom || ''} ${row.contacts?.nom || ''}`.trim()
+    const subject = `COPAF 2026 — Votre dossier ${row.dossier}`
+    const body = `Bonjour ${nom},\n\nVoici un rappel concernant votre inscription à la COPAF 2026 (dossier ${row.dossier}).\n\nRetrouvez le suivi de votre dossier, vos documents et votre badge à tout moment sur : https://copaf-ports.com/verifier\n\nCordialement,\nL'équipe COPAF 2026`
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 4 }} onClick={stop}>
+      <button type="button" onClick={e => { stop(e); onView() }} title="Voir la fiche" style={ROW_ACTION_BTN}>
+        <Icon name="eye" size={14} color="#64748b" />
+      </button>
+      {!row._isMember && (
+        <button type="button" onClick={downloadProforma} disabled={loading} title="Télécharger la proforma" style={ROW_ACTION_BTN}>
+          <Icon name="download" size={14} color={loading ? '#cbd5e1' : '#64748b'} />
+        </button>
+      )}
+      <button type="button" onClick={relancerEmail} title="Renvoyer par email" style={ROW_ACTION_BTN} disabled={!row.contacts?.email}>
+        <Icon name="mail" size={14} color={row.contacts?.email ? '#64748b' : '#cbd5e1'} />
+      </button>
+    </div>
+  )
+}
+const ROW_ACTION_BTN = { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }
+
 // ─── SECTION PARTICIPANTS ─────────────────────────────────────────────────────
 function SectionParticipants({ data, membres = [], setData, setMembres }) {
   const [search,          setSearch]          = useState('')
   const [filterStatus,    setFilterStatus]    = useState('tous')
+  const [filterPays,      setFilterPays]      = useState('tous')
+  const [filterPresence,  setFilterPresence]  = useState('tous')
   const [selected,        setSelected]        = useState(null)
   const [selectedMembre,  setSelectedMembre]  = useState(null)
   const [syncing,         setSyncing]         = useState(false)
@@ -1195,12 +1257,22 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
     return [...data, ...memberRows]
   }, [data, membres])
 
+  // Filtres combinables : recherche libre + statut + pays + presence, tous
+  // appliques ensemble (chaque filtre restreint independamment le meme jeu
+  // de lignes, pas de logique "ou").
+  const paysOptions = useMemo(() => {
+    const set = new Set(combinedRows.map(r => r.contacts?.pays).filter(Boolean))
+    return [...set].sort((a, b) => a.localeCompare(b))
+  }, [combinedRows])
+
   const filtered = useMemo(() => combinedRows.filter(r => {
     const s   = search.toLowerCase()
     const ok  = [r.contacts?.nom, r.contacts?.prenom, r.contacts?.email, r.contacts?.organisation, r.contacts?.pays, r.dossier].some(v => (v || '').toLowerCase().includes(s))
     const st  = filterStatus === 'tous' || r.paiement_status === filterStatus
-    return ok && st
-  }), [combinedRows, search, filterStatus])
+    const py  = filterPays === 'tous' || r.contacts?.pays === filterPays
+    const pr  = filterPresence === 'tous' || (filterPresence === 'arrive' ? !!r.arrived : !r.arrived)
+    return ok && st && py && pr
+  }), [combinedRows, search, filterStatus, filterPays, filterPresence])
 
   const CSV_COLS = [
     { label: 'Dossier',         key: 'dossier' },
@@ -1257,6 +1329,9 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
       ? <span style={{ background: '#d1fae5', color: '#065f46', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>Arrivé{r.arrived_at ? ` ${fmtTime(r.arrived_at)}` : ''}</span>
       : <span style={{ background: '#f1f5f9', color: '#94a3b8', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 700 }}>Non arrivé</span> },
     { key: 'created_at',      label: 'Date',          render: v => <span style={{ color: '#94a3b8', fontSize: 11 }}>{fmtDate(v)}</span> },
+    { key: 'actions',         label: 'Actions',       render: (v, r) => (
+      <RowActions row={r} onView={() => r._isMember ? setSelectedMembre(r) : setSelected(r)} />
+    ) },
   ]
 
   return (
@@ -1268,9 +1343,9 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
         <KpiCard icon="users"  label="Dossiers"    value={total}           color="#6366f1" />
         <KpiCard icon="chart"  label="Participants" value={totalParts}      color="#8b5cf6" />
         <KpiCard icon="euro"   label="Revenus"      value={fmtEur(totalMontant)} color="#d97706" />
-        <KpiCard icon="check"  label="Confirmes"    value={confirmes}       color="#10b981" sub={`${Math.round((confirmes/total||0)*100)}% de conversion`} />
-        <KpiCard icon="clock"  label="En attente"   value={enAttente}       color="#2563eb" />
-        <KpiCard icon="search" label="Arrivés"      value={arrives}         color="#0891b2" sub="Contacts principaux — voir la fiche pour les délégations" />
+        <KpiCard icon="check"  label="Confirmés"    value={confirmes}       color="#10b981" tint sub={`${Math.round((confirmes/total||0)*100)}% de conversion`} />
+        <KpiCard icon="clock"  label="En attente"   value={enAttente}       color="#d97706" tint />
+        <KpiCard icon="search" label="Arrivés"      value={arrives}         color="#0891b2" subTitle="Contacts principaux — voir la fiche pour les délégations" />
       </div>
 
       <Toolbar
@@ -1288,6 +1363,27 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
         onSync={doSync} syncing={syncing} syncOk={syncOk}
         placeholder="Rechercher par nom, email, dossier, pays..."
       />
+
+      {/* Filtres combinables supplementaires : pays + presence (le statut
+          est deja dans la Toolbar ci-dessus) */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: -10, marginBottom: 20 }}>
+        <select value={filterPays} onChange={e => setFilterPays(e.target.value)}
+          style={{ padding: '9px 12px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 10, fontSize: 12.5, outline: 'none', cursor: 'pointer', color: '#475569', fontFamily: 'inherit' }}>
+          <option value="tous">Tous les pays</option>
+          {paysOptions.map(p => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <select value={filterPresence} onChange={e => setFilterPresence(e.target.value)}
+          style={{ padding: '9px 12px', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 10, fontSize: 12.5, outline: 'none', cursor: 'pointer', color: '#475569', fontFamily: 'inherit' }}>
+          <option value="tous">Présence (tous)</option>
+          <option value="arrive">Arrivés</option>
+          <option value="non_arrive">Non arrivés</option>
+        </select>
+        {(filterPays !== 'tous' || filterPresence !== 'tous') && (
+          <button onClick={() => { setFilterPays('tous'); setFilterPresence('tous') }} style={{ padding: '9px 12px', background: 'none', border: 'none', color: '#0073F4', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+            Réinitialiser
+          </button>
+        )}
+      </div>
 
       <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>
         {filtered.length} enregistrement{filtered.length > 1 ? 's' : ''} affiches
@@ -1396,19 +1492,19 @@ function SectionGeneric({ data, setData, moduleId, accentColor }) {
   const kpis = {
     sponsors:    [
       { icon: 'diamond',  label: 'Total Sponsors',  value: data.length,                                        color: '#d97706' },
-      { icon: 'check',    label: 'Confirmes',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981' },
+      { icon: 'check',    label: 'Confirmés',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981', tint: true },
       { icon: 'clock',    label: 'Nouveaux',         value: data.filter(r => !r.statut || r.statut === 'nouveau').length, color: '#6366f1' },
       { icon: 'euro',     label: 'Valeur estimee',   value: fmtEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
     ],
     partenaires: [
       { icon: 'building', label: 'Partenaires',      value: data.length,                                        color: '#000E91' },
-      { icon: 'check',    label: 'Confirmes',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981' },
-      { icon: 'clock',    label: 'En attente',       value: data.filter(r => r.statut === 'en_attente').length, color: '#d97706' },
+      { icon: 'check',    label: 'Confirmés',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981', tint: true },
+      { icon: 'clock',    label: 'En attente',       value: data.filter(r => r.statut === 'en_attente').length, color: '#d97706', tint: true },
       { icon: 'euro',     label: 'Valeur estimee',   value: fmtEur(data.reduce((s, r) => s + (r.montant || 0), 0)), color: '#0073F4' },
     ],
     exposants:   [
       { icon: 'monitor',  label: 'Total Exposants',  value: data.length,                                        color: '#0891b2' },
-      { icon: 'check',    label: 'Confirmes',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981' },
+      { icon: 'check',    label: 'Confirmés',        value: data.filter(r => r.statut === 'confirme').length,   color: '#10b981', tint: true },
       { icon: 'clock',    label: 'Nouveaux',         value: data.filter(r => !r.statut || r.statut === 'nouveau').length, color: '#6366f1' },
     ],
   }
@@ -1448,18 +1544,177 @@ function SectionGeneric({ data, setData, moduleId, accentColor }) {
   )
 }
 
+// Capacite max de la salle (Batiment Communautaire Portuaire, Casablanca) —
+// A AJUSTER avec le vrai chiffre communique par le lieu ; valeur provisoire
+// en attendant, pour que la jauge de remplissage ait un repere.
+const CAPACITE_MAX_SALLE = 300
+
+const genDossier = () => `COPAF2026-${Math.floor(Math.random() * 90000) + 10000}`
+
+// ─── MODAL AJOUTER UN PARTICIPANT (creation manuelle par le secretariat) ──────
+function ModalAjouterParticipant({ onClose, onCreated }) {
+  const [form, setForm] = useState({ prenom: '', nom: '', email: '', telephone: '', organisation: '', poste: '', pays: '', participants: 1, montant: '', statut: 'en_attente' })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const submit = async () => {
+    if (!form.prenom.trim() || !form.nom.trim() || !form.email.trim()) { setError('Prénom, nom et email sont requis'); return }
+    setSaving(true); setError('')
+    try {
+      const { data: contactId, error: contactErr } = await supabase.rpc('public_upsert_contact', {
+        p_email: form.email.trim(), p_source: 'admin', p_prenom: form.prenom.trim(), p_nom: form.nom.trim(),
+        p_telephone: form.telephone.trim(), p_organisation: form.organisation.trim(), p_poste: form.poste.trim(), p_pays: form.pays.trim(),
+      })
+      if (contactErr) throw new Error(contactErr.message)
+
+      // Boucle courte pour eviter une collision improbable sur le numero de
+      // dossier aleatoire (meme generateur que Inscription.jsx cote public).
+      let dossier = genDossier()
+      for (let i = 0; i < 5; i++) {
+        const { data: existing } = await supabase.from('inscriptions').select('dossier').eq('dossier', dossier).maybeSingle()
+        if (!existing) break
+        dossier = genDossier()
+      }
+
+      const { error: insErr } = await supabase.from('inscriptions').insert([{
+        contact_id: contactId, dossier,
+        participants: Number(form.participants) || 1,
+        montant: form.montant === '' ? null : Number(form.montant),
+        paiement_status: form.statut, paiement_mode: 'plus_tard',
+      }])
+      if (insErr) throw new Error(insErr.message)
+
+      onCreated(dossier)
+    } catch (err) {
+      setError(err.message)
+    } finally { setSaving(false) }
+  }
+
+  const inp = { width: '100%', padding: '10px 12px', fontSize: 13.5, fontFamily: 'inherit', color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }
+  const lbl = { display: 'block', fontSize: 10.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: .5, marginBottom: 5 }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
+      <div style={{ background: '#fff', borderRadius: 24, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,.15)', animation: 'modalIn .2s ease' }} onClick={e => e.stopPropagation()}>
+        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: 17, fontWeight: 800, color: '#0f172a' }}>Ajouter un participant</div>
+          <button onClick={onClose} style={{ background: '#f8fafc', border: 'none', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="close" size={15} color="#64748b" />
+          </button>
+        </div>
+        <div style={{ padding: '20px 28px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div><label style={lbl}>Prénom *</label><input style={inp} value={form.prenom} onChange={e => set('prenom', e.target.value)} /></div>
+          <div><label style={lbl}>Nom *</label><input style={inp} value={form.nom} onChange={e => set('nom', e.target.value)} /></div>
+          <div style={{ gridColumn: '1 / -1' }}><label style={lbl}>Email *</label><input type="email" style={inp} value={form.email} onChange={e => set('email', e.target.value)} /></div>
+          <div><label style={lbl}>Téléphone</label><input style={inp} value={form.telephone} onChange={e => set('telephone', e.target.value)} /></div>
+          <div><label style={lbl}>Pays</label><input style={inp} value={form.pays} onChange={e => set('pays', e.target.value)} /></div>
+          <div style={{ gridColumn: '1 / -1' }}><label style={lbl}>Organisation</label><input style={inp} value={form.organisation} onChange={e => set('organisation', e.target.value)} /></div>
+          <div style={{ gridColumn: '1 / -1' }}><label style={lbl}>Fonction</label><input style={inp} value={form.poste} onChange={e => set('poste', e.target.value)} /></div>
+          <div><label style={lbl}>Participants</label><input type="number" min="1" style={inp} value={form.participants} onChange={e => set('participants', e.target.value)} /></div>
+          <div><label style={lbl}>Montant (EUR)</label><input type="number" min="0" style={inp} value={form.montant} onChange={e => set('montant', e.target.value)} /></div>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <label style={lbl}>Statut</label>
+            <select style={inp} value={form.statut} onChange={e => set('statut', e.target.value)}>
+              {Object.entries(STATUS_CONFIG).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
+            </select>
+          </div>
+          {error && <div style={{ gridColumn: '1 / -1', color: '#dc2626', fontSize: 12.5, fontWeight: 600 }}>{error}</div>}
+        </div>
+        <div style={{ padding: '4px 28px 28px' }}>
+          <button onClick={submit} disabled={saving} style={{ width: '100%', padding: 13, background: '#000E91', border: 'none', borderRadius: 12, color: '#fff', fontWeight: 700, fontSize: 14, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: 'inherit', opacity: saving ? .7 : 1 }}>
+            {saving ? 'Création...' : 'Créer le dossier'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── MODAL EMAIL MASSIF (prepare la liste de destinataires, envoi via le
+// client mail de l'admin — jamais un envoi automatique depuis l'app pour
+// un email de masse, qui doit rester une action explicitement revue) ──────────
+function ModalEmailMassif({ inscriptions, onClose }) {
+  const [statutFiltre, setStatutFiltre] = useState('tous')
+  const [copied, setCopied] = useState(false)
+
+  const destinataires = useMemo(() => inscriptions
+    .filter(r => statutFiltre === 'tous' || r.paiement_status === statutFiltre)
+    .map(r => r.contacts?.email)
+    .filter(Boolean),
+  [inscriptions, statutFiltre])
+
+  const copyEmails = async () => {
+    try {
+      await navigator.clipboard.writeText(destinataires.join(', '))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2500)
+    } catch { /* clipboard indisponible, tant pis */ }
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
+      <div style={{ background: '#fff', borderRadius: 24, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,.15)', animation: 'modalIn .2s ease' }} onClick={e => e.stopPropagation()}>
+        <div style={{ padding: '24px 28px 16px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: 17, fontWeight: 800, color: '#0f172a' }}>Email massif</div>
+          <button onClick={onClose} style={{ background: '#f8fafc', border: 'none', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="close" size={15} color="#64748b" />
+          </button>
+        </div>
+        <div style={{ padding: '20px 28px' }}>
+          <label style={{ display: 'block', fontSize: 10.5, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: .5, marginBottom: 6 }}>Destinataires</label>
+          <select value={statutFiltre} onChange={e => setStatutFiltre(e.target.value)} style={{ width: '100%', padding: '10px 12px', fontSize: 13.5, fontFamily: 'inherit', color: '#0f172a', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', marginBottom: 16 }}>
+            <option value="tous">Tous les statuts</option>
+            {Object.entries(STATUS_CONFIG).map(([k, s]) => <option key={k} value={k}>{s.label}</option>)}
+          </select>
+
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 14, marginBottom: 16 }}>
+            <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a' }}>{destinataires.length}</div>
+            <div style={{ fontSize: 12, color: '#64748b' }}>adresse{destinataires.length > 1 ? 's' : ''} email valide{destinataires.length > 1 ? 's' : ''}</div>
+          </div>
+
+          <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6, marginBottom: 16 }}>
+            Pas d'envoi automatique de masse depuis l'admin — copiez la liste et collez-la en CCI (Bcc) dans votre client mail habituel pour composer et envoyer vous-même le message.
+          </p>
+
+          <button onClick={copyEmails} disabled={destinataires.length === 0} style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            padding: 13, background: copied ? '#d1fae5' : '#EBF3FF', border: 'none', borderRadius: 12,
+            color: copied ? '#065f46' : '#000E91', fontWeight: 700, fontSize: 14,
+            cursor: destinataires.length === 0 ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+          }}>
+            <Icon name={copied ? 'check' : 'copy'} size={16} color={copied ? '#065f46' : '#000E91'} />
+            {copied ? 'Copié !' : 'Copier les emails'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── SECTION TABLEAU DE BORD ──────────────────────────────────────────────────
-function SectionDashboard({ allData }) {
+function SectionDashboard({ allData, setActiveModule, onDataChange }) {
   const { inscriptions = [], sponsors = [], partenaires = [], exposants = [] } = allData
+  const [showAjouter, setShowAjouter] = useState(false)
+  const [showEmailMassif, setShowEmailMassif] = useState(false)
 
   const totalRevenu  = inscriptions.reduce((s, r) => s + (r.montant || 0), 0)
     + sponsors.reduce((s, r) => s + (r.montant || 0), 0)
     + partenaires.reduce((s, r) => s + (r.montant || 0), 0)
   const confirmes    = inscriptions.filter(r => r.paiement_status === 'confirme').length
 
-  // Top pays
+  // Financier & logistique
+  const montantEncaisse  = inscriptions.filter(r => r.paiement_status === 'confirme').reduce((s, r) => s + (r.montant || 0), 0)
+  const montantEnAttente = inscriptions.filter(r => r.paiement_status !== 'confirme' && r.paiement_status !== 'annule').reduce((s, r) => s + (r.montant || 0), 0)
+  const totalParticipantsReels = inscriptions.reduce((s, r) => s + (r.participants || 0), 0)
+  const tauxRemplissage = Math.min(100, Math.round((totalParticipantsReels / CAPACITE_MAX_SALLE) * 100))
+  const badgesEmis  = inscriptions.filter(r => r.badge_token).length
+  const arrivesTotal = inscriptions.filter(r => r.arrived).length
+
+  // Top pays (r.contacts, pas r — le pays vit sur le contact lie, pas sur la ligne inscription)
   const paysMap = {}
-  inscriptions.forEach(r => { if (r.pays) paysMap[r.pays] = (paysMap[r.pays] || 0) + 1 })
+  inscriptions.forEach(r => { if (r.contacts?.pays) paysMap[r.contacts.pays] = (paysMap[r.contacts.pays] || 0) + 1 })
   const topPays = Object.entries(paysMap).sort((a, b) => b[1] - a[1]).slice(0, 6)
   const maxPays = topPays[0]?.[1] || 1
 
@@ -1480,14 +1735,80 @@ function SectionDashboard({ allData }) {
 
   return (
     <div>
+      {/* Actions rapides */}
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 24 }}>
+        {[
+          { icon: 'plus',  label: 'Ajouter un participant',   onClick: () => setShowAjouter(true), primary: true },
+          { icon: 'euro',  label: 'Générer une proforma',     onClick: () => setActiveModule?.('proforma') },
+          { icon: 'mail',  label: 'Envoyer un email massif',  onClick: () => setShowEmailMassif(true) },
+          { icon: 'scan',  label: 'Scanner un badge',         onClick: () => window.open('/staff/scan', '_blank') },
+        ].map((a, i) => (
+          <button key={i} onClick={a.onClick} style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '11px 18px',
+            background: a.primary ? '#000E91' : '#fff', color: a.primary ? '#fff' : '#334155',
+            border: a.primary ? 'none' : '1.5px solid #e2e8f0', borderRadius: 12,
+            fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
+          }}>
+            <Icon name={a.icon} size={15} color={a.primary ? '#fff' : '#475569'} />
+            {a.label}
+          </button>
+        ))}
+      </div>
+
       {/* KPIs globaux */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 32 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 20 }}>
         <KpiCard icon="users"    label="Participants" value={inscriptions.reduce((s, r) => s + (r.participants || 0), 0)} color="#6366f1" sub={`${inscriptions.length} dossiers`} />
         <KpiCard icon="euro"     label="Revenus totaux" value={fmtEur(totalRevenu)} color="#10b981" />
-        <KpiCard icon="check"    label="Confirmes"    value={confirmes} color="#10b981" sub={`${Math.round((confirmes / (inscriptions.length || 1)) * 100)}% conv.`} />
+        <KpiCard icon="check"    label="Confirmés"    value={confirmes} color="#10b981" tint sub={`${Math.round((confirmes / (inscriptions.length || 1)) * 100)}% conv.`} />
         <KpiCard icon="diamond"  label="Sponsors"     value={sponsors.length} color="#d97706" />
         <KpiCard icon="building" label="Partenaires"  value={partenaires.length} color="#000E91" />
         <KpiCard icon="monitor"  label="Exposants"    value={exposants.length} color="#0891b2" />
+      </div>
+
+      {/* Finances & logistique */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 20, marginBottom: 24 }}>
+        <div style={{ ...CARD_STYLE, padding: '20px 22px' }}>
+          <div style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a', marginBottom: 14 }}>Recouvrement financier</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
+            <span style={{ fontSize: 20, fontWeight: 900, color: '#10b981' }}>{fmtEur(montantEncaisse)}</span>
+            <span style={{ fontSize: 11, color: '#94a3b8' }}>encaissé</span>
+          </div>
+          <div style={{ background: '#f1f5f9', borderRadius: 4, height: 8, overflow: 'hidden', marginBottom: 8 }}>
+            <div style={{ width: `${(montantEncaisse + montantEnAttente) > 0 ? Math.round(montantEncaisse / (montantEncaisse + montantEnAttente) * 100) : 0}%`, background: '#10b981', height: '100%', borderRadius: 4, transition: 'width .8s ease' }} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#d97706' }}>{fmtEur(montantEnAttente)}</span>
+            <span style={{ fontSize: 11, color: '#94a3b8' }}>en attente</span>
+          </div>
+        </div>
+
+        <div style={{ ...CARD_STYLE, padding: '20px 22px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+            <Icon name="gauge" size={16} color="#0073F4" />
+            <span style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a' }}>Remplissage de l'événement</span>
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>
+            {totalParticipantsReels} <span style={{ fontSize: 13, fontWeight: 600, color: '#94a3b8' }}>/ {CAPACITE_MAX_SALLE} places</span>
+          </div>
+          <div style={{ background: '#f1f5f9', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+            <div style={{ width: `${tauxRemplissage}%`, background: tauxRemplissage > 85 ? '#ef4444' : '#0073F4', height: '100%', borderRadius: 4, transition: 'width .8s ease' }} />
+          </div>
+          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>{tauxRemplissage}% de la capacité de la salle</div>
+        </div>
+
+        <div style={{ ...CARD_STYLE, padding: '20px 22px' }}>
+          <div style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a', marginBottom: 14 }}>Accréditation</div>
+          <div style={{ display: 'flex', gap: 20 }}>
+            <div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a' }}>{badgesEmis}</div>
+              <div style={{ fontSize: 11, color: '#94a3b8' }}>badges émis</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: '#0891b2' }}>{arrivesTotal}</div>
+              <div style={{ fontSize: 11, color: '#94a3b8' }}>déjà accueillis</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
@@ -1529,7 +1850,7 @@ function SectionDashboard({ allData }) {
 
       {/* Statuts inscriptions */}
       <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
-        <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Repartition des statuts — Inscriptions</div>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Répartition des statuts — Inscriptions</div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           {statutsInsc.map((s, i) => (
             <div key={i} style={{ background: '#f8fafc', border: '1px solid #e8edf5', borderRadius: 14, padding: '16px 20px', minWidth: 110, textAlign: 'center', flex: 1 }}>
@@ -1542,6 +1863,16 @@ function SectionDashboard({ allData }) {
           ))}
         </div>
       </div>
+
+      {showAjouter && (
+        <ModalAjouterParticipant
+          onClose={() => setShowAjouter(false)}
+          onCreated={() => { setShowAjouter(false); onDataChange?.() }}
+        />
+      )}
+      {showEmailMassif && (
+        <ModalEmailMassif inscriptions={inscriptions} onClose={() => setShowEmailMassif(false)} />
+      )}
     </div>
   )
 }
@@ -1984,7 +2315,7 @@ export default function AdminPage() {
         {/* Derniere sync */}
         {lastSync && (
           <div style={{ padding: '14px 22px', borderTop: '1px solid rgba(255,255,255,.08)', fontSize: 11, color: 'rgba(255,255,255,.4)', flexShrink: 0 }}>
-            <div style={{ fontWeight: 600, color: 'rgba(255,255,255,.6)', marginBottom: 2 }}>Derniere actualisation</div>
+            <div style={{ fontWeight: 600, color: 'rgba(255,255,255,.6)', marginBottom: 2 }}>Dernière actualisation</div>
             {lastSync.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
           </div>
         )}
@@ -2076,7 +2407,7 @@ export default function AdminPage() {
             </div>
           ) : (
             <>
-              {activeModule === 'dashboard' && <SectionDashboard allData={allData} />}
+              {activeModule === 'dashboard' && <SectionDashboard allData={allData} setActiveModule={setActiveModule} onDataChange={loadAll} />}
               {activeModule === 'participants' && (
                 <SectionParticipants
                   data={allData.inscriptions}
