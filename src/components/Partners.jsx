@@ -54,7 +54,7 @@ const Partners = () => {
         zIndex: 1,
       }} />
 
-      {/* Contenu principal avec disposition latérale (Titre vertical / Slider) */}
+      {/* Contenu principal avec disposition latérale (Titre / Slider) */}
       <div className="partners-wrapper" style={{
         position: 'relative',
         zIndex: 2,
@@ -66,12 +66,12 @@ const Partners = () => {
         gap: '40px',
       }}>
         
-        {/* Titre vertical latéral */}
+        {/* Titre latéral */}
         <div className="partners-vertical-title" style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
-          minWidth: '220px',
+          minWidth: '260px',
           borderLeft: '3px solid #0073F4',
           paddingLeft: '16px',
         }}>
@@ -84,17 +84,17 @@ const Partners = () => {
             color: '#0073F4',
             marginBottom: '6px',
           }}>
-            {t('partners.eyebrow') || 'Institutions'}
+            {t('partners.eyebrow') || 'Écosystème'}
           </span>
           <h2 style={{
             fontFamily: "'Inter', sans-serif",
-            fontSize: 'clamp(20px, 2.5vw, 28px)',
+            fontSize: 'clamp(18px, 2.2vw, 25px)',
             fontWeight: 800,
             color: '#000E91',
             margin: 0,
             lineHeight: 1.25,
           }}>
-            {t('partners.title') || 'Soutiens Officiels'}
+            {t('partners.title') || 'Partenariats institutionnels et stratégiques'}
           </h2>
         </div>
 
