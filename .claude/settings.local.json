@@ -129,7 +129,11 @@
       "Bash(mkdir -p \"C:\\\\Users\\\\HomePC\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-HomePC-Desktop-copaf2026-main\\\\8c1e81fd-a028-4338-93d3-523d5a7c5cd8\\\\scratchpad\\\\other_ai_files\")",
       "Bash(unzip -o \"C:\\\\Users\\\\HomePC\\\\Downloads\\\\files.zip\")",
       "WebSearch",
-      "WebFetch(domain:www.consulat.ma)"
+      "WebFetch(domain:www.consulat.ma)",
+      "mcp__7a3e9c61-9a43-4ec3-85b4-c62233c4e958__list_projects",
+      "mcp__7a3e9c61-9a43-4ec3-85b4-c62233c4e958__execute_sql",
+      "WebFetch(domain:share.google)",
+      "Bash(curl -sL -o /dev/null -w \"%{url_effective}\\\\n\" \"https://share.google/TuPWU0lXbXr8RWSvm\")"
     ]
   }
 }

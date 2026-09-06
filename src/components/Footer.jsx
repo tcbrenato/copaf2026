@@ -80,13 +80,43 @@ const Footer = () => {
     },
   ]
 
+  // Liste complète des 26 pays uniques (AGPAOC + UAPNA, sans doublon)
+  const memberFlags = [
+    { code: 'dz', name: 'Algérie' },
+    { code: 'ao', name: 'Angola' },
+    { code: 'bj', name: 'Bénin' },
+    { code: 'cm', name: 'Cameroun' },
+    { code: 'cv', name: 'Cap-Vert' },
+    { code: 'cg', name: 'Congo' },
+    { code: 'ci', name: 'Côte d\'Ivoire' },
+    { code: 'eg', name: 'Égypte' },
+    { code: 'ga', name: 'Gabon' },
+    { code: 'gm', name: 'Gambie' },
+    { code: 'gh', name: 'Ghana' },
+    { code: 'gn', name: 'Guinée' },
+    { code: 'gw', name: 'Guinée-Bissau' },
+    { code: 'gq', name: 'Guinée Équatoriale' },
+    { code: 'lr', name: 'Libéria' },
+    { code: 'ly', name: 'Libye' },
+    { code: 'ma', name: 'Maroc' },
+    { code: 'mr', name: 'Mauritanie' },
+    { code: 'ng', name: 'Nigéria' },
+    { code: 'cd', name: 'République Démocratique du Congo' },
+    { code: 'st', name: 'São Tomé-et-Príncipe' },
+    { code: 'sn', name: 'Sénégal' },
+    { code: 'sl', name: 'Sierra Leone' },
+    { code: 'sd', name: 'Soudan' },
+    { code: 'tg', name: 'Togo' },
+    { code: 'tn', name: 'Tunisie' },
+  ]
+
   return (
     <footer style={{
-      background: '#00072e',
+      background: '#0a1128',
       borderTop: '1px solid rgba(0,115,244,0.2)',
-      padding: 'clamp(48px, 7vw, 68px) clamp(20px, 5vw, 60px) clamp(24px, 4vw, 30px)',
-      textAlign: 'center',
+      padding: 'clamp(56px, 8vw, 76px) clamp(20px, 5vw, 60px) clamp(32px, 5vw, 48px)',
       fontFamily: "'Roboto', 'Helvetica Neue', sans-serif",
+      color: '#FFFFFF',
     }}>
 
       {/* Bandeau des logos organisateurs & partenaires */}
@@ -94,7 +124,7 @@ const Footer = () => {
         display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 14,
         padding: '14px 22px', background: '#FFFFFF', borderRadius: 12,
         boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
-        maxWidth: 620, margin: '0 auto clamp(36px, 5vw, 52px)',
+        maxWidth: 620, margin: '0 auto clamp(30px, 5vw, 40px)',
       }}>
         {[
           { src: '/logocrf.png', alt: 'CRF Perfection' },
@@ -110,46 +140,78 @@ const Footer = () => {
         ))}
       </div>
 
-      {/* Grille principale */}
+      {/* Mini-cercles des drapeaux des 26 pays membres uniques */}
+      <div style={{
+        display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 8,
+        maxWidth: 1000, margin: '0 auto clamp(36px, 5vw, 48px)',
+        alignItems: 'center',
+      }}>
+        {memberFlags.map((flag) => (
+          <div 
+            key={flag.code} 
+            title={flag.name}
+            style={{
+              width: 26, height: 26, borderRadius: '50%', overflow: 'hidden',
+              border: '1.5px solid rgba(0,115,244,0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              backgroundColor: '#111',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.3)',
+              transition: 'transform 0.2s ease',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.15)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            <img 
+              src={`https://flagcdn.com/w40/${flag.code}.png`} 
+              alt={flag.name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Grille principale alignée à gauche pour un look institutionnel */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
-        gap: 'clamp(36px, 5vw, 56px)',
-        marginBottom: 'clamp(36px, 5vw, 52px)',
-        maxWidth: 1100,
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: 'clamp(36px, 4vw, 56px)',
+        marginBottom: 'clamp(48px, 6vw, 64px)',
+        maxWidth: 1200,
         marginLeft: 'auto',
         marginRight: 'auto',
-      }}>
+        textAlign: 'left',
+      }} className="footer-grid">
 
-        {/* Logo & desc */}
+        {/* Colonne 1 : Logo & desc */}
         <div>
           <div style={{
             fontFamily: 'Cormorant Garamond, serif',
-            fontSize: 'clamp(22px, 4vw, 28px)',
-            fontWeight: 700, letterSpacing: 4, marginBottom: 8, color: '#FFFFFF'
+            fontSize: 'clamp(22px, 3vw, 26px)',
+            fontWeight: 700, letterSpacing: 3, marginBottom: 6, color: '#FFFFFF'
           }}>
             {t('footer.title')} <span style={{ color: '#0073f4' }}>2026</span>
           </div>
           <div style={{
-            fontSize: 12, color: '#0073f4',
-            letterSpacing: 2, textTransform: 'uppercase', marginBottom: 18,
+            fontSize: 11, color: '#0073f4',
+            letterSpacing: 2, textTransform: 'uppercase', marginBottom: 16,
             fontWeight: 600,
           }}>
             {t('footer.tagline')}
           </div>
           <p style={{
-            fontSize: 'clamp(12px, 1.8vw, 14px)',
-            color: 'rgba(255,255,255,0.45)', lineHeight: 1.8,
-            maxWidth: 320, margin: '0 auto',
+            fontSize: 13,
+            color: 'rgba(255,255,255,0.5)', lineHeight: 1.7,
+            margin: '0 0 16px 0',
           }}>
             {t('footer.description')}
           </p>
-          <div style={{ marginTop: 20, fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 18 }}>
             {t('footer.organizer')}
           </div>
 
           {/* Réseaux sociaux */}
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 22 }}>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-start' }}>
             {socials.map((s, i) => (
               <a
                 key={i}
@@ -158,7 +220,7 @@ const Footer = () => {
                 rel="noopener noreferrer"
                 aria-label={s.label}
                 style={{
-                  width: 36, height: 36,
+                  width: 34, height: 34,
                   borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'rgba(0,115,244,0.08)',
@@ -169,7 +231,7 @@ const Footer = () => {
                 onMouseEnter={e => {
                   e.currentTarget.style.background = '#0073f4'
                   e.currentTarget.style.color = '#FFFFFF'
-                  e.currentTarget.style.transform = 'translateY(-3px)'
+                  e.currentTarget.style.transform = 'translateY(-2px)'
                   e.currentTarget.style.borderColor = '#0073f4'
                 }}
                 onMouseLeave={e => {
@@ -185,112 +247,116 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* Colonne 2 : Navigation */}
         <div>
           <div style={{
-            fontSize: 11, color: '#0073f4', fontWeight: 700,
-            letterSpacing: 3, textTransform: 'uppercase', marginBottom: 22
+            fontSize: 12, color: '#0073f4', fontWeight: 700,
+            letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 20
           }}>
             {t('footer.navigationTitle')}
           </div>
-          {t('footer.navLinks', { returnObjects: true }).map((link, i) => (
-            <div key={i} style={{ marginBottom: 12 }}>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {t('footer.navLinks', { returnObjects: true }).map((link, i) => (
+              <li key={i} style={{ marginBottom: 10 }}>
+                <a
+                  href={`#${link.toLowerCase().replace('à ', '').replace(/\s+/g, '-')}`}
+                  style={{
+                    fontSize: 13,
+                    color: 'rgba(255,255,255,0.6)',
+                    textDecoration: 'none', transition: 'color 0.2s ease, padding-left 0.2s ease',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.color = '#0073f4'
+                    e.currentTarget.style.paddingLeft = '4px'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.color = 'rgba(255,255,255,0.6)'
+                    e.currentTarget.style.paddingLeft = '0px'
+                  }}
+                >
+                  {link}
+                </a>
+              </li>
+            ))}
+            <li style={{ marginBottom: 10 }}>
               <a
-                href={`#${link.toLowerCase().replace('à ', '').replace(/\s+/g, '-')}`}
+                href="/actualites"
                 style={{
-                  fontSize: 'clamp(13px, 1.8vw, 14px)',
-                  color: 'rgba(255,255,255,0.5)',
-                  textDecoration: 'none', transition: 'color 0.2s ease, letter-spacing 0.2s ease',
-                  letterSpacing: 0.3,
+                  fontSize: 13,
+                  color: 'rgba(255,255,255,0.6)',
+                  textDecoration: 'none', transition: 'color 0.2s ease, padding-left 0.2s ease',
                 }}
                 onMouseEnter={e => {
                   e.currentTarget.style.color = '#0073f4'
-                  e.currentTarget.style.letterSpacing = '0.8px'
+                  e.currentTarget.style.paddingLeft = '4px'
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.color = 'rgba(255,255,255,0.5)'
-                  e.currentTarget.style.letterSpacing = '0.3px'
+                  e.currentTarget.style.color = 'rgba(255,255,255,0.6)'
+                  e.currentTarget.style.paddingLeft = '0px'
                 }}
               >
-                {link}
+                Actualités
               </a>
-            </div>
-          ))}
-          <div style={{ marginBottom: 12 }}>
-            <a
-              href="/actualites"
-              style={{
-                fontSize: 'clamp(13px, 1.8vw, 14px)',
-                color: 'rgba(255,255,255,0.5)',
-                textDecoration: 'none', transition: 'color 0.2s ease, letter-spacing 0.2s ease',
-                letterSpacing: 0.3,
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.color = '#0073f4'
-                e.currentTarget.style.letterSpacing = '0.8px'
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.color = 'rgba(255,255,255,0.5)'
-                e.currentTarget.style.letterSpacing = '0.3px'
-              }}
-            >
-              Actualités
-            </a>
-          </div>
+            </li>
+          </ul>
         </div>
 
-        {/* Contact */}
+        {/* Colonne 3 : Contact */}
         <div>
           <div style={{
-            fontSize: 11, color: '#0073f4', fontWeight: 700,
-            letterSpacing: 3, textTransform: 'uppercase', marginBottom: 22
+            fontSize: 12, color: '#0073f4', fontWeight: 700,
+            letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 20
           }}>
             {t('footer.contactTitle')}
           </div>
-          {contacts.map((c, i) => (
-            <div key={i} style={{
-              display: 'flex', gap: 10, marginBottom: 13,
-              fontSize: 'clamp(12px, 1.8vw, 13px)',
-              color: 'rgba(255,255,255,0.55)',
-              alignItems: 'center',
-              justifyContent: 'center',
-              wordBreak: 'break-word',
-            }}>
-              <span style={{
-                flexShrink: 0,
-                width: 28, height: 28,
-                borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'rgba(0,115,244,0.1)',
-                color: '#0073f4',
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {contacts.map((c, i) => (
+              <div key={i} style={{
+                display: 'flex', gap: 10,
+                fontSize: 13,
+                color: 'rgba(255,255,255,0.65)',
+                alignItems: 'flex-start',
+                wordBreak: 'break-word',
               }}>
-                {c.icon}
-              </span>
-              <span style={{ textAlign: 'left' }}>{c.text}</span>
-            </div>
-          ))}
+                <span style={{
+                  flexShrink: 0,
+                  width: 24, height: 24,
+                  marginTop: 1,
+                  borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(0,115,244,0.1)',
+                  color: '#0073f4',
+                }}>
+                  {c.icon}
+                </span>
+                <span style={{ textAlign: 'left', lineHeight: 1.4 }}>{c.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
+
       </div>
 
-      {/* Bottom bar */}
+      {/* Barre du bas institutionnelle */}
       <div style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
         paddingTop: 24,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: 8,
+        gap: 12,
+        textAlign: 'center',
       }}>
-        <div style={{ fontSize: 'clamp(11px, 1.6vw, 13px)', color: 'rgba(255,255,255,0.3)' }}>
-          {t('footer.copyright')}
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 16, fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
+          <span>{t('footer.copyright')}</span>
+          <span>•</span>
+          <span>{t('footer.location')}</span>
         </div>
-        <div style={{ fontSize: 'clamp(11px, 1.6vw, 13px)', color: 'rgba(255,255,255,0.3)' }}>
-          {t('footer.location')}
-        </div>
-        <div style={{ display: 'flex', gap: 8, fontSize: 'clamp(11px, 1.6vw, 13px)', color: 'rgba(255,255,255,0.3)' }}>
-          <a href="/mentions-legales" style={{ color: 'inherit', textDecoration: 'none' }}>Mentions légales</a>
-          <span>·</span>
-          <a href="/politique-confidentialite" style={{ color: 'inherit', textDecoration: 'none' }}>Politique de confidentialité</a>
+        
+        <div style={{ display: 'flex', gap: 16, fontSize: 12 }}>
+          <a href="/mentions-legales" style={{ color: '#0073f4', textDecoration: 'none' }}>Mentions légales</a>
+          <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+          <a href="/politique-confidentialite" style={{ color: '#0073f4', textDecoration: 'none' }}>Politique de confidentialité</a>
         </div>
       </div>
     </footer>
