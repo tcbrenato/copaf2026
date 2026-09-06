@@ -11,11 +11,6 @@ const images = [
   "/hero5.png",
   "/hero6.png",
   "/hero7.png",
-  "/copaf.png",
-  "/copaflancement.jpg",
-  "/logocopafbleu.jpg",
-  "/logocopaf.png",
-  "/lieucopaf.jpg",
 ]
 
 const scrollToSection = (id) => {
@@ -27,7 +22,13 @@ const Hero = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [currentImg, setCurrentImg] = useState(0)
-  const stats = t('hero.stats', { returnObjects: true })
+  
+  const stats = [
+    { value: "+50", label: "Autorités portuaires" },
+    { value: "150+", label: "Congressistes" },
+    { value: "2J + 1J", label: "Conférences & Immersion (Port de Casablanca)" }
+  ]
+
   const [fade, setFade] = useState(true)
   const [statsIn, setStatsIn] = useState(false)
 
@@ -57,13 +58,6 @@ const Hero = () => {
     <section
       id="hero"
       style={{
-        // FIX "il faut scroller pour tout voir" : avant, ce padding-top
-        // (120-160px) redondait avec le paddingTop deja applique par <main>
-        // (voir App.jsx, var(--copaf-header-h)) pour compenser le bandeau
-        // fixe. Les deux s'additionnaient et minHeight:100vh en plus =>
-        // hauteur totale > un ecran. Ici on ne compense plus le header ici
-        // (c'est le role de <main>), et minHeight retire la hauteur du
-        // header pour que header + hero = exactement 100vh sur desktop.
         minHeight: 'calc(100vh - var(--copaf-header-h, 130px))',
         boxSizing: 'border-box',
         display: 'flex',
@@ -85,7 +79,7 @@ const Hero = () => {
         zIndex: 0,
       }} />
 
-      {/* Overlay — un seul dégradé, plus doux */}
+      {/* Overlay */}
       <div style={{
         position: 'absolute', inset: 0,
         background: 'linear-gradient(120deg, rgba(2,12,58,0.94) 0%, rgba(0,30,80,0.86) 60%, rgba(0,70,160,0.65) 100%)',
@@ -107,7 +101,6 @@ const Hero = () => {
 
         {/* ── LEFT ── */}
         <div className="hero-left">
-
           <h1 style={{
             fontFamily: "'Inter', 'Roboto', sans-serif",
             fontSize: 'clamp(28px, 3.4vw, 44px)',
@@ -137,24 +130,24 @@ const Hero = () => {
             lineHeight: 1.6,
             marginBottom: '26px',
           }}>
-            {t('hero.subtitle')}
+            Trois jours de réflexion scientifique et d'échanges stratégiques réunissant experts, décideurs et institutions portuaires autour de « <strong style={{ color: '#fff', fontWeight: 800 }}>Smart Port Africain : IA et cybersécurité au service de la performance</strong> ».
           </p>
 
-          {/* Stats — plus fines, moins imposantes */}
+          {/* Stats */}
           <div className="hero-stats" style={{
             display: 'flex',
-            gap: '36px',
+            gap: '32px',
             marginBottom: '26px',
             opacity: statsIn ? 1 : 0,
             transform: statsIn ? 'translateY(0)' : 'translateY(10px)',
             transition: 'all 0.6s ease',
           }}>
-            {stats.map(({ value, label }) => (
-              <div key={label}>
+            {stats.map(({ value, label }, index) => (
+              <div key={label} style={{ maxWidth: index === 2 ? '170px' : 'none' }}>
                 <div style={{ fontSize: '22px', fontWeight: 900, color: '#fff', lineHeight: 1 }}>
                   {value}
                 </div>
-                <div style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.5)', marginTop: '5px' }}>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginTop: '5px', lineHeight: 1.3 }}>
                   {label}
                 </div>
               </div>
@@ -163,22 +156,28 @@ const Hero = () => {
 
           {/* Buttons */}
           <div className="hero-buttons" style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <button onClick={handleInscription} className="hero-cta">
+            {/* Premier bouton : Plein avec effet hover bordure sans fond */}
+            <button onClick={handleInscription} className="hero-cta-outline">
               {t('hero.registerButton')}
             </button>
 
-            <button onClick={() => scrollToSection('programme')} className="hero-link">
-              {t('hero.programmeButton')}
+            {/* Deuxième bouton : Animation bateau */}
+            <button onClick={() => scrollToSection('programme')} className="hero-boat-btn">
+              <span>{t('hero.programmeButton')}</span>
+              <div className="water-wave" aria-hidden="true">
+                <span className="boat-icon">🚢</span>
+              </div>
             </button>
 
-            <BrochureDownloadButton label={t('hero.downloadButton')} variant="ghost" />
+            {/* Troisième bouton : Brochure avec la même classe d'animation */}
+            <div className="hero-boat-wrapper">
+              <BrochureDownloadButton label={t('hero.downloadButton')} variant="boat-custom" />
+            </div>
           </div>
         </div>
 
         {/* ── RIGHT ── */}
         <div className="hero-right" style={{ position: 'relative' }}>
-
-          {/* Card — sans glow, sans badge flottant qui déborde */}
           <div className="hero-card" style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.10)',
@@ -209,7 +208,7 @@ const Hero = () => {
                 background: 'linear-gradient(to top, rgba(0,8,40,0.78) 0%, transparent 55%)',
               }} />
 
-              {/* Un seul badge — lieu / dates / limite regroupés */}
+              {/* Badge lieu / dates / limite */}
               <div className="glass-badge" style={{
                 position: 'absolute',
                 bottom: '14px', left: '14px', right: '14px',
@@ -229,17 +228,17 @@ const Hero = () => {
                 <div className="glass-badge-divider" style={{ height: '26px', width: '1px', background: 'rgba(255,255,255,0.12)' }} />
                 <div style={{ textAlign: 'center' }}>
                   <p style={{ margin: 0, fontSize: '9.5px', color: '#4DA6FF', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dates</p>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>19–21 Oct.</p>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>15–17 Sept.</p>
                 </div>
                 <div className="glass-badge-divider" style={{ height: '26px', width: '1px', background: 'rgba(255,255,255,0.12)' }} />
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ margin: 0, fontSize: '9.5px', color: '#FF9D5C', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Limite</p>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>09 Oct.</p>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 800, marginTop: '3px' }}>09 Sept.</p>
                 </div>
               </div>
             </div>
 
-            {/* Sous-texte organisateur — remplace le badge qui débordait */}
+            {/* Mention organisateurs officielle validée */}
             <p style={{
               margin: 0,
               padding: '12px 6px 4px',
@@ -254,10 +253,11 @@ const Hero = () => {
       </div>
 
       <style>{`
-        .hero-cta {
+        /* Premier bouton : Plein par défaut, bordure lumineuse au survol */
+        .hero-cta-outline {
           background: linear-gradient(135deg, #0073F4, #005CC4);
           color: #fff;
-          border: none;
+          border: 2px solid transparent;
           padding: 15px 36px;
           border-radius: 11px;
           font-weight: 800;
@@ -266,37 +266,85 @@ const Hero = () => {
           text-transform: uppercase;
           cursor: pointer;
           box-shadow: 0 8px 24px rgba(0,115,244,0.4);
-          transition: transform 0.25s ease, box-shadow 0.25s ease;
+          transition: all 0.35s ease;
           font-family: inherit;
         }
-        .hero-cta:hover {
+        .hero-cta-outline:hover {
+          background: transparent;
+          border-color: #00C8FF;
+          color: #00C8FF;
+          box-shadow: 0 0 20px rgba(0,200,255,0.3);
           transform: translateY(-2px);
-          box-shadow: 0 14px 30px rgba(0,115,244,0.5);
         }
 
-        .hero-link {
-          background: none;
-          border: none;
-          padding: 0;
-          color: #fff;
-          font-weight: 700;
-          font-size: 13px;
-          letter-spacing: 0.4px;
-          text-decoration: underline;
-          text-underline-offset: 4px;
-          cursor: pointer;
-          font-family: inherit;
+        /* Boutons secondaires & Brochure avec animation bateau / vague propre */
+        .hero-boat-btn, .hero-boat-wrapper button {
+          background: transparent !important;
+          border: none !important;
+          padding: 0 0 8px 0 !important;
+          color: #fff !important;
+          font-weight: 700 !important;
+          font-size: 13px !important;
+          letter-spacing: 0.4px !important;
+          cursor: pointer !important;
+          font-family: inherit !important;
           opacity: 0.85;
+          position: relative;
+          display: inline-flex !important;
+          flex-direction: column;
+          overflow: visible !important;
+          box-shadow: none !important;
           transition: opacity 0.2s ease;
         }
-        .hero-link:hover { opacity: 1; }
+        .hero-boat-btn:hover, .hero-boat-wrapper button:hover {
+          opacity: 1;
+          background: transparent !important;
+        }
+
+        /* Ligne d'eau / vagues avec effet typewriter */
+        .water-wave, .hero-boat-wrapper button::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 0%;
+          height: 2px;
+          background: linear-gradient(90deg, #4DA6FF, #00C8FF);
+          transition: width 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* Bateau naviguant */
+        .boat-icon {
+          position: absolute;
+          right: -12px;
+          top: -16px;
+          font-size: 15px;
+          transform: scale(0);
+          transition: transform 0.3s ease 0.2s;
+          animation: floatBoat 1.5s ease-in-out infinite alternate;
+        }
+
+        .hero-boat-btn:hover .water-wave {
+          width: 100%;
+        }
+        .hero-boat-btn:hover .boat-icon {
+          transform: scale(1);
+        }
+
+        /* Adaptation pour le composant externe BrochureDownloadButton si requis */
+        .hero-boat-wrapper button {
+          position: relative;
+        }
+        .hero-boat-wrapper button:hover::after {
+          width: 100%;
+        }
+
+        @keyframes floatBoat {
+          0% { transform: scale(1) translateY(0) rotate(0deg); }
+          100% { transform: scale(1) translateY(-3px) rotate(-3deg); }
+        }
 
         @media (max-width: 900px) {
-          /* Sur mobile/tablette, le grid passe en 1 colonne (image + texte
-             empiles) : forcer 1 seul ecran devient irrealiste sans casser
-             la lisibilite. On repasse donc en hauteur naturelle ici, tout
-             en gardant le padding-top minimal (le header est deja compense
-             par <main>). */
           #hero {
             min-height: auto !important;
             padding-top: clamp(16px, 4vw, 28px) !important;
@@ -318,7 +366,7 @@ const Hero = () => {
 
         @media (max-width: 540px) {
           .hero-buttons { flex-direction: column !important; align-items: center !important; gap: 16px !important; }
-          .hero-cta { width: 100%; max-width: 300px; }
+          .hero-cta-outline { width: 100%; max-width: 300px; }
           .glass-badge { padding: 11px !important; }
           .glass-badge p { font-size: 11px !important; }
         }
