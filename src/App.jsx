@@ -27,7 +27,7 @@ import Actualites from './pages/Actualites'
 import ActualiteDetail from './pages/ActualiteDetail'
 import MentionsLegales from './pages/MentionsLegales'
 import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite'
-import MarqueeBand from './components/MarqueeBand'
+import MapAgpaocUapna from './components/MapAgpaocUapna'
 import LiveStreaming from './pages/LiveStreaming'
 import Documentation from './pages/Documentation'
 import RecommandationsActes from './pages/RecommandationsActes'
@@ -37,6 +37,7 @@ import CookieBanner from './components/CookieBanner'
 import ContactHub from './components/ContactHub'
 import InstallPrompt from './components/InstallPrompt'
 import PromoPopup from './components/PromoPopup'
+import CopafGlobe from './components/CopafGlobe'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -100,8 +101,9 @@ const MainSite = () => (
     <HeaderStack />
     <main style={{ paddingTop: 'var(--copaf-header-h, 130px)' }}>
       <Hero />
-      <MarqueeBand />
+      <MapAgpaocUapna />
       <Partners />
+      <CopafGlobe />
       <About />
       <Programme />
       <Modules />

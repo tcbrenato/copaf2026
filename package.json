@@ -23,12 +23,16 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-ga4": "^3.0.1",
+    "react-globe.gl": "^2.38.0",
     "react-i18next": "^17.0.11",
     "react-icons": "^5.6.0",
     "react-router-dom": "^7.13.1",
     "react-scroll": "^1.9.3",
+    "react-simple-maps": "^3.0.0",
     "recharts": "^3.10.1",
-    "vite-plugin-sitemap": "^0.8.2"
+    "three": "^0.185.1",
+    "vite-plugin-sitemap": "^0.8.2",
+    "world-atlas": "^2.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
