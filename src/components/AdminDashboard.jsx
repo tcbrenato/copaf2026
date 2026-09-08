@@ -11,6 +11,7 @@ import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
 import AdminDiagnostics from '../pages/AdminDiagnostics'
 import AdminTirage from '../pages/AdminTirage'
+import AdminLoginLog from '../pages/AdminLoginLog'
 
 // ============================================================
 // REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
@@ -75,6 +76,7 @@ const MODULES = [
   { id: 'sondages',    label: 'Sondages',         icon: 'check',    table: null,            scope: 'sondages' },
   { id: 'diagnostics', label: 'Diagnostics',      icon: 'search',   table: null,            scope: 'diagnostics' },
   { id: 'tirage',      label: 'Tirage au sort',   icon: 'gift',     table: null,            scope: 'all' },
+  { id: 'login-log',   label: 'Connexions',       icon: 'clock',    table: null,            scope: 'all', adminOnly: true },
 ]
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -2306,10 +2308,14 @@ export default function AdminPage() {
   // partenariats, exposants) plutot qu'un dashboard vide.
   const isBroadRole = role === 'dg' || role === 'manager'
   const visibleModules = useMemo(() => {
-    if (scope === 'all') return MODULES
-    if (isBroadRole) return MODULES.filter(m => ['participants', 'sponsors', 'partenaires', 'exposants'].includes(m.id))
-    return MODULES.filter(m => m.scope === scope)
-  }, [scope, isBroadRole])
+    let mods
+    if (scope === 'all') mods = MODULES
+    else if (isBroadRole) mods = MODULES.filter(m => ['participants', 'sponsors', 'partenaires', 'exposants'].includes(m.id))
+    else mods = MODULES.filter(m => m.scope === scope)
+    // "Connexions" (journal de connexions) reste reserve au role admin
+    // meme si un autre compte a scope='all' un jour.
+    return mods.filter(m => !m.adminOnly || role === 'admin')
+  }, [scope, isBroadRole, role])
   const [activeModule,   setActiveModule]   = useState(() => visibleModules[0]?.id || 'dashboard')
   const [sidebarOpen,    setSidebarOpen]    = useState(true)
   const [allData,        setAllData]        = useState({ inscriptions: [], sponsors: [], partenaires: [], exposants: [], membres: [] })
@@ -2580,6 +2586,8 @@ export default function AdminPage() {
             <AdminDiagnostics />
           ) : activeModule === 'tirage' ? (
             <AdminTirage />
+          ) : activeModule === 'login-log' ? (
+            <AdminLoginLog />
           ) : activeModule === 'analytics' ? (
             <SectionAnalytics inscriptions={allData.inscriptions} />
           ) : loading ? (

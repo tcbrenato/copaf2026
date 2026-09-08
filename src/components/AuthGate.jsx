@@ -17,7 +17,16 @@ export default function AuthGate({ children, requiredScope = null, title = 'COPA
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => setSession(sess))
+    const { data: sub } = supabase.auth.onAuthStateChange((event, sess) => {
+      setSession(sess)
+      // SIGNED_IN ne se declenche que sur une vraie connexion (email/mdp),
+      // pas sur une restauration de session existante au chargement de la
+      // page (celle-ci emet INITIAL_SESSION) — evite de logger a chaque
+      // rafraichissement de l'onglet admin.
+      if (event === 'SIGNED_IN' && sess?.user) {
+        supabase.from('admin_login_log').insert({ user_id: sess.user.id, email: sess.user.email })
+      }
+    })
     return () => sub.subscription.unsubscribe()
   }, [])
 
