@@ -1,4 +1,4 @@
-import { Calendar, Plane, Quote, ArrowRight, Eye } from 'lucide-react'
+import { Calendar, Plane, Quote, Eye } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCountdown } from '../hooks/useCountdown'
@@ -12,15 +12,22 @@ const HighlightCard = (props) => {
   const Icon = props.icon
   const CtaIcon = props.ctaIcon
   return (
-    <div className="highlight-card">
-      <div className="highlight-card-icon"><Icon size={22} strokeWidth={2.2} /></div>
-      <span className="highlight-card-eyebrow">{props.eyebrow}</span>
-      <h3 className="highlight-card-title">{props.title}</h3>
-      <p className="highlight-card-subtitle">{props.subtitle}</p>
-      <button type="button" className="highlight-card-cta" onClick={props.onCta}>
-        <CtaIcon size={16} strokeWidth={2.4} />
-        {props.ctaLabel}
-      </button>
+    <div className="highlight-banner-card">
+      <div className="highlight-banner-peek" aria-hidden="true" />
+      <div className="highlight-banner-main">
+        <div className="highlight-banner-icon"><Icon size={38} strokeWidth={1.8} /></div>
+        <div className="highlight-banner-body">
+          <span className="highlight-banner-eyebrow">{props.eyebrow}</span>
+          <h3 className="highlight-banner-title">{props.title}</h3>
+          {props.subtitle && <p className="highlight-banner-subtitle">{props.subtitle}</p>}
+          <div className="highlight-banner-ctas">
+            <button type="button" className="highlight-banner-cta" onClick={props.onCta}>
+              <CtaIcon size={16} strokeWidth={2.4} />
+              {props.ctaLabel}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -48,7 +55,7 @@ const HighlightsBanner = () => {
           title={countdownTitle}
           subtitle={t('highlights.countdown.subtitle')}
           ctaLabel={t('highlights.countdown.cta')}
-          ctaIcon={ArrowRight}
+          ctaIcon={Eye}
           onCta={() => navigate('/inscription')}
         />
         <HighlightCard
@@ -74,52 +81,60 @@ const HighlightsBanner = () => {
       <style>{`
         .highlights-banner { padding: clamp(40px, 6vw, 70px) 0; background: #f9fafb; }
         .highlights-banner-inner {
-          max-width: 1200px; margin: 0 auto; padding: 0 24px;
-          display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+          max-width: 1100px; margin: 0 auto; padding: 0 24px;
+          display: flex; flex-direction: column; gap: clamp(28px, 4vw, 40px);
         }
-        .highlight-card {
-          position: relative;
-          padding: 30px 26px;
-          border-radius: 20px;
-          background: linear-gradient(155deg, #00367F 0%, #005CA8 55%, #1798F4 130%);
-          box-shadow: 0 15px 40px rgba(0, 54, 127, 0.22);
-          display: flex; flex-direction: column;
-          overflow: hidden;
+        .highlight-banner-card { position: relative; }
+        .highlight-banner-peek {
+          position: absolute; inset: 14px -10px -14px 24px;
+          background: linear-gradient(90deg, #1798F4, #5CC3FF);
+          border-radius: 18px;
+          z-index: 0;
         }
-        .highlight-card-icon {
-          width: 46px; height: 46px; border-radius: 50%;
-          background: rgba(255,255,255,0.14);
-          border: 1px solid rgba(255,255,255,0.22);
+        .highlight-banner-main {
+          position: relative; z-index: 1;
+          display: flex; align-items: center; gap: clamp(20px, 4vw, 40px);
+          padding: clamp(28px, 4vw, 42px) clamp(28px, 5vw, 56px);
+          border-radius: 18px;
+          background: linear-gradient(90deg, #00204D 0%, #00367F 45%, #1798F4 100%);
+          box-shadow: 0 20px 45px rgba(0, 32, 77, 0.25);
+        }
+        .highlight-banner-icon {
+          flex-shrink: 0;
+          width: clamp(84px, 9vw, 110px); height: clamp(84px, 9vw, 110px);
+          border-radius: 50%;
+          background: rgba(255,255,255,0.08);
+          border: 2px solid rgba(255,255,255,0.55);
           display: flex; align-items: center; justify-content: center;
-          color: #fff; margin-bottom: 18px; flex-shrink: 0;
+          color: #fff;
         }
-        .highlight-card-eyebrow {
-          font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase;
+        .highlight-banner-body { min-width: 0; }
+        .highlight-banner-eyebrow {
+          display: block;
+          font-size: 11.5px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
           color: #9fd4ff; margin-bottom: 10px;
         }
-        .highlight-card-title {
-          font-size: clamp(17px, 1.9vw, 20px); font-weight: 800; color: #fff;
-          line-height: 1.3; margin: 0 0 10px;
+        .highlight-banner-title {
+          font-size: clamp(20px, 2.6vw, 30px); font-weight: 800; color: #fff;
+          line-height: 1.25; margin: 0 0 10px; letter-spacing: -0.01em;
         }
-        .highlight-card-subtitle {
-          font-size: 13.5px; color: rgba(255,255,255,0.78); line-height: 1.6;
-          margin: 0 0 22px; flex: 1;
+        .highlight-banner-subtitle {
+          font-size: 14px; color: rgba(255,255,255,0.78); line-height: 1.6;
+          margin: 0 0 18px; max-width: 520px;
         }
-        .highlight-card-cta {
-          align-self: flex-start;
+        .highlight-banner-ctas { display: flex; flex-wrap: wrap; gap: 24px; }
+        .highlight-banner-cta {
           display: inline-flex; align-items: center; gap: 8px;
-          background: #fff; color: #00367F;
-          border: none; border-radius: 10px;
-          padding: 11px 18px; font-size: 13px; font-weight: 800;
+          background: transparent; color: #7DD3FC;
+          border: none; padding: 0;
+          font-size: 13px; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase;
           font-family: inherit; cursor: pointer;
-          transition: transform 0.25s ease, box-shadow 0.25s ease;
+          transition: color 0.2s ease, transform 0.2s ease;
         }
-        .highlight-card-cta:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 10px 22px rgba(0,0,0,0.18);
-        }
-        @media (max-width: 900px) {
-          .highlights-banner-inner { grid-template-columns: 1fr; }
+        .highlight-banner-cta:hover { color: #fff; transform: translateX(2px); }
+        @media (max-width: 700px) {
+          .highlight-banner-main { flex-direction: column; align-items: flex-start; text-align: left; }
+          .highlight-banner-peek { inset: 10px -8px -10px 16px; }
         }
       `}</style>
     </section>

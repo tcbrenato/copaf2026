@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next'
 
 const intervenants = [
   {
-    initiales: 'AM',
+    initiales: 'MA',
     photo: '/modeste.jpg',
-    nom: 'M. Abiala MODESTE',
-    titre: 'Directeur Commercial',
-    organisation: 'Bolloré Transport & Logistics',
+    nom: 'M. Modeste ABIALA',
+    titre: 'Directeur des Solutions Maritimes',
+    organisation: 'AGL Bénin (ex Groupe Bolloré)',
     bioKey: 'abialaBio',
   },
   {

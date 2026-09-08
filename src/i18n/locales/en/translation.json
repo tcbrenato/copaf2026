@@ -94,7 +94,7 @@
         "accent": "#0073f4",
         "sessions": [
           { "heure": "9:00 – 9:45 AM", "type": "Opening", "titre": "Opening addresses and presentation", "desc": "Welcome address and official launch of COPAF 2026.", "intervenant": "CRF PERFECTION / AGPAOC / ANPUAPNA", "categorie": "Partenaire" },
-          { "heure": "10:15 – 11:30 AM", "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specifics.", "intervenant": "M. Abiala MODESTE", "categorie": "Recruté" },
+          { "heure": "10:15 – 11:30 AM", "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specifics.", "intervenant": "M. Modeste ABIALA", "categorie": "Recruté" },
           { "heure": "11:30 AM – 12:45 PM", "type": "Panel", "titre": "Digital maturity diagnosis", "desc": "Assess your port authority's digital maturity — flagship live session on tablet.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
           { "heure": "12:45 – 1:45 PM", "type": "Break", "titre": "Lunch", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
           { "heure": "1:45 – 3:00 PM", "type": "Workshop", "titre": "Business model for developing a port technology project", "desc": "ROI, success and failure case studies.", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
@@ -227,7 +227,7 @@
     "tchoboTitre": "Expert in Digital Transformation & Digital Solutions Consultant",
     "tchoboBio": "Rénato TCHOBO is Chief Digital & IT Officer at CRF Perfection, where he leads web development, digital strategy and the digital transformation of institutional and event-related projects. A freelance consultant in web development and community management, he designs and deploys complete digital platforms — from concept to production — for organizations based in Cotonou and internationally. His expertise covers structuring complex digital projects, process automation and strategic support for digital transformation.",
     "balsomiBio": "Babel BALSOMI is CEO of the HIERO DIGITAL INTERNATIONAL group, active in Africa, Europe and Canada. An expert in offensive cybersecurity, artificial intelligence and digital transformation, she is notably recognized for her research on the security of large language models. Founder of several organizations dedicated to cybersecurity, training and digital inclusion in Africa (HDI, Hiero Academy, H&C IT Academy, CONNECT-IA), she supports institutions and businesses in strengthening their digital resilience. She regularly speaks at international forums dedicated to cybersecurity and artificial intelligence.",
-    "abialaBio": "M. Abiala MODESTE is Commercial Director at Bolloré Transport & Logistics, where he leads business development and strategic partnerships across port and logistics operations in West Africa. With extensive experience in international supply chains, he supports economic and institutional stakeholders in optimizing cargo flows and deploying innovative port solutions. His expertise spans key account commercial strategy, market development and the digitalization of port services across Africa."
+    "abialaBio": "Mr. Modeste ABIALA is Director of Maritime Solutions at AGL Benin (formerly Bolloré Group), where he previously served for 15 years as Commercial and Marketing Director. With 28 years of experience in the maritime and port sector, he supports economic and institutional stakeholders in optimizing cargo flows and deploying innovative port solutions across West Africa. His expertise spans key account commercial strategy, market development and the digitalization of port services across Africa."
   },
   "modules": {
     "eyebrow": "Thematic Tracks",
@@ -247,7 +247,7 @@
         "level": "Vision & Strategy", "duration": "7h45",
         "activities": [
           { "type": "Opening", "titre": "Opening addresses and presentation", "desc": "Welcome address and official launch of COPAF 2026.", "intervenant": "CRF PERFECTION / AGPAOC / ANPUAPNA", "categorie": "Partenaire" },
-          { "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specifics.", "intervenant": "M. Abiala MODESTE", "categorie": "Recruté" },
+          { "type": "Plenary", "titre": "AI at the heart of the Smart Port revolution", "desc": "Global overview and African specifics.", "intervenant": "M. Modeste ABIALA", "categorie": "Recruté" },
           { "type": "Panel", "titre": "Digital maturity diagnosis", "desc": "Assess your port authority's digital maturity — flagship live session on tablet.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
           { "type": "Workshop", "titre": "Business model for developing a port technology project", "desc": "ROI, success and failure case studies.", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
           { "type": "Round Table", "titre": "Automation and data governance", "desc": "AI-driven automation of port operations and data governance.", "intervenant": "M. Rénato TCHOBO / Mme Babel BALSOMI", "categorie": "Maison" }
