@@ -22,7 +22,19 @@ jobs:
         run: npm install
 
       - name: 🛠️ Build du projet
-        run: npm run build
+        run: |
+          set +e
+          npm run build 2>&1 | tee /tmp/build.log
+          code=${PIPESTATUS[0]}
+          if [ "$code" -ne 0 ]; then
+            {
+              echo "## Build echoue (exit $code)"
+              echo '```'
+              tail -150 /tmp/build.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit $code
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
