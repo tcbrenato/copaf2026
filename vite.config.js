@@ -2,6 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import sitemap from 'vite-plugin-sitemap'
 import { VitePWA } from 'vite-plugin-pwa'
+import { mkdirSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { getPublishedArticles } from './src/utils/articlesData.js'
 
 // vite-plugin-sitemap ne scanne que les fichiers HTML produits par Vite
@@ -26,6 +28,21 @@ const DYNAMIC_ROUTES = [
 export default defineConfig({
   plugins: [
     react(),
+    {
+      // Garde-fou avant vite-plugin-sitemap : son hook closeBundle ecrit
+      // robots.txt/sitemap.xml directement dans dist/ en supposant que le
+      // dossier existe deja (build principal deja ecrit sur disque). Sur le
+      // runner CI (Linux, Vite 8.2.x + rolldown), ce hook s'est mis a
+      // planter avec ENOENT ("dist/robots.txt" introuvable) alors que la
+      // meme sequence fonctionne toujours en local — probable decalage de
+      // timing entre l'ecriture reelle des chunks et le declenchement de
+      // closeBundle. On force juste la creation du dossier avant, ce qui
+      // neutralise le probleme quelle que soit sa cause exacte.
+      name: 'ensure-dist-before-sitemap',
+      closeBundle() {
+        mkdirSync(resolve(import.meta.dirname, 'dist'), { recursive: true })
+      },
+    },
     sitemap({ hostname: 'https://copaf-ports.com', dynamicRoutes: DYNAMIC_ROUTES }),
     VitePWA({
       registerType: 'autoUpdate',
