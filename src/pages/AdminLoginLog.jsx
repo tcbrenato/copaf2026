@@ -84,9 +84,9 @@ export default function AdminLoginLog() {
       )}
 
       <p style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 14 }}>
-        Note : le Secrétaire Général de l'AGPAOC se connecte séparément via{' '}
+        Les accès du Secrétaire Général de l'AGPAOC via{' '}
         <code style={{ background: '#f1f5f9', padding: '1px 6px', borderRadius: 4, color: BLUE }}>/suivi-inscriptions</code>
-        {' '}(mot de passe dédié) — ces connexions n'apparaissent pas ici.
+        {' '}(mot de passe dédié) sont aussi enregistrés ici.
       </p>
     </div>
   )

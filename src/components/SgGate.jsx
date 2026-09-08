@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { supabase } from '../supabase'
 
 const SG_PASSWORD = 'SGAGPAOC2026'
 const SESSION_KEY = 'sg_suivi_authorized'
@@ -20,6 +21,10 @@ export default function SgGate({ children }) {
     if (password === SG_PASSWORD) {
       sessionStorage.setItem(SESSION_KEY, '1')
       setAuthorized(true)
+      // Journalise l'acces (visible dans "Connexions" cote admin) — sans
+      // session Supabase Auth ici, donc via une fonction dediee plutot
+      // qu'un insert direct.
+      supabase.rpc('public_log_sg_access')
     } else {
       setError('Mot de passe incorrect.')
     }
