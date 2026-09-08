@@ -87,7 +87,11 @@ async function main() {
 
     const browser = await puppeteer.launch({
       headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      // --disable-dev-shm-usage : /dev/shm est minuscule sur les runners
+      // GitHub Actions, ce qui fait planter/echouer le lancement de Chromium
+      // sous forte charge memoire ; --disable-gpu evite des plantages de
+      // rendu logiciel similaires en environnement headless sans GPU.
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
     })
 
     const echecs = []
@@ -172,6 +176,9 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error('[prerender] Erreur :', err)
-  process.exit(1)
+  // Le pre-rendu est un bonus SEO (voir routes en echec ci-dessus : le site
+  // reste une SPA fonctionnelle sans lui). Une panne d'infrastructure ici
+  // (ex. Chromium indisponible sur le runner CI) ne doit donc jamais faire
+  // echouer tout le build et bloquer le deploiement du site.
+  console.error('[prerender] Erreur (le site sera tout de meme deploye en SPA) :', err)
 })
