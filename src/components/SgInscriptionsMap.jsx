@@ -10,8 +10,10 @@ const NUMERIC_TO_COUNTRY = new Map(AGPAOC_UAPNA_COUNTRIES.map((c) => [c.isoNumer
 function intensityColor(count, max) {
   if (count <= 0) return '#e2e8f0'
   const t = max > 0 ? count / max : 0
-  const from = [0, 54, 127]   // #00367F
-  const to = [23, 152, 244]   // #1798F4
+  // Peu d'inscrits -> bleu clair, beaucoup -> navy fonce (plus de saturation
+  // percue = plus d'inscrits, convention habituelle d'une carte de chaleur).
+  const from = [186, 224, 253] // bleu clair
+  const to = [0, 54, 127]      // #00367F
   const rgb = from.map((c, i) => Math.round(c + (to[i] - c) * t))
   return `rgb(${rgb.join(',')})`
 }
@@ -67,7 +69,7 @@ export default function SgInscriptionsMap({ countsByCountry }) {
         .sg-map-title { font-size: 15px; font-weight: 800; color: #0a1128; margin: 0 0 16px; }
         .sg-map-legend { display: flex; align-items: center; gap: 10px; margin-top: 14px; max-width: 220px; }
         .sg-map-legend-label { font-size: 11px; color: #94a3b8; font-weight: 600; }
-        .sg-map-legend-bar { flex: 1; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #e2e8f0, #00367F, #1798F4); }
+        .sg-map-legend-bar { flex: 1; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #e2e8f0, #bae0fd, #00367F); }
       `}</style>
     </div>
   )
