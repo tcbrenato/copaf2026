@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 const intervenants = [
   {
     initiales: 'MA',
-    photo: '/modeste.jpg',
+    photo: '/modeste.png',
     nom: 'M. Modeste ABIALA',
     titre: 'Directeur des Solutions Maritimes',
     organisation: 'AGL Bénin (ex Groupe Bolloré)',
@@ -21,7 +21,7 @@ const intervenants = [
   },
   {
     initiales: 'WO',
-    photo: '/william.jpg',
+    photo: '/odah.png',
     nom: 'Dr William ODAH',
     titre: 'Directeur Général',
     organisation: 'CRF Perfection',
@@ -29,7 +29,7 @@ const intervenants = [
   },
   {
     initiales: 'BB',
-    photo: '/babel.jpg',
+    photo: '/babel.png',
     nom: 'Mme Babel BALSOMI',
     titre: 'CEO & Experte en Cybersécurité Offensive et Transformation Digitale',
     organisation: 'Hiero Digital International',
@@ -45,7 +45,7 @@ const intervenants = [
   },
   {
     initiales: 'MB',
-    photo: '/marc.jpg',
+    photo: '/marc.png',
     nom: 'Marc BIEGNIÉBÉ',
     titre: 'Directeur Général',
     organisation: 'ANAXAR',
@@ -53,7 +53,7 @@ const intervenants = [
   },
   {
     initiales: 'RT',
-    photo: '/renato.jpg',
+    photo: '/renato.png',
     nom: 'M. Rénato TCHOBO',
     titreKey: 'tchoboTitre',
     organisation: 'CRF Perfection',
@@ -83,9 +83,22 @@ const Intervenants = () => {
       backgroundPosition: 'center',
     }}>
       <style>{`
-        .interv-card { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-        .interv-arrow { display: inline-block; transition: transform 0.25s cubic-bezier(.34,1.56,.64,1); }
-        .interv-card:hover .interv-arrow { transform: translateX(5px); }
+        .interv-card { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .interv-bio-btn {
+          margin: 16px 22px 22px;
+          padding: 12px 0;
+          background: #000E91;
+          color: #fff;
+          border: none;
+          border-radius: 10px;
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.3px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
+        .interv-bio-btn:hover { background: #0073F4; }
       `}</style>
       {/* Overlay subtil */}
       <div style={{
@@ -137,26 +150,22 @@ const Intervenants = () => {
               <div
                 key={i}
                 className="interv-card"
-                onClick={() => setActiveModal(p)}
                 style={{
                   background: '#ffffff',
-                  borderRadius: 20,
+                  borderRadius: 18,
                   overflow: 'hidden',
-                  cursor: 'pointer',
-                  border: '1px solid rgba(0, 115, 244, 0.08)',
+                  border: '1px solid rgba(0, 14, 145, 0.06)',
                   boxShadow: '0 10px 30px -5px rgba(0, 14, 145, 0.05)',
                   display: 'flex',
                   flexDirection: 'column',
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.transform = 'translateY(-8px)'
-                  e.currentTarget.style.boxShadow = '0 20px 40px -10px rgba(0, 115, 244, 0.15)'
-                  e.currentTarget.style.borderColor = 'rgba(0, 115, 244, 0.3)'
+                  e.currentTarget.style.transform = 'translateY(-6px)'
+                  e.currentTarget.style.boxShadow = '0 20px 40px -10px rgba(0, 115, 244, 0.18)'
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.transform = 'translateY(0)'
                   e.currentTarget.style.boxShadow = '0 10px 30px -5px rgba(0, 14, 145, 0.05)'
-                  e.currentTarget.style.borderColor = 'rgba(0, 115, 244, 0.08)'
                 }}
               >
                 {/* Photo */}
@@ -167,13 +176,7 @@ const Intervenants = () => {
                       alt={p.nom}
                       loading="lazy"
                       decoding="async"
-                      style={{
-                        width: '100%', height: '100%',
-                        objectFit: 'cover',
-                        transition: 'transform 0.5s ease',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-                      onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (
                     <div style={{
@@ -188,40 +191,39 @@ const Intervenants = () => {
                 </div>
 
                 {/* Contenu */}
-                <div style={{ padding: '22px 24px 24px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                <div style={{ padding: '20px 22px 0', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
                   <h3 style={{
-                    fontSize: 18, fontWeight: 700,
-                    color: '#0a1128', margin: '0 0 6px',
+                    fontSize: 18, fontWeight: 800,
+                    color: '#000e91', margin: '0 0 8px',
                   }}>
                     {p.nom}
                   </h3>
-                  
+
                   <div style={{
-                    fontSize: 13, fontWeight: 600,
-                    color: '#0073f4',
-                    lineHeight: 1.4,
-                    marginBottom: 12,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
+                    fontSize: 13.5, fontWeight: 500,
+                    color: '#475569',
+                    lineHeight: 1.5,
+                    marginBottom: 4,
                   }}>
                     {p.titre}
                   </div>
 
-                  <div style={{ fontSize: 12, color: '#64748b', fontWeight: 500, marginBottom: 'auto', paddingBottom: 16 }}>
+                  <div style={{ fontSize: 12.5, color: '#94a3b8', fontWeight: 500, marginBottom: 18 }}>
                     {p.organisation}
                   </div>
-
-                  <div style={{
-                    fontSize: 13, fontWeight: 600, color: '#000e91',
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    paddingTop: 12, borderTop: '1px solid #f1f5f9',
-                  }}>
-                    {t('intervenants.readBio')}
-                    <span className="interv-arrow">→</span>
-                  </div>
                 </div>
+
+                {/* Barre d'accent */}
+                <div style={{ height: 4, background: 'linear-gradient(90deg, #000E91, #0073F4)' }} />
+
+                {/* CTA Biographie */}
+                <button
+                  type="button"
+                  className="interv-bio-btn"
+                  onClick={() => setActiveModal(p)}
+                >
+                  {t('intervenants.readBio')}
+                </button>
               </div>
             )
           })}

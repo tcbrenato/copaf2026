@@ -155,7 +155,7 @@ const HighlightsBanner = () => {
           </h3>
           <div style={{ display: 'flex', gap: 18, alignItems: 'center', marginBottom: 22 }}>
             <img
-              src="/william.jpg"
+              src="/odah.png"
               alt="Dr William ODAH"
               style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: `2px solid ${BLUE}` }}
             />

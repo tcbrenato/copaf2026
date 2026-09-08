@@ -32,14 +32,17 @@ function BrochureModal({ onClose }) {
     setError('')
     
     try {
-      // Utilisation de upsert pour gérer proprement les e-mails déjà existants
-      const { error: err } = await supabase.from('brochure_leads').upsert([{
-        nom, 
-        email, 
-        organisation,
-        source: 'site_brochure_button',
-      }], { onConflict: 'email' })
-      
+      // Fonction RPC (SECURITY DEFINER) plutot qu'un upsert direct : la table
+      // n'est lisible que par les admins, et un upsert direct echoue en RLS
+      // pour un visiteur anonyme (PostgREST redemande la ligne inseree, ce
+      // qui necessite la policy SELECT — voir le meme correctif applique a
+      // newsletter_subscribers).
+      const { error: err } = await supabase.rpc('public_upsert_brochure_lead', {
+        p_nom: nom,
+        p_email: email,
+        p_organisation: organisation || null,
+      })
+
       if (err) throw new Error(err.message)
 
       // Déclenchement du téléchargement
