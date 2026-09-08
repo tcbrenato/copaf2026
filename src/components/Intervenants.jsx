@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 const intervenants = [
   {
     initiales: 'MA',
-    photo: '/modeste.png',
+    photo: '/modeste.jpg',
     nom: 'M. Modeste ABIALA',
     titre: 'Directeur des Solutions Maritimes',
     organisation: 'AGL Bénin (ex Groupe Bolloré)',
@@ -21,15 +21,15 @@ const intervenants = [
   },
   {
     initiales: 'WO',
-    photo: '/odah.png',
+    photo: '/odah.jpg',
     nom: 'Dr William ODAH',
-    titre: 'Directeur Général',
-    organisation: 'CRF Perfection',
+    titre: 'Directeur Général CRF Perfection & Directeur du Comité scientifique de la COPAF 2026',
+    organisation: '',
     bioKey: 'odahBio',
   },
   {
     initiales: 'BB',
-    photo: '/babel.png',
+    photo: '/babel.jpg',
     nom: 'Mme Babel BALSOMI',
     titre: 'CEO & Experte en Cybersécurité Offensive et Transformation Digitale',
     organisation: 'Hiero Digital International',
@@ -45,7 +45,7 @@ const intervenants = [
   },
   {
     initiales: 'MB',
-    photo: '/marc.png',
+    photo: '/marc.jpg',
     nom: 'Marc BIEGNIÉBÉ',
     titre: 'Directeur Général',
     organisation: 'ANAXAR',
@@ -53,7 +53,7 @@ const intervenants = [
   },
   {
     initiales: 'RT',
-    photo: '/renato.png',
+    photo: '/renato.jpg',
     nom: 'M. Rénato TCHOBO',
     titreKey: 'tchoboTitre',
     organisation: 'CRF Perfection',

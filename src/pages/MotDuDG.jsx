@@ -33,7 +33,7 @@ export default function MotDuDG() {
 
         <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 32 }}>
           <img
-            src="/odah.png"
+            src="/odah.jpg"
             alt="Dr William ODAH"
             style={{ width: 84, height: 84, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: `2px solid ${BLUE}` }}
           />
