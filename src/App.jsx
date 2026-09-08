@@ -32,6 +32,7 @@ import HighlightsBanner from './components/HighlightsBanner'
 import InfosPratiques from './pages/InfosPratiques'
 import Newsletter from './components/Newsletter'
 import MotDuDG from './pages/MotDuDG'
+import SuiviInscriptions from './pages/SuiviInscriptions'
 import LiveStreaming from './pages/LiveStreaming'
 import Documentation from './pages/Documentation'
 import RecommandationsActes from './pages/RecommandationsActes'
@@ -54,6 +55,7 @@ const AnalyticsTracker = () => {
 const CookieBannerGate = () => {
   const location = useLocation()
   if (location.pathname.includes('/admin')) return null
+  if (location.pathname.includes('/suivi-inscriptions')) return null
   return <CookieBanner />
 }
 
@@ -64,6 +66,7 @@ const ContactHubGate = () => {
   const location = useLocation()
   const { pathname } = location
   if (pathname.includes('/admin')) return null
+  if (pathname.includes('/suivi-inscriptions')) return null
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
   return <ContactHub />
@@ -75,6 +78,7 @@ const InstallPromptGate = () => {
   const location = useLocation()
   const { pathname } = location
   if (pathname.includes('/admin')) return null
+  if (pathname.includes('/suivi-inscriptions')) return null
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
   return <InstallPrompt />
@@ -87,6 +91,7 @@ const PromoPopupGate = () => {
   const location = useLocation()
   const { pathname } = location
   if (pathname.includes('/admin')) return null
+  if (pathname.includes('/suivi-inscriptions')) return null
   if (pathname === '/inscription') return null
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
@@ -183,6 +188,7 @@ function App() {
         <Route path="/recommandations"        element={<RecommandationsActes />} />
         <Route path="/infos-pratiques"        element={<InfosPratiques />} />
         <Route path="/mot-du-dg"              element={<MotDuDG />} />
+        <Route path="/suivi-inscriptions"     element={<SuiviInscriptions />} />
         <Route path="/admin"                  element={<AdminPage />} />
         <Route path="/badge/:token"           element={<BadgeToken />} />
         <Route path="/staff/scan"             element={<StaffScanPage />} />

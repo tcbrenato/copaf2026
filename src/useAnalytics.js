@@ -70,12 +70,13 @@ function sendTimeOnPage(pageViewId, enteredAt) {
 export function useAnalytics() {
   const location        = useLocation()
   const sessionRef      = useRef(null)
-  const pageStartRef    = useRef(Date.now())
+  const pageStartRef    = useRef(0)
   const pageViewIdRef   = useRef(null)
 
   // Initialisation GA4 (une seule fois) + création/récupération de la session Supabase
   useEffect(() => {
-    if (window.location.pathname.includes('/admin')) return
+    pageStartRef.current = Date.now()
+    if (window.location.pathname.includes('/admin') || window.location.pathname.includes('/suivi-inscriptions')) return
     // Double vérification : le flag ET la présence réelle du script dans le DOM,
     // pour éviter toute injection en double du tag gtag.js.
     const scriptDejaPresent = !!document.querySelector('script[src*="googletagmanager.com/gtag/js"]')
@@ -89,8 +90,8 @@ export function useAnalytics() {
   useEffect(() => {
     if (!location) return
 
-    // Pas de tracking sur le panneau admin
-    if (location.pathname.includes('/admin')) return
+    // Pas de tracking sur le panneau admin ni la page privee de suivi SG
+    if (location.pathname.includes('/admin') || location.pathname.includes('/suivi-inscriptions')) return
 
     // ── Google Analytics 4 : pageview ──
     if (isGaInitialized()) {
