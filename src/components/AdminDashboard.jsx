@@ -2299,8 +2299,17 @@ function SectionAnalytics({ inscriptions = [] }) {
 
 // ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────────────────
 export default function AdminPage() {
-  const { scope, signOut, session } = useAdminAuth()
-  const visibleModules = useMemo(() => scope === 'all' ? MODULES : MODULES.filter(m => m.scope === scope), [scope])
+  const { scope, role, signOut, session } = useAdminAuth()
+  // dg/manager n'ont pas de scope classique (leurs permissions passent par
+  // les policies RLS dediees au role) : on leur montre les modules coeur
+  // metier deja couverts par ces policies (inscriptions, sponsoring,
+  // partenariats, exposants) plutot qu'un dashboard vide.
+  const isBroadRole = role === 'dg' || role === 'manager'
+  const visibleModules = useMemo(() => {
+    if (scope === 'all') return MODULES
+    if (isBroadRole) return MODULES.filter(m => ['participants', 'sponsors', 'partenaires', 'exposants'].includes(m.id))
+    return MODULES.filter(m => m.scope === scope)
+  }, [scope, isBroadRole])
   const [activeModule,   setActiveModule]   = useState(() => visibleModules[0]?.id || 'dashboard')
   const [sidebarOpen,    setSidebarOpen]    = useState(true)
   const [allData,        setAllData]        = useState({ inscriptions: [], sponsors: [], partenaires: [], exposants: [], membres: [] })
@@ -2455,7 +2464,7 @@ export default function AdminPage() {
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{session?.user?.email}</div>
-            <div style={{ fontSize: 10, color: '#7dd3fc', fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, marginTop: 2 }}>{scope === 'all' ? 'Accès complet' : scope}</div>
+            <div style={{ fontSize: 10, color: '#7dd3fc', fontWeight: 700, textTransform: 'uppercase', letterSpacing: .5, marginTop: 2 }}>{scope === 'all' ? 'Accès complet' : (scope || role || '')}</div>
           </div>
         </div>
 
