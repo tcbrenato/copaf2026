@@ -1,7 +1,12 @@
-import { Calendar, Plane, Quote, Eye } from 'lucide-react'
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
+import { Calendar, Plane, Quote, Eye, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCountdown } from '../hooks/useCountdown'
+
+const NAVY = '#000E91'
+const BLUE = '#0073F4'
 
 // Dates fixes de l'evenement (calendrier local du visiteur, pas UTC — un
 // decompte de jours n'a pas besoin de precision de fuseau horaire).
@@ -32,9 +37,47 @@ const HighlightCard = (props) => {
   )
 }
 
+// Modale generique — meme mecanique que celle d'Intervenants.jsx (portail
+// vers document.body pour echapper au contexte d'empilement du header fixe).
+const HighlightModal = ({ onClose, children }) =>
+  createPortal((
+    <div
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(10, 17, 40, 0.6)',
+        backdropFilter: 'blur(8px)', zIndex: 9999,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: '#fff', borderRadius: 24, width: '100%', maxWidth: 560,
+          maxHeight: '90vh', overflowY: 'auto', position: 'relative',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          aria-label="Fermer"
+          style={{
+            position: 'absolute', top: 16, right: 16, zIndex: 10,
+            background: 'rgba(0,0,0,0.05)', border: 'none',
+            width: 36, height: 36, borderRadius: '50%', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0a1128',
+          }}
+        >
+          <X size={18} />
+        </button>
+        <div style={{ padding: 'clamp(28px, 5vw, 44px)' }}>{children}</div>
+      </div>
+    </div>
+  ), document.body)
+
 const HighlightsBanner = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [openModal, setOpenModal] = useState(null) // null | 'practicalInfo' | 'dgMessage'
 
   const daysToStart = useCountdown(EVENT_START_MS)
   const daysToEnd = useCountdown(EVENT_END_MS)
@@ -46,6 +89,15 @@ const HighlightsBanner = () => {
         ? t('highlights.countdown.startedTitle')
         : t('highlights.countdown.endedTitle')
 
+  // Seule la carte "Inscription" quitte cette page : elle defile vers la
+  // section /#inscription (deja presente sur la homepage), comme le bouton
+  // equivalent du Hero. Les 2 autres cartes ouvrent une modale sur place.
+  const handleInscription = () => {
+    const el = document.getElementById('inscription')
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    else navigate('/inscription')
+  }
+
   return (
     <section className="highlights-banner" aria-label={t('highlights.sectionLabel')}>
       <div className="highlights-banner-inner">
@@ -56,7 +108,7 @@ const HighlightsBanner = () => {
           subtitle={t('highlights.countdown.subtitle')}
           ctaLabel={t('highlights.countdown.cta')}
           ctaIcon={Eye}
-          onCta={() => navigate('/inscription')}
+          onCta={handleInscription}
         />
         <HighlightCard
           icon={Plane}
@@ -65,7 +117,7 @@ const HighlightsBanner = () => {
           subtitle={t('highlights.practicalInfo.subtitle')}
           ctaLabel={t('highlights.practicalInfo.cta')}
           ctaIcon={Eye}
-          onCta={() => navigate('/infos-pratiques')}
+          onCta={() => setOpenModal('practicalInfo')}
         />
         <HighlightCard
           icon={Quote}
@@ -74,9 +126,53 @@ const HighlightsBanner = () => {
           subtitle={t('highlights.dgMessage.subtitle')}
           ctaLabel={t('highlights.dgMessage.cta')}
           ctaIcon={Eye}
-          onCta={() => navigate('/mot-du-dg')}
+          onCta={() => setOpenModal('dgMessage')}
         />
       </div>
+
+      {openModal === 'practicalInfo' && (
+        <HighlightModal onClose={() => setOpenModal(null)}>
+          <h3 style={{ fontSize: 'clamp(20px, 3vw, 26px)', fontWeight: 900, color: '#0a1128', margin: '0 0 12px' }}>
+            {t('highlights.practicalInfo.title')}
+          </h3>
+          <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.7, marginBottom: 24, borderBottom: '1px solid #e2e8f0', paddingBottom: 20 }}>
+            {t('highlights.practicalInfo.subtitle')}
+          </p>
+          <div style={{ background: '#edf2f7', borderRadius: 14, padding: 26, borderLeft: `4px solid ${BLUE}`, textAlign: 'center' }}>
+            <p style={{ margin: 0, fontSize: 15, color: NAVY, fontWeight: 700 }}>{t('highlights.practicalInfo.comingSoon')}</p>
+            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: '#64748b', lineHeight: 1.7 }}>{t('highlights.practicalInfo.comingSoonDetail')}</p>
+          </div>
+        </HighlightModal>
+      )}
+
+      {openModal === 'dgMessage' && (
+        <HighlightModal onClose={() => setOpenModal(null)}>
+          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', color: BLUE }}>
+            {t('highlights.dgMessage.eyebrow')}
+          </span>
+          <h3 style={{ fontSize: 'clamp(20px, 3vw, 26px)', fontWeight: 900, color: '#0a1128', margin: '10px 0 24px' }}>
+            {t('highlights.dgMessage.title')}
+          </h3>
+          <div style={{ display: 'flex', gap: 18, alignItems: 'center', marginBottom: 22 }}>
+            <img
+              src="/william.jpg"
+              alt="Dr William ODAH"
+              style={{ width: 64, height: 64, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: `2px solid ${BLUE}` }}
+            />
+            <div>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: NAVY }}>Dr William ODAH</p>
+              <p style={{ margin: '3px 0 0', fontSize: 13, color: '#64748b' }}>{t('intervenants.odahTitre')} — CRF Perfection</p>
+            </div>
+          </div>
+          <div style={{ background: '#f8faff', borderRadius: 14, padding: 22, border: '1px solid rgba(0,14,145,0.08)' }}>
+            <Quote size={26} color={BLUE} style={{ opacity: 0.35, marginBottom: 8 }} />
+            {/* TODO: remplacer par la citation officielle du DG — texte placeholder en attendant */}
+            <p style={{ fontSize: 15, color: '#1e293b', lineHeight: 1.75, fontStyle: 'italic', margin: 0 }}>
+              {t('highlights.dgMessage.placeholderQuote')}
+            </p>
+          </div>
+        </HighlightModal>
+      )}
 
       <style>{`
         .highlights-banner { padding: clamp(40px, 6vw, 70px) 0; background: #f9fafb; }
