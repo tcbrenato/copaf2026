@@ -48,9 +48,11 @@ const Newsletter = () => {
     setLoading(true)
     setError('')
     try {
-      const { error: err } = await supabase
-        .from('newsletter_subscribers')
-        .upsert([{ prenom, nom, email }], { onConflict: 'email' })
+      const { error: err } = await supabase.rpc('public_upsert_newsletter_subscriber', {
+        p_prenom: prenom,
+        p_nom: nom,
+        p_email: email,
+      })
       if (err) throw new Error(err.message)
       setDone(true)
     } catch (err) {
