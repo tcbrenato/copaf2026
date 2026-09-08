@@ -9,6 +9,7 @@ import { AdminAuthContext } from '../adminAuth'
 export default function AuthGate({ children, requiredScope = null, title = 'COPAF 2026', subtitle = "Accès réservé à l'administration" }) {
   const [session, setSession] = useState(undefined) // undefined = chargement en cours
   const [scope,   setScope]   = useState(undefined)
+  const [role,    setRole]    = useState(undefined)
   const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
   const [error,    setError]    = useState('')
@@ -22,10 +23,11 @@ export default function AuthGate({ children, requiredScope = null, title = 'COPA
 
   useEffect(() => {
     if (session === undefined) return
-    if (!session) { setScope(null); return }
+    if (!session) { setScope(null); setRole(null); return }
     setScope(undefined)
-    supabase.from('admins').select('scope').eq('user_id', session.user.id).single()
-      .then(({ data }) => setScope(data?.scope || null))
+    setRole(undefined)
+    supabase.from('admins').select('scope, role').eq('user_id', session.user.id).single()
+      .then(({ data }) => { setScope(data?.scope || null); setRole(data?.role || null) })
   }, [session])
 
   const handleSubmit = async e => {
@@ -39,10 +41,17 @@ export default function AuthGate({ children, requiredScope = null, title = 'COPA
 
   const signOut = () => supabase.auth.signOut()
 
-  // Chargement de la session ou du scope en cours
-  if (session === undefined || scope === undefined) return null
+  // Chargement de la session ou du scope/role en cours
+  if (session === undefined || scope === undefined || role === undefined) return null
 
-  const authorized = session && scope && (scope === 'all' || !requiredScope || scope === requiredScope)
+  // Un compte role-based (dg/manager/secretariat/sg — n'a pas forcement de
+  // scope, ex. dg/manager) est autorise sur les pages qui ne demandent pas
+  // un scope precis (requiredScope) — les sous-sections a scope specifique
+  // (checkin, sondages, diagnostics) restent reservees a l'ancien systeme.
+  const authorized = session && (
+    (scope && (scope === 'all' || !requiredScope || scope === requiredScope)) ||
+    (role && !requiredScope)
+  )
 
   if (!authorized) {
     return (
@@ -69,7 +78,7 @@ export default function AuthGate({ children, requiredScope = null, title = 'COPA
           <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 4 }}>{title}</div>
           <div style={{ fontSize: 13, color: '#64748b', marginBottom: 28 }}>{subtitle}</div>
 
-          {session && scope && !authorized && (
+          {session && (scope || role) && !authorized && (
             <div style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 16, textAlign: 'left' }}>
               Ce compte n'a pas accès à cette section.{' '}
               <button type="button" onClick={signOut} style={{ background: 'none', border: 'none', color: '#0073F4', cursor: 'pointer', fontWeight: 700, padding: 0 }}>
@@ -123,7 +132,7 @@ export default function AuthGate({ children, requiredScope = null, title = 'COPA
   }
 
   return (
-    <AdminAuthContext.Provider value={{ session, scope, signOut }}>
+    <AdminAuthContext.Provider value={{ session, scope, role, signOut }}>
       {children}
     </AdminAuthContext.Provider>
   )
