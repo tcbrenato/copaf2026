@@ -37,7 +37,6 @@ import CookieBanner from './components/CookieBanner'
 import ContactHub from './components/ContactHub'
 import InstallPrompt from './components/InstallPrompt'
 import PromoPopup from './components/PromoPopup'
-import CopafGlobe from './components/CopafGlobe'
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -103,7 +102,6 @@ const MainSite = () => (
       <Hero />
       <MapAgpaocUapna />
       <Partners />
-      <CopafGlobe />
       <About />
       <Programme />
       <Modules />
