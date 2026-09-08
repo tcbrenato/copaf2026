@@ -30,6 +30,7 @@ import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite'
 import MapAgpaocUapna from './components/MapAgpaocUapna'
 import HighlightsBanner from './components/HighlightsBanner'
 import InfosPratiques from './pages/InfosPratiques'
+import Newsletter from './components/Newsletter'
 import MotDuDG from './pages/MotDuDG'
 import LiveStreaming from './pages/LiveStreaming'
 import Documentation from './pages/Documentation'
@@ -112,6 +113,7 @@ const MainSite = () => (
       <Intervenants />
       <Inscription />
       <Contact />
+      <Newsletter />
       <Footer />
     </main>
   </>

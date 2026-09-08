@@ -129,6 +129,20 @@
       }
     ]
   },
+  "newsletter": {
+    "title": "La Newsletter",
+    "subtitle": "Recevez périodiquement l'essentiel de l'actualité de la COPAF 2026.",
+    "labelFirstName": "Votre prénom",
+    "labelLastName": "Votre nom",
+    "labelEmail": "Votre adresse e-mail",
+    "placeholderRequired": "Requis",
+    "submit": "S'abonner",
+    "submitLoading": "Inscription…",
+    "successTitle": "Merci pour votre inscription !",
+    "successBody": "Vous recevrez désormais l'essentiel de l'actualité de la COPAF 2026.",
+    "errorMessage": "Une erreur est survenue. Merci de réessayer.",
+    "socialTitle": "Toute l'actualité de la COPAF 2026 en temps réel sur nos réseaux sociaux."
+  },
   "footer": {
     "title": "COPAF",
     "tagline": "La Performance des Ports Africains",
