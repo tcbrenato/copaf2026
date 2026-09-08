@@ -101,9 +101,6 @@
     b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
     s.parentNode.insertBefore(b, s);})(window.lintrk);
     </script>
-    <noscript>
-    <img height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=9446066&fmt=gif" />
-    </noscript>
 
     <!-- ── Meta Pixel ── -->
     <script>
@@ -118,13 +115,23 @@
     fbq('init', '27343825268632691');
     fbq('track', 'PageView');
     </script>
-    <noscript>
-    <img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=27343825268632691&ev=PageView&noscript=1"
-    /></noscript>
     <!-- ── Fin tracking tiers ── -->
   </head>
   <body>
+    <!--
+      Pixels <noscript><img></noscript> deplaces ici depuis le <head> : un
+      <img> n'est pas un contenu autorise dans un <noscript> place dans
+      <head> (HTML invalide -> "disallowed-content-in-noscript-in-head"),
+      ce que le parser HTML strict de Vite (parse5) rejette desormais comme
+      erreur fatale et fait echouer tout le build. Comportement identique
+      pour l'utilisateur (fallback si JS desactive), juste au bon endroit.
+    -->
+    <noscript>
+      <img height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=9446066&fmt=gif" />
+    </noscript>
+    <noscript>
+      <img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=27343825268632691&ev=PageView&noscript=1" />
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
