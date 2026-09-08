@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/prerender.mjs",
+    "build": "vite build && (node scripts/prerender.mjs || echo '[prerender] Echec du pre-rendu, site tout de meme deploye en SPA.')",
     "lint": "eslint .",
     "preview": "vite preview"
   },

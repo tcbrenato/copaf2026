@@ -81,6 +81,10 @@ async function main() {
     'npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'],
     { stdio: 'inherit', shell: true }
   )
+  // Sans ce handler, un echec de spawn (ex. commande introuvable) emet un
+  // evenement 'error' non capture qui fait planter tout le process Node
+  // AVANT meme d'atteindre le try/catch ci-dessous.
+  preview.on('error', (err) => console.error('[prerender] Erreur au lancement de vite preview :', err))
 
   try {
     await waitForServer(BASE_URL)
