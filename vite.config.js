@@ -23,6 +23,8 @@ const DYNAMIC_ROUTES = [
   '/live',
   '/documentation',
   '/recommandations',
+  '/infos-pratiques',
+  '/mot-du-dg',
 ]
 
 export default defineConfig({

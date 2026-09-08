@@ -28,6 +28,9 @@ import ActualiteDetail from './pages/ActualiteDetail'
 import MentionsLegales from './pages/MentionsLegales'
 import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite'
 import MapAgpaocUapna from './components/MapAgpaocUapna'
+import HighlightsBanner from './components/HighlightsBanner'
+import InfosPratiques from './pages/InfosPratiques'
+import MotDuDG from './pages/MotDuDG'
 import LiveStreaming from './pages/LiveStreaming'
 import Documentation from './pages/Documentation'
 import RecommandationsActes from './pages/RecommandationsActes'
@@ -101,6 +104,7 @@ const MainSite = () => (
     <main style={{ paddingTop: 'var(--copaf-header-h, 130px)' }}>
       <Hero />
       <MapAgpaocUapna />
+      <HighlightsBanner />
       <Partners />
       <About />
       <Programme />
@@ -175,6 +179,8 @@ function App() {
         <Route path="/live"                   element={<LiveStreaming />} />
         <Route path="/documentation"          element={<Documentation />} />
         <Route path="/recommandations"        element={<RecommandationsActes />} />
+        <Route path="/infos-pratiques"        element={<InfosPratiques />} />
+        <Route path="/mot-du-dg"              element={<MotDuDG />} />
         <Route path="/admin"                  element={<AdminPage />} />
         <Route path="/badge/:token"           element={<BadgeToken />} />
         <Route path="/staff/scan"             element={<StaffScanPage />} />

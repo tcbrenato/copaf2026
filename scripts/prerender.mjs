@@ -35,6 +35,8 @@ const ROUTES = [
   '/live',
   '/documentation',
   '/recommandations',
+  '/infos-pratiques',
+  '/mot-du-dg',
 ]
 
 // Domaines tiers a bloquer pendant le prerendu : trackers (connexions

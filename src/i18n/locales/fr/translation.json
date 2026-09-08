@@ -187,6 +187,32 @@
       { "url": "/omegamarine.png", "name": "Omega Marine", "country": "" }
     ]
   },
+  "highlights": {
+    "sectionLabel": "Temps forts de la COPAF 2026",
+    "countdown": {
+      "eyebrow": "Compte à rebours",
+      "title": "J-{{n}} avant la COPAF 2026",
+      "startedTitle": "La COPAF 2026 a commencé",
+      "endedTitle": "La COPAF 2026 est terminée",
+      "subtitle": "Rejoignez les décideurs portuaires africains à Casablanca.",
+      "cta": "S'inscrire maintenant"
+    },
+    "practicalInfo": {
+      "eyebrow": "Préparer votre venue",
+      "title": "Tout savoir sur les formalités d'accès à Casablanca",
+      "subtitle": "Visa, hébergement, transport.",
+      "cta": "Consulter les infos pratiques",
+      "comingSoon": "Contenu à venir",
+      "comingSoonDetail": "Les informations détaillées sur le visa, l'hébergement et le transport pour rejoindre Casablanca seront publiées prochainement sur cette page."
+    },
+    "dgMessage": {
+      "eyebrow": "Message institutionnel",
+      "title": "Le mot du Directeur Général",
+      "subtitle": "Le Dr William ODAH partage sa vision des enjeux de la COPAF 2026.",
+      "cta": "Lire le message",
+      "placeholderQuote": "Citation officielle du Directeur Général à venir."
+    }
+  },
   "partners": { "eyebrow": "Partenariats Stratégiques", "title": "Partenariats institutionnels et stratégiques" },
   "intervenants": {
     "eyebrow": "COPAF 2026",

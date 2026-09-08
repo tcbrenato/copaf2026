@@ -187,6 +187,32 @@
       { "url": "/omegamarine.png", "name": "Omega Marine", "country": "" }
     ]
   },
+  "highlights": {
+    "sectionLabel": "COPAF 2026 highlights",
+    "countdown": {
+      "eyebrow": "Countdown",
+      "title": "{{n}} days to go until COPAF 2026",
+      "startedTitle": "COPAF 2026 has started",
+      "endedTitle": "COPAF 2026 has ended",
+      "subtitle": "Join Africa's port decision-makers in Casablanca.",
+      "cta": "Register now"
+    },
+    "practicalInfo": {
+      "eyebrow": "Plan your trip",
+      "title": "Everything you need to know to travel to Casablanca",
+      "subtitle": "Visa, accommodation, transport.",
+      "cta": "See practical information",
+      "comingSoon": "Content coming soon",
+      "comingSoonDetail": "Detailed information on visas, accommodation and transport to reach Casablanca will be published on this page shortly."
+    },
+    "dgMessage": {
+      "eyebrow": "Institutional message",
+      "title": "A word from the Director General",
+      "subtitle": "Dr William ODAH shares his vision of COPAF 2026's challenges.",
+      "cta": "Read the message",
+      "placeholderQuote": "Official quote from the Director General coming soon."
+    }
+  },
   "partners": { "eyebrow": "Strategic Partnerships", "title": "Institutional and Strategic Partnerships" },
   "intervenants": {
     "eyebrow": "COPAF 2026",
