@@ -67,62 +67,64 @@ const About = () => {
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 2 }}>
 
-        {/* ── HEADER ── */}
-        <div style={{ textAlign: 'center', marginBottom: 'clamp(50px, 8vw, 80px)' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '10px',
-            background: 'rgba(0,115,244,0.08)', border: '1px solid rgba(0,115,244,0.2)',
-            borderRadius: '100px', padding: '6px 20px', marginBottom: '24px',
+        {/* ── HEADER + STATS ── */}
+        <div className="about-hero-row" style={{
+          display: 'flex', alignItems: 'center', gap: '40px',
+          marginBottom: 'clamp(60px, 8vw, 100px)',
+        }}>
+          <div className="about-vertical-title" style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+            flex: '0 0 300px', maxWidth: '300px', borderLeft: '3px solid #0073F4', paddingLeft: '16px',
           }}>
-            <div style={{ width: 8, height: 8, background: '#0073F4', borderRadius: '50%' }} />
-            <span style={{ color: '#0073F4', fontSize: '11px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#0073F4', marginBottom: '10px' }}>
               {t('about.kicker')}
             </span>
+
+            <h2 className="about-title" style={{
+              fontSize: 'clamp(24px, 3vw, 36px)',
+              fontWeight: 900, color: '#000E91',
+              marginBottom: '14px', lineHeight: 1.15, letterSpacing: '-0.02em',
+            }}>
+              {t('about.titlePart1')}{' '}
+              <span style={{ color: '#0073F4' }}>{t('about.titlePart2')}</span>
+            </h2>
+
+            <p style={{
+              fontSize: '14px', color: '#4A5568',
+              margin: 0, lineHeight: 1.75,
+            }}>
+              {t('about.description')}
+            </p>
           </div>
 
-          <h2 className="about-title" style={{
-            fontSize: 'clamp(26px, 4.5vw, 52px)',
-            fontWeight: 900, color: '#000E91',
-            marginBottom: '20px', lineHeight: 1.1, letterSpacing: '-0.02em',
+          {/* ── STATS ── */}
+          <div className="stats-container" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            flex: '1 1 0%', minWidth: 0,
+            background: 'rgba(255,255,255,0.95)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '24px',
+            overflow: 'hidden',
+            boxShadow: '0 15px 50px rgba(0,14,145,0.07)',
+            border: '1px solid rgba(0,14,145,0.07)',
           }}>
-            {t('about.titlePart1')}{' '}
-            <span style={{ color: '#0073F4' }}>{t('about.titlePart2')}</span>
-          </h2>
-
-          <p style={{
-            fontSize: 'clamp(15px, 1.6vw, 18px)', color: '#4A5568',
-            maxWidth: '680px', margin: '0 auto', lineHeight: 1.75,
-          }}>
-            {t('about.description')}
-          </p>
-        </div>
-
-        {/* ── STATS ── */}
-        <div className="stats-container" style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 1fr)',
-          background: 'rgba(255,255,255,0.95)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '24px',
-          overflow: 'hidden',
-          boxShadow: '0 15px 50px rgba(0,14,145,0.07)',
-          marginBottom: 'clamp(60px, 8vw, 100px)',
-          border: '1px solid rgba(0,14,145,0.07)',
-        }}>
-          {stats.map((s, i) => (
-            <div key={i} className="stat-item" style={{
-              padding: 'clamp(30px, 5vw, 50px) 20px',
-              textAlign: 'center',
-              borderRight: i < stats.length - 1 ? '1px solid #EDF2F7' : 'none',
-            }}>
-              <div style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', fontWeight: 900, color: '#0073F4', marginBottom: '8px' }}>
-                {s.number}
+            {stats.map((s, i) => (
+              <div key={i} className="stat-item" style={{
+                padding: 'clamp(30px, 5vw, 50px) 20px',
+                textAlign: 'center',
+                borderRight: i % 2 === 0 ? '1px solid #EDF2F7' : 'none',
+                borderBottom: i < stats.length - 2 ? '1px solid #EDF2F7' : 'none',
+              }}>
+                <div style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', fontWeight: 900, color: '#0073F4', marginBottom: '8px' }}>
+                  {s.number}
+                </div>
+                <div style={{ fontSize: '11px', color: '#718096', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+                  {s.label}
+                </div>
               </div>
-              <div style={{ fontSize: '11px', color: '#718096', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase' }}>
-                {s.label}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* ── OBJECTIFS ── */}
@@ -307,6 +309,8 @@ const About = () => {
           .about-title { white-space: normal !important; }
         }
         @media (max-width: 900px) {
+          .about-hero-row { flex-direction: column !important; align-items: stretch !important; gap: 24px !important; }
+          .about-vertical-title { flex-basis: auto !important; max-width: 100% !important; width: 100% !important; padding-left: 12px !important; }
           .stats-container {
             grid-template-columns: repeat(2, 1fr) !important;
           }

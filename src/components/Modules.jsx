@@ -108,32 +108,35 @@ const AxesThematiques = () => {
         .axe-card:hover .axe-card-arrow { transform: translateX(5px); }
         @keyframes modalIn { from { opacity: 0; transform: scale(0.94) translateY(16px); } to { opacity: 1; transform: scale(1) translateY(0); } }
         .modal-animate { animation: modalIn 0.3s cubic-bezier(.34,1.56,.64,1) forwards; }
-        .axes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .axes-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        @media (max-width: 900px) {
+          .modules-hero-row { flex-direction: column !important; align-items: stretch !important; gap: 24px !important; }
+          .modules-vertical-title { flex-basis: auto !important; max-width: 100% !important; width: 100% !important; padding-left: 12px !important; }
+          .axes-grid { grid-template-columns: repeat(3, 1fr); }
+        }
         @media (max-width: 820px) { .axes-grid { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; } }
       `}</style>
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 clamp(16px, 5vw, 40px)" }}>
 
-        {/* HEADER */}
-        <div style={{ textAlign: "center", marginBottom: "clamp(40px, 6vw, 60px)" }}>
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            background: C.navy, borderRadius: 100, padding: "7px 20px", marginBottom: 20,
+        {/* HEADER + CARTES JOUR */}
+        <div className="modules-hero-row" style={{ display: "flex", alignItems: "center", gap: 40, marginBottom: "clamp(40px, 6vw, 60px)" }}>
+          <div className="modules-vertical-title" style={{
+            display: "flex", flexDirection: "column", alignItems: "flex-start",
+            flex: "0 0 280px", maxWidth: 280, borderLeft: `3px solid ${C.blue}`, paddingLeft: 16,
           }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.blue }} />
-            <span style={{ color: "#fff", fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase" }}>{t('modules.eyebrow')}</span>
+            <span style={{ color: C.blue, fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>{t('modules.eyebrow')}</span>
+            <h2 style={{ fontSize: "clamp(20px, 2.6vw, 28px)", fontWeight: 900, color: C.navy, margin: "0 0 10px", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
+              {t('modules.titlePart1')}{' '}
+              <span style={{ background: `linear-gradient(135deg, ${C.blue}, ${C.navyLight})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{t('modules.titlePart2')}</span>
+            </h2>
+            <p style={{ fontSize: 13, color: "#64748b", margin: 0, lineHeight: 1.7 }}>
+              {t('modules.subtitle')}
+            </p>
           </div>
-          <h2 style={{ fontSize: "clamp(24px, 4.5vw, 44px)", fontWeight: 900, color: C.navy, margin: "0 0 12px", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
-            {t('modules.titlePart1')}{' '}
-            <span style={{ background: `linear-gradient(135deg, ${C.blue}, ${C.navyLight})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{t('modules.titlePart2')}</span>
-          </h2>
-          <p style={{ fontSize: "clamp(13px, 1.8vw, 16px)", color: "#64748b", maxWidth: 480, margin: "0 auto", lineHeight: 1.7 }}>
-            {t('modules.subtitle')}
-          </p>
-        </div>
 
-        {/* CARTES JOUR */}
-        <div className="axes-grid">
+          {/* CARTES JOUR */}
+          <div className="axes-grid" style={{ flex: "1 1 0%", minWidth: 0 }}>
           {axesData.map((axe, i) => {
             const isHover = hovered === i;
             const meta = axesMeta[i] || {}
@@ -172,6 +175,7 @@ const AxesThematiques = () => {
               </div>
             );
           })}
+          </div>
         </div>
 
         {/* OBJECTIFS */}

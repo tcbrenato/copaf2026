@@ -110,29 +110,28 @@ const Intervenants = () => {
       <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1 }}>
 
         {/* En-tête */}
-        <div style={{ textAlign: 'center', marginBottom: 64 }}>
+        <div className="interv-vertical-title" style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+          borderLeft: '3px solid #0073F4', paddingLeft: 16, marginBottom: 40,
+        }}>
           <span style={{
-            display: 'inline-block',
-            padding: '6px 16px',
-            borderRadius: '50px',
-            background: 'rgba(0, 115, 244, 0.1)',
-            fontSize: 12, fontWeight: 700, letterSpacing: 2,
-            textTransform: 'uppercase', color: '#0073f4', marginBottom: 16,
+            fontSize: 11, fontWeight: 700, letterSpacing: 2,
+            textTransform: 'uppercase', color: '#0073f4', marginBottom: 10,
           }}>
             {t('intervenants.eyebrow')}
           </span>
           <h2 style={{
-            fontSize: 'clamp(30px, 4vw, 46px)',
+            fontSize: 'clamp(26px, 3.5vw, 40px)',
             fontWeight: 800,
             color: '#0a1128',
-            margin: '0 0 16px',
+            margin: '0 0 12px',
             letterSpacing: '-0.02em',
           }}>
             {t('intervenants.title')}
           </h2>
           <p style={{
-            fontSize: 16, color: '#475569',
-            maxWidth: 600, margin: '0 auto', lineHeight: 1.6,
+            fontSize: 15, color: '#475569',
+            maxWidth: 600, margin: 0, lineHeight: 1.6,
           }}>
             {t('intervenants.subtitle')}
           </p>

@@ -168,18 +168,15 @@ const Programme = () => {
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(16px, 5vw, 60px)', position: 'relative', zIndex: 2 }}>
 
         {/* ── HEADER ── */}
-        <div style={{ textAlign: 'center', marginBottom: 'clamp(28px, 5vw, 40px)' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: C.navy, borderRadius: 100, padding: '7px 22px', marginBottom: 24,
-          }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.blue }} />
-            <span style={{ color: C.white, fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase' }}>{t('programme.kicker')}</span>
-          </div>
+        <div className="prog-vertical-title" style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+          borderLeft: `3px solid ${C.blue}`, paddingLeft: 16, marginBottom: 'clamp(28px, 5vw, 40px)',
+        }}>
+          <span style={{ color: C.blue, fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 12 }}>{t('programme.kicker')}</span>
 
           <h2 style={{
-            fontSize: 'clamp(28px, 5vw, 52px)', fontWeight: 900,
-            color: C.navy, lineHeight: 1.1, margin: '0 0 16px', letterSpacing: '-0.02em',
+            fontSize: 'clamp(24px, 4vw, 40px)', fontWeight: 900,
+            color: C.navy, lineHeight: 1.15, margin: '0 0 14px', letterSpacing: '-0.02em',
           }}>
             {t('programme.titlePart1')}{' '}
             <span style={{
@@ -190,7 +187,7 @@ const Programme = () => {
 
           <p style={{
             fontSize: 'clamp(14px, 2vw, 17px)', color: C.navyLight,
-            maxWidth: 540, margin: '0 auto', lineHeight: 1.8, fontWeight: 300, opacity: 0.7,
+            maxWidth: 540, margin: 0, lineHeight: 1.8, fontWeight: 300, opacity: 0.7,
           }}>
             {t('programme.description')}
           </p>

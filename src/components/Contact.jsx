@@ -58,21 +58,18 @@ const Contact = () => {
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         {/* HEADER */}
-        <div style={{ textAlign: 'center', marginBottom: 'clamp(40px, 6vw, 64px)' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            background: '#000E91', borderRadius: 100, padding: '7px 20px', marginBottom: 20,
-          }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#0073F4' }} />
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', color: '#fff' }}>{t('contact.eyebrow')}</span>
-          </div>
+        <div className="contact-vertical-title" style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+          borderLeft: '3px solid #0073F4', paddingLeft: 16, marginBottom: 'clamp(40px, 6vw, 64px)',
+        }}>
+          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2.5, textTransform: 'uppercase', color: '#0073F4', marginBottom: 10 }}>{t('contact.eyebrow')}</span>
           <h2 style={{
-            fontSize: 'clamp(26px, 4.5vw, 44px)', fontWeight: 900,
-            color: '#000E91', margin: '0 0 16px', lineHeight: 1.15, letterSpacing: '-0.02em',
+            fontSize: 'clamp(24px, 4vw, 38px)', fontWeight: 900,
+            color: '#000E91', margin: '0 0 14px', lineHeight: 1.15, letterSpacing: '-0.02em',
           }}>
             {t('contact.title')}
           </h2>
-          <p style={{ fontSize: 'clamp(14px, 1.8vw, 16px)', color: '#64748b', maxWidth: 520, margin: '0 auto', lineHeight: 1.8 }}>
+          <p style={{ fontSize: 'clamp(14px, 1.8vw, 16px)', color: '#64748b', maxWidth: 520, margin: 0, lineHeight: 1.8 }}>
             {t('contact.subtitle')}
           </p>
         </div>
