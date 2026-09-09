@@ -227,6 +227,19 @@ export default function DiagnosticSmartPort() {
     }
   }, [])
 
+  // Met a jour la presence globale avec le pays/reseau des qu'ils sont
+  // connus, pour que la carte live du mode Projection puisse allumer un
+  // point sur le bon pays — track() peut etre rappele plusieurs fois pour
+  // mettre a jour le payload d'une meme presence.
+  useEffect(() => {
+    if (!orgSelectionnee?.country) return
+    globalChannelRef.current?.track({
+      online_at: new Date().toISOString(),
+      country: orgSelectionnee.country,
+      reseau: orgSelectionnee.network,
+    })
+  }, [orgSelectionnee?.country, orgSelectionnee?.network])
+
   const choisirOrganisation = id => {
     setOrgId(id)
     setSiteId('')

@@ -3,8 +3,10 @@ import { createPortal } from 'react-dom'
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts'
 import { supabase } from '../supabase'
 import RetourMenu from '../components/RetourMenu'
+import DiagnosticLiveMap from '../components/DiagnosticLiveMap'
 import { AXES, txt } from '../utils/diagnosticAxes'
 import { RESEAUX } from '../utils/diagnosticOrganisations'
+import { RESEAU_COLORS } from '../data/diagnosticCountries'
 
 const BLUE = '#0073F4'
 
@@ -50,16 +52,6 @@ const TR = {
 
 const VUE_IDS = ['global', 'agpaoc', 'pmaesa', 'uapna', 'associe']
 
-// Position approximative (memes unites que le path SVG, viewBox 400x460) de
-// chaque reseau regional, pour un marqueur lumineux illustratif — pas une
-// geolocalisation precise des ports, juste un repere visuel d'immersion.
-const ZONE_POS = {
-  uapna: { x: 310, y: 50 },
-  agpaoc: { x: 140, y: 245 },
-  pmaesa: { x: 355, y: 280 },
-  associe: { x: 220, y: 220 },
-}
-
 function labelVue(id, lang) {
   if (id === 'global') return TR[lang].tousPorts
   return txt(RESEAUX[id], lang)
@@ -69,33 +61,6 @@ function couleurScore(v) {
   if (v < 2) return '#ef4444'
   if (v < 3.5) return '#f59e0b'
   return '#22c55e'
-}
-
-// ─── Silhouette stylisee du continent africain (immersion visuelle) ────────
-function CarteAfrique({ zonesActives }) {
-  return (
-    <svg viewBox="0 0 400 460" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.4 }} preserveAspectRatio="xMidYMid meet">
-      <defs>
-        <linearGradient id="spcAfricaFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#0073F4" />
-          <stop offset="100%" stopColor="#000E91" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M140,15 L250,5 L300,25 L320,45 L335,70 L350,100 L365,130 L410,145 L398,175 L370,195 L355,225 L345,260 L350,290 L335,325 L315,365 L295,400 L265,425 L235,428 L210,410 L195,380 L190,340 L198,300 L205,270 L185,250 L160,248 L140,255 L120,248 L100,235 L80,220 L60,205 L45,185 L35,160 L30,135 L45,105 L65,70 L90,35 Z"
-        fill="url(#spcAfricaFill)" stroke="#60a5fa" strokeWidth="1.5" strokeOpacity="0.75"
-      />
-      {Object.entries(ZONE_POS).map(([id, pos]) => (
-        <circle
-          key={id} cx={pos.x} cy={pos.y} r={zonesActives.includes(id) ? 7 : 4}
-          fill={zonesActives.includes(id) ? '#22c55e' : '#475569'}
-          opacity={zonesActives.includes(id) ? 0.9 : 0.5}
-        >
-          {zonesActives.includes(id) && <animate attributeName="r" values="6;10;6" dur="2s" repeatCount="indefinite" />}
-        </circle>
-      ))}
-    </svg>
-  )
 }
 
 // ─── Detail complet d'une vue : radar + 10 axes (contenu de la modale) ─────
@@ -137,6 +102,7 @@ export default function ProjectionDiagnostic() {
 
   const [aggregates, setAggregates] = useState({})
   const [participantsCount, setParticipantsCount] = useState(0)
+  const [liveCountries, setLiveCountries] = useState(() => new Set())
   const [vueOuverte, setVueOuverte] = useState(null)
   const channelRef = useRef(null)
 
@@ -159,7 +125,13 @@ export default function ProjectionDiagnostic() {
     channelRef.current = channel
     channel
       .on('presence', { event: 'sync' }, () => {
-        setParticipantsCount(Object.keys(channel.presenceState()).length)
+        const state = channel.presenceState()
+        setParticipantsCount(Object.keys(state).length)
+        const countries = new Set()
+        Object.values(state).forEach(presences => {
+          presences.forEach(p => { if (p.country) countries.add(p.country) })
+        })
+        setLiveCountries(countries)
       })
       .on('broadcast', { event: 'nouvelle-reponse' }, () => fetchAll())
       .subscribe()
@@ -173,7 +145,6 @@ export default function ProjectionDiagnostic() {
   }, [fetchAll])
 
   const vuesActives = VUE_IDS.filter(id => id === 'global' || aggregates[id]?.nb > 0)
-  const zonesActives = vuesActives.filter(id => id !== 'global')
   const aggGlobal = aggregates.global
 
   const wrap = { minHeight: '100vh', width: '100vw', position: 'relative', overflow: 'auto', fontFamily: "'Plus Jakarta Sans',sans-serif", color: '#f8fafc', display: 'flex', flexDirection: 'column' }
@@ -186,10 +157,6 @@ export default function ProjectionDiagnostic() {
   return (
     <div style={wrap}>
       <div style={bgImage} /><div style={bgOverlay} /><div style={bgGlow} />
-      {/* Carte d'Afrique en filigrane, plein ecran, pour l'immersion */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: -1, pointerEvents: 'none' }}>
-        <CarteAfrique zonesActives={zonesActives} />
-      </div>
 
       <RetourMenu />
 
@@ -216,6 +183,20 @@ export default function ProjectionDiagnostic() {
           <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#22c55e', flexShrink: 0, animation: 'copaf-proj-pulse 1.4s ease-in-out infinite' }} />
           <div style={{ fontSize: 14, fontWeight: 800 }}>{participantsCount}</div>
           <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>{t.enLigne}</div>
+        </div>
+
+        {/* Carte vectorielle live : un point pulse sur chaque pays ou au
+            moins une personne repond actuellement au diagnostic */}
+        <div style={{ ...card, padding: 'clamp(16px,3vw,32px)', width: '100%', maxWidth: 820 }}>
+          <DiagnosticLiveMap liveCountries={liveCountries} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px', justifyContent: 'center', marginTop: 18 }}>
+            {VUE_IDS.filter(id => id !== 'global').map(id => (
+              <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, color: '#cbd5e1' }}>
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: RESEAU_COLORS[id], flexShrink: 0 }} />
+                {labelVue(id, lang)}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Grille de cartes : toutes les vues actives affichees simultanement */}
