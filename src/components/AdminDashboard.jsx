@@ -13,6 +13,7 @@ import AdminDiagnostics from '../pages/AdminDiagnostics'
 import AdminTirage from '../pages/AdminTirage'
 import AdminLoginLog from '../pages/AdminLoginLog'
 import AdminActivityLog from '../pages/AdminActivityLog'
+import AdminNewsletter from '../pages/AdminNewsletter'
 
 // ============================================================
 // REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
@@ -80,6 +81,7 @@ const MODULES = [
   { id: 'tirage',      label: 'Tirage au sort',   icon: 'gift',     table: null,            scope: 'all' },
   { id: 'login-log',   label: 'Connexions',       icon: 'clock',    table: null,            scope: 'all', adminOnly: true },
   { id: 'activity-log',label: 'Journal d\'activité', icon: 'search', table: null,            scope: 'all', adminOnly: true },
+  { id: 'newsletter',  label: 'Newsletter',       icon: 'mail',     table: null,            scope: 'all', adminOnly: true },
 ]
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -2697,6 +2699,8 @@ export default function AdminPage() {
             <AdminLoginLog />
           ) : activeModule === 'activity-log' ? (
             <AdminActivityLog />
+          ) : activeModule === 'newsletter' ? (
+            <AdminNewsletter />
           ) : activeModule === 'analytics' ? (
             <SectionAnalytics inscriptions={allData.inscriptions} />
           ) : loading ? (
