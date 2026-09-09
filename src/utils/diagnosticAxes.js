@@ -13,6 +13,12 @@
 // résultat selon le score obtenu sur l'axe — faible (0-1), moyen (2-3), bon
 // (4-5), mêmes seuils que couleurNiveau() dans DiagnosticResultat.jsx. Reste
 // disponible même sans les recommandations IA (optionnelles, approfondissement).
+//
+// `bloc` : regroupement en 3 blocs (1/2/3) pour le "feu vert" admin pendant
+// la session live en conference (voir diagnostic_session en base + le
+// panneau de pilotage dans AdminDiagnostics.jsx) — permet a l'animateur de
+// debloquer les questions par vagues plutot que de laisser les 10 dimensions
+// ouvertes d'un coup. Ignore hors session live (session_active = false).
 
 export const ECHELLE = [
   { valeur: 0, nom: { fr: 'Nul', en: 'None' } },
@@ -25,7 +31,7 @@ export const ECHELLE = [
 
 export const AXES = [
   {
-    id: 'infrastructure', icone: 'infrastructure',
+    id: 'infrastructure', icone: 'infrastructure', bloc: 1,
     nom: { fr: 'Infrastructure digitale & guichet unique', en: 'Digital infrastructure & single window' },
     definition: {
       fr: "Mesure à quel point les démarches administratives (déclarations, autorisations, formalités) sont numérisées et centralisées dans un système unique, accessible en ligne.",
@@ -58,7 +64,7 @@ export const AXES = [
     },
   },
   {
-    id: 'automatisation', icone: 'automatisation',
+    id: 'automatisation', icone: 'automatisation', bloc: 1,
     nom: { fr: 'Automatisation des opérations physiques', en: 'Automation of physical operations' },
     definition: {
       fr: "Évalue le niveau d'automatisation des équipements physiques du port — grues, portiques, véhicules de manutention — et leur degré d'autonomie.",
@@ -91,7 +97,7 @@ export const AXES = [
     },
   },
   {
-    id: 'tracabilite', icone: 'tracabilite',
+    id: 'tracabilite', icone: 'tracabilite', bloc: 1,
     nom: { fr: 'Traçabilité & partage de données', en: 'Traceability & data sharing' },
     definition: {
       fr: "Mesure la capacité à suivre en temps réel la position et le statut des marchandises, et à partager cette information avec les clients et partenaires.",
@@ -124,7 +130,7 @@ export const AXES = [
     },
   },
   {
-    id: 'ia', icone: 'ia',
+    id: 'ia', icone: 'ia', bloc: 2,
     nom: { fr: 'Intelligence artificielle & aide à la décision', en: 'Artificial intelligence & decision support' },
     definition: {
       fr: "Évalue l'usage d'outils d'analyse de données et d'IA pour anticiper et optimiser les opérations (accostage, flux, maintenance) — au-delà de la simple collecte de données.",
@@ -157,7 +163,7 @@ export const AXES = [
     },
   },
   {
-    id: 'cybersecurite', icone: 'cybersecurite',
+    id: 'cybersecurite', icone: 'cybersecurite', bloc: 2,
     nom: { fr: 'Cybersécurité', en: 'Cybersecurity' },
     definition: {
       fr: "Mesure le niveau de protection des systèmes numériques contre les cyberattaques : politiques formalisées, contrôles réguliers, tests concrets.",
@@ -190,7 +196,7 @@ export const AXES = [
     },
   },
   {
-    id: 'surete', icone: 'surete',
+    id: 'surete', icone: 'surete', bloc: 2,
     nom: { fr: 'Sûreté & sécurité opérationnelle', en: 'Safety & operational security' },
     definition: {
       fr: "Évalue les dispositifs de sûreté physique du site (contrôle d'accès, surveillance, gestion des risques) — distincts de la cybersécurité.",
@@ -223,7 +229,7 @@ export const AXES = [
     },
   },
   {
-    id: 'environnement', icone: 'environnement',
+    id: 'environnement', icone: 'environnement', bloc: 3,
     nom: { fr: 'Énergie & environnement', en: 'Energy & environment' },
     definition: {
       fr: "Mesure les efforts en matière de suivi environnemental et de transition énergétique — pollution, électrification, réduction de l'empreinte carbone.",
@@ -256,7 +262,7 @@ export const AXES = [
     },
   },
   {
-    id: 'synchromodalite', icone: 'synchromodalite',
+    id: 'synchromodalite', icone: 'synchromodalite', bloc: 3,
     nom: { fr: 'Synchromodalité & intégration multimodale', en: 'Synchromodality & multimodal integration' },
     definition: {
       fr: "Évalue la capacité à coordonner les différents modes de transport (route, rail, fleuve) autour des opérations portuaires, au-delà du seul quai.",
@@ -289,7 +295,7 @@ export const AXES = [
     },
   },
   {
-    id: 'competences', icone: 'competences',
+    id: 'competences', icone: 'competences', bloc: 3,
     nom: { fr: 'Capacités organisationnelles & compétences', en: 'Organisational capacity & skills' },
     definition: {
       fr: "Mesure le niveau de formation et d'appropriation des outils digitaux par les équipes — le facteur humain derrière la technologie.",
@@ -322,7 +328,7 @@ export const AXES = [
     },
   },
   {
-    id: 'parties_prenantes', icone: 'parties_prenantes',
+    id: 'parties_prenantes', icone: 'parties_prenantes', bloc: 3,
     nom: { fr: 'Engagement des parties prenantes', en: 'Stakeholder engagement' },
     definition: {
       fr: "Évalue la qualité de la concertation entre le port et son écosystème — douanes, transporteurs, clients, autorités — plutôt que des décisions prises en silo.",

@@ -235,6 +235,37 @@ export default function AdminDiagnostics() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // "Feu vert" de session live (voir la migration diagnostic_session) :
+  // pilote le deblocage des 3 blocs de dimensions pendant le creneau de 75
+  // min en conference. Hors session (session_active = false), le
+  // questionnaire reste ouvert normalement pour tous les autres usages du
+  // diagnostic (pas seulement pendant la conference).
+  const [sessionGate, setSessionGate] = useState({ session_active: false, bloc_ouvert: 0 })
+  const [gateEnCours, setGateEnCours] = useState(false)
+
+  useEffect(() => {
+    const chargerGate = async () => {
+      const { data } = await supabase.from('diagnostic_session').select('session_active, bloc_ouvert').eq('id', 1).maybeSingle()
+      if (data) setSessionGate(data)
+    }
+    chargerGate()
+    const channel = supabase
+      .channel('admin-diagnostic-session-gate')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'diagnostic_session' }, payload => setSessionGate(payload.new))
+      .subscribe()
+    return () => supabase.removeChannel(channel)
+  }, [])
+
+  const majGate = async patch => {
+    setGateEnCours(true)
+    const { data: userData } = await supabase.auth.getUser()
+    const { error } = await supabase.from('diagnostic_session').update({
+      ...patch, updated_at: new Date().toISOString(), updated_par: userData?.user?.email || null,
+    }).eq('id', 1)
+    setGateEnCours(false)
+    if (error) showToast("Erreur : " + error.message)
+  }
+
   // Filet de sécurité : actualisation périodique si activée, en plus du realtime
   useEffect(() => {
     if (!params.actualisationAuto) return undefined
@@ -435,6 +466,52 @@ export default function AdminDiagnostics() {
               ⚙️ Paramètres
             </button>
           </div>
+        </div>
+
+        {/* Feu vert de session live : pilotage du deblocage des 3 blocs de
+            dimensions pendant le creneau de 75 min en conference. */}
+        <div style={{ ...cardStyle, padding: '18px 20px', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: sessionGate.session_active ? 16 : 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ width: 9, height: 9, borderRadius: '50%', background: sessionGate.session_active ? '#22c55e' : T.textFaint, flexShrink: 0 }} />
+              <span style={{ fontSize: 13.5, fontWeight: 800, color: T.text }}>Session live (feu vert des blocs)</span>
+            </div>
+            <button
+              onClick={() => majGate(sessionGate.session_active ? { session_active: false, bloc_ouvert: 0 } : { session_active: true, bloc_ouvert: 0 })}
+              disabled={gateEnCours}
+              style={{
+                padding: '9px 18px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: gateEnCours ? 'wait' : 'pointer', fontFamily: 'inherit',
+                background: sessionGate.session_active ? '#fee2e2' : T.accentBg,
+                color: sessionGate.session_active ? '#dc2626' : T.accent,
+                border: `1px solid ${sessionGate.session_active ? '#fca5a5' : T.accentBorder}`,
+              }}
+            >
+              {sessionGate.session_active ? 'Terminer la session live' : 'Démarrer la session live'}
+            </button>
+          </div>
+
+          {sessionGate.session_active && (
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              {[1, 2, 3].map(bloc => (
+                <button
+                  key={bloc}
+                  onClick={() => majGate({ bloc_ouvert: bloc })}
+                  disabled={gateEnCours}
+                  style={{
+                    padding: '10px 18px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: gateEnCours ? 'wait' : 'pointer', fontFamily: 'inherit',
+                    background: sessionGate.bloc_ouvert >= bloc ? 'linear-gradient(135deg,#0073F4,#000E91)' : T.chipBg,
+                    color: sessionGate.bloc_ouvert >= bloc ? '#fff' : T.text,
+                    border: `1px solid ${sessionGate.bloc_ouvert >= bloc ? 'transparent' : T.chipBorder}`,
+                  }}
+                >
+                  {sessionGate.bloc_ouvert >= bloc ? '✓ ' : ''}Ouvrir bloc {bloc}
+                </button>
+              ))}
+              <span style={{ fontSize: 12, color: T.textMuted, marginLeft: 4 }}>
+                {sessionGate.bloc_ouvert === 0 ? 'Aucun bloc ouvert — les participants attendent.' : `Bloc ${sessionGate.bloc_ouvert} ouvert (et les précédents).`}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* KPI en un coup d'oeil */}

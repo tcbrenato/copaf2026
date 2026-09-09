@@ -50,6 +50,8 @@ const TR = {
       : `${n} autres personnes remplissent aussi ce diagnostic pour ce site en ce moment.`,
     liveAgregatTitre: 'Moyenne collective actuelle pour ce site',
     liveAgregatNote: n => `${n} diagnostic${n > 1 ? 's' : ''} déjà soumis pour ce site pendant la conférence.`,
+    attenteTitre: 'En attente du lancement de la dimension suivante',
+    attenteTexte: "L'animateur va bientôt débloquer la suite du diagnostic. Cette page se met à jour automatiquement, pas besoin de recharger.",
   },
   en: {
     intro: "Assess your port's digital maturity across 10 dimensions, and leave with personalised recommendations.",
@@ -92,6 +94,8 @@ const TR = {
       : `${n} other people are also filling out this diagnostic for this site right now.`,
     liveAgregatTitre: 'Current collective average for this site',
     liveAgregatNote: n => `${n} diagnostic${n > 1 ? 's' : ''} already submitted for this site during the conference.`,
+    attenteTitre: 'Waiting for the next dimension to be unlocked',
+    attenteTexte: 'The moderator will unlock the rest of the diagnostic shortly. This page updates automatically — no need to reload.',
   },
 }
 
@@ -155,6 +159,38 @@ export default function DiagnosticSmartPort() {
   const [participantsCount, setParticipantsCount] = useState(1)
   const [liveAggregate, setLiveAggregate] = useState(null)
   const channelRef = useRef(null)
+
+  // "Feu vert" admin (session live en conference) : quand session_active est
+  // faux (par defaut), les 10 dimensions restent toutes ouvertes comme
+  // avant. Quand un admin active la session depuis AdminDiagnostics.jsx et
+  // debloque les blocs un a un, une dimension dont le bloc n'est pas encore
+  // ouvert affiche un ecran d'attente au lieu de la question — synchronise
+  // en direct via Realtime (postgres_changes), avec repli par sondage toutes
+  // les 10s en cas de coupure de la connexion temps reel.
+  const [sessionGate, setSessionGate] = useState({ session_active: false, bloc_ouvert: 0 })
+
+  useEffect(() => {
+    let active = true
+    const charger = async () => {
+      const { data } = await supabase.from('diagnostic_session').select('session_active, bloc_ouvert').eq('id', 1).maybeSingle()
+      if (active && data) setSessionGate(data)
+    }
+    charger()
+
+    const channel = supabase
+      .channel('diagnostic-session-gate')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'diagnostic_session' }, payload => {
+        if (active) setSessionGate(payload.new)
+      })
+      .subscribe()
+
+    const poll = setInterval(charger, 10000)
+    return () => {
+      active = false
+      clearInterval(poll)
+      supabase.removeChannel(channel)
+    }
+  }, [])
 
   const handleFormChange = (champ, valeur) => setForm(f => ({ ...f, [champ]: valeur }))
 
@@ -646,6 +682,52 @@ export default function DiagnosticSmartPort() {
     const progression = Math.round(((etape - 1) / AXES.length) * 100)
     const reponseActuelle = reponses[axe.id]
     const estDerniereAxe = etape === AXES.length
+    const verrouille = sessionGate.session_active && axe.bloc > sessionGate.bloc_ouvert
+
+    if (verrouille) {
+      return (
+        <div style={wrap}>
+          <div style={bgImage} />
+          <div style={bgOverlay} />
+          <RetourMenu />
+          <button onClick={() => setLang(l => l === 'fr' ? 'en' : 'fr')} type="button" style={{
+            position: 'fixed', top: 18, right: 18, zIndex: 10, display: 'inline-flex', alignItems: 'center', gap: 6,
+            padding: '9px 16px', borderRadius: 20, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(255,255,255,0.12)', color: '#cbd5e1', fontSize: 12.5, fontWeight: 700,
+            cursor: 'pointer', fontFamily: "'Plus Jakarta Sans',sans-serif",
+          }}>
+            <Ico name="globe" size={14} color="#60a5fa" />
+            {lang === 'fr' ? 'FR · English' : 'EN · Français'}
+          </button>
+          <div style={{ ...card, maxWidth: 480, textAlign: 'center' }}>
+            <div style={{
+              width: 64, height: 64, borderRadius: '50%', margin: '0 auto 22px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(135deg, rgba(0,115,244,0.18), rgba(0,14,145,0.28))', border: '1.5px solid rgba(0,115,244,0.35)',
+            }}>
+              <span className="diag-attente-dot" style={{ width: 14, height: 14, borderRadius: '50%', background: '#60a5fa' }} />
+            </div>
+            <h2 style={{ fontSize: 19, fontWeight: 900, color: '#fff', marginBottom: 10 }}>{t.attenteTitre}</h2>
+            <p style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.7, margin: '0 0 24px' }}>{t.attenteTexte}</p>
+            {etape > 1 && (
+              <button
+                onClick={allerPrecedent}
+                style={{
+                  padding: '12px 22px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
+                  borderRadius: 14, color: '#cbd5e1', fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  display: 'inline-flex', alignItems: 'center', gap: 8,
+                }}
+              >
+                <Ico name="arrowLeft" size={15} color="#cbd5e1" /> {t.precedent}
+              </button>
+            )}
+          </div>
+          <style>{`
+            @keyframes diag-attente-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(1.4); } }
+            .diag-attente-dot { animation: diag-attente-pulse 1.3s ease-in-out infinite; }
+          `}</style>
+        </div>
+      )
+    }
 
     return (
       <div style={wrap}>
@@ -653,22 +735,25 @@ export default function DiagnosticSmartPort() {
         <RetourMenu />
         <BoutonLang />
         <style>{`
-          .diag-niveaux-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+          .diag-slider {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 10px; border-radius: 6px; outline: none;
+            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 35%, #eab308 55%, #22c55e 100%);
+            cursor: pointer;
           }
-          @media (max-width: 760px) {
-            .diag-niveaux-grid { grid-template-columns: repeat(2, 1fr); }
+          .diag-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 34px; height: 34px; border-radius: 50%;
+            background: #fff; border: 4px solid #0073F4;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.4); cursor: pointer;
           }
-          @media (max-width: 480px) {
-            .diag-niveaux-grid { grid-template-columns: 1fr; }
+          .diag-slider::-moz-range-thumb {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: #fff; border: 4px solid #0073F4;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.4); cursor: pointer;
           }
-          .diag-niveau-card {
-            transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-          }
-          .diag-niveau-card:hover {
-            transform: translateY(-2px);
+          .diag-slider-ticks {
+            display: flex; justify-content: space-between; padding: 0 2px; margin-top: 8px;
           }
           .diag-nav-btn:disabled {
             opacity: 0.35;
@@ -711,40 +796,44 @@ export default function DiagnosticSmartPort() {
               <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.55, margin: 0 }}>{txt(axe.definition, lang)}</p>
             </div>
 
-            {/* Cartes de niveau : 3 colonnes x 2 lignes sur desktop */}
-            <div className="diag-niveaux-grid">
-              {axe.niveaux.map((niveau, i) => {
-                const selected = reponseActuelle === i
-                return (
-                  <button
-                    key={i}
-                    className="diag-niveau-card"
-                    onClick={() => choisir(axe.id, i)}
-                    style={{
-                      display: 'flex', flexDirection: 'column', gap: 10, padding: '18px 16px', borderRadius: 14,
-                      textAlign: 'left', fontFamily: 'inherit', fontSize: 13, cursor: 'pointer', height: '100%',
-                      border: `1.5px solid ${selected ? '#0073F4' : 'rgba(255,255,255,0.06)'}`,
-                      background: selected ? 'linear-gradient(135deg, rgba(0,115,244,0.18), rgba(0,14,145,0.25))' : 'rgba(255,255,255,0.02)',
-                      color: selected ? '#fff' : '#cbd5e1',
-                      boxShadow: selected ? '0 4px 20px rgba(0,115,244,0.25)' : 'none',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <span style={{
-                        flexShrink: 0, width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        background: selected ? 'linear-gradient(135deg,#0073F4,#000E91)' : 'rgba(255,255,255,0.06)',
-                        color: selected ? '#fff' : '#94a3b8', fontSize: 12.5, fontWeight: 800,
-                        border: selected ? 'none' : '1px solid rgba(255,255,255,0.08)'
-                      }}>{i}</span>
-                      {selected && <Ico name="check" size={16} color="#60a5fa" />}
-                    </div>
-                    <span style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.6, color: selected ? '#93c5fd' : '#64748b' }}>
-                      {txt(ECHELLE[i].nom, lang)}
-                    </span>
-                    <span style={{ fontWeight: selected ? 600 : 500, lineHeight: 1.4, flex: 1 }}>{txt(niveau, lang)}</span>
-                  </button>
-                )
-              })}
+            {/* Curseur de fait concret : une seule question a la fois, texte
+                dynamique sous le curseur — plus rapide a remplir que 6
+                cartes textuelles, pour tenir le format en blocs chronometres. */}
+            <div>
+              <input
+                type="range" min={0} max={5} step={1}
+                className="diag-slider"
+                value={reponseActuelle ?? 0}
+                onChange={e => choisir(axe.id, Number(e.target.value))}
+              />
+              <div className="diag-slider-ticks">
+                {ECHELLE.map(n => (
+                  <span key={n.valeur} style={{
+                    fontSize: 10, fontWeight: 700, color: reponseActuelle === n.valeur ? '#93c5fd' : '#64748b',
+                    textAlign: 'center', flex: 1, textTransform: 'uppercase', letterSpacing: 0.3,
+                  }}>{n.valeur}</span>
+                ))}
+              </div>
+
+              <div style={{
+                marginTop: 18, padding: '18px 20px', borderRadius: 14, minHeight: 96,
+                border: `1.5px solid ${reponseActuelle === undefined ? 'rgba(255,255,255,0.08)' : '#0073F4'}`,
+                background: reponseActuelle === undefined ? 'rgba(255,255,255,0.02)' : 'linear-gradient(135deg, rgba(0,115,244,0.14), rgba(0,14,145,0.2))',
+                transition: 'border-color .2s, background .2s',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <span style={{
+                    flexShrink: 0, width: 30, height: 30, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'linear-gradient(135deg,#0073F4,#000E91)', color: '#fff', fontSize: 13, fontWeight: 800,
+                  }}>{reponseActuelle ?? 0}</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.8, color: '#93c5fd' }}>
+                    {txt(ECHELLE[reponseActuelle ?? 0].nom, lang)}
+                  </span>
+                </div>
+                <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.55, color: reponseActuelle === undefined ? '#94a3b8' : '#fff', fontWeight: reponseActuelle === undefined ? 500 : 600 }}>
+                  {txt(axe.niveaux[reponseActuelle ?? 0], lang)}
+                </p>
+              </div>
             </div>
           </div>
 
