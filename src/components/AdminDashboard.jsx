@@ -12,6 +12,7 @@ import AdminSondages from '../pages/AdminSondages'
 import AdminDiagnostics from '../pages/AdminDiagnostics'
 import AdminTirage from '../pages/AdminTirage'
 import AdminLoginLog from '../pages/AdminLoginLog'
+import AdminActivityLog from '../pages/AdminActivityLog'
 
 // ============================================================
 // REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
@@ -77,6 +78,7 @@ const MODULES = [
   { id: 'diagnostics', label: 'Diagnostics',      icon: 'search',   table: null,            scope: 'diagnostics' },
   { id: 'tirage',      label: 'Tirage au sort',   icon: 'gift',     table: null,            scope: 'all' },
   { id: 'login-log',   label: 'Connexions',       icon: 'clock',    table: null,            scope: 'all', adminOnly: true },
+  { id: 'activity-log',label: 'Journal d\'activité', icon: 'search', table: null,            scope: 'all', adminOnly: true },
 ]
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -1965,6 +1967,7 @@ function SectionAnalytics({ inscriptions = [] }) {
   const [pageViews,    setPageViews]    = useState([])
   const [topPages,     setTopPages]     = useState([])
   const [funnel,       setFunnel]       = useState([])
+  const [funnelEvents, setFunnelEvents] = useState([])
   const [loading,      setLoading]      = useState(true)
   const [lastLoad,     setLastLoad]     = useState(null)
   const [syncing,      setSyncing]      = useState(false)
@@ -1984,16 +1987,22 @@ function SectionAnalytics({ inscriptions = [] }) {
       { data: pv },
       { data: tp },
       { data: fn },
+      { data: ev },
     ] = await Promise.all([
       supabase.from('sessions').select('*').gte('started_at', since.toISOString()).lte('started_at', until.toISOString()).order('started_at', { ascending: false }).limit(1000),
       supabase.from('page_views').select('*').gte('viewed_at', since.toISOString()).lte('viewed_at', until.toISOString()).order('viewed_at', { ascending: false }).limit(2000),
       supabase.rpc('get_top_pages', { p_since: since.toISOString(), p_until: until.toISOString() }),
       supabase.rpc('get_funnel', { p_since: since.toISOString(), p_until: until.toISOString() }),
+      // Statut par session (inscription commencee/terminee), pour la
+      // chronologie brute des visites — pas besoin de tout `events`, juste
+      // les 2 actions du tunnel d'inscription sur la periode courante.
+      supabase.from('events').select('session_id, action').in('action', ['form_start', 'form_submit']).gte('occurred_at', since.toISOString()).lte('occurred_at', until.toISOString()).limit(5000),
     ])
     setSessions(sess || [])
     setPageViews(pv || [])
     setTopPages(tp || [])
     setFunnel(fn || [])
+    setFunnelEvents(ev || [])
     setLastLoad(new Date())
     setLoading(false)
   }, [since, until])
@@ -2094,6 +2103,21 @@ function SectionAnalytics({ inscriptions = [] }) {
     return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 8)
   }, [sessions])
   const maxCountry = countryEntries[0]?.[1] || 1
+
+  // Statut par session pour la chronologie brute (visite simple / a demarre
+  // une inscription / l'a terminee) — jamais associe a une identite tant
+  // que la personne n'a pas reellement soumis le formulaire.
+  const { startedSessionIds, submittedSessionIds } = useMemo(() => {
+    const started = new Set()
+    const submitted = new Set()
+    funnelEvents.forEach(e => {
+      if (e.action === 'form_start') started.add(e.session_id)
+      if (e.action === 'form_submit') submitted.add(e.session_id)
+    })
+    return { startedSessionIds: started, submittedSessionIds: submitted }
+  }, [funnelEvents])
+
+  const recentVisits = useMemo(() => pageViews.slice(0, 150), [pageViews])
 
   const maxTopPage = topPages[0]?.visites || 1
   const maxFunnel  = funnel[0]?.nb || 1
@@ -2288,6 +2312,57 @@ function SectionAnalytics({ inscriptions = [] }) {
             ))
           }
         </div>
+      </div>
+
+      {/* Chronologie brute des visites : heure, pays, page, statut — pas
+          seulement le tunnel d'inscription, toute visite compte. Jamais
+          d'identite associee ici (juste session/page/pays), conformement
+          a la consigne vie privee. */}
+      <div style={{ ...CARD_STYLE, padding: '22px 20px', marginTop: 20 }}>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Chronologie des visites</div>
+        <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16 }}>
+          {recentVisits.length} visite{recentVisits.length > 1 ? 's' : ''} les plus récentes sur la période sélectionnée
+        </div>
+        {recentVisits.length === 0 ? (
+          <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune visite sur cette période.</div>
+        ) : (
+          <div style={{ maxHeight: 420, overflowY: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ position: 'sticky', top: 0, background: '#fff' }}>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', color: '#64748b', fontWeight: 700, fontSize: 10.5, textTransform: 'uppercase' }}>Heure</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', color: '#64748b', fontWeight: 700, fontSize: 10.5, textTransform: 'uppercase' }}>Pays</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', color: '#64748b', fontWeight: 700, fontSize: 10.5, textTransform: 'uppercase' }}>Page</th>
+                  <th style={{ textAlign: 'left', padding: '8px 12px', color: '#64748b', fontWeight: 700, fontSize: 10.5, textTransform: 'uppercase' }}>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentVisits.map((v, i) => {
+                  const submitted = submittedSessionIds.has(v.session_id)
+                  const started = startedSessionIds.has(v.session_id)
+                  return (
+                    <tr key={v.id || i} style={{ borderTop: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '8px 12px', color: '#334155', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                        {new Date(v.viewed_at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
+                      </td>
+                      <td style={{ padding: '8px 12px', color: '#334155' }}>{v.pays || '—'}</td>
+                      <td style={{ padding: '8px 12px', color: '#0f172a', fontWeight: 600, maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.path}</td>
+                      <td style={{ padding: '8px 12px' }}>
+                        {submitted ? (
+                          <span style={{ fontSize: 10.5, fontWeight: 700, borderRadius: 100, padding: '3px 9px', background: '#dcfce7', color: '#16a34a' }}>Inscription terminée</span>
+                        ) : started ? (
+                          <span style={{ fontSize: 10.5, fontWeight: 700, borderRadius: 100, padding: '3px 9px', background: '#dbeafe', color: '#0073F4' }}>Inscription commencée</span>
+                        ) : (
+                          <span style={{ fontSize: 11, color: '#94a3b8' }}>Visite</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {lastLoad && (
@@ -2588,6 +2663,8 @@ export default function AdminPage() {
             <AdminTirage />
           ) : activeModule === 'login-log' ? (
             <AdminLoginLog />
+          ) : activeModule === 'activity-log' ? (
+            <AdminActivityLog />
           ) : activeModule === 'analytics' ? (
             <SectionAnalytics inscriptions={allData.inscriptions} />
           ) : loading ? (

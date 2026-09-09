@@ -1,4 +1,5 @@
-﻿import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+﻿import { lazy, Suspense } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import HeaderStack from './components/HeaderStack'
 import Hero from './components/Hero'
 import About from './components/About'
@@ -8,40 +9,55 @@ import Intervenants from './components/Intervenants'
 import Inscription from './components/Inscription'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
-import AdminDashboard from './components/AdminDashboard'
-import AuthGate from './components/AuthGate'
 import Partners from './components/Partners'
 import { useAnalytics } from './useAnalytics'
-import Partenariats from './pages/Partenariats'
-import ExpositionDigitale from './pages/ExpositionDigitale'
-import VisiterExposition from './pages/VisiterExposition'
-import VerifierDossier from './pages/VerifierDossier'
-import VoteSondage from './pages/VoteSondage'
-import SondagesLiveIndex from './pages/SondagesLiveIndex'
-import ResultatsSondage from './pages/ResultatsSondage'
-import DiagnosticSmartPort from './pages/DiagnosticSmartPort'
-import DiagnosticResultat from './pages/DiagnosticResultat'
-import ProjectionDiagnostic from './pages/ProjectionDiagnostic'
-import TabletteHub from './pages/TabletteHub'
-import Actualites from './pages/Actualites'
-import ActualiteDetail from './pages/ActualiteDetail'
-import MentionsLegales from './pages/MentionsLegales'
-import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite'
 import MapAgpaocUapna from './components/MapAgpaocUapna'
 import HighlightsBanner from './components/HighlightsBanner'
-import InfosPratiques from './pages/InfosPratiques'
 import Newsletter from './components/Newsletter'
-import MotDuDG from './pages/MotDuDG'
-import SuiviInscriptions from './pages/SuiviInscriptions'
-import LiveStreaming from './pages/LiveStreaming'
-import Documentation from './pages/Documentation'
-import RecommandationsActes from './pages/RecommandationsActes'
-import BadgeToken from './pages/BadgeToken'
-import StaffScan from './pages/StaffScan'
 import CookieBanner from './components/CookieBanner'
 import ContactHub from './components/ContactHub'
 import InstallPrompt from './components/InstallPrompt'
 import PromoPopup from './components/PromoPopup'
+
+// ─── Routes secondaires chargees a la demande (code-splitting) ───────────────
+// Seule la homepage (import ci-dessus) a besoin d'etre disponible des le
+// premier chargement. Tout le reste — admin, diagnostics, sondages, pages
+// institutionnelles... — n'est telecharge que si le visiteur y accede
+// vraiment, au lieu de gonfler le bundle initial envoye a 100% des visiteurs
+// pour des sections que la plupart ne verront jamais.
+const AdminDashboard       = lazy(() => import('./components/AdminDashboard'))
+const AuthGate             = lazy(() => import('./components/AuthGate'))
+const Partenariats         = lazy(() => import('./pages/Partenariats'))
+const ExpositionDigitale   = lazy(() => import('./pages/ExpositionDigitale'))
+const VisiterExposition    = lazy(() => import('./pages/VisiterExposition'))
+const VerifierDossier      = lazy(() => import('./pages/VerifierDossier'))
+const VoteSondage          = lazy(() => import('./pages/VoteSondage'))
+const SondagesLiveIndex    = lazy(() => import('./pages/SondagesLiveIndex'))
+const ResultatsSondage     = lazy(() => import('./pages/ResultatsSondage'))
+const DiagnosticSmartPort  = lazy(() => import('./pages/DiagnosticSmartPort'))
+const DiagnosticResultat   = lazy(() => import('./pages/DiagnosticResultat'))
+const ProjectionDiagnostic = lazy(() => import('./pages/ProjectionDiagnostic'))
+const TabletteHub          = lazy(() => import('./pages/TabletteHub'))
+const Actualites           = lazy(() => import('./pages/Actualites'))
+const ActualiteDetail      = lazy(() => import('./pages/ActualiteDetail'))
+const MentionsLegales      = lazy(() => import('./pages/MentionsLegales'))
+const PolitiqueConfidentialite = lazy(() => import('./pages/PolitiqueConfidentialite'))
+const InfosPratiques       = lazy(() => import('./pages/InfosPratiques'))
+const MotDuDG              = lazy(() => import('./pages/MotDuDG'))
+const SuiviInscriptions    = lazy(() => import('./pages/SuiviInscriptions'))
+const LiveStreaming        = lazy(() => import('./pages/LiveStreaming'))
+const Documentation        = lazy(() => import('./pages/Documentation'))
+const RecommandationsActes = lazy(() => import('./pages/RecommandationsActes'))
+const BadgeToken           = lazy(() => import('./pages/BadgeToken'))
+const StaffScan            = lazy(() => import('./pages/StaffScan'))
+
+// ─── Repli affiche pendant le telechargement d'une route secondaire ──────────
+const RouteFallback = () => (
+  <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: 34, height: 34, border: '3px solid #e2e8f0', borderTopColor: '#000E91', borderRadius: '50%', animation: 'route-spin .8s linear infinite' }} />
+    <style>{`@keyframes route-spin { to { transform: rotate(360deg); } }`}</style>
+  </div>
+)
 
 // ─── Tracker automatique sur chaque changement d'URL ─────────────────────────
 const AnalyticsTracker = () => {
@@ -173,6 +189,7 @@ function App() {
       <ContactHubGate />
       <InstallPromptGate />
       <PromoPopupGate />
+      <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/"                       element={<MainSite />} />
         <Route path="/inscription"            element={<InscriptionPage />} />
@@ -204,6 +221,7 @@ function App() {
         <Route path="/tablette"                element={<TabletteHub />} />
         <Route path="/visiter" element={<VisiterExposition />} />
       </Routes>
+      </Suspense>
     </Router>
   )
 }
