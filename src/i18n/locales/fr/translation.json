@@ -224,7 +224,18 @@
       "title": "Le mot du Directeur Général",
       "subtitle": "Le Dr William ODAH partage sa vision des enjeux de la COPAF 2026.",
       "cta": "Lire le message",
-      "placeholderQuote": "Citation officielle du Directeur Général à venir."
+      "quote": "Face à la transformation digitale, nos ports ne peuvent plus seulement s'adapter, ils doivent anticiper et se protéger.",
+      "signatureTitle": "Directeur Général",
+      "bodyParagraphs": [
+        "Chères et chers collègues,\nChers partenaires du secteur portuaire africain,",
+        "C'est avec un grand honneur que nous vous convions à la Conférence des Ports Africains – COPAF 2026, qui se tiendra du 19 au 21 octobre 2026 au Port de Casablanca, au Maroc.",
+        "Organisée sous l'égide conjointe de l'AGPAOC et de l'UAPNA, et sous le haut patronage de l'Agence Nationale des Ports du Maroc, cette édition marque une étape décisive pour notre communauté.",
+        "Le système d'information d'un port est aujourd'hui son système nerveux central. Il est pensé pour répondre aux impératifs de performance, de fluidité et de compétitivité. Mais cette hyper-connexion le rend également vulnérable. C'est tout l'enjeu de notre thématique 2026 : « Smart Port Africain : l'IA et la cybersécurité au service de la performance ».",
+        "L'intelligence artificielle n'est plus une perspective lointaine ; elle optimise déjà le trafic, la maintenance prédictive et la logistique. Cependant, sans une stratégie de cybersécurité robuste et souveraine, cette performance reste fragile.",
+        "La COPAF 2026 a été conçue pour apporter des réponses concrètes. Pendant deux jours, nous décrypterons ces enjeux aux côtés des meilleurs experts continentaux et internationaux. La troisième journée, en immersion au sein du Port de Casablanca, permettra d'observer la mise en œuvre opérationnelle de ces technologies.",
+        "Cette conférence est celle des Directeurs Généraux, des DSI, des responsables d'exploitation et de sécurité. C'est votre plateforme pour partager, apprendre et construire ensemble le port africain résilient, intelligent et sécurisé de demain.",
+        "Nous vous attendons nombreux à Casablanca."
+      ]
     }
   },
   "partners": { "eyebrow": "Partenariats Stratégiques", "title": "Partenariats institutionnels et stratégiques" },

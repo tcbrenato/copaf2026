@@ -10,6 +10,7 @@ const BLUE = '#0073F4'
 export default function MotDuDG() {
   const { t, i18n } = useTranslation()
   const isEn = i18n.language?.toLowerCase().startsWith('en')
+  const paragraphs = t('highlights.dgMessage.bodyParagraphs', { returnObjects: true })
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#0f172a', background: '#f8faff' }}>
@@ -47,12 +48,23 @@ export default function MotDuDG() {
           position: 'relative',
           background: '#fff', borderRadius: '18px', padding: 'clamp(28px, 4vw, 44px)',
           border: '1px solid rgba(0,14,145,0.08)', boxShadow: '0 15px 40px rgba(0,14,145,0.06)',
+          marginBottom: 32,
         }}>
           <Quote size={34} color={BLUE} style={{ opacity: 0.35, marginBottom: 12 }} />
-          {/* TODO: remplacer par la citation officielle du DG — texte placeholder en attendant */}
           <p style={{ fontSize: 'clamp(16px, 2vw, 19px)', color: '#1e293b', lineHeight: 1.8, fontStyle: 'italic', margin: 0 }}>
-            {t('highlights.dgMessage.placeholderQuote')}
+            « {t('highlights.dgMessage.quote')} »
           </p>
+        </div>
+
+        <div style={{ fontSize: 15.5, color: '#334155', lineHeight: 1.9, display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {paragraphs.map((p, i) => (
+            <p key={i} style={{ margin: 0, whiteSpace: 'pre-line' }}>{p}</p>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid rgba(0,14,145,0.08)' }}>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: NAVY, fontStyle: 'italic' }}>Dr William ODAH</p>
+          <p style={{ margin: '2px 0 0', fontSize: 13.5, color: '#64748b', fontStyle: 'italic' }}>{t('highlights.dgMessage.signatureTitle')}</p>
         </div>
       </div>
 

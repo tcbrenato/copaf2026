@@ -224,7 +224,18 @@
       "title": "A word from the Director General",
       "subtitle": "Dr William ODAH shares his vision of COPAF 2026's challenges.",
       "cta": "Read the message",
-      "placeholderQuote": "Official quote from the Director General coming soon."
+      "quote": "As digital transformation reshapes our industry, our ports can no longer simply adapt — they must anticipate and protect themselves.",
+      "signatureTitle": "Director General",
+      "bodyParagraphs": [
+        "Dear colleagues,\nDear partners of the African port sector,",
+        "It is with great honor that we invite you to the Conference of African Ports – COPAF 2026, to be held from October 19 to 21, 2026 at the Port of Casablanca, Morocco.",
+        "Organized under the joint auspices of AGPAOC and UAPNA, and under the high patronage of Morocco's National Ports Agency, this edition marks a decisive step for our community.",
+        "A port's information system is today its central nervous system, designed to meet the imperatives of performance, fluidity and competitiveness. But this hyper-connectivity also makes it vulnerable. This is precisely the focus of our 2026 theme: « Smart African Port: AI and Cybersecurity at the Service of Performance ».",
+        "Artificial intelligence is no longer a distant prospect; it already optimizes traffic, predictive maintenance and logistics. Yet without a robust, sovereign cybersecurity strategy, this performance remains fragile.",
+        "COPAF 2026 has been designed to provide concrete answers. Over two days, we will unpack these challenges alongside leading experts from the continent and beyond. The third day, held on-site at the Port of Casablanca, will offer a firsthand look at how these technologies are put into operational practice.",
+        "This conference belongs to Directors General, CIOs, and operations and security officers alike. It is your platform to share, learn, and build together the resilient, intelligent and secure African port of tomorrow.",
+        "We look forward to welcoming you in Casablanca."
+      ]
     }
   },
   "partners": { "eyebrow": "Strategic Partnerships", "title": "Institutional and Strategic Partnerships" },

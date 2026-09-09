@@ -78,6 +78,7 @@ const HighlightsBanner = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [openModal, setOpenModal] = useState(null) // null | 'practicalInfo' | 'dgMessage'
+  const dgParagraphs = t('highlights.dgMessage.bodyParagraphs', { returnObjects: true })
 
   const daysToStart = useCountdown(EVENT_START_MS)
   const daysToEnd = useCountdown(EVENT_END_MS)
@@ -164,12 +165,22 @@ const HighlightsBanner = () => {
               <p style={{ margin: '3px 0 0', fontSize: 13, color: '#64748b' }}>{t('intervenants.odahTitre')} — CRF Perfection</p>
             </div>
           </div>
-          <div style={{ background: '#f8faff', borderRadius: 14, padding: 22, border: '1px solid rgba(0,14,145,0.08)' }}>
+          <div style={{ background: '#f8faff', borderRadius: 14, padding: 22, border: '1px solid rgba(0,14,145,0.08)', marginBottom: 24 }}>
             <Quote size={26} color={BLUE} style={{ opacity: 0.35, marginBottom: 8 }} />
-            {/* TODO: remplacer par la citation officielle du DG — texte placeholder en attendant */}
             <p style={{ fontSize: 15, color: '#1e293b', lineHeight: 1.75, fontStyle: 'italic', margin: 0 }}>
-              {t('highlights.dgMessage.placeholderQuote')}
+              « {t('highlights.dgMessage.quote')} »
             </p>
+          </div>
+
+          <div style={{ fontSize: 14, color: '#334155', lineHeight: 1.85, display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {dgParagraphs.map((p, i) => (
+              <p key={i} style={{ margin: 0, whiteSpace: 'pre-line' }}>{p}</p>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 28, paddingTop: 18, borderTop: '1px solid rgba(0,14,145,0.08)' }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: NAVY, fontStyle: 'italic' }}>Dr William ODAH</p>
+            <p style={{ margin: '2px 0 0', fontSize: 12.5, color: '#64748b', fontStyle: 'italic' }}>{t('highlights.dgMessage.signatureTitle')}</p>
           </div>
         </HighlightModal>
       )}
