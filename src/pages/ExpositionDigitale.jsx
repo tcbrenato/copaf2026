@@ -66,7 +66,7 @@ const COMPARAISON = [
   { critere: 'Durée de visibilité',       classique: '2 – 3 jours',          digital: '12 mois' },
   { critere: 'Mesure de performance',     classique: 'Impossible',           digital: 'Rapport PDF inclus' },
   { critere: 'Accès aux décideurs',       classique: 'Sur place uniquement', digital: 'Sur place + à distance' },
-  { critere: 'Accessible aux PME',        classique: 'Budget prohibitif',    digital: 'Dès 500 €' },
+  { critere: 'Accessible aux PME',        classique: 'Budget prohibitif',    digital: '2 000 € tout inclus' },
   { critere: 'Bilan carbone',             classique: 'Impact lourd',         digital: 'Impact zéro' },
 ]
 
@@ -109,20 +109,15 @@ const WORKFLOW = [
   { num: '5', title: 'Rapport PDF',      desc: 'Vues, contacts générés et téléchargements détaillés post-event.' },
 ]
 
-const PLANS = [
-  {
-    id: 'ESSENTIELLE', color: '#475569', featured: false, price: '500', tag: 'Idéal PME',
-    features: ['Fiche portail officiel', 'Logo + Description', 'QR Code numérique', '1 Brochure PDF', 'Rapport de performance'],
-  },
-  {
-    id: 'AVANCEE', color: '#0073F4', featured: true, price: '1 500', tag: 'Le plus choisi',
-    features: ['Tout Pack Essentielle', '3 Brochures PDF', 'Vidéo de présentation HD', '1 Badge VIP inclus', 'Session Pitch 10 min', 'Rapport analytique complet'],
-  },
-  {
-    id: 'PREMIUM', color: '#000E91', featured: false, price: '3 000', tag: 'Impact maximum',
-    features: ['Tout Pack Avancée', 'Brochures illimitées', 'Pitch 15 min + Q&A', '2 Badges VIP inclus', 'Démonstration Live', 'Captation vidéo HD', 'Matching décideurs prioritaire'],
-  },
-]
+const OFFER = {
+  id: 'EXPOSITION', color: '#0073F4', price: '2 000',
+  features: [
+    'Vitrine digitale sur copaf-ports.com, avec mise en relation directe avec les décideurs et acteurs clés du secteur',
+    'Visibilité sur la carte interactive des pays participants du site',
+    'Espace publicitaire et publirédactionnel dans le tout premier numéro du Magazine des Ports Africains (MPA), diffusé en physique à Casablanca et en numérique',
+    'Visibilité grand format devant l\'audience de la conférence, sur place à Casablanca',
+  ],
+}
 
 const FAQS = [
   { q: "Qui gère les tablettes sur place ?", a: "COPAF met à disposition des tablettes aux participants confirmés. Notre équipe assure l'intégralité de la logistique : acquisition, préchargement, distribution et collecte en fin d'événement." },
@@ -183,7 +178,7 @@ function SectionHeader({ eyebrow, title, sub }) {
 export default function ExpositionDigitale() {
   const navigate = useNavigate()
   const [activeModal,  setActiveModal]  = useState(null)
-  const [selectedPlan, setSelectedPlan] = useState('')
+  const [selectedPlan] = useState('EXPOSITION')
   const [openFaq,      setOpenFaq]      = useState(null)
   const [focused,      setFocused]      = useState('')
   const [floatVisible, setFloatVisible] = useState(false)
@@ -214,7 +209,7 @@ export default function ExpositionDigitale() {
 
   const submitForm = async e => {
     e.preventDefault(); setFormError('')
-    if (!formData.company || !formData.name || !formData.email || !selectedPlan) { setFormError('Veuillez remplir : entreprise, nom, email et formule.'); return }
+    if (!formData.company || !formData.name || !formData.email) { setFormError('Veuillez remplir : entreprise, nom et email.'); return }
     if (!/\S+@\S+\.\S+/.test(formData.email)) { setFormError('Adresse email invalide.'); return }
     setLoading(true)
     try {
@@ -476,36 +471,27 @@ export default function ExpositionDigitale() {
       </Section>
 
       <Section alt id="tarifs">
-        <SectionHeader eyebrow="Nos formules" title="Choisissez votre niveau d'impact" sub="De la PME au leader mondial, un pack adapté à chaque stratégie." />
-        <div className="pricing-grid">
-          {PLANS.map(plan => (
-            <div key={plan.id} style={{ background: '#fff', border: `1.5px solid ${plan.featured ? plan.color : '#e2e8f0'}`, borderTop: `5px solid ${plan.color}`, borderRadius: 22, padding: 'clamp(24px,4vw,38px)', textAlign: 'center', position: 'relative', boxShadow: plan.featured ? `0 16px 48px ${plan.color}22` : '0 2px 8px rgba(0,0,0,.04)', transform: plan.featured ? 'scale(1.03)' : 'none', transition: 'all .25s' }}>
-              {plan.featured && (
-                <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: plan.color, color: '#fff', fontSize: 11, fontWeight: 800, padding: '4px 18px', borderRadius: 50, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Ico name="star" size={12} color="#fff" />
-                  {plan.tag}
-                </div>
-              )}
-              {!plan.featured && <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', marginBottom: 4 }}>{plan.tag}</div>}
-              <div style={{ fontSize: 11, fontWeight: 900, color: plan.color, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 14 }}>{plan.id}</div>
-              <div style={{ fontSize: 'clamp(38px,8vw,54px)', fontWeight: 900, color: '#0f172a', lineHeight: 1, marginBottom: 4 }}>
-                {plan.price}<span style={{ fontSize: 20, verticalAlign: 'super' }}>€</span>
-              </div>
-              <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 24 }}>paiement unique</div>
-              <ul style={{ listStyle: 'none', textAlign: 'left', marginBottom: 28, padding: 0 }}>
-                {plan.features.map((f, i) => (
-                  <li key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 0', borderBottom: i < plan.features.length - 1 ? '1px solid #f1f5f9' : 'none', fontSize: 13.5, color: '#334155' }}>
-                    <Ico name="checkCircle" size={16} color="#22c55e" />
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <button className="select-btn" style={{ background: `linear-gradient(135deg,${plan.color},${plan.color}cc)`, boxShadow: `0 6px 20px ${plan.color}30` }} onClick={() => { setSelectedPlan(plan.id); scrollTo('inscription') }}>
-                Choisir {plan.id}
-                <Ico name="arrowRight" size={15} color="#fff" />
-              </button>
+        <SectionHeader eyebrow="Notre offre" title="Une formule unique, tout inclus" sub="Un tarif simple et accessible pour une visibilité maximale." />
+        <div style={{ maxWidth: 440, margin: '0 auto' }}>
+          <div style={{ background: '#fff', border: `1.5px solid ${OFFER.color}`, borderTop: `5px solid ${OFFER.color}`, borderRadius: 22, padding: 'clamp(24px,4vw,38px)', textAlign: 'center', position: 'relative', boxShadow: `0 16px 48px ${OFFER.color}22` }}>
+            <div style={{ fontSize: 11, fontWeight: 900, color: OFFER.color, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 14 }}>Exposition Digitale</div>
+            <div style={{ fontSize: 'clamp(38px,8vw,54px)', fontWeight: 900, color: '#0f172a', lineHeight: 1, marginBottom: 4 }}>
+              {OFFER.price}<span style={{ fontSize: 20, verticalAlign: 'super' }}>€</span>
             </div>
-          ))}
+            <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 24 }}>paiement unique</div>
+            <ul style={{ listStyle: 'none', textAlign: 'left', marginBottom: 28, padding: 0 }}>
+              {OFFER.features.map((f, i) => (
+                <li key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 0', borderBottom: i < OFFER.features.length - 1 ? '1px solid #f1f5f9' : 'none', fontSize: 13.5, color: '#334155' }}>
+                  <Ico name="checkCircle" size={16} color="#22c55e" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            <button className="select-btn" style={{ background: `linear-gradient(135deg,${OFFER.color},${OFFER.color}cc)`, boxShadow: `0 6px 20px ${OFFER.color}30` }} onClick={() => scrollTo('inscription')}>
+              Réserver ma place
+              <Ico name="arrowRight" size={15} color="#fff" />
+            </button>
+          </div>
         </div>
       </Section>
 
@@ -555,14 +541,9 @@ export default function ExpositionDigitale() {
                   </div>
                   <div style={{ marginBottom: 14 }}><label style={lbl}>Email *</label><input type="email" name="email" value={formData.email} onChange={handleField} required placeholder="contact@entreprise.com" style={inp('email')} {...foc('email')} autoComplete="email" /></div>
                   <div style={{ marginBottom: 14 }}><label style={lbl}>Téléphone / WhatsApp</label><input type="tel" name="phone" value={formData.phone} onChange={handleField} placeholder="+212 600 000 000" style={inp('phone')} {...foc('phone')} autoComplete="tel" /></div>
-                  <div style={{ marginBottom: 14 }}>
-                    <label style={lbl}>Formule souhaitée *</label>
-                    <select value={selectedPlan} onChange={e => setSelectedPlan(e.target.value)} required style={{ ...inp('plan'), cursor: 'pointer', color: selectedPlan ? '#0f172a' : '#94a3b8' }} {...foc('plan')}>
-                      <option value="">-- Sélectionnez une formule --</option>
-                      <option value="ESSENTIELLE">ESSENTIELLE — 500 €</option>
-                      <option value="AVANCEE">AVANCÉE — 1 500 €</option>
-                      <option value="PREMIUM">PREMIUM — 3 000 €</option>
-                    </select>
+                  <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#EBF3FF', border: '1.5px solid #bfdbfe', borderRadius: 12, padding: '13px 16px' }}>
+                    <span style={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a' }}>Offre Exposition Digitale</span>
+                    <span style={{ fontSize: 16, fontWeight: 900, color: '#0073F4' }}>2 000 €</span>
                   </div>
                   <div style={{ marginBottom: 22 }}>
                     <label style={lbl}>Vos objectifs pour COPAF 2026</label>
