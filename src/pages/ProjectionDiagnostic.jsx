@@ -33,6 +33,12 @@ const TR = {
     attenteTexte: 'Les diagnostics soumis apparaîtront ici en direct.',
     direct: 'EN DIRECT',
     fermer: 'Fermer',
+    panneauPaysLabel: 'Pays',
+    panneauPortsLabel: 'Port(s) / autorité(s) en ligne',
+    panneauStatutUn: 'répond actuellement',
+    panneauStatutPlusieurs: n => `${n} personnes répondent actuellement`,
+    panneauAttenteTitre: 'En attente de réponses',
+    panneauAttenteTexte: "Dès qu'un participant sélectionne son pays, il apparaît ici en direct.",
   },
   en: {
     badge: 'COPAF 2026 · SMART PORT DIAGNOSTIC',
@@ -47,6 +53,12 @@ const TR = {
     attenteTexte: 'Diagnostics submitted will appear here live.',
     direct: 'LIVE',
     fermer: 'Close',
+    panneauPaysLabel: 'Country',
+    panneauPortsLabel: 'Port(s) / authority(ies) online',
+    panneauStatutUn: 'currently answering',
+    panneauStatutPlusieurs: n => `${n} people currently answering`,
+    panneauAttenteTitre: 'Waiting for responses',
+    panneauAttenteTexte: 'As soon as a participant selects their country, it appears here live.',
   },
 }
 
@@ -103,8 +115,16 @@ export default function ProjectionDiagnostic() {
   const [aggregates, setAggregates] = useState({})
   const [participantsCount, setParticipantsCount] = useState(0)
   const [liveCountries, setLiveCountries] = useState(() => new Set())
+  const [liveByCountry, setLiveByCountry] = useState(() => new Map())
   const [vueOuverte, setVueOuverte] = useState(null)
   const channelRef = useRef(null)
+
+  // Pays actuellement mis en avant dans le panneau lateral (survol/clic sur
+  // la carte, ou cycle automatique parmi les pays en direct — meme
+  // interaction que la carte AGPAOC/UAPNA de la page d'accueil).
+  const [activeCountry, setActiveCountry] = useState(null)
+  const pausedRef = useRef(false)
+  const resumeTimeoutRef = useRef(null)
 
   const fetchAll = useCallback(async () => {
     const results = await Promise.all(VUE_IDS.map(async id => {
@@ -128,10 +148,19 @@ export default function ProjectionDiagnostic() {
         const state = channel.presenceState()
         setParticipantsCount(Object.keys(state).length)
         const countries = new Set()
+        const byCountry = new Map()
         Object.values(state).forEach(presences => {
-          presences.forEach(p => { if (p.country) countries.add(p.country) })
+          presences.forEach(p => {
+            if (!p.country) return
+            countries.add(p.country)
+            const entry = byCountry.get(p.country) || { organisations: new Set(), count: 0 }
+            entry.count += 1
+            if (p.organisation) entry.organisations.add(p.organisation)
+            byCountry.set(p.country, entry)
+          })
         })
         setLiveCountries(countries)
+        setLiveByCountry(byCountry)
       })
       .on('broadcast', { event: 'nouvelle-reponse' }, () => fetchAll())
       .subscribe()
@@ -144,8 +173,44 @@ export default function ProjectionDiagnostic() {
     }
   }, [fetchAll])
 
+  // Cycle automatique du pays mis en avant, uniquement parmi les pays
+  // actuellement en direct (pas de sens a mettre en avant un pays statique
+  // quand personne n'y repond) — pause au survol/clic, comme sur la carte
+  // d'accueil.
+  useEffect(() => {
+    const liveList = [...liveCountries]
+    if (liveList.length === 0) { setActiveCountry(null); return }
+    setActiveCountry(prev => (prev && liveList.includes(prev)) ? prev : liveList[0])
+    const id = setInterval(() => {
+      if (pausedRef.current) return
+      setActiveCountry(prev => {
+        const list = [...liveCountries]
+        if (list.length === 0) return null
+        const i = list.indexOf(prev)
+        return list[(i + 1) % list.length]
+      })
+    }, 4000)
+    return () => clearInterval(id)
+  }, [liveCountries])
+
+  useEffect(() => () => clearTimeout(resumeTimeoutRef.current), [])
+
+  const survolerPays = nom => {
+    pausedRef.current = true
+    clearTimeout(resumeTimeoutRef.current)
+    setActiveCountry(nom)
+  }
+  const quitterPays = () => { pausedRef.current = false }
+  const cliquerPays = nom => {
+    pausedRef.current = true
+    clearTimeout(resumeTimeoutRef.current)
+    setActiveCountry(nom)
+    resumeTimeoutRef.current = setTimeout(() => { pausedRef.current = false }, 6000)
+  }
+
   const vuesActives = VUE_IDS.filter(id => id === 'global' || aggregates[id]?.nb > 0)
   const aggGlobal = aggregates.global
+  const activeEntry = activeCountry ? liveByCountry.get(activeCountry) : null
 
   const wrap = { minHeight: '100vh', width: '100vw', position: 'relative', overflow: 'auto', fontFamily: "'Plus Jakarta Sans',sans-serif", color: '#f8fafc', display: 'flex', flexDirection: 'column' }
   const bgImage = { position: 'fixed', inset: 0, zIndex: -3, backgroundColor: '#0b0f1c', backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.55) saturate(1.25)' }
@@ -185,19 +250,68 @@ export default function ProjectionDiagnostic() {
           <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>{t.enLigne}</div>
         </div>
 
-        {/* Carte vectorielle live : un point pulse sur chaque pays ou au
-            moins une personne repond actuellement au diagnostic */}
-        <div style={{ ...card, padding: 'clamp(16px,3vw,32px)', width: '100%', maxWidth: 820 }}>
-          <DiagnosticLiveMap liveCountries={liveCountries} />
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px', justifyContent: 'center', marginTop: 18 }}>
-            {VUE_IDS.filter(id => id !== 'global').map(id => (
-              <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, color: '#cbd5e1' }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: RESEAU_COLORS[id], flexShrink: 0 }} />
-                {labelVue(id, lang)}
-              </div>
-            ))}
+        {/* Carte vectorielle live (gauche) + panneau pays (droite) : meme
+            disposition que la carte AGPAOC/UAPNA de la page d'accueil. Le
+            panneau ne montre jamais de donnee individuelle — uniquement le
+            pays, le(s) port(s)/autorite(s) et un statut anonymise. */}
+        <div className="diag-proj-map-layout" style={{ ...card, padding: 'clamp(16px,3vw,32px)', width: '100%', display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(260px, 340px)', gap: 'clamp(20px, 3vw, 40px)', alignItems: 'center' }}>
+          <div>
+            <DiagnosticLiveMap
+              liveCountries={liveCountries}
+              activeCountry={activeCountry}
+              onHoverCountry={survolerPays}
+              onLeaveCountry={quitterPays}
+              onClickCountry={cliquerPays}
+            />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px', justifyContent: 'center', marginTop: 18 }}>
+              {VUE_IDS.filter(id => id !== 'global').map(id => (
+                <div key={id} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, color: '#cbd5e1' }}>
+                  <span style={{ width: 9, height: 9, borderRadius: '50%', background: RESEAU_COLORS[id], flexShrink: 0 }} />
+                  {labelVue(id, lang)}
+                </div>
+              ))}
+            </div>
           </div>
+
+          <aside style={{
+            padding: 22, borderRadius: 16, background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.08)', minHeight: 220,
+          }}>
+            {!activeCountry ? (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 6 }}>{t.panneauAttenteTitre}</div>
+                <p style={{ fontSize: 12.5, color: '#94a3b8', margin: 0, lineHeight: 1.6 }}>{t.panneauAttenteTexte}</p>
+              </div>
+            ) : (
+              <>
+                <span style={{ fontSize: 11, fontWeight: 800, color: '#60a5fa', letterSpacing: 1.5, textTransform: 'uppercase' }}>{t.panneauPaysLabel}</span>
+                <h3 style={{ fontSize: 22, fontWeight: 900, margin: '6px 0 18px' }}>{activeCountry}</h3>
+
+                <div style={{ marginBottom: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                  <span style={{ fontSize: 11, color: '#94a3b8' }}>{t.panneauPortsLabel}</span>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, marginTop: 6, lineHeight: 1.5 }}>
+                    {activeEntry && activeEntry.organisations.size > 0
+                      ? [...activeEntry.organisations].join(' · ')
+                      : '—'}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', flexShrink: 0, animation: 'copaf-proj-pulse 1.4s ease-in-out infinite' }} />
+                  <span style={{ fontSize: 12.5, color: '#cbd5e1', fontWeight: 600 }}>
+                    {activeEntry ? (activeEntry.count === 1 ? t.panneauStatutUn : t.panneauStatutPlusieurs(activeEntry.count)) : ''}
+                  </span>
+                </div>
+              </>
+            )}
+          </aside>
         </div>
+
+        <style>{`
+          @media (max-width: 760px) {
+            .diag-proj-map-layout { grid-template-columns: 1fr !important; }
+          }
+        `}</style>
 
         {/* Grille de cartes : toutes les vues actives affichees simultanement */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, width: '100%' }}>

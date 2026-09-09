@@ -12,7 +12,8 @@ const COUNTRY_BY_NUMERIC = new Map(
 // technique de rendu (react-simple-maps + world-atlas) que la carte
 // AGPAOC/UAPNA de la page d'accueil (src/components/MapAgpaocUapna.jsx),
 // etendue aux pays PMAESA et associes que le diagnostic couvre en plus.
-export default function DiagnosticLiveMap({ liveCountries }) {
+// Survol/clic met en avant un pays (meme interaction que la carte d'accueil).
+export default function DiagnosticLiveMap({ liveCountries, activeCountry, onHoverCountry, onLeaveCountry, onClickCountry }) {
   return (
     <ComposableMap
       projection="geoMercator"
@@ -26,18 +27,22 @@ export default function DiagnosticLiveMap({ liveCountries }) {
           geographies.map(geo => {
             const country = COUNTRY_BY_NUMERIC.get(geo.id)
             const fill = country ? RESEAU_COLORS[country.network] : NEUTRAL_COUNTRY_COLOR
+            const isActive = country && country.name === activeCountry
             return (
               <Geography
                 key={geo.rsmKey}
                 geography={geo}
                 fill={fill}
-                stroke="rgba(248,250,252,0.18)"
-                strokeWidth={0.5}
+                stroke={isActive ? '#ffffff' : 'rgba(248,250,252,0.18)'}
+                strokeWidth={isActive ? 1.6 : 0.5}
                 style={{
-                  default: { outline: 'none', opacity: country ? 0.85 : 0.5 },
-                  hover: { outline: 'none', opacity: country ? 0.85 : 0.5 },
+                  default: { outline: 'none', opacity: !country ? 0.5 : isActive ? 1 : 0.78, transition: 'opacity .25s, stroke-width .25s' },
+                  hover: { outline: 'none', opacity: country ? 1 : 0.5, cursor: country ? 'pointer' : 'default' },
                   pressed: { outline: 'none' },
                 }}
+                onMouseEnter={() => country && onHoverCountry?.(country.name)}
+                onMouseLeave={() => country && onLeaveCountry?.()}
+                onClick={() => country && onClickCountry?.(country.name)}
               />
             )
           })

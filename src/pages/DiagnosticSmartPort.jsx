@@ -263,18 +263,22 @@ export default function DiagnosticSmartPort() {
     }
   }, [])
 
-  // Met a jour la presence globale avec le pays/reseau des qu'ils sont
-  // connus, pour que la carte live du mode Projection puisse allumer un
-  // point sur le bon pays — track() peut etre rappele plusieurs fois pour
-  // mettre a jour le payload d'une meme presence.
+  // Met a jour la presence globale avec le pays/reseau/organisation des
+  // qu'ils sont connus, pour que la carte live du mode Projection puisse
+  // allumer un point sur le bon pays et afficher quel port est en train de
+  // repondre — jamais le nom de la personne, seulement l'organisation.
+  // track() peut etre rappele plusieurs fois pour mettre a jour le payload
+  // d'une meme presence.
   useEffect(() => {
     if (!orgSelectionnee?.country) return
+    const organisation = [txt(orgSelectionnee.nom, lang), siteSelectionne ? txt(siteSelectionne.nom, lang) : null].filter(Boolean).join(' — ')
     globalChannelRef.current?.track({
       online_at: new Date().toISOString(),
       country: orgSelectionnee.country,
       reseau: orgSelectionnee.network,
+      organisation,
     })
-  }, [orgSelectionnee?.country, orgSelectionnee?.network])
+  }, [orgSelectionnee?.country, orgSelectionnee?.network, siteSelectionne, lang])
 
   const choisirOrganisation = id => {
     setOrgId(id)
