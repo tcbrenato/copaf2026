@@ -35,27 +35,62 @@ function escapeHtml(value: string): string {
 
 function buildEmailHtml(subject: string, bodyHtml: string, prenom: string | null) {
   const greeting = prenom ? `Bonjour ${escapeHtml(prenom)},` : 'Bonjour,'
+  const preheader = escapeHtml(subject).slice(0, 130)
   return `<!DOCTYPE html>
 <html>
-  <body style="margin:0;padding:0;background:#f8faff;font-family:'Roboto',Arial,sans-serif;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8faff;padding:32px 0;">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body style="margin:0;padding:0;background:#eef2ff;font-family:Arial,Helvetica,sans-serif;">
+    <!-- Preheader : texte d'apercu invisible dans le corps, visible dans la liste des emails -->
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${preheader}</div>
+
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#eef2ff;padding:36px 16px;">
       <tr>
         <td align="center">
-          <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;">
+          <table width="600" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid rgba(0,14,145,0.08);">
+
+            <!-- En-tete -->
             <tr>
-              <td style="background:#000E91;padding:28px 32px;">
-                <span style="color:#fff;font-size:20px;font-weight:900;">COPAF 2026</span>
+              <td align="center" style="padding:36px 32px 24px;border-bottom:3px solid #0073F4;">
+                <img src="https://copaf-ports.com/logocopaf.png" width="200" alt="COPAF 2026" style="display:block;max-width:200px;width:100%;height:auto;border:0;" />
+                <div style="margin-top:14px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#0073F4;">
+                  19&ndash;21 Octobre 2026 &middot; Casablanca, Maroc
+                </div>
               </td>
             </tr>
+
+            <!-- Corps -->
             <tr>
-              <td style="padding:32px;color:#0a1128;font-size:15px;line-height:1.7;">
-                <p style="margin:0 0 16px;">${greeting}</p>
-                ${bodyHtml}
-                <p style="margin:24px 0 0;color:#64748b;font-size:12px;">
-                  Vous recevez cet email car vous vous etes inscrit(e) a la newsletter de la COPAF 2026.
+              <td style="padding:36px 40px;color:#0a1128;font-size:15px;line-height:1.75;">
+                <p style="margin:0 0 18px;font-weight:700;">${greeting}</p>
+                <div style="color:#334155;">${bodyHtml}</div>
+
+                <table cellpadding="0" cellspacing="0" role="presentation" style="margin:28px auto 4px;">
+                  <tr>
+                    <td align="center" style="border-radius:10px;background:#000E91;">
+                      <a href="https://copaf-ports.com" style="display:inline-block;padding:13px 30px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;">
+                        Visiter le site de la COPAF 2026
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Pied de page -->
+            <tr>
+              <td style="padding:24px 40px;background:#f8faff;border-top:1px solid #e8ecff;">
+                <p style="margin:0 0 6px;font-size:12px;color:#64748b;line-height:1.6;">
+                  Vous recevez cet email car vous vous &ecirc;tes inscrit(e) &agrave; la newsletter de la COPAF 2026.
+                </p>
+                <p style="margin:0;font-size:12px;color:#94a3b8;">
+                  Organis&eacute; par CRF Perfection &middot; <a href="mailto:contact@copaf-ports.com" style="color:#0073F4;text-decoration:none;">contact@copaf-ports.com</a>
                 </p>
               </td>
             </tr>
+
           </table>
         </td>
       </tr>
