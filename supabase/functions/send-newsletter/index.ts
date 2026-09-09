@@ -129,10 +129,15 @@ Deno.serve(async req => {
       return new Response(JSON.stringify({ error: 'Acces reserve aux administrateurs' }), { status: 403, headers: corsHeaders })
     }
 
-    const { subject, bodyHtml } = await req.json().catch(() => ({}))
+    const { subject, bodyHtml, recipientEmails } = await req.json().catch(() => ({}))
     if (!subject || typeof subject !== 'string' || !bodyHtml || typeof bodyHtml !== 'string') {
       return new Response(JSON.stringify({ error: 'subject et bodyHtml requis' }), { status: 400, headers: corsHeaders })
     }
+    // Selection optionnelle depuis le dashboard : si absente ou vide, on
+    // envoie a tous les abonnes (comportement historique).
+    const emailFilter = Array.isArray(recipientEmails) && recipientEmails.length > 0
+      ? recipientEmails.filter(e => typeof e === 'string')
+      : null
 
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
     const fromEmail = Deno.env.get('RESEND_FROM_EMAIL') || 'COPAF 2026 <onboarding@resend.dev>'
@@ -140,9 +145,9 @@ Deno.serve(async req => {
       return new Response(JSON.stringify({ error: "RESEND_API_KEY n'est pas configure dans les secrets de la fonction" }), { status: 500, headers: corsHeaders })
     }
 
-    const { data: subscribers, error: subErr } = await supabase
-      .from('newsletter_subscribers')
-      .select('email, prenom')
+    let subQuery = supabase.from('newsletter_subscribers').select('email, prenom')
+    if (emailFilter) subQuery = subQuery.in('email', emailFilter)
+    const { data: subscribers, error: subErr } = await subQuery
 
     if (subErr) {
       console.error('Erreur lecture newsletter_subscribers:', subErr)
