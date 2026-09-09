@@ -32,6 +32,7 @@ const Icon = ({ name, size = 18, color = 'currentColor' }) => {
     euro: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 10h12"/><path d="M4 14h9"/><path d="M19 6a7 7 0 1 0 0 12"/></svg>,
     check: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
     clock: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+    lock: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
     search: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
     download: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
     refresh: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>,
@@ -227,7 +228,7 @@ function BarRow({ label, value, max, color, pctBase }) {
 }
 
 // ─── MODAL GÉNÉRIQUE ─────────────────────────────────────────────────────────
-function Modal({ title, subtitle, accentColor, fields, status, statusField, onStatusChange, onSave, onDelete, onClose, saving, deleting, confirmDel, setConfirmDel, toast, onDownloadBadge, generatingBadge, children }) {
+function Modal({ title, subtitle, accentColor, fields, status, statusField, onStatusChange, onSave, onDelete, onClose, saving, deleting, confirmDel, setConfirmDel, toast, onDownloadBadge, generatingBadge, children, readOnly = false }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={onClose}>
@@ -264,7 +265,16 @@ function Modal({ title, subtitle, accentColor, fields, status, statusField, onSt
           ))}
         </div>
 
-        {/* Modifier statut */}
+        {/* Modifier statut — masque en lecture seule (role dg, ou manager sur
+            un module hors de son perimetre d'ecriture). La vraie restriction
+            est deja appliquee cote base (RLS + trigger) ; ceci evite juste
+            d'afficher des controles qui echoueraient silencieusement au clic. */}
+        {readOnly ? (
+          <div style={{ margin: '0 28px 20px', padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="lock" size={14} color="#94a3b8" />
+            <span style={{ fontSize: 12.5, color: '#64748b' }}>Lecture seule pour votre rôle</span>
+          </div>
+        ) : (
         <div style={{ padding: '0 28px 20px' }}>
           <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 10 }}>Modifier le statut</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
@@ -288,7 +298,10 @@ function Modal({ title, subtitle, accentColor, fields, status, statusField, onSt
             <Icon name="save" size={16} color={saving ? '#94a3b8' : '#fff'} />
             {saving ? 'Enregistrement...' : 'Enregistrer'}
           </button>
+        </div>
+        )}
 
+        <div style={{ padding: readOnly ? '0 28px 20px' : '0' }}>
           {onDownloadBadge && (
             <button onClick={onDownloadBadge} disabled={generatingBadge} style={{
               width: '100%', padding: '13px', marginTop: 10,
@@ -307,7 +320,7 @@ function Modal({ title, subtitle, accentColor, fields, status, statusField, onSt
         {children}
 
         {/* Suppression */}
-        {onDelete && (
+        {onDelete && !readOnly && (
           <div style={{ padding: '0 28px 28px' }}>
             <button onClick={onDelete} disabled={deleting} style={{
               width: '100%', padding: '12px',
@@ -657,6 +670,8 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
 
 // ─── MODAL PARTICIPANT ────────────────────────────────────────────────────────
 function ModalParticipant({ row, onClose, onUpdate }) {
+  const { role } = useAdminAuth()
+  const readOnly = role === 'dg'
   const [status,     setStatus]     = useState(row.paiement_status || 'en_attente')
   const [saving,     setSaving]     = useState(false)
   const [deleting,   setDeleting]   = useState(false)
@@ -735,6 +750,7 @@ function ModalParticipant({ row, onClose, onUpdate }) {
       status={status} onStatusChange={setStatus}
       onSave={save} saving={saving}
       onDelete={del} deleting={deleting}
+      readOnly={readOnly}
       confirmDel={confirmDel} setConfirmDel={setConfirmDel}
       onClose={onClose} toast={toast}
       onDownloadBadge={status === 'confirme' ? downloadBadge : null}
@@ -759,6 +775,8 @@ function ModalParticipant({ row, onClose, onUpdate }) {
 // du tableau -- coherent avec le reste, plutot qu'un lien qui echappe
 // vers un nouvel onglet.
 function ModalMembre({ membre, onClose, onUpdate }) {
+  const { role } = useAdminAuth()
+  const readOnly = role === 'dg'
   const [badgeQr, setBadgeQr] = useState('')
   const [toggling, setToggling] = useState(false)
   const [passeport, setPasseport] = useState(membre.numero_passeport || '')
@@ -867,6 +885,12 @@ function ModalMembre({ membre, onClose, onUpdate }) {
             </button>
           </div>
 
+          {readOnly ? (
+            <div style={{ padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="lock" size={13} color="#94a3b8" />
+              <span style={{ fontSize: 12, color: '#64748b' }}>Lecture seule pour votre rôle</span>
+            </div>
+          ) : (
           <button type="button" onClick={toggleArrivee} disabled={toggling} style={{
             width: '100%', padding: '13px', border: 'none', borderRadius: 12,
             fontSize: 14, fontWeight: 700, cursor: toggling ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
@@ -876,6 +900,7 @@ function ModalMembre({ membre, onClose, onUpdate }) {
               ? `Arrivé${membre.arrived_at ? ` à ${fmtTime(membre.arrived_at)}` : ''} — marquer non arrivé`
               : 'Marquer arrivé et installé'}
           </button>
+          )}
 
           <p style={{ fontSize: 11.5, color: '#94a3b8', textAlign: 'center', marginTop: 12, marginBottom: 4, lineHeight: 1.5 }}>
             Fait partie du dossier groupé — statut de paiement partagé avec le contact principal.
@@ -939,6 +964,8 @@ function ModalMembre({ membre, onClose, onUpdate }) {
 
 // ─── MODAL SPONSORSHIP (sponsor + partenaire) ─────────────────────────────────
 function ModalSponsorship({ row, onClose, onUpdate, type }) {
+  const { role } = useAdminAuth()
+  const readOnly = role === 'dg' || role === 'manager'
   const [status,  setStatus]  = useState(row.statut || 'nouveau')
   const [saving,  setSaving]  = useState(false)
   const [toast,   setToast]   = useState('')
@@ -974,12 +1001,15 @@ function ModalSponsorship({ row, onClose, onUpdate, type }) {
       status={status} onStatusChange={setStatus}
       onSave={save} saving={saving}
       onClose={onClose} toast={toast}
+      readOnly={readOnly}
     />
   )
 }
 
 // ─── MODAL EXPOSANT ───────────────────────────────────────────────────────────
 function ModalExposant({ row, onClose, onUpdate }) {
+  const { role } = useAdminAuth()
+  const readOnly = role === 'dg' || role === 'manager'
   const [status, setStatus] = useState(row.statut || 'nouveau')
   const [saving, setSaving] = useState(false)
   const [toast,  setToast]  = useState('')
@@ -1010,6 +1040,7 @@ function ModalExposant({ row, onClose, onUpdate }) {
       status={status} onStatusChange={setStatus}
       onSave={save} saving={saving}
       onClose={onClose} toast={toast}
+      readOnly={readOnly}
     />
   )
 }
@@ -1733,6 +1764,7 @@ function ModalEmailMassif({ inscriptions, onClose }) {
 
 // ─── SECTION TABLEAU DE BORD ──────────────────────────────────────────────────
 function SectionDashboard({ allData, setActiveModule, onDataChange }) {
+  const { role } = useAdminAuth()
   const { inscriptions = [], sponsors = [], partenaires = [], exposants = [] } = allData
   const [showAjouter, setShowAjouter] = useState(false)
   const [showEmailMassif, setShowEmailMassif] = useState(false)
@@ -1783,11 +1815,11 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
       {/* Actions rapides */}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 24 }}>
         {[
-          { icon: 'plus',  label: 'Ajouter un participant',   onClick: () => setShowAjouter(true), primary: true },
+          { icon: 'plus',  label: 'Ajouter un participant',   onClick: () => setShowAjouter(true), primary: true, hideFor: ['dg'] },
           { icon: 'euro',  label: 'Générer une proforma',     onClick: () => setActiveModule?.('proforma') },
           { icon: 'mail',  label: 'Envoyer un email massif',  onClick: () => setShowEmailMassif(true) },
           { icon: 'scan',  label: 'Scanner un badge',         onClick: () => window.open('/staff/scan', '_blank') },
-        ].map((a, i) => (
+        ].filter(a => !a.hideFor?.includes(role)).map((a, i) => (
           <button key={i} onClick={a.onClick} style={{
             display: 'flex', alignItems: 'center', gap: 8, padding: '11px 18px',
             background: a.primary ? '#000E91' : '#fff', color: a.primary ? '#fff' : '#334155',
