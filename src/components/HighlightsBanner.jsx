@@ -1,12 +1,103 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Calendar, Plane, Quote, Eye, X } from 'lucide-react'
+import { Calendar, Plane, Hotel, Bus, Wallet, CloudSun, PhoneCall, Quote, Eye, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCountdown } from '../hooks/useCountdown'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
+
+// Couleurs de marque specifiques demandees pour ce carrousel (distinctes du
+// NAVY/BLUE utilises ailleurs sur le site).
+const CAROUSEL_NAVY = '#00367F'
+const CAROUSEL_SKY = '#1798F4'
+
+const PRACTICAL_INFO_ICONS = {
+  airport: Plane,
+  hotel: Hotel,
+  shuttle: Bus,
+  money: Wallet,
+  weather: CloudSun,
+  emergency: PhoneCall,
+}
+
+// Carrousel auto-defilant (droite -> gauche, boucle continue) pour les
+// cartes "infos pratiques" de la modale Preparer votre venue. Pilote via
+// scrollLeft + requestAnimationFrame plutot qu'une animation CSS pure : le
+// defilement automatique et le glisser/scroll manuel de l'utilisateur
+// partagent ainsi le meme scrollLeft natif, sans jamais se contredire.
+const InfosPratiquesCarousel = ({ cards }) => {
+  const trackRef = useRef(null)
+  const pausedRef = useRef(false)
+  const resumeTimeoutRef = useRef(null)
+
+  useEffect(() => {
+    const track = trackRef.current
+    if (!track) return
+
+    const SPEED_PX_PER_SEC = 32
+    let lastTs = null
+    let rafId = null
+
+    const step = (ts) => {
+      if (lastTs == null) lastTs = ts
+      const dt = (ts - lastTs) / 1000
+      lastTs = ts
+
+      if (!pausedRef.current) {
+        const setWidth = track.scrollWidth / 2
+        let next = track.scrollLeft + SPEED_PX_PER_SEC * dt
+        if (setWidth > 0 && next >= setWidth) next -= setWidth
+        track.scrollLeft = next
+      }
+      rafId = requestAnimationFrame(step)
+    }
+    rafId = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(rafId)
+  }, [])
+
+  const pause = () => {
+    pausedRef.current = true
+    clearTimeout(resumeTimeoutRef.current)
+  }
+  const scheduleResume = () => {
+    clearTimeout(resumeTimeoutRef.current)
+    resumeTimeoutRef.current = setTimeout(() => { pausedRef.current = false }, 2500)
+  }
+
+  useEffect(() => () => clearTimeout(resumeTimeoutRef.current), [])
+
+  // Deux exemplaires de la liste, bout a bout, pour une boucle invisible :
+  // au passage de scrollLeft >= largeur d'un jeu, on retranche cette
+  // largeur exactement au meme instant, le contenu visible ne bouge pas.
+  const items = [...cards, ...cards]
+
+  return (
+    <div
+      ref={trackRef}
+      className="infos-carousel"
+      onMouseEnter={pause}
+      onMouseLeave={scheduleResume}
+      onPointerDown={pause}
+      onPointerUp={scheduleResume}
+      onTouchStart={pause}
+      onTouchEnd={scheduleResume}
+      onWheel={() => { pause(); scheduleResume() }}
+    >
+      {items.map((card, i) => {
+        const Icon = PRACTICAL_INFO_ICONS[card.id] || Plane
+        return (
+          <div className="infos-carousel-card" key={`${card.id}-${i}`}>
+            <div className="infos-carousel-icon"><Icon size={24} strokeWidth={1.8} /></div>
+            <h4 className="infos-carousel-title">{card.title}</h4>
+            <p className="infos-carousel-text">{card.text}</p>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 // Dates fixes de l'evenement (calendrier local du visiteur, pas UTC — un
 // decompte de jours n'a pas besoin de precision de fuseau horaire).
@@ -39,7 +130,7 @@ const HighlightCard = (props) => {
 
 // Modale generique — meme mecanique que celle d'Intervenants.jsx (portail
 // vers document.body pour echapper au contexte d'empilement du header fixe).
-const HighlightModal = ({ onClose, children }) =>
+const HighlightModal = ({ onClose, children, wide }) =>
   createPortal((
     <div
       style={{
@@ -51,7 +142,7 @@ const HighlightModal = ({ onClose, children }) =>
     >
       <div
         style={{
-          background: '#fff', borderRadius: 24, width: '100%', maxWidth: 560,
+          background: '#fff', borderRadius: 24, width: '100%', maxWidth: wide ? 680 : 560,
           maxHeight: '90vh', overflowY: 'auto', position: 'relative',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         }}
@@ -132,17 +223,14 @@ const HighlightsBanner = () => {
       </div>
 
       {openModal === 'practicalInfo' && (
-        <HighlightModal onClose={() => setOpenModal(null)}>
+        <HighlightModal onClose={() => setOpenModal(null)} wide>
           <h3 style={{ fontSize: 'clamp(20px, 3vw, 26px)', fontWeight: 900, color: '#0a1128', margin: '0 0 12px' }}>
             {t('highlights.practicalInfo.title')}
           </h3>
           <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.7, marginBottom: 24, borderBottom: '1px solid #e2e8f0', paddingBottom: 20 }}>
             {t('highlights.practicalInfo.subtitle')}
           </p>
-          <div style={{ background: '#edf2f7', borderRadius: 14, padding: 26, borderLeft: `4px solid ${BLUE}`, textAlign: 'center' }}>
-            <p style={{ margin: 0, fontSize: 15, color: NAVY, fontWeight: 700 }}>{t('highlights.practicalInfo.comingSoon')}</p>
-            <p style={{ margin: '10px 0 0', fontSize: 13.5, color: '#64748b', lineHeight: 1.7 }}>{t('highlights.practicalInfo.comingSoonDetail')}</p>
-          </div>
+          <InfosPratiquesCarousel cards={t('highlights.practicalInfo.cards', { returnObjects: true })} />
         </HighlightModal>
       )}
 
@@ -242,6 +330,48 @@ const HighlightsBanner = () => {
         @media (max-width: 700px) {
           .highlight-banner-main { flex-direction: column; align-items: flex-start; text-align: left; }
           .highlight-banner-peek { inset: 10px -8px -10px 16px; }
+        }
+
+        .infos-carousel {
+          display: flex;
+          gap: 16px;
+          overflow-x: auto;
+          overscroll-behavior-x: contain;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          padding: 4px 2px 10px;
+          cursor: grab;
+          -webkit-mask-image: linear-gradient(to right, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
+        }
+        .infos-carousel:active { cursor: grabbing; }
+        .infos-carousel::-webkit-scrollbar { display: none; }
+        .infos-carousel-card {
+          flex: 0 0 200px;
+          width: 200px;
+          background: #fff;
+          border: 1px solid rgba(0,54,127,0.1);
+          border-radius: 16px;
+          padding: 18px 16px;
+          box-shadow: 0 6px 18px rgba(0,54,127,0.07);
+        }
+        .infos-carousel-icon {
+          width: 44px; height: 44px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, ${CAROUSEL_NAVY}, ${CAROUSEL_SKY});
+          display: flex; align-items: center; justify-content: center;
+          color: #fff;
+          margin-bottom: 12px;
+        }
+        .infos-carousel-title {
+          font-size: 13.5px; font-weight: 800; color: ${CAROUSEL_NAVY};
+          margin: 0 0 6px; line-height: 1.3;
+        }
+        .infos-carousel-text {
+          font-size: 12px; color: #64748b; line-height: 1.6; margin: 0;
+        }
+        @media (max-width: 480px) {
+          .infos-carousel-card { flex-basis: 168px; width: 168px; }
         }
       `}</style>
     </section>

@@ -214,10 +214,18 @@
     "practicalInfo": {
       "eyebrow": "Préparer votre venue",
       "title": "Tout savoir sur les formalités d'accès à Casablanca",
-      "subtitle": "Visa, hébergement, transport.",
+      "subtitle": "Hébergement, transport, infos pratiques.",
       "cta": "Consulter les infos pratiques",
       "comingSoon": "Contenu à venir",
-      "comingSoonDetail": "Les informations détaillées sur le visa, l'hébergement et le transport pour rejoindre Casablanca seront publiées prochainement sur cette page."
+      "comingSoonDetail": "Les informations détaillées sur le visa, l'hébergement et le transport pour rejoindre Casablanca seront publiées prochainement sur cette page.",
+      "cards": [
+        { "id": "airport", "title": "Aéroport & Accueil", "text": "Aéroport Mohammed V (CMN). Accueil et transfert vers l'hôtel assurés à l'arrivée des participants." },
+        { "id": "hotel", "title": "Hébergement", "text": "Hôtels partenaires 4★ à proximité immédiate du lieu de la conférence, pris en charge pour tous les participants inscrits. Établissement communiqué à la confirmation d'inscription." },
+        { "id": "shuttle", "title": "Navettes Conférence", "text": "Navettes organisées chaque jour entre l'hôtel et la salle de conférence. Aucun déplacement autonome nécessaire." },
+        { "id": "money", "title": "Monnaie & Connectivité", "text": "Dirham marocain (MAD). Cartes bancaires internationales largement acceptées. Wifi disponible à l'hôtel et sur le lieu de conférence." },
+        { "id": "weather", "title": "Météo & Tenue", "text": "Climat doux en octobre à Casablanca. Tenue professionnelle recommandée pour les sessions." },
+        { "id": "emergency", "title": "Contact d'urgence", "text": "Un point focal dédié pour toute question logistique avant et pendant l'événement." }
+      ]
     },
     "dgMessage": {
       "eyebrow": "Message institutionnel",

@@ -214,10 +214,18 @@
     "practicalInfo": {
       "eyebrow": "Plan your trip",
       "title": "Everything you need to know to travel to Casablanca",
-      "subtitle": "Visa, accommodation, transport.",
+      "subtitle": "Accommodation, transport, practical info.",
       "cta": "See practical information",
       "comingSoon": "Content coming soon",
-      "comingSoonDetail": "Detailed information on visas, accommodation and transport to reach Casablanca will be published on this page shortly."
+      "comingSoonDetail": "Detailed information on visas, accommodation and transport to reach Casablanca will be published on this page shortly.",
+      "cards": [
+        { "id": "airport", "title": "Airport & Welcome", "text": "Mohammed V Airport (CMN). Welcome and transfer to the hotel provided on arrival." },
+        { "id": "hotel", "title": "Accommodation", "text": "Partner 4★ hotels right next to the conference venue, covered for all registered participants. Property confirmed once your registration is complete." },
+        { "id": "shuttle", "title": "Conference Shuttles", "text": "Shuttles run every day between the hotel and the conference venue. No need to arrange your own transport." },
+        { "id": "money", "title": "Currency & Connectivity", "text": "Moroccan dirham (MAD). International bank cards widely accepted. Wifi available at the hotel and at the conference venue." },
+        { "id": "weather", "title": "Weather & Dress Code", "text": "Mild climate in Casablanca in October. Business attire recommended for sessions." },
+        { "id": "emergency", "title": "Emergency Contact", "text": "A dedicated focal point for any logistics question before and during the event." }
+      ]
     },
     "dgMessage": {
       "eyebrow": "Institutional message",
