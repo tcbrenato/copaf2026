@@ -1100,7 +1100,7 @@ export default function AdminProforma() {
 
               <button onClick={handleGenerateRecap} disabled={genLoading === 'recap'} style={actionBtn('#EBF3FF', NAVY, '#bfdbfe')}>
                 <Ico name="file" size={15} color={NAVY} />
-                {genLoading === 'recap' ? 'Génération...' : (isGroup ? 'Facture groupée (récap)' : 'Récapitulatif')}
+                {genLoading === 'recap' ? 'Génération...' : (isGroup ? 'Récapitulatif groupé (attestation)' : 'Récapitulatif')}
               </button>
 
               <button onClick={handleGenerateConfirmationInscription} disabled={genLoading === 'confirmation'} style={actionBtn('#ecfeff', '#0e7490', '#a5f3fc')}>

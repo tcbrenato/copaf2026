@@ -358,7 +358,12 @@ const PREUVE_STATUT_COLOR = { en_attente: { bg: '#fef3c7', color: '#92400e' }, v
 // d'un membre (ex. COPAF2026-68908) le rend visible UNIQUEMENT dans son
 // espace personnel a lui ; deposer sur le dossier principal du groupe le
 // rend visible a tout le monde dans ce groupe (voir mon_dossier() cote SQL).
-function DocumentsSection({ dossier }) {
+// participantId absent (vue dossier/contact principal) : ne montre/depose
+// que les documents partages (participant_id null). participantId fourni
+// (vue d'un membre de delegation) : montre les documents partages + ceux
+// propres a ce membre, et tout depot depuis cette vue est tague a lui seul
+// -- jamais visible par les autres membres du meme dossier.
+function DocumentsSection({ dossier, participantId = null }) {
   const [docs, setDocs] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -366,10 +371,12 @@ function DocumentsSection({ dossier }) {
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data } = await supabase.from('documents_participants').select('*').eq('dossier', dossier).order('created_at')
+    let q = supabase.from('documents_participants').select('*').eq('dossier', dossier)
+    q = participantId ? q.or(`participant_id.is.null,participant_id.eq.${participantId}`) : q.is('participant_id', null)
+    const { data } = await q.order('created_at')
     setDocs(data || [])
     setLoading(false)
-  }, [dossier])
+  }, [dossier, participantId])
 
   useEffect(() => { load() }, [load])
 
@@ -383,7 +390,7 @@ function DocumentsSection({ dossier }) {
       const url = supabase.storage.from('documents-participants').getPublicUrl(path).data.publicUrl
       const { data: userData } = await supabase.auth.getUser()
       await supabase.from('documents_participants').insert({
-        dossier, type: 'autre', label: file.name, url, ajoute_par: userData?.user?.email || null,
+        dossier, participant_id: participantId, type: 'autre', label: file.name, url, ajoute_par: userData?.user?.email || null,
       })
       await load()
     }
@@ -405,12 +412,23 @@ function DocumentsSection({ dossier }) {
 
   return (
     <div style={{ marginTop: 20 }}>
-      <div style={EXTRAS_LABEL}>Documents déposés (visibles dans son espace personnel)</div>
+      <div style={EXTRAS_LABEL}>
+        Documents déposés (visibles dans son espace personnel)
+        {participantId && ' — personnels à cette personne + partagés du dossier'}
+      </div>
       {docs.map(doc => (
         <div key={doc.id} style={EXTRAS_ROW}>
           <a href={doc.url} target="_blank" rel="noreferrer" style={{ fontSize: 12.5, color: '#0f172a', fontWeight: 600, textDecoration: 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {doc.label}
           </a>
+          {participantId && (
+            <span style={{
+              fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100, flexShrink: 0,
+              color: doc.participant_id ? '#7c3aed' : '#0369a1', background: doc.participant_id ? '#f3e8ff' : '#e0f2fe',
+            }}>
+              {doc.participant_id ? 'Personnel' : 'Partagé'}
+            </span>
+          )}
           <button type="button" onClick={() => toggleDocVisible(doc)} title={doc.visible ? 'Masquer' : 'Rendre visible'} style={EXTRAS_ICONBTN}>
             <Icon name={doc.visible ? 'eye' : 'eyeOff'} size={13} color={doc.visible ? '#059669' : '#94a3b8'} />
           </button>
@@ -425,7 +443,7 @@ function DocumentsSection({ dossier }) {
         fontSize: 12, fontWeight: 600, color: '#64748b', cursor: uploading ? 'not-allowed' : 'pointer', marginTop: 4,
       }}>
         <Icon name="upload" size={13} color="#64748b" />
-        {uploading ? 'Envoi en cours...' : 'Déposer un document (badge, attestation...)'}
+        {uploading ? 'Envoi en cours...' : participantId ? 'Déposer un document pour cette personne' : 'Déposer un document (badge, attestation...)'}
         <input ref={fileRef} type="file" onChange={uploadDoc} disabled={uploading} style={{ display: 'none' }} />
       </label>
     </div>
@@ -713,10 +731,15 @@ function ModalParticipant({ row, onClose, onUpdate }) {
   const del = async () => {
     if (!confirmDel) { setConfirmDel(true); return }
     setDeleting(true)
+    // Les membres de delegation (inscription_participants) bloquent la
+    // suppression du dossier parent (contrainte FK sans cascade) : il faut
+    // les supprimer explicitement en premier.
+    const { error: membresErr } = await supabase.from('inscription_participants').delete().eq('inscription_id', row.id)
+    if (membresErr) { setDeleting(false); t('Erreur suppression : ' + membresErr.message); return }
     const { error } = await supabase.from('inscriptions').delete().eq('id', row.id)
     setDeleting(false)
     if (!error) { onUpdate(null); onClose() }
-    else t('Erreur suppression')
+    else t('Erreur suppression : ' + error.message)
   }
 
   const downloadBadge = async () => {
@@ -954,7 +977,7 @@ function ModalMembre({ membre, onClose, onUpdate }) {
         </div>
 
         <div style={{ padding: '0 28px 28px' }}>
-          <DocumentsSection dossier={membre.dossier} />
+          <DocumentsSection dossier={membre.dossier} participantId={membre._memberId} />
           <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 8, lineHeight: 1.5 }}>
             Ces documents sont visibles uniquement dans l'espace personnel de {membre.contacts?.prenom} — pour un document partagé par tout le groupe, déposez-le plutôt depuis la fiche du contact principal.
           </p>
