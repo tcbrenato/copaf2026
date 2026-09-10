@@ -417,8 +417,32 @@ export default function AdminProforma() {
     })
     setLang('fr') // reinit à chaque nouvelle recherche ; ajuster ici si detection auto souhaitée
 
-    // Reinit / restauration de la fiche groupée
-    const liste = Array.isArray(row.participants_liste) ? row.participants_liste : []
+    // Reinit / restauration de la fiche groupée. Deux sources possibles :
+    // - participants_liste (jsonb sur `inscriptions`) : ancien mecanisme,
+    //   rempli a la main par un admin qui construit une facture groupee en
+    //   combinant plusieurs dossiers individuels distincts.
+    // - inscription_participants (table dediee, liee par inscription_id) :
+    //   rempli automatiquement par le formulaire public "Inscription
+    //   Delegation" (voir Inscription.jsx). Prioritaire si presente, sinon
+    //   la fiche groupee affichait "0 EUR" (delegation_nom seul suffisait a
+    //   activer isGroup, mais la liste des membres restait vide).
+    const listeManuelle = Array.isArray(row.participants_liste) ? row.participants_liste : []
+    let liste = listeManuelle
+
+    const { data: membresLies } = await supabase
+      .from('inscription_participants')
+      .select('prenom, nom, poste')
+      .eq('dossier', row.dossier)
+      .order('ordre')
+
+    if (membresLies && membresLies.length > 0 && listeManuelle.length === 0) {
+      const unitaire = row.participants > 0 ? Math.round((row.montant || 0) / row.participants) : 3500
+      liste = [
+        { prenom: row.contacts?.prenom || '', nom: row.contacts?.nom || '', fonction: row.contacts?.poste || '', tarif: unitaire },
+        ...membresLies.map(m => ({ prenom: m.prenom || '', nom: m.nom || '', fonction: m.poste || '', tarif: unitaire })),
+      ]
+    }
+
     setDelegationName(row.delegation_nom || '')
     setParticipantsListe(liste.map(p => ({
       _id: p._id || newParticipantRow()._id,

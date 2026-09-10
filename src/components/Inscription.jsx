@@ -624,6 +624,22 @@ export default function Inscription() {
   // participant (email, PDF, bouton post-soumission) — jamais ici a l'ecran.
   const total = nb * PRIX_UNITAIRE
 
+  // Forme attendue par generateRecapPDF/generateProformaPDF pour le tableau
+  // "groupe" (voir isGroup/isGroupe dans ces deux generateurs) :
+  // {dossier, prenom, nom, fonction, tarif}. La personne source figure en
+  // premiere ligne, comme les membres. Reutilisee a la fois au moment de la
+  // soumission et par le bouton "Telecharger mon recapitulatif" post-succes
+  // (dossierValue/prixUnitaire different selon l'appelant : dossier + tarif
+  // fraichement calcules pendant handleSubmit, ou dossierNum/totalFinal deja
+  // figes une fois l'ecran de succes affiche).
+  const buildParticipantsPourPdf = (dossierValue, prixUnitaire) =>
+    inscriptionType === 'delegation'
+      ? [
+          { dossier: dossierValue, prenom: form.prenom, nom: form.nom, fonction: form.poste || '', tarif: prixUnitaire },
+          ...membres.map(m => ({ dossier: dossierValue, prenom: m.prenom, nom: m.nom, fonction: m.poste || '', tarif: prixUnitaire })),
+        ]
+      : []
+
   const handleChange     = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   const handleTypeSelect = typeId => {
     const meta = TYPE_META[typeId]
@@ -692,16 +708,7 @@ export default function Inscription() {
     const espaceLinkToken = crypto.randomUUID()
     const isDelegation = inscriptionType === 'delegation'
 
-    // Forme attendue par generateRecapPDF/generateProformaPDF pour le tableau
-    // "groupe" (deja pris en charge par ces deux generateurs, voir
-    // isGroup/isGroupe) : {dossier, prenom, nom, fonction, tarif}. La
-    // personne source figure en premiere ligne, comme les membres.
-    const participantsPourPdf = isDelegation
-      ? [
-          { dossier, prenom: form.prenom, nom: form.nom, fonction: form.poste || '', tarif: tarifInfo.prixUnitaire },
-          ...membres.map(m => ({ dossier, prenom: m.prenom, nom: m.nom, fonction: m.poste || '', tarif: tarifInfo.prixUnitaire })),
-        ]
-      : []
+    const participantsPourPdf = buildParticipantsPourPdf(dossier, tarifInfo.prixUnitaire)
 
     const inscriptionId = crypto.randomUUID()
 
@@ -1031,7 +1038,7 @@ export default function Inscription() {
 
                     <div style={{ marginBottom:28 }}>
                       <button
-                        onClick={() => generateRecapPDF({ form, dossier: dossierNum, nb, total: totalFinal, paiementMode, lang })}
+                        onClick={() => generateRecapPDF({ form, dossier: dossierNum, nb, total: totalFinal, participants: buildParticipantsPourPdf(dossierNum, nb > 0 ? Math.round(totalFinal / nb) : PRIX_UNITAIRE), delegationName: inscriptionType==='delegation' ? form.organisation : '', paiementMode, lang })}
                         className="cta-btn"
                         style={{ background:'#EBF3FF', color:'#000E91', border:'1.5px solid #bfdbfe', margin:'0 auto' }}
                       >
