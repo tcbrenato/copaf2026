@@ -450,7 +450,64 @@ function DocumentsSection({ dossier, participantId = null }) {
   )
 }
 
-function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt, onArrivedChange }) {
+// Ligne "membre de delegation" avec son propre QR affiche inline (et pas
+// seulement un lien "Voir le badge") : sans ca, seul le contact principal
+// avait un QR visible directement dans la fiche du dossier, et il fallait
+// ouvrir la fiche individuelle de chaque membre pour voir le sien.
+function MembreBadgeRow({ membre: m, toggling, onToggleArrivee }) {
+  const [qr, setQr] = useState('')
+  const [copied, setCopied] = useState(false)
+  const badgeUrl = m.badge_token ? `https://copaf-ports.com/badge/${m.badge_token}` : ''
+
+  useEffect(() => {
+    if (!badgeUrl) { setQr(''); return }
+    let cancelled = false
+    QRCode.toDataURL(badgeUrl, { width: 200, margin: 1, color: { dark: '#000E91', light: '#FFFFFF' } })
+      .then(url => { if (!cancelled) setQr(url) })
+      .catch(() => { if (!cancelled) setQr('') })
+    return () => { cancelled = true }
+  }, [badgeUrl])
+
+  const copyToken = async () => {
+    try {
+      await navigator.clipboard.writeText(m.badge_token)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* clipboard indisponible */ }
+  }
+
+  const downloadQr = () => {
+    if (!qr) return
+    const a = document.createElement('a')
+    a.href = qr
+    a.download = `QR-badge-${m.dossier}-${(m.prenom || '')}-${(m.nom || '')}.png`.replace(/\s+/g, '_')
+    a.click()
+  }
+
+  return (
+    <div style={{ ...EXTRAS_ROW, flexWrap: 'wrap', alignItems: 'center' }}>
+      {qr && <img src={qr} alt="QR code badge" style={{ width: 44, height: 44, borderRadius: 8, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />}
+      <span style={{ fontSize: 12.5, color: '#0f172a', fontWeight: 700, flex: 1, minWidth: 130 }}>
+        {m.prenom} {m.nom}
+        <span style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#94a3b8' }}>{m.poste} · {m.dossier}</span>
+      </span>
+      <button type="button" onClick={copyToken} title="Copier le token du badge" style={EXTRAS_ICONBTN}>
+        <Icon name={copied ? 'check' : 'copy'} size={13} color={copied ? '#059669' : '#64748b'} />
+      </button>
+      <button type="button" onClick={downloadQr} disabled={!qr} title="Télécharger le QR (PNG)" style={EXTRAS_ICONBTN}>
+        <Icon name="download" size={13} color="#64748b" />
+      </button>
+      <button type="button" onClick={onToggleArrivee} disabled={toggling} style={{
+        border: 'none', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
+        color: m.arrived ? '#065f46' : '#92400e', background: m.arrived ? '#d1fae5' : '#fef3c7',
+      }}>
+        {m.arrived ? `Arrivé${m.arrived_at ? ` ${fmtTime(m.arrived_at)}` : ''}` : 'Non arrivé'}
+      </button>
+    </div>
+  )
+}
+
+function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt, onArrivedChange, contactName }) {
   const [infos, setInfos] = useState([])
   const [agenda, setAgenda] = useState([])
   const [preuves, setPreuves] = useState([])
@@ -559,7 +616,7 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
       {/* Badge QR — token a coller dans Canva pour composer le visuel du badge */}
       {badgeToken && (
         <div style={{ marginTop: 20 }}>
-          <div style={EXTRAS_LABEL}>Badge — QR code (a integrer dans Canva)</div>
+          <div style={EXTRAS_LABEL}>Badge — QR code de {contactName || 'ce contact'} (contact principal) — a integrer dans Canva</div>
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             {badgeQr && (
               <img src={badgeQr} alt="QR code badge" style={{ width: 96, height: 96, borderRadius: 10, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />
@@ -600,26 +657,15 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
 
       {/* Membres de la delegation (inscription groupee, ex. plusieurs
           personnes sous un seul paiement) — chacun a son propre badge/QR
-          et son propre pointage, independant du contact principal ci-dessus. */}
+          et son propre pointage, independant du contact principal ci-dessus.
+          Chaque membre a son propre QR affiche ici (pas seulement un lien),
+          pour la meme raison que le contact principal ci-dessus : le
+          generer pour Canva sans avoir a rouvrir sa fiche. */}
       {membres.length > 0 && (
         <div style={{ marginTop: 20 }}>
-          <div style={EXTRAS_LABEL}>Membres de la délégation ({membres.length})</div>
+          <div style={EXTRAS_LABEL}>Membres de la délégation ({membres.length}) — chacun son propre badge/QR</div>
           {membres.map(m => (
-            <div key={m.id} style={{ ...EXTRAS_ROW, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 12.5, color: '#0f172a', fontWeight: 700, flex: 1, minWidth: 140 }}>
-                {m.prenom} {m.nom}
-                <span style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#94a3b8' }}>{m.poste} · {m.dossier}</span>
-              </span>
-              <a href={`https://copaf-ports.com/badge/${m.badge_token}`} target="_blank" rel="noreferrer" style={{ fontSize: 11, fontWeight: 700, color: '#0073F4', textDecoration: 'none' }}>
-                Voir le badge
-              </a>
-              <button type="button" onClick={() => toggleArrivee(m.id, m.arrived)} disabled={togglingArrivee === m.id} style={{
-                border: 'none', borderRadius: 20, padding: '4px 12px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
-                color: m.arrived ? '#065f46' : '#92400e', background: m.arrived ? '#d1fae5' : '#fef3c7',
-              }}>
-                {m.arrived ? `Arrivé${m.arrived_at ? ` ${fmtTime(m.arrived_at)}` : ''}` : 'Non arrivé'}
-              </button>
-            </div>
+            <MembreBadgeRow key={m.id} membre={m} toggling={togglingArrivee === m.id} onToggleArrivee={() => toggleArrivee(m.id, m.arrived)} />
           ))}
         </div>
       )}
@@ -786,6 +832,7 @@ function ModalParticipant({ row, onClose, onUpdate }) {
           dossier={row.dossier} badgeToken={row.badge_token} inscriptionId={row.id}
           arrived={row.arrived} arrivedAt={row.arrived_at}
           onArrivedChange={patch => onUpdate({ ...row, ...patch })}
+          contactName={`${row.prenom || ''} ${row.nom || ''}`.trim()}
         />
       )}
     </Modal>
