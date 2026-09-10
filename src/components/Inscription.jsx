@@ -40,6 +40,9 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
     arrow:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
     info:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
     ban:      <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
+    users:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    plus:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    trash:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
   }
   return icons[name] || null
 }
@@ -133,6 +136,35 @@ const TR = {
       exposant:    { label:'Exposant Digital', sublabel:'Vitrine digitale de vos solutions', desc:'Exposition 100% digitale sur le site COPAF et les tablettes distribuées aux participants.', tag:'digital - site + tablettes', cta:'Voir les formules' },
     },
     pageDediee: 'Page dédiée \u2192',
+    // ── Sous-etape Individuelle / Delegation (participant uniquement) ──
+    titleStep1c: 'Comment souhaitez-vous ', titleStep1d: 'vous inscrire',
+    subtitleStepMode: 'Choisissez le type d’inscription qui correspond à votre situation.',
+    changerCategorie: '← Changer de catégorie',
+    changerType: '← Changer le type',
+    modeIndividuelle: {
+      label: 'Inscription Individuelle', desc: 'Je m’inscris seul(e)', cta: 'Continuer',
+    },
+    modeDelegation: {
+      label: 'Inscription Délégation', desc: 'J’inscris plusieurs personnes de mon organisation', cta: 'Continuer',
+    },
+    delegationBadge: 'Inscription Délégation',
+    individuelleBadge: 'Inscription Individuelle',
+    sourceTitle: 'Personne source de la délégation',
+    sourceDesc: 'Renseignez les informations de la personne source qui recevra toutes les communications.',
+    membresTitle: 'Membres de la délégation',
+    membresDesc: 'Ajoutez les membres de votre délégation (la personne source n’est pas incluse).',
+    ajouterMembre: '+ Ajouter un membre',
+    membreLabel: n => `Membre ${n}`,
+    supprimerMembre: 'Supprimer',
+    membreFields: {
+      prenom: 'Prénom *', nom: 'Nom *', telephone: 'Téléphone *', email: 'Email *', poste: 'Poste', whatsapp: 'WhatsApp',
+    },
+    membrePh: {
+      prenom: 'Prénom', nom: 'Nom', telephone: '+xxx xxx xxx xxx', email: 'email@exemple.com', poste: 'Fonction', whatsapp: '+xxx xxx xxx xxx',
+    },
+    infosComplLabel: 'Informations complémentaires',
+    infosComplPh: 'Précisions sur la délégation, besoins spécifiques, etc.',
+    delegationErreurMembre: 'Merci de renseigner au moins prénom, nom, téléphone et email pour chaque membre ajouté.',
     voirInclus: 'Voir ce qui est inclus',
     inclusTitle: 'Ce qui est inclus',
     inclusTarif: 'Tarif Participant \u2014 3 500 EUR',
@@ -253,6 +285,35 @@ const TR = {
       exposant:    { label:'Digital Exhibitor', sublabel:'A digital showcase for your solutions', desc:'100% digital exhibition on the COPAF website and on the tablets distributed to participants.', tag:'digital - website + tablets', cta:'View packages' },
     },
     pageDediee: 'Dedicated page \u2192',
+    // ── Individual / Delegation sub-step (participant only) ──
+    titleStep1c: 'How would you like ', titleStep1d: 'to register',
+    subtitleStepMode: 'Choose the registration type that fits your situation.',
+    changerCategorie: '← Change category',
+    changerType: '← Change type',
+    modeIndividuelle: {
+      label: 'Individual Registration', desc: 'I am registering by myself', cta: 'Continue',
+    },
+    modeDelegation: {
+      label: 'Delegation Registration', desc: 'I am registering several people from my organisation', cta: 'Continue',
+    },
+    delegationBadge: 'Delegation Registration',
+    individuelleBadge: 'Individual Registration',
+    sourceTitle: 'Delegation source contact',
+    sourceDesc: "Enter the details of the source contact who will receive all communications.",
+    membresTitle: 'Delegation members',
+    membresDesc: "Add the members of your delegation (the source contact is not included).",
+    ajouterMembre: '+ Add a member',
+    membreLabel: n => `Member ${n}`,
+    supprimerMembre: 'Remove',
+    membreFields: {
+      prenom: 'First name *', nom: 'Last name *', telephone: 'Phone *', email: 'Email *', poste: 'Position', whatsapp: 'WhatsApp',
+    },
+    membrePh: {
+      prenom: 'First name', nom: 'Last name', telephone: '+xxx xxx xxx xxx', email: 'email@example.com', poste: 'Role', whatsapp: '+xxx xxx xxx xxx',
+    },
+    infosComplLabel: 'Additional information',
+    infosComplPh: 'Details about the delegation, specific needs, etc.',
+    delegationErreurMembre: 'Please provide at least first name, last name, phone and email for each member added.',
     voirInclus: "See what's included",
     inclusTitle: "What's included",
     inclusTarif: 'Participant rate \u2014 EUR 3,500',
@@ -384,15 +445,50 @@ async function upsertContact(form) {
 // tarif_type / code_promo pour la tracabilite cote secretariat (jamais
 // affiches publiquement, voir AdminProforma.jsx). Necessite ces 2 colonnes
 // sur la table `inscriptions` (deja ajoutees en SQL).
-async function createInscription(contactId, form, nb, montant, paiementMode, dossier, lang, tarifInfo, espaceLinkToken) {
+// delegationNom (facultatif) : nom d'organisation stocke dans la colonne
+// dediee `delegation_nom` pour une inscription de type delegation — reste
+// null pour une inscription individuelle (comportement inchange).
+// Retourne l'id de la ligne creee : necessaire pour lier les membres de
+// delegation via inscription_participants.inscription_id (voir
+// createDelegationMembres ci-dessous) — ne change rien a ce qui est insere
+// pour le parcours individuel, qui ignore simplement cette valeur de retour.
+// L'id est genere COTE CLIENT (comme espaceLinkToken deja) plutot que lu
+// en retour via .select() : la table `inscriptions` n'a pas de policy
+// SELECT pour le role anon (seuls les admins/dg/manager peuvent lire),
+// et .insert().select() exige cette permission pour le RETURNING sous RLS
+// -> echouerait avec "new row violates row-level security policy" pour
+// tout le monde (individuel compris), meme si l'insertion elle-meme est
+// autorisee par la policy INSERT. Generer l'id nous-memes evite ce probleme
+// sans toucher aux policies existantes.
+async function createInscription(inscriptionId, contactId, form, nb, montant, paiementMode, dossier, lang, tarifInfo, espaceLinkToken, delegationNom) {
   const { error } = await supabase.from('inscriptions').insert([{
+    id: inscriptionId,
     contact_id: contactId, dossier, participants: nb, montant,
     paiement_status: paiementMode==='maintenant'?'en_attente':'reserve',
     paiement_mode: paiementMode, message: form.message, langue: lang,
     tarif_type: tarifInfo.estPreferentiel ? 'preferentiel' : 'standard',
     code_promo: tarifInfo.codeUtilise || null,
     espace_link_token: espaceLinkToken,
+    delegation_nom: delegationNom || null,
   }])
+  if (error) throw new Error(error.message)
+}
+
+// Insere les membres d'une delegation (hors personne source, deja geree via
+// upsertContact/createInscription) dans inscription_participants — meme
+// table que celle utilisee cote admin pour les membres ajoutes apres coup
+// (badge individuel, check-in), pour que ces membres beneficient directement
+// de la meme infrastructure. Ne fait rien si la liste est vide.
+async function createDelegationMembres(inscriptionId, dossier, membres, lang) {
+  if (!membres.length) return
+  const { error } = await supabase.from('inscription_participants').insert(
+    membres.map((m, i) => ({
+      inscription_id: inscriptionId, dossier, ordre: i + 1,
+      prenom: m.prenom, nom: m.nom, poste: m.poste || null,
+      email: m.email, telephone: m.telephone, whatsapp: m.whatsapp || null,
+      langue: lang,
+    }))
+  )
   if (error) throw new Error(error.message)
 }
 
@@ -490,7 +586,15 @@ export default function Inscription() {
   const t = TR[lang]
 
   const [etape,        setEtape]        = useState(1)
+  // etape 1 = choix du type (participant/sponsor/exposant)
+  // etape 2 = choix Individuelle / Delegation (participant uniquement)
+  // etape 3 = formulaire (branche selon inscriptionType)
+  const [inscriptionType, setInscriptionType] = useState('') // '' | 'individuelle' | 'delegation'
+  // form.prenom/nom/email/telephone servent de "personne source" en mode
+  // delegation (meme etat reutilise, jamais duplique) ; form.message sert
+  // d'"Informations complementaires" dans ce meme mode.
   const [form,         setForm]         = useState({ nom:'', prenom:'', email:'', telephone:'', organisation:'', poste:'', pays:'', participants:'1', message:'', codePromo:'' })
+  const [membres,      setMembres]      = useState([]) // delegation uniquement : [{prenom,nom,telephone,email,poste,whatsapp}]
   const [orgSelect,    setOrgSelect]    = useState('')
   const [paiementMode, setPaiementMode] = useState('maintenant')
   const [cgv,          setCgv]          = useState(false)
@@ -509,7 +613,10 @@ export default function Inscription() {
   // cet endroit, ni ailleurs apres soumission.
   const [totalFinal,   setTotalFinal]   = useState(0)
 
-  const nb    = parseInt(form.participants) || 1
+  // Individuelle : nb declare manuellement (menu deroulant, comportement
+  // inchange). Delegation : nb derive automatiquement de la personne source
+  // (1) + le nombre de membres ajoutes — jamais saisi directement.
+  const nb = inscriptionType === 'delegation' ? 1 + membres.length : (parseInt(form.participants) || 1)
   // Recapitulatif AFFICHE PENDANT LA SAISIE : toujours au tarif standard,
   // quel que soit le pays ou le code saisi. Le vrai tarif (potentiellement
   // preferentiel) n'est calcule qu'a la soumission (voir totalFinal
@@ -518,7 +625,17 @@ export default function Inscription() {
   const total = nb * PRIX_UNITAIRE
 
   const handleChange     = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-  const handleTypeSelect = typeId => { const meta = TYPE_META[typeId]; if (meta.redirect) navigate(meta.redirectTo); else { trackFormStart('inscription'); setEtape(2) } }
+  const handleTypeSelect = typeId => {
+    const meta = TYPE_META[typeId]
+    if (meta.redirect) { navigate(meta.redirectTo); return }
+    trackFormStart('inscription')
+    setEtape(2)
+  }
+  const handleModeSelect = mode => { setInscriptionType(mode); setEtape(3) }
+
+  const ajouterMembre = () => setMembres(m => [...m, { prenom:'', nom:'', telephone:'', email:'', poste:'', whatsapp:'' }])
+  const supprimerMembre = idx => setMembres(m => m.filter((_, i) => i !== idx))
+  const handleMembreChange = (idx, champ, valeur) => setMembres(m => m.map((mem, i) => i === idx ? { ...mem, [champ]: valeur } : mem))
 
   // Le pays pilote la liste des organisations proposees juste en dessous
   // (evite un menu deroulant unique avec ~90 ports a parcourir). Changer de
@@ -573,11 +690,36 @@ export default function Inscription() {
     setTotalFinal(totalReel) // fige le montant pour le bouton post-soumission
 
     const espaceLinkToken = crypto.randomUUID()
+    const isDelegation = inscriptionType === 'delegation'
+
+    // Forme attendue par generateRecapPDF/generateProformaPDF pour le tableau
+    // "groupe" (deja pris en charge par ces deux generateurs, voir
+    // isGroup/isGroupe) : {dossier, prenom, nom, fonction, tarif}. La
+    // personne source figure en premiere ligne, comme les membres.
+    const participantsPourPdf = isDelegation
+      ? [
+          { dossier, prenom: form.prenom, nom: form.nom, fonction: form.poste || '', tarif: tarifInfo.prixUnitaire },
+          ...membres.map(m => ({ dossier, prenom: m.prenom, nom: m.nom, fonction: m.poste || '', tarif: tarifInfo.prixUnitaire })),
+        ]
+      : []
+
+    const inscriptionId = crypto.randomUUID()
 
     try {
       const contactId = await upsertContact(form)
-      await createInscription(contactId, form, nb, totalReel, paiementMode, dossier, lang, tarifInfo, espaceLinkToken)
-      fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:totalReel,dossier,paiement:paiementMode,langue:lang,tarif_type:tarifInfo.estPreferentiel?'preferentiel':'standard'}) }).catch(()=>{})
+      await createInscription(inscriptionId, contactId, form, nb, totalReel, paiementMode, dossier, lang, tarifInfo, espaceLinkToken, isDelegation ? form.organisation : null)
+      if (isDelegation) await createDelegationMembres(inscriptionId, dossier, membres, lang)
+
+      // Liste texte simple des membres, pour un futur usage dans le template
+      // EmailJS (variable {{membres_liste_text}} a ajouter manuellement dans
+      // le template EmailJS existant si on veut l'afficher dans l'email —
+      // EmailJS est un service externe, son template ne peut pas etre
+      // modifie depuis ce code).
+      const membresListeText = isDelegation
+        ? participantsPourPdf.map((p, i) => `${i + 1}. ${p.prenom} ${p.nom}${p.fonction ? ` (${p.fonction})` : ''}`).join('\n')
+        : ''
+
+      fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...form,montant:totalReel,dossier,paiement:paiementMode,langue:lang,tarif_type:tarifInfo.estPreferentiel?'preferentiel':'standard',inscription_type:isDelegation?'delegation':'individuelle',delegation_nom:isDelegation?form.organisation:'',delegation_membres:isDelegation?JSON.stringify(membres):''}) }).catch(()=>{})
 
       // ── Generation des 2 documents (Attestation + Proforma) ──
       // download:false => on recupere l'objet jsPDF sans declencher le
@@ -600,7 +742,7 @@ export default function Inscription() {
       let attestationUrl = ''
       let proformaUrl = ''
       try {
-        const attestationDoc = await generateRecapPDF({ form, dossier, nb, total: totalReel, paiementMode, lang, download: false })
+        const attestationDoc = await generateRecapPDF({ form, dossier, nb, total: totalReel, participants: participantsPourPdf, delegationName: isDelegation ? form.organisation : '', paiementMode, lang, download: false })
         attestationDoc.save(`COPAF2026-Attestation-${dossier}.pdf`)
         const attestationBlob = attestationDoc.output('blob')
         const attestationPath = `${dossier}-attestation-${lang}.pdf`
@@ -619,7 +761,7 @@ export default function Inscription() {
       }
 
       try {
-        const proformaDoc = await generateProformaPDF({ form, dossier, nb, total: totalReel, lang, download: false })
+        const proformaDoc = await generateProformaPDF({ form, dossier, nb, total: totalReel, participants: participantsPourPdf, delegationName: isDelegation ? form.organisation : '', lang, download: false })
         const proformaBlob = proformaDoc.output('blob')
         const proformaPath = `${dossier}-proforma-${lang}.pdf`
         const { error: proformaUploadErr } = await supabase.storage.from('documents-inscription').upload(proformaPath, proformaBlob, { upsert: true, contentType: 'application/pdf' })
@@ -651,11 +793,19 @@ export default function Inscription() {
       const locale = lang === 'en' ? 'en-US' : 'fr-FR'
       await emailjs.send(EMAILJS_SVC, templateId, {
         prenom:form.prenom, nom:form.nom, email:form.email, organisation:form.organisation,
-        poste:form.poste, pays:form.pays, participants:form.participants,
+        poste:form.poste, pays:form.pays, participants: isDelegation ? String(nb) : form.participants,
         montant:`${totalReel.toLocaleString(locale)} EUR`, tarif:`${tarifInfo.prixUnitaire.toLocaleString(locale)} EUR/pers.`,
         dossier, paiement_mode:paiementMode==='maintenant'?'Paiement immediat':'Reservation differee',
         paiement_maintenant:paiementMode==='maintenant'?'true':'', paiement_reserve:paiementMode==='plus_tard'?'true':'',
         langue:lang, attestation_url: attestationUrl, proforma_url: proformaUrl, espace_url: espaceUrl,
+        // Nouvelles variables (delegation uniquement) — a ajouter manuellement
+        // dans le template EmailJS existant pour qu'elles s'affichent dans
+        // l'email : {{inscription_type}}, {{delegation_nom}},
+        // {{membres_liste_text}}. Sans cet ajout cote EmailJS, ces valeurs
+        // sont simplement ignorees par le template actuel (aucune erreur).
+        inscription_type: isDelegation ? 'Delegation' : 'Individuelle',
+        delegation_nom: isDelegation ? form.organisation : '',
+        membres_liste_text: membresListeText,
       }, EMAILJS_KEY)
 
       setDossierNum(dossier); setSubmitted(true)
@@ -750,10 +900,12 @@ export default function Inscription() {
             <h2 style={{ fontSize:'clamp(24px,5vw,54px)', fontWeight:900, color:'#0f172a', marginBottom:16, lineHeight:1.1, letterSpacing:'-0.03em' }}>
               {etape===1
                 ? <>{t.titleStep1a}<span style={{ background:'linear-gradient(135deg,#0073F4,#000E91)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{t.titleStep1b}</span></>
+                : etape===2
+                ? <>{t.titleStep1c}<span style={{ background:'linear-gradient(135deg,#0073F4,#000E91)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{t.titleStep1d}</span></>
                 : <>{t.titleStep2a}<span style={{ background:'linear-gradient(135deg,#0073F4,#000E91)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>{t.titleStep2b}</span></>}
             </h2>
             <p style={{ fontSize:'clamp(14px,2vw,17px)', color:'#64748b', maxWidth:500, margin:'0 auto', lineHeight:1.8 }}>
-              {etape===1 ? t.subtitleStep1 : t.subtitleStep2}
+              {etape===1 ? t.subtitleStep1 : etape===2 ? t.subtitleStepMode : t.subtitleStep2}
             </p>
             {etape===1 && (
               <button onClick={() => setShowVideo(true)} style={{
@@ -769,14 +921,23 @@ export default function Inscription() {
               </button>
             )}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginTop:20 }}>
-              {[1,2].map(s => <div key={s} className="step-dot" style={{ width:etape===s?24:8, background:etape===s?'#0073F4':'#cbd5e1', borderRadius:etape===s?4:'50%' }} />)}
+              {[1,2,3].map(s => <div key={s} className="step-dot" style={{ width:etape===s?24:8, background:etape===s?'#0073F4':'#cbd5e1', borderRadius:etape===s?4:'50%' }} />)}
             </div>
-            {etape===2 && !submitted && (
-              <button onClick={() => setEtape(1)} style={{ background:'none', border:'1.5px solid #e2e8f0', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, color:'#475569', fontSize:13, fontWeight:600, padding:'8px 18px', borderRadius:100, marginTop:16, fontFamily:'inherit', transition:'all .2s' }}
-                onMouseEnter={e => {e.currentTarget.style.borderColor='#0073F4';e.currentTarget.style.color='#0073F4'}}
-                onMouseLeave={e => {e.currentTarget.style.borderColor='#e2e8f0';e.currentTarget.style.color='#475569'}}>
-                {t.backBtn}
-              </button>
+            {etape>=2 && !submitted && (
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, flexWrap:'wrap', marginTop:16 }}>
+                <button onClick={() => { setEtape(1); setInscriptionType('') }} style={{ background:'none', border:'1.5px solid #e2e8f0', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, color:'#475569', fontSize:13, fontWeight:600, padding:'8px 18px', borderRadius:100, fontFamily:'inherit', transition:'all .2s' }}
+                  onMouseEnter={e => {e.currentTarget.style.borderColor='#0073F4';e.currentTarget.style.color='#0073F4'}}
+                  onMouseLeave={e => {e.currentTarget.style.borderColor='#e2e8f0';e.currentTarget.style.color='#475569'}}>
+                  {t.changerCategorie}
+                </button>
+                {etape===3 && (
+                  <button onClick={() => setEtape(2)} style={{ background:'none', border:'1.5px solid #e2e8f0', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:6, color:'#475569', fontSize:13, fontWeight:600, padding:'8px 18px', borderRadius:100, fontFamily:'inherit', transition:'all .2s' }}
+                    onMouseEnter={e => {e.currentTarget.style.borderColor='#0073F4';e.currentTarget.style.color='#0073F4'}}
+                    onMouseLeave={e => {e.currentTarget.style.borderColor='#e2e8f0';e.currentTarget.style.color='#475569'}}>
+                    {t.changerType}
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
@@ -825,8 +986,31 @@ export default function Inscription() {
             </div>
           )}
 
-          {/* ETAPE 2 */}
+          {/* ETAPE 2 — choix Individuelle / Delegation (participant uniquement) */}
           {etape===2 && (
+            <div className="cards-grid" style={{ gridTemplateColumns:'repeat(2,minmax(0,1fr))', maxWidth:640 }}>
+              {[
+                { mode:'individuelle', icon:'user',  color:'#0073F4', bg:'#EBF3FF', tt:t.modeIndividuelle },
+                { mode:'delegation',   icon:'users', color:'#000E91', bg:'rgba(0,14,145,.06)', tt:t.modeDelegation },
+              ].map((c, idx) => (
+                <div key={c.mode} className={`type-card fade-up-${idx+1}`} onClick={() => handleModeSelect(c.mode)} style={{ textAlign:'center' }}>
+                  <div style={{ position:'absolute', top:0, left:0, right:0, height:4, background:`linear-gradient(90deg,${c.color},${c.color}99)`, borderRadius:'18px 18px 0 0' }} />
+                  <div style={{ width:64, height:64, borderRadius:18, background:c.bg, display:'flex', alignItems:'center', justifyContent:'center', margin:'8px auto 20px', border:`1px solid ${c.color}25` }}>
+                    <Ico name={c.icon} size={30} color={c.color} />
+                  </div>
+                  <div style={{ fontSize:19, fontWeight:800, color:'#0f172a', marginBottom:8 }}>{c.tt.label}</div>
+                  <p style={{ fontSize:13.5, color:'#64748b', lineHeight:1.6, marginBottom:24 }}>{c.tt.desc}</p>
+                  <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'14px 18px', background:`linear-gradient(135deg,${c.color},${c.color}cc)`, borderRadius:12, color:'#fff', fontSize:14, fontWeight:800 }}>
+                    <span>{c.tt.cta}</span>
+                    <Ico name="arrow" size={17} color="#fff" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ETAPE 3 — succes (partage) puis formulaire individuel OU delegation */}
+          {etape===3 && (
             <div className="form-layout scale-in">
 
               <div style={{ background:'#fff', border:'1.5px solid #e2e8f0', borderRadius:24, padding:'clamp(20px,5vw,44px)', boxShadow:'0 8px 40px rgba(0,14,145,.07)', minWidth:0 }}>
@@ -912,8 +1096,8 @@ export default function Inscription() {
                     </div>
                   </div>
 
-                ) : (
-                  /* FORMULAIRE */
+                ) : inscriptionType==='individuelle' ? (
+                  /* FORMULAIRE INDIVIDUEL */
                   <form onSubmit={handleSubmit} noValidate style={{ minWidth:0 }}>
                     <h3 style={{ fontSize:20, fontWeight:800, color:'#0f172a', marginBottom:28, textAlign:'center' }}>{t.formTitle}</h3>
 
@@ -990,6 +1174,222 @@ export default function Inscription() {
 
                     {/* Code partenaire — champ discret, aucune mention de reduction/tarif.
                         Volontairement place en bas de formulaire, sans emphase visuelle. */}
+                    <div style={{ marginBottom:22 }}>
+                      <label style={{ ...lbl, color:'#94a3b8' }}>{t.codePromoLabel}</label>
+                      <input
+                        name="codePromo" type="text" value={form.codePromo} onChange={handleChange}
+                        placeholder={t.codePromoPh}
+                        style={{ ...inp('codePromo'), maxWidth:220 }}
+                        onFocus={() => setFocused('codePromo')} onBlur={() => setFocused('')}
+                        autoComplete="off"
+                      />
+                    </div>
+
+                    {/* Mode paiement */}
+                    <div style={{ marginBottom:18 }}>
+                      <label style={lbl}>{t.paiementLabel}</label>
+                      <div className="pay-grid">
+                        {t.paiementOpts.map(opt => {
+                          const active = paiementMode===opt.value
+                          const icon = opt.value === 'maintenant' ? 'card' : 'calendar'
+                          return (
+                            <button key={opt.value} type="button" onClick={() => setPaiementMode(opt.value)} style={{ background:active?'#EBF3FF':'#f8fafc', border:`2px solid ${active?'#0073F4':'#e2e8f0'}`, borderRadius:14, padding:'14px 16px', cursor:'pointer', textAlign:'left', fontFamily:'inherit', transition:'all .2s', display:'flex', flexDirection:'column', gap:8, minHeight:75 }}>
+                              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                                <div style={{ width:32, height:32, borderRadius:8, background:active?'#fff':'#e2e8f0', display:'flex', alignItems:'center', justifyContent:'center', transition:'all .2s' }}>
+                                  <Ico name={icon} size={16} color={active?'#0073F4':'#64748b'} />
+                                </div>
+                                <span style={{ fontSize:13, fontWeight:700, color:active?'#000E91':'#334155' }}>{opt.title}</span>
+                              </div>
+                              <span style={{ fontSize:11.5, color:'#64748b', lineHeight:1.4, paddingLeft:40 }}>{opt.desc}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Alerte non-remboursement + confirmation, fusionnee */}
+                    <div style={{ background:'#fffbeb', border:'1.5px solid #fcd34d', borderRadius:14, padding:'16px 18px', marginBottom:22, display:'flex', gap:10, alignItems:'flex-start' }}>
+                      <Ico name="info" size={18} color="#d97706" />
+                      <div>
+                        <div style={{ fontSize:12, fontWeight:700, color:'#92400e', marginBottom:6 }}>{t.avantValiderTitle}</div>
+                        <p style={{ fontSize:12, color:'#78350f', lineHeight:1.65, margin:'0 0 6px' }}>{t.avantValider1.replace(/\*\*/g,'')}</p>
+                        <p style={{ fontSize:12, color:'#78350f', lineHeight:1.65, margin:0 }}>{t.avantValider2}</p>
+                      </div>
+                    </div>
+
+                    <div style={{ background:'#fef2f2', border:'1.5px solid #fecaca', borderRadius:14, padding:'16px 18px', marginBottom:18, display:'flex', gap:10, alignItems:'flex-start' }}>
+                      <Ico name="shield" size={18} color="#991b1b" />
+                      <div>
+                        <div style={{ fontSize:12, fontWeight:700, color:'#991b1b', marginBottom:6 }}>{t.securityTitle}</div>
+                        <div style={{ fontSize:12, color:'#7f1d1d', lineHeight:1.7 }}>{t.securityText}</div>
+                      </div>
+                    </div>
+
+                    {/* CGV & RGPD */}
+                    <div style={{ marginBottom:24 }}>
+                      <label className="check-row">
+                        <input type="checkbox" checked={cgv} onChange={e => setCgv(e.target.checked)} required />
+                        <span>{t.cgvLabel}<button type="button" className="doc-link" onClick={() => setModal('cgv')}>{t.cgvLink}</button>{t.cgvSuffix}</span>
+                      </label>
+                      <label className="check-row">
+                        <input type="checkbox" checked={rgpd} onChange={e => setRgpd(e.target.checked)} required />
+                        <span>{t.rgpdLabel}<button type="button" className="doc-link" onClick={() => setModal('rgpd')}>{t.rgpdLink}</button>{t.rgpdSuffix}</span>
+                      </label>
+                    </div>
+
+                    {errorMsg && (
+                      <div style={{ background:'#fef2f2', border:'1.5px solid #fca5a5', borderRadius:12, padding:'12px 16px', fontSize:13, color:'#dc2626', marginBottom:18, display:'flex', gap:8, alignItems:'flex-start' }}>
+                        <Ico name="alert" size={16} color="#dc2626" />
+                        {errorMsg}
+                      </div>
+                    )}
+
+                    <button type="submit" className="submit-btn" disabled={loading || !cgv || !rgpd}>
+                      {loading ? <><div className="spinner" /> {t.submitLoading}</> : <>{paiementMode==='maintenant'?t.submitPay:t.submitReserve} <Ico name="arrow" size={16} color="#fff" /></>}
+                    </button>
+
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginTop:14 }}>
+                      <Ico name="lock" size={13} color="#94a3b8" />
+                      <p style={{ fontSize:12, color:'#94a3b8', margin:0 }}>{t.secureNote}</p>
+                    </div>
+                  </form>
+                ) : (
+                  /* FORMULAIRE DELEGATION */
+                  <form onSubmit={handleSubmit} noValidate style={{ minWidth:0 }}>
+                    <h3 style={{ fontSize:20, fontWeight:800, color:'#0f172a', marginBottom:28, textAlign:'center' }}>{t.formTitle}</h3>
+
+                    {/* Personne source */}
+                    <div style={{ background:'#EBF3FF', border:'1.5px solid #bfdbfe', borderRadius:14, padding:'16px 18px', marginBottom:20 }}>
+                      <div style={{ fontSize:14, fontWeight:800, color:'#000E91', marginBottom:4 }}>{t.sourceTitle}</div>
+                      <p style={{ fontSize:12.5, color:'#1e40af', lineHeight:1.6, margin:0 }}>{t.sourceDesc}</p>
+                    </div>
+
+                    <div className="field-row">
+                      {[{name:'prenom',ph:t.ph.prenom},{name:'nom',ph:t.ph.nom}].map(f => (
+                        <div key={f.name}><label style={lbl}>{t.fields[f.name]}</label><input name={f.name} type="text" required value={form[f.name]} onChange={handleChange} placeholder={f.ph} style={inp(f.name)} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')} /></div>
+                      ))}
+                    </div>
+
+                    <div className="field-row">
+                      {[{name:'email',ph:t.ph.email,type:'email'},{name:'telephone',ph:t.ph.telephone,type:'tel'}].map(f => (
+                        <div key={f.name}><label style={lbl}>{t.fields[f.name]}</label><input name={f.name} type={f.type} required value={form[f.name]} onChange={handleChange} placeholder={f.ph} style={inp(f.name)} onFocus={() => setFocused(f.name)} onBlur={() => setFocused('')} /></div>
+                      ))}
+                    </div>
+
+                    {/* Organisation + Pays, communs a la delegation — meme systeme pays -> organisations que le formulaire individuel */}
+                    <div className="field-row">
+                      <div>
+                        <label style={lbl}>{t.fields.organisation}</label>
+                        <select
+                          name="orgSelect"
+                          required
+                          disabled={!form.pays}
+                          value={orgSelect}
+                          onChange={handleOrgSelect}
+                          style={{ ...inp('orgSelect'), cursor: form.pays ? 'pointer' : 'not-allowed', opacity: form.pays ? 1 : 0.6, color: orgSelect ? '#0f172a' : '#94a3b8' }}
+                          onFocus={() => setFocused('orgSelect')}
+                          onBlur={() => setFocused('')}
+                        >
+                          <option value="" disabled>{form.pays ? t.orgPlaceholder : t.orgPlaceholderNoCountry}</option>
+                          {orgOptions.map(o => (
+                            <option key={o.value} value={o.value}>{o.label[lang]}</option>
+                          ))}
+                        </select>
+                        {orgSelect === PORTS_AUTRE.value && (
+                          <input
+                            name="organisation"
+                            type="text"
+                            required
+                            value={form.organisation}
+                            onChange={handleChange}
+                            placeholder={t.ph.organisation}
+                            style={{ ...inp('organisation'), marginTop:10 }}
+                            onFocus={() => setFocused('organisation')}
+                            onBlur={() => setFocused('')}
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <label style={lbl}>{t.fields.pays}</label>
+                        <select name="pays" required value={form.pays} onChange={handlePaysChange} style={{ ...inp('pays'), cursor:'pointer', color:form.pays?'#0f172a':'#94a3b8' }} onFocus={() => setFocused('pays')} onBlur={() => setFocused('')}>
+                          <option value="" disabled>{t.paysPlaceholder}</option>
+                          {PAYS.map(p => <option key={p.value} value={p.value}>{p.label[lang]}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Membres de la delegation */}
+                    <div style={{ background:'#fffbeb', border:'1.5px solid #fcd34d', borderRadius:14, padding:'16px 18px', marginBottom:16, marginTop:8 }}>
+                      <div style={{ fontSize:14, fontWeight:800, color:'#92400e', marginBottom:4 }}>{t.membresTitle}</div>
+                      <p style={{ fontSize:12.5, color:'#78350f', lineHeight:1.6, margin:0 }}>{t.membresDesc}</p>
+                    </div>
+
+                    {membres.map((membre, idx) => (
+                      <div key={idx} style={{ background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:16, padding:'16px 18px', marginBottom:14 }}>
+                        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
+                          <span style={{ fontSize:13, fontWeight:800, color:'#000E91' }}>{t.membreLabel(idx + 1)}</span>
+                          <button
+                            type="button"
+                            onClick={() => supprimerMembre(idx)}
+                            style={{ display:'flex', alignItems:'center', gap:6, background:'#fef2f2', border:'1.5px solid #fca5a5', borderRadius:100, padding:'6px 14px', cursor:'pointer', fontFamily:'inherit', fontSize:12, fontWeight:700, color:'#dc2626' }}
+                          >
+                            <Ico name="trash" size={13} color="#dc2626" />
+                            {t.supprimerMembre}
+                          </button>
+                        </div>
+
+                        <div className="field-row" style={{ marginBottom:12 }}>
+                          {['prenom','nom'].map(champ => (
+                            <div key={champ}>
+                              <label style={lbl}>{t.membreFields[champ]}</label>
+                              <input type="text" required value={membre[champ]} onChange={e => handleMembreChange(idx, champ, e.target.value)} placeholder={t.membrePh[champ]} style={inp(`membre-${idx}-${champ}`)} onFocus={() => setFocused(`membre-${idx}-${champ}`)} onBlur={() => setFocused('')} />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="field-row" style={{ marginBottom:12 }}>
+                          <div>
+                            <label style={lbl}>{t.membreFields.telephone}</label>
+                            <input type="tel" required value={membre.telephone} onChange={e => handleMembreChange(idx, 'telephone', e.target.value)} placeholder={t.membrePh.telephone} style={inp(`membre-${idx}-telephone`)} onFocus={() => setFocused(`membre-${idx}-telephone`)} onBlur={() => setFocused('')} />
+                          </div>
+                          <div>
+                            <label style={lbl}>{t.membreFields.email}</label>
+                            <input type="email" required value={membre.email} onChange={e => handleMembreChange(idx, 'email', e.target.value)} placeholder={t.membrePh.email} style={inp(`membre-${idx}-email`)} onFocus={() => setFocused(`membre-${idx}-email`)} onBlur={() => setFocused('')} />
+                          </div>
+                        </div>
+                        <div className="field-row">
+                          <div>
+                            <label style={lbl}>{t.membreFields.poste}</label>
+                            <input type="text" value={membre.poste} onChange={e => handleMembreChange(idx, 'poste', e.target.value)} placeholder={t.membrePh.poste} style={inp(`membre-${idx}-poste`)} onFocus={() => setFocused(`membre-${idx}-poste`)} onBlur={() => setFocused('')} />
+                          </div>
+                          <div>
+                            <label style={lbl}>{t.membreFields.whatsapp}</label>
+                            <input type="tel" value={membre.whatsapp} onChange={e => handleMembreChange(idx, 'whatsapp', e.target.value)} placeholder={t.membrePh.whatsapp} style={inp(`membre-${idx}-whatsapp`)} onFocus={() => setFocused(`membre-${idx}-whatsapp`)} onBlur={() => setFocused('')} />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      onClick={ajouterMembre}
+                      style={{
+                        width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+                        padding:'15px', marginBottom:24, background:'linear-gradient(135deg,#0073F4,#000E91)',
+                        border:'none', borderRadius:14, color:'#fff', fontFamily:'inherit', fontSize:14.5, fontWeight:800,
+                        cursor:'pointer', boxShadow:'0 8px 24px rgba(0,115,244,.3)', transition:'opacity .2s,transform .15s',
+                      }}
+                      onMouseEnter={e => {e.currentTarget.style.opacity='.92'; e.currentTarget.style.transform='translateY(-1px)'}}
+                      onMouseLeave={e => {e.currentTarget.style.opacity='1'; e.currentTarget.style.transform='none'}}
+                    >
+                      <Ico name="plus" size={17} color="#fff" />
+                      {t.ajouterMembre}
+                    </button>
+
+                    <div style={{ marginBottom:22 }}>
+                      <label style={lbl}>{t.infosComplLabel}</label>
+                      <textarea name="message" rows={3} value={form.message} onChange={handleChange} placeholder={t.infosComplPh} style={{ ...inp('message'), resize:'vertical', minHeight:80 }} onFocus={() => setFocused('message')} onBlur={() => setFocused('')} />
+                    </div>
+
                     <div style={{ marginBottom:22 }}>
                       <label style={{ ...lbl, color:'#94a3b8' }}>{t.codePromoLabel}</label>
                       <input
