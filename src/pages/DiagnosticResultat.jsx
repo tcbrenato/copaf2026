@@ -26,17 +26,26 @@ const TR = {
     recoGenLoading: 'Génération en cours...',
     recoGenBtn: 'Générer mes recommandations',
     recoErreur: 'Impossible de générer les recommandations pour le moment. Réessayez dans un instant.',
-    analyseTitre: 'Analyse, interprétation et constat général',
-    recoPlanTitre: 'Recommandations et plan d\'action',
+    diagnosticStrategiqueTitre: '💡 Diagnostic stratégique',
+    prioritesTitre: "⚡ 3 priorités d'investissement",
+    recommandationCATitre: '📌 Recommandation pour le Conseil d\'Administration',
+    detailParDimension: 'Détail du plan d\'action par dimension',
     footer: 'Cette page reste accessible à tout moment — conservez le lien pour la retrouver.',
-    planTitre: "Plan d'action",
     planSousTitre: 'Des actions concrètes, adaptées à votre score actuel sur chaque axe.',
     tierLabel: { faible: 'Priorités à traiter', moyen: 'Prochaines étapes', bon: 'Pour aller plus loin' },
     analyseEnCours: 'Analyse de votre profil Smart Port en cours...',
+    chargementMessages: [
+      'Analyse de votre cyber-résilience et de votre potentiel IA en cours...',
+      'Comparaison de vos scores avec les standards régionaux...',
+      'Identification de vos priorités d\'investissement...',
+      'Préparation de votre plan d\'action personnalisé...',
+    ],
     collectifTitre: 'Vue collective de votre port',
     collectifSousTitre: n => n === 1
       ? 'Basée sur 1 diagnostic soumis pour ce port pendant la conférence (le vôtre).'
       : `Basée sur ${n} diagnostics soumis pour ce port pendant la conférence.`,
+    focusTitre: '🎯 Focus COPAF 2026 — IA & Cyber-résilience',
+    focusSousTitre: 'Les deux dimensions suivies en priorité par le comité d\'organisation cette année.',
   },
   en: {
     badge: 'COPAF 2026 · Smart Port Diagnostic',
@@ -54,17 +63,26 @@ const TR = {
     recoGenLoading: 'Generating...',
     recoGenBtn: 'Generate my recommendations',
     recoErreur: 'Unable to generate recommendations right now. Please try again shortly.',
-    analyseTitre: 'Analysis, interpretation and general assessment',
-    recoPlanTitre: 'Recommendations and action plan',
+    diagnosticStrategiqueTitre: '💡 Strategic diagnosis',
+    prioritesTitre: '⚡ 3 investment priorities',
+    recommandationCATitre: '📌 Board recommendation',
+    detailParDimension: 'Detailed action plan by dimension',
     footer: 'This page stays accessible at any time — keep the link to find it again.',
-    planTitre: 'Action plan',
     planSousTitre: 'Concrete actions, matched to your current score on each axis.',
     tierLabel: { faible: 'Priorities to address', moyen: 'Next steps', bon: 'To go further' },
     analyseEnCours: 'Analysing your Smart Port profile...',
+    chargementMessages: [
+      'Analysing your cyber-resilience and AI potential...',
+      'Comparing your scores against regional benchmarks...',
+      'Identifying your investment priorities...',
+      'Preparing your personalised action plan...',
+    ],
     collectifTitre: 'Collective view for your port',
     collectifSousTitre: n => n === 1
       ? 'Based on 1 diagnostic submitted for this port during the conference (yours).'
       : `Based on ${n} diagnostics submitted for this port during the conference.`,
+    focusTitre: '🎯 COPAF 2026 Focus — AI & Cyber-resilience',
+    focusSousTitre: "The two dimensions tracked as this year's organising committee priority.",
   },
 }
 
@@ -96,10 +114,24 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
 // ══════════════════════════════════════════
 // Ecran de chargement : radar qui oscille pendant l'analyse
 // ══════════════════════════════════════════
+// Tick d'axe personnalise : met en evidence IA & Cybersecurite (priorites
+// COPAF 2026 de cette annee), en jaune/gras, distinctes des 8 autres axes.
+function TickAxeAnime({ x, y, payload, textAnchor, lang }) {
+  const axe = AXES.find(a => txt(a.nom, lang) === payload.value)
+  const surligne = axe && (axe.id === 'ia' || axe.id === 'cybersecurite')
+  return (
+    <text x={x} y={y} textAnchor={textAnchor} fontSize={10.5} fontWeight={surligne ? 800 : 400} fill={surligne ? '#fbbf24' : '#94a3b8'}>
+      {payload.value}
+    </text>
+  )
+}
+
 function RadarLoader({ lang = 'fr' }) {
   const [data, setData] = useState(() =>
     AXES.map(axe => ({ axis: txt(axe.nom, lang), valeur: Math.random() * 5, fullMark: 5 }))
   )
+  const [messageIdx, setMessageIdx] = useState(0)
+  const messages = TR[lang].chargementMessages
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -108,13 +140,21 @@ function RadarLoader({ lang = 'fr' }) {
     return () => clearInterval(interval)
   }, [])
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMessageIdx(i => (i + 1) % messages.length)
+    }, 2600)
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang])
+
   return (
     <div style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 20, padding: '24px 10px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
       <div style={{ width: '100%', height: 340, opacity: 0.85 }}>
         <ResponsiveContainer>
           <RadarChart data={data} outerRadius="70%">
             <PolarGrid stroke="rgba(255,255,255,0.08)" />
-            <PolarAngleAxis dataKey="axis" tick={{ fontSize: 10.5, fill: '#94a3b8' }} />
+            <PolarAngleAxis dataKey="axis" tick={<TickAxeAnime lang={lang} />} />
             <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
             <Radar dataKey="valeur" stroke="#60a5fa" fill={BLUE} fillOpacity={0.35} strokeWidth={2} isAnimationActive={true} animationDuration={500} />
           </RadarChart>
@@ -123,7 +163,7 @@ function RadarLoader({ lang = 'fr' }) {
       <div style={{ textAlign: 'center', marginTop: 8 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
           <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#60a5fa', animation: 'copaf-pulse 1s ease-in-out infinite' }} />
-          <span style={{ fontSize: 13.5, color: '#94a3b8', fontWeight: 600 }}>{TR[lang].analyseEnCours}</span>
+          <span style={{ fontSize: 13.5, color: '#94a3b8', fontWeight: 600 }}>{messages[messageIdx]}</span>
         </div>
       </div>
       <style>{`@keyframes copaf-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }`}</style>
@@ -201,6 +241,20 @@ export default function DiagnosticResultat() {
       setGenLoading(false)
     }
   }
+
+  // Lance la generation IA en arriere-plan des que le diagnostic est
+  // charge, sans attendre un clic : le temps de chargement minimum
+  // (10s, voir plus haut) masque deja l'appel dans le cas courant, et le
+  // bouton manuel plus bas reste un filet de secours si la generation
+  // n'est pas terminee a temps.
+  const genAutoDeclenche = useRef(false)
+  useEffect(() => {
+    if (!diag?.id || genAutoDeclenche.current) return
+    if (diag.recommandations_v2 || diag.recommandations) return
+    genAutoDeclenche.current = true
+    genererRecommandations()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diag?.id])
 
   const telechargerPDF = async () => {
     setPdfLoading(true)
@@ -350,6 +404,30 @@ export default function DiagnosticResultat() {
           </div>
         </div>
 
+        {/* Focus COPAF 2026 : IA & Cyber-resilience — priorites suivies par
+            le comite cette annee, isolees et mises en avant avant le reste
+            du profil complet des 10 dimensions. */}
+        <div style={{ ...panelStyle, padding: '18px 22px', marginBottom: 18, borderColor: 'rgba(251,191,36,0.25)' }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: '#fbbf24', marginBottom: 2 }}>{t.focusTitre}</div>
+          <p style={{ fontSize: 11.5, color: '#94a3b8', marginBottom: 14 }}>{t.focusSousTitre}</p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            {['ia', 'cybersecurite'].map(id => {
+              const axe = AXES.find(a => a.id === id)
+              const v = scores[id] ?? 0
+              const c = couleurNiveau(v)
+              return (
+                <div key={id} style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(251,191,36,0.06)', border: '1px solid rgba(251,191,36,0.2)', borderRadius: 12, padding: '12px 14px' }}>
+                  <div style={{ fontSize: 20, fontWeight: 900, color: c, flexShrink: 0 }}>{v}<span style={{ fontSize: 11, color: '#64748b', fontWeight: 700 }}>/5</span></div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: '#fff' }}>{txt(axe?.nom, lang)}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: c }}>{txt(ECHELLE[v]?.nom, lang)}</div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
         {/* Grille dashboard : radar + score / détail par axe */}
         <div className="dash-grid">
 
@@ -415,8 +493,13 @@ export default function DiagnosticResultat() {
           </div>
         )}
 
-        {/* Recommandations IA — pleine largeur, directement apres le detail des scores,
-            pour suivre le meme enchainement que le PDF (scores -> analyse -> recommandations) */}
+        {/* Recommandations IA — format board-ready (diagnostic strategique,
+            priorites d'investissement, recommandation CA), avec le detail
+            par dimension fusionne juste en dessous au lieu d'etre duplique
+            dans une section separee : la version precedente montrait deja
+            un texte d'analyse par axe (analyseParAxe) au-dessus des memes
+            cartes d'action par axe plus bas sur la page — c'etait la meme
+            information dite deux fois. */}
         <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
             <Ico name="sparkles" size={17} color="#60a5fa" />
@@ -424,38 +507,62 @@ export default function DiagnosticResultat() {
           </div>
 
           {diag.recommandations_v2 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               <div>
-                <div style={{ fontSize: 11.5, fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>1. {t.analyseTitre}</div>
-                <div style={{ fontSize: 13.5, color: '#e2e8f0', lineHeight: 1.8, marginBottom: 14 }}>{diag.recommandations_v2.constatGeneral}</div>
-                <div className="analyse-table" style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
-                  {AXES.map((axe, i) => {
-                    const texte = diag.recommandations_v2.analyseParAxe?.[axe.id]
-                    if (!texte) return null
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>{t.diagnosticStrategiqueTitre}</div>
+                <div style={{ fontSize: 14.5, color: '#fff', lineHeight: 1.7, fontWeight: 600 }}>{diag.recommandations_v2.diagnosticStrategique}</div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>{t.prioritesTitre}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {(diag.recommandations_v2.prioritesInvestissement || []).map((p, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 16px' }}>
+                      <span style={{ flexShrink: 0, width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg,#0073F4,#000E91)', color: '#fff', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
+                      <div>
+                        <div style={{ fontSize: 13.5, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{p.titre}</div>
+                        <div style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.55 }}>{p.explication}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ background: 'linear-gradient(135deg, rgba(0,115,244,0.14), rgba(0,14,145,0.2))', border: '1px solid rgba(0,115,244,0.3)', borderRadius: 12, padding: '16px 18px' }}>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: '#93c5fd', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>{t.recommandationCATitre}</div>
+                <div style={{ fontSize: 13.5, color: '#fff', lineHeight: 1.65, fontWeight: 600 }}>{diag.recommandations_v2.recommandationCA}</div>
+              </div>
+
+              {/* Detail par dimension — fusionne ici (voir commentaire ci-dessus) */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+                  <Ico name="target" size={13} color="#94a3b8" /> {t.detailParDimension}
+                </div>
+                <p style={{ fontSize: 11.5, color: '#64748b', marginBottom: 14 }}>{t.planSousTitre}</p>
+                <div className="plan-grid">
+                  {AXES.map(axe => {
                     const v = scores[axe.id] ?? 0
+                    const tier = tierNiveau(v)
                     const c = couleurNiveau(v)
+                    const items = axe.actions?.[tier] || []
+                    if (!items.length) return null
                     return (
-                      <div key={axe.id} className="analyse-row" style={{
-                        display: 'grid', gridTemplateColumns: '200px 1fr', gap: 16, padding: '14px 16px',
-                        background: i % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'transparent',
-                        borderTop: i === 0 ? 'none' : '1px solid rgba(255,255,255,0.06)',
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: c, marginTop: 5, flexShrink: 0, boxShadow: `0 0 8px ${c}` }} />
-                          <div>
-                            <div style={{ fontSize: 12.5, fontWeight: 700, color: '#fff', lineHeight: 1.4 }}>{txt(AXES_LABELS[axe.id], lang)}</div>
-                            <div style={{ fontSize: 11, fontWeight: 800, color: c, marginTop: 3 }}>{v}/5 · {txt(ECHELLE[v]?.nom, lang)}</div>
-                          </div>
+                      <div key={axe.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '14px 16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
+                          <span style={{ fontSize: 12.5, fontWeight: 700, color: '#fff' }}>{txt(axe.nom, lang)}</span>
+                          <span style={{ fontSize: 10.5, fontWeight: 700, color: c, padding: '2px 8px', borderRadius: 20, background: `${c}22`, border: `1px solid ${c}55`, whiteSpace: 'nowrap', flexShrink: 0 }}>
+                            {t.tierLabel[tier]}
+                          </span>
                         </div>
-                        <div style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6 }}>{texte}</div>
+                        <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {items.map((item, i) => (
+                            <li key={i} style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.5 }}>{txt(item, lang)}</li>
+                          ))}
+                        </ul>
                       </div>
                     )
                   })}
                 </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11.5, fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>2. {t.recoPlanTitre}</div>
-                <div style={{ fontSize: 13.5, color: '#e2e8f0', lineHeight: 1.8, whiteSpace: 'pre-line' }}>{diag.recommandations_v2.recommandations}</div>
               </div>
             </div>
           ) : diag.recommandations ? (
@@ -475,43 +582,6 @@ export default function DiagnosticResultat() {
             </div>
           )}
         </div>
-
-        {/* Plan d'action statique — cache tant que l'analyse IA n'a pas ete
-            generee, pour ne pas montrer un "plan d'action" avant l'analyse
-            qui le justifie (meme demande que pour le PDF : l'ordre compte). */}
-        {(diag.recommandations_v2 || diag.recommandations) && (
-        <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <Ico name="target" size={17} color="#60a5fa" />
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff' }}>{t.planTitre}</div>
-          </div>
-          <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 18 }}>{t.planSousTitre}</p>
-          <div className="plan-grid">
-            {AXES.map(axe => {
-              const v = scores[axe.id] ?? 0
-              const tier = tierNiveau(v)
-              const c = couleurNiveau(v)
-              const items = axe.actions?.[tier] || []
-              if (!items.length) return null
-              return (
-                <div key={axe.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '14px 16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 700, color: '#fff' }}>{txt(axe.nom, lang)}</span>
-                    <span style={{ fontSize: 10.5, fontWeight: 700, color: c, padding: '2px 8px', borderRadius: 20, background: `${c}22`, border: `1px solid ${c}55`, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                      {t.tierLabel[tier]}
-                    </span>
-                  </div>
-                  <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {items.map((item, i) => (
-                      <li key={i} style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.5 }}>{txt(item, lang)}</li>
-                    ))}
-                  </ul>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-        )}
 
         {/* Chat entre repondants du meme port — pleine largeur */}
         {roomKey && (

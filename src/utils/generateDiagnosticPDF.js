@@ -10,6 +10,7 @@
 // a l'impression.
 
 import jsPDF from 'jspdf'
+import { AXES as AXES_REF } from './diagnosticAxes'
 
 const NAVY     = [0, 14, 145]     // #000E91
 const BLUE     = [0, 115, 244]    // #0073F4
@@ -34,7 +35,17 @@ const AXES_LABELS = {
   parties_prenantes: 'Parties prenantes',
 }
 
-const NOMS_NIVEAUX = ['Nul', 'Très faible', 'Faible', 'Moyen', 'Bon', 'Très bon']
+// Libelles neutres/professionnels (voir diagnosticAxes.js pour le detail
+// de la demande DG) — version courte sans parenthese ici : l'espace est
+// deja tres contraint sur la ligne de score du PDF (2 colonnes).
+const NOMS_NIVEAUX = ['Inexistant', 'Initial', 'Basique', 'Intermédiaire', 'Avancé', 'Optimisé']
+const TIER_LABELS = { faible: 'Priorités à traiter', moyen: 'Prochaines étapes', bon: 'Pour aller plus loin' }
+
+function tierNiveau(v) {
+  if (v <= 1) return 'faible'
+  if (v <= 3) return 'moyen'
+  return 'bon'
+}
 
 function fmtDateLong(d = new Date()) {
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
@@ -257,49 +268,88 @@ export async function generateDiagnosticPDF({ diag, download = true }) {
 
   y += Math.ceil(cles.length / 2) * rowH + 14
 
-  // Structure imposee par le DG : le raisonnement doit se lire comme un
-  // vrai rapport d'expert, en 2 blocs stricts — 1) analyse/interpretation
-  // (constat general + lecture de CHAQUE axe, rien de prescriptif), 2)
-  // recommandations/plan d'action, qui decoule logiquement du bloc 1. Les
-  // diagnostics generes avant l'introduction de ce format
-  // (recommandations_v2 absent) retombent sur l'ancien bloc de texte
-  // unique, inchange.
+  // Format "board-ready" (v2) : diagnostic strategique court, 3 priorites
+  // d'investissement, recommandation CA — puis le detail par dimension
+  // fusionne juste en dessous (memes actions statiques par axe/palier que
+  // la page resultat), au lieu d'un ancien texte d'analyse par axe qui
+  // disait deux fois la meme chose. Les diagnostics generes avant ce
+  // format (recommandations_v2 absent) retombent sur l'ancien bloc de
+  // texte unique, inchange.
   const structure = diag.recommandations_v2
 
   if (structure) {
     // ══════════════════════════════════════════
-    // BLOC 1 : ANALYSE, INTERPRETATION ET CONSTAT GENERAL
+    // BLOC 1 : DIAGNOSTIC STRATEGIQUE, PRIORITES, RECOMMANDATION CA
     // ══════════════════════════════════════════
     pageBreakIfNeeded(50)
-    sectionTitle('ANALYSE, INTERPRÉTATION ET CONSTAT GÉNÉRAL')
-    paragraphe(structure.constatGeneral, { fontSize: 8.5, fond: true })
+    sectionTitle('DIAGNOSTIC STRATÉGIQUE ET PRIORITÉS')
+    paragraphe(structure.diagnosticStrategique, { fontSize: 8.5, fond: true })
 
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8.5)
+    doc.setTextColor(...NAVY)
+    pageBreakIfNeeded(14)
+    doc.text("PRIORITÉS D'INVESTISSEMENT", M, y)
+    y += 14
+
+    ;(structure.prioritesInvestissement || []).forEach((p, i) => {
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8.5)
+      doc.setTextColor(...DARK)
+      pageBreakIfNeeded(24)
+      doc.text(`${i + 1}. ${p.titre}`, M, y)
+      y += 11
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8.5)
+      doc.setTextColor(...GRAY)
+      const wrapped = doc.splitTextToSize(p.explication, contentW - 12)
+      const blocH = wrapped.length * 11
+      pageBreakIfNeeded(blocH + 8)
+      doc.text(wrapped, M + 12, y)
+      y += blocH + 10
+    })
+    y += 4
+
+    pageBreakIfNeeded(40)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8.5)
+    doc.setTextColor(...NAVY)
+    doc.text('RECOMMANDATION POUR LE CONSEIL D\'ADMINISTRATION', M, y)
+    y += 12
+    paragraphe(structure.recommandationCA, { fontSize: 8.5, fond: true })
+
+    // ══════════════════════════════════════════
+    // BLOC 2 : DETAIL DU PLAN D'ACTION PAR DIMENSION
+    // ══════════════════════════════════════════
+    pageBreakIfNeeded(50)
+    sectionTitle('DÉTAIL DU PLAN D\'ACTION PAR DIMENSION')
     cles.forEach(cle => {
-      const texteAxe = structure.analyseParAxe?.[cle]
-      if (!texteAxe) return
-      pageBreakIfNeeded(28)
+      const axeRef = AXES_REF.find(a => a.id === cle)
+      const tier = tierNiveau(scores[cle] ?? 0)
+      const items = axeRef?.actions?.[tier] || []
+      if (!items.length) return
+      pageBreakIfNeeded(24)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8.5)
       doc.setTextColor(...NAVY)
       doc.text(AXES_LABELS[cle], M, y)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(7.5)
+      doc.setTextColor(...GRAY)
+      doc.text(TIER_LABELS[tier], M + doc.getTextWidth(AXES_LABELS[cle]) + 8, y)
       y += 12
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8.5)
       doc.setTextColor(...DARK)
-      const wrapped = doc.splitTextToSize(texteAxe, contentW)
-      const blocH = wrapped.length * 11
-      pageBreakIfNeeded(blocH + 10)
-      doc.text(wrapped, M, y)
-      y += blocH + 12
+      items.forEach(item => {
+        const wrapped = doc.splitTextToSize(`•  ${item.fr}`, contentW - 12)
+        const blocH = wrapped.length * 11
+        pageBreakIfNeeded(blocH + 4)
+        doc.text(wrapped, M + 8, y)
+        y += blocH + 3
+      })
+      y += 9
     })
-    y += 4
-
-    // ══════════════════════════════════════════
-    // BLOC 2 : RECOMMANDATIONS ET PLAN D'ACTION
-    // ══════════════════════════════════════════
-    pageBreakIfNeeded(50)
-    sectionTitle("RECOMMANDATIONS ET PLAN D'ACTION")
-    paragraphe(structure.recommandations, { fontSize: 8.5, fond: true })
   } else {
     // ══════════════════════════════════════════
     // RECOMMANDATIONS (format legacy)

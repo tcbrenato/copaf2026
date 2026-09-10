@@ -5,7 +5,7 @@ const BLUE = '#0073F4'
 
 const TR = {
   fr: {
-    titre: 'Discussion entre répondants de ce port',
+    titre: 'Consensus & Alignement Interne',
     sousTitre: "Échangez avec les autres personnes de votre organisation qui remplissent aussi ce diagnostic — visible uniquement par elles.",
     pseudoLabel: 'Votre nom affiché',
     placeholder: 'Écrire un message…',
@@ -14,7 +14,7 @@ const TR = {
     erreur: "Impossible d'envoyer le message. Réessayez.",
   },
   en: {
-    titre: 'Discussion between respondents from this port',
+    titre: 'Consensus & Internal Alignment',
     sousTitre: 'Chat with other people from your organisation also filling in this diagnostic — visible to them only.',
     pseudoLabel: 'Your display name',
     placeholder: 'Write a message…',

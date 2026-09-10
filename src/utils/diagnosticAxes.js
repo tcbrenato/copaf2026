@@ -20,14 +20,28 @@
 // debloquer les questions par vagues plutot que de laisser les 10 dimensions
 // ouvertes d'un coup. Ignore hors session live (session_active = false).
 
+// Libelles neutres/professionnels (demande DG : aucun qualificatif
+// devalorisant type "Nul" affiche seul dans l'interface) — l'ancien
+// libelle reste entre parentheses pour la continuite avec les
+// diagnostics deja soumis et les personnes deja familieres du bareme.
 export const ECHELLE = [
-  { valeur: 0, nom: { fr: 'Nul', en: 'None' } },
-  { valeur: 1, nom: { fr: 'Très faible', en: 'Very low' } },
-  { valeur: 2, nom: { fr: 'Faible', en: 'Low' } },
-  { valeur: 3, nom: { fr: 'Moyen', en: 'Medium' } },
-  { valeur: 4, nom: { fr: 'Bon', en: 'Good' } },
-  { valeur: 5, nom: { fr: 'Très bon', en: 'Very good' } },
+  { valeur: 0, nom: { fr: 'Inexistant (Nul)', en: 'Non-existent (None)' } },
+  { valeur: 1, nom: { fr: 'Initial (Très faible)', en: 'Initial (Very low)' } },
+  { valeur: 2, nom: { fr: 'Basique (Faible)', en: 'Basic (Low)' } },
+  { valeur: 3, nom: { fr: 'Intermédiaire (Moyen)', en: 'Intermediate (Medium)' } },
+  { valeur: 4, nom: { fr: 'Avancé (Bon)', en: 'Advanced (Good)' } },
+  { valeur: 5, nom: { fr: 'Optimisé (Très bon)', en: 'Optimised (Very good)' } },
 ]
+
+// Regroupement des 10 axes en 3 blocs strategiques, utilise a la fois
+// pour le "feu vert" admin (deverrouillage progressif en session live,
+// voir diagnostic_session) et pour l'affichage de la progression dans le
+// questionnaire (ex. "BLOC 1 — OPERATIONS & INFRASTRUCTURE (2/10)").
+export const BLOCS = {
+  1: { fr: 'Opérations & infrastructure', en: 'Operations & infrastructure' },
+  2: { fr: 'Intelligence & protection', en: 'Intelligence & protection' },
+  3: { fr: 'Organisation & écosystème', en: 'Organisation & ecosystem' },
+}
 
 export const AXES = [
   {
@@ -36,6 +50,10 @@ export const AXES = [
     definition: {
       fr: "Mesure à quel point les démarches administratives (déclarations, autorisations, formalités) sont numérisées et centralisées dans un système unique, accessible en ligne.",
       en: 'Measures how far administrative procedures (declarations, authorisations, formalities) are digitised and centralised in a single system accessible online.',
+    },
+    enjeu: {
+      fr: 'Réduction du temps de passage en douane et fluidification des escales navires.',
+      en: 'Shorter customs clearance times and smoother vessel calls.',
     },
     niveaux: [
       { fr: "Aucune démarche n'est disponible en version numérique ; tout se fait sur papier.", en: 'No procedure is available in digital form; everything is done on paper.' },
@@ -70,6 +88,10 @@ export const AXES = [
       fr: "Évalue le niveau d'automatisation des équipements physiques du port — grues, portiques, véhicules de manutention — et leur degré d'autonomie.",
       en: "Assesses the automation level of the port's physical equipment — cranes, gantries, handling vehicles — and their degree of autonomy.",
     },
+    enjeu: {
+      fr: 'Cadences de quai plus élevées et réduction des coûts de manutention.',
+      en: 'Higher berth throughput and lower handling costs.',
+    },
     niveaux: [
       { fr: "Aucun équipement (grues, portiques, engins de manutention) n'est assisté électroniquement ; toutes les commandes sont manuelles.", en: 'No equipment (cranes, gantries, handling machines) is electronically assisted; all controls are manual.' },
       { fr: "Certains équipements disposent d'une assistance électronique (ex. aide au levage) mais sont pilotés entièrement par un opérateur sur place.", en: 'Some equipment has electronic assistance (e.g. lifting aid) but is fully operated by a worker on site.' },
@@ -102,6 +124,10 @@ export const AXES = [
     definition: {
       fr: "Mesure la capacité à suivre en temps réel la position et le statut des marchandises, et à partager cette information avec les clients et partenaires.",
       en: 'Measures the ability to track the position and status of goods in real time, and to share that information with customers and partners.',
+    },
+    enjeu: {
+      fr: 'Visibilité en temps réel pour les armateurs et chargeurs, facteur de compétitivité commerciale.',
+      en: 'Real-time visibility for shipowners and shippers — a commercial competitiveness factor.',
     },
     niveaux: [
       { fr: "Aucun outil numérique de suivi ; la localisation d'une marchandise s'obtient uniquement par appel téléphonique.", en: 'No digital tracking tool; the location of a shipment can only be obtained by phone call.' },
@@ -136,6 +162,10 @@ export const AXES = [
       fr: "Évalue l'usage d'outils d'analyse de données et d'IA pour anticiper et optimiser les opérations (accostage, flux, maintenance) — au-delà de la simple collecte de données.",
       en: 'Assesses the use of data analysis and AI tools to anticipate and optimise operations (berthing, flows, maintenance) — beyond simple data collection.',
     },
+    enjeu: {
+      fr: "Anticipation des congestions et optimisation de l'accostage par des modèles prédictifs.",
+      en: 'Congestion forecasting and berth-planning optimisation through predictive models.',
+    },
     niveaux: [
       { fr: "Aucun outil d'analyse de données n'est utilisé ; les décisions s'appuient uniquement sur l'expérience des équipes.", en: 'No data analysis tool is used; decisions rely solely on staff experience.' },
       { fr: "Des rapports statistiques descriptifs (volumes, délais moyens) sont produits périodiquement, sans outil dédié.", en: 'Descriptive statistical reports (volumes, average delays) are produced periodically, without a dedicated tool.' },
@@ -168,6 +198,10 @@ export const AXES = [
     definition: {
       fr: "Mesure le niveau de protection des systèmes numériques contre les cyberattaques : politiques formalisées, contrôles réguliers, tests concrets.",
       en: 'Measures the level of protection of digital systems against cyberattacks: formal policies, regular controls, concrete tests.',
+    },
+    enjeu: {
+      fr: "Protection des infrastructures critiques et continuité d'activité face aux cyberattaques.",
+      en: 'Protection of critical infrastructure and business continuity in the face of cyberattacks.',
     },
     niveaux: [
       { fr: "Aucun document ne formalise une politique de cybersécurité.", en: 'No document formalises a cybersecurity policy.' },
@@ -202,6 +236,10 @@ export const AXES = [
       fr: "Évalue les dispositifs de sûreté physique du site (contrôle d'accès, surveillance, gestion des risques) — distincts de la cybersécurité.",
       en: "Assesses the site's physical security arrangements (access control, surveillance, risk management) — distinct from cybersecurity.",
     },
+    enjeu: {
+      fr: 'Réduction des risques physiques et conformité aux standards internationaux de sûreté portuaire.',
+      en: 'Lower physical risk and compliance with international port security standards.',
+    },
     niveaux: [
       { fr: "Aucun dispositif de contrôle d'accès ou de surveillance formalisé n'existe sur le site.", en: 'No formal access control or surveillance system exists on site.' },
       { fr: "Un contrôle d'accès existe à l'entrée principale (agent ou badge), sans couverture du reste du site.", en: 'Access control exists at the main entrance (guard or badge), with no coverage of the rest of the site.' },
@@ -234,6 +272,10 @@ export const AXES = [
     definition: {
       fr: "Mesure les efforts en matière de suivi environnemental et de transition énergétique — pollution, électrification, réduction de l'empreinte carbone.",
       en: "Measures efforts in environmental monitoring and energy transition — pollution, electrification, carbon footprint reduction.",
+    },
+    enjeu: {
+      fr: 'Maîtrise des coûts énergétiques et attractivité auprès des armateurs sensibles aux critères ESG.',
+      en: 'Energy cost control and appeal to shipowners with ESG requirements.',
     },
     niveaux: [
       { fr: "Aucune mesure de pollution (air, eau, bruit) n'est réalisée sur le site.", en: 'No pollution measurement (air, water, noise) is carried out on site.' },
@@ -268,6 +310,10 @@ export const AXES = [
       fr: "Évalue la capacité à coordonner les différents modes de transport (route, rail, fleuve) autour des opérations portuaires, au-delà du seul quai.",
       en: 'Assesses the ability to coordinate different transport modes (road, rail, river) around port operations, beyond the quay itself.',
     },
+    enjeu: {
+      fr: "Désengorgement des terminaux et fluidité des connexions avec l'hinterland.",
+      en: 'Terminal decongestion and smoother hinterland connections.',
+    },
     niveaux: [
       { fr: "Aucune coordination formalisée n'existe entre le port et les autres modes de transport (route, rail, fleuve).", en: 'No formal coordination exists between the port and other transport modes (road, rail, river).' },
       { fr: "Des échanges d'informations avec les transporteurs routiers/ferroviaires existent au cas par cas, par téléphone ou email.", en: 'Information exchanges with road/rail carriers happen on a case-by-case basis, by phone or email.' },
@@ -301,6 +347,10 @@ export const AXES = [
       fr: "Mesure le niveau de formation et d'appropriation des outils digitaux par les équipes — le facteur humain derrière la technologie.",
       en: "Measures the level of training and ownership of digital tools by staff — the human factor behind the technology.",
     },
+    enjeu: {
+      fr: "Capital humain prêt à opérer les outils numériques et l'IA de demain.",
+      en: "Workforce ready to operate tomorrow's digital tools and AI.",
+    },
     niveaux: [
       { fr: "Aucune formation aux outils numériques n'est proposée au personnel.", en: 'No digital tools training is offered to staff.' },
       { fr: "Des formations ponctuelles ont eu lieu, à l'initiative individuelle, sans plan structuré.", en: 'One-off training sessions have taken place, on individual initiative, with no structured plan.' },
@@ -333,6 +383,10 @@ export const AXES = [
     definition: {
       fr: "Évalue la qualité de la concertation entre le port et son écosystème — douanes, transporteurs, clients, autorités — plutôt que des décisions prises en silo.",
       en: "Assesses the quality of consultation between the port and its ecosystem — customs, carriers, customers, authorities — rather than decisions made in isolation.",
+    },
+    enjeu: {
+      fr: 'Alignement des acteurs de la chaîne logistique et réduction des temps de passage aux portes.',
+      en: 'Alignment across the logistics chain and shorter gate-processing times.',
     },
     niveaux: [
       { fr: "Aucun échange formalisé n'existe avec les partenaires (douanes, transporteurs, clients) sur les sujets numériques.", en: 'No formal exchange exists with partners (customs, carriers, customers) on digital topics.' },

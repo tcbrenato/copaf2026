@@ -3,16 +3,20 @@
 // Fonction serveur (Supabase Edge Function) qui genere l'analyse
 // personnalisee d'un diagnostic Smart Port.
 //
-// Structure imposee par le DG : le raisonnement doit suivre 3 etapes
-// strictement separees et dans cet ordre — 1) constat general, 2) analyse
-// interpretative de CHACUN des 10 axes, 3) recommandations/plan d'action —
-// jamais l'inverse. Pour que le site ET le PDF puissent chacun afficher ces
-// 3 parties distinctement (au lieu de deviner des titres dans un bloc de
-// texte libre), le modele doit repondre en JSON structure, stocke dans la
-// nouvelle colonne `recommandations_v2`. Si le modele derape et renvoie du
-// texte non structure, on retombe sur l'ancien format `recommandations`
-// (texte brut) pour ne jamais planter — meme filet de securite que celui
-// qui laisse les diagnostics deja generes avant ce changement inchanges.
+// Format "board-ready" impose par le DG (v2 du format structure) : 3
+// blocs courts et directement exploitables en reunion de direction —
+// 1) diagnostic strategique (2 phrases max), 2) 3 priorites
+// d'investissement (titre + explication chacune), 3) une recommandation
+// pour le Conseil d'Administration (1-2 phrases). Le detail par axe
+// (ancien `analyseParAxe`) est retire du texte IA : il est desormais
+// fusionne avec les cartes de plan d'action statiques (deja ecrites par
+// axe/palier dans diagnosticAxes.js) directement dans l'UI, pour ne plus
+// dupliquer la meme information deux fois sur la page resultat. Le modele
+// doit repondre en JSON structure, stocke dans `recommandations_v2`. Si le
+// modele derape et renvoie du texte non structure, on retombe sur l'ancien
+// format `recommandations` (texte brut) pour ne jamais planter — meme
+// filet de securite que celui qui laisse les diagnostics deja generes
+// avant ce changement inchanges.
 //
 // Pourquoi une fonction serveur et pas un appel direct depuis la
 // tablette ? Parce qu'un appel direct depuis le navigateur obligerait
@@ -50,14 +54,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-function estStructureValide(obj: unknown): obj is { constatGeneral: string; analyseParAxe: Record<string, string>; recommandations: string } {
+type Priorite = { titre: string; explication: string }
+type RecommandationsV2 = { diagnosticStrategique: string; prioritesInvestissement: Priorite[]; recommandationCA: string }
+
+function estStructureValide(obj: unknown): obj is RecommandationsV2 {
   if (!obj || typeof obj !== 'object') return false
   const o = obj as Record<string, unknown>
-  if (typeof o.constatGeneral !== 'string' || !o.constatGeneral.trim()) return false
-  if (typeof o.recommandations !== 'string' || !o.recommandations.trim()) return false
-  if (!o.analyseParAxe || typeof o.analyseParAxe !== 'object') return false
-  const axes = o.analyseParAxe as Record<string, unknown>
-  return Object.keys(AXES_LABELS).every(k => typeof axes[k] === 'string' && (axes[k] as string).trim().length > 0)
+  if (typeof o.diagnosticStrategique !== 'string' || !o.diagnosticStrategique.trim()) return false
+  if (typeof o.recommandationCA !== 'string' || !o.recommandationCA.trim()) return false
+  if (!Array.isArray(o.prioritesInvestissement) || o.prioritesInvestissement.length !== 3) return false
+  return o.prioritesInvestissement.every(p =>
+    p && typeof p === 'object'
+    && typeof (p as Record<string, unknown>).titre === 'string' && (p as Record<string, unknown>).titre
+    && typeof (p as Record<string, unknown>).explication === 'string' && (p as Record<string, unknown>).explication
+  )
 }
 
 Deno.serve(async req => {
@@ -109,31 +119,26 @@ ${profil}
 Réponds UNIQUEMENT avec un objet JSON valide — aucun texte avant ou après, aucune balise markdown, aucun bloc de code — respectant EXACTEMENT ce format :
 
 {
-  "constatGeneral": "...",
-  "analyseParAxe": {
-    "infrastructure": "...",
-    "automatisation": "...",
-    "tracabilite": "...",
-    "ia": "...",
-    "cybersecurite": "...",
-    "surete": "...",
-    "environnement": "...",
-    "synchromodalite": "...",
-    "competences": "...",
-    "parties_prenantes": "..."
-  },
-  "recommandations": "..."
+  "diagnosticStrategique": "...",
+  "prioritesInvestissement": [
+    { "titre": "...", "explication": "..." },
+    { "titre": "...", "explication": "..." },
+    { "titre": "...", "explication": "..." }
+  ],
+  "recommandationCA": "..."
 }
 
-Consignes de contenu, dans cet ordre logique strict — ce sont 3 étapes de raisonnement séparées, ne mélange jamais l'analyse et la recommandation dans une même partie :
+Ce format doit pouvoir être lu tel quel dans une réunion de direction (board-ready) : court, direct, sans détour. Consignes de contenu :
 
-1. "constatGeneral" : 1 à 3 phrases factuelles et directes sur le profil global de ce port (pas de langue de bois, pas de ton alarmiste). C'est une OBSERVATION, pas encore une recommandation.
+1. "diagnosticStrategique" : 2 phrases MAXIMUM, factuelles et directes, qui résument le niveau global de maturité numérique de ce port et ce que ça signifie concrètement pour sa compétitivité — pas de langue de bois, pas de ton alarmiste.
 
-2. "analyseParAxe" : pour CHACUN des 10 axes, 1 à 2 phrases qui expliquent ce que le score obtenu révèle CONCRÈTEMENT sur la situation du port pour cet axe précis — jamais une phrase générique qui irait pour n'importe quel score. Appuie-toi sur le niveau réellement atteint (indiqué dans le profil ci-dessus). C'est de l'ANALYSE/INTERPRÉTATION, toujours pas une recommandation.
+2. "prioritesInvestissement" : EXACTEMENT 3 priorités d'investissement, classées par impact décroissant, en te basant sur les axes les plus faibles ET les plus stratégiques du profil. Pour chacune :
+   - "titre" : 2 à 4 mots maximum, percutant (ex. "Guichet unique numérique", "Certification ISO 27001", "Suivi cargo temps réel").
+   - "explication" : 1 phrase qui justifie pourquoi cette priorité compte pour CE port précis, en t'appuyant sur son score réel — nomme si pertinent un outil, une norme ou un dispositif concret et réaliste (ex : PCS national, ISO 27001, capteurs IoT, standard EDI régional).
 
-3. "recommandations" : SEULEMENT maintenant, en t'appuyant sur le constat et l'analyse ci-dessus, propose un plan d'action concret (350 mots maximum) : pour les 2 axes les plus faibles, nomme un outil, une norme, un type de dispositif ou une pratique précise et réaliste (ex : déployer un PCS national, viser la certification ISO 27001, installer des capteurs IoT sur 2-3 portiques pilotes, adhérer à un standard EDI existant dans sa région), avec une première étape très concrète à faire dans le mois qui vient. Termine par comment valoriser l'axe le plus fort.
+3. "recommandationCA" : 1 à 2 phrases, formulées comme une note de synthèse destinée au Conseil d'Administration — une recommandation d'action ou d'arbitrage, pas un résumé de ce qui précède.
 
-Règles générales : français uniquement, aucun symbole markdown dans les valeurs texte (pas de #, **, listes à tirets), adresse-toi directement au port ("vous"), n'invente aucun chiffre ni nom de fournisseur spécifique ni aucun fait non fourni ci-dessus.`
+Règles générales : français uniquement, aucun symbole markdown dans les valeurs texte (pas de #, **, listes à tirets), adresse-toi directement au port ("vous") dans "diagnosticStrategique", ton de note de direction dans "recommandationCA", n'invente aucun chiffre ni nom de fournisseur spécifique ni aucun fait non fourni ci-dessus.`
 
     const aiResp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -144,12 +149,11 @@ Règles générales : français uniquement, aucun symbole markdown dans les vale
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        // 10 paragraphes d'analyse + constat + recommandations, en francais,
-        // avec la structure JSON en plus : ca depasse largement les 750
-        // tokens qui suffisaient a l'ancien prompt (2 axes seulement). Une
-        // limite trop basse ici tronque le JSON en plein milieu -> echec de
-        // parsing silencieux plus bas. Marge large pour eviter ça.
-        max_tokens: 3000,
+        // Format v2 (board-ready) beaucoup plus court que l'ancien detail
+        // par axe, mais marge large conservee : une limite trop basse
+        // tronque le JSON en plein milieu -> echec de parsing silencieux
+        // plus bas.
+        max_tokens: 1200,
         messages: [{ role: 'user', content: prompt }],
       }),
     })

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import RetourMenu from '../components/RetourMenu'
-import { AXES, ECHELLE, txt } from '../utils/diagnosticAxes'
+import { AXES, ECHELLE, BLOCS, txt } from '../utils/diagnosticAxes'
 import { RESEAUX, ORG_AUTRE, getOrganisationsByNetwork, findOrganisationById, searchOrganisations } from '../utils/diagnosticOrganisations'
 
 const NAVY = '#000E91'
@@ -40,9 +40,11 @@ const TR = {
     dixDimensions: 'Les 10 dimensions évaluées',
     jaiCompris: "J'ai compris, commencer le diagnostic",
     axe: 'Axe', sur: '/',
+    bloc: 'Bloc',
+    enjeuLabel: 'Enjeu DG',
     precedent: 'Précédent',
     suivant: 'Suivant',
-    terminer: 'Terminer le diagnostic',
+    terminer: "Générer mon bilan et mon plan d'action",
     enregistrement: 'Enregistrement sécurisé de votre diagnostic...',
     erreur: 'Erreur : ',
     liveAutres: n => n === 1
@@ -84,9 +86,11 @@ const TR = {
     dixDimensions: 'The 10 dimensions assessed',
     jaiCompris: 'Got it, start the diagnostic',
     axe: 'Dimension', sur: '/',
+    bloc: 'Block',
+    enjeuLabel: 'Executive impact',
     precedent: 'Previous',
     suivant: 'Next',
-    terminer: 'Finish the diagnostic',
+    terminer: 'Generate my report and action plan',
     enregistrement: 'Securely saving your diagnostic...',
     erreur: 'Error: ',
     liveAutres: n => n === 1
@@ -663,7 +667,13 @@ export default function DiagnosticSmartPort() {
                   <div style={{ fontSize: 13.5, fontWeight: 800, color: '#fff', marginBottom: 4, lineHeight: 1.3 }}>
                     <span style={{ color: '#60a5fa', marginRight: 6 }}>{String(i + 1).padStart(2, '0')}</span>{txt(axe.nom, lang)}
                   </div>
-                  <div style={{ fontSize: 12.5, color: '#94a3b8', lineHeight: 1.5 }}>{txt(axe.definition, lang)}</div>
+                  <div style={{ fontSize: 12.5, color: '#94a3b8', lineHeight: 1.5, marginBottom: axe.enjeu ? 8 : 0 }}>{txt(axe.definition, lang)}</div>
+                  {axe.enjeu && (
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: 11, flexShrink: 0, lineHeight: 1.5 }}>🎯</span>
+                      <div style={{ fontSize: 11.5, color: '#93c5fd', lineHeight: 1.5, fontWeight: 600 }}>{txt(axe.enjeu, lang)}</div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -767,7 +777,7 @@ export default function DiagnosticSmartPort() {
         <div style={{ ...card, maxWidth: 900 }}>
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8 }}>
-              <span>{t.axe} {etape} {t.sur} {AXES.length}</span>
+              <span>{t.bloc.toUpperCase()} {axe.bloc} — {txt(BLOCS[axe.bloc], lang).toUpperCase()} ({etape}{t.sur}{AXES.length})</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {participantsCount > 1 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 20, color: '#4ade80', fontSize: 11, fontWeight: 700 }}>
@@ -795,10 +805,20 @@ export default function DiagnosticSmartPort() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, padding: '12px 16px', marginBottom: 24 }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, padding: '12px 16px', marginBottom: axe.enjeu ? 10 : 24 }}>
               <Ico name="info" size={16} color="#60a5fa" />
               <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.55, margin: 0 }}>{txt(axe.definition, lang)}</p>
             </div>
+
+            {axe.enjeu && (
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: 'rgba(0,115,244,0.08)', border: '1px solid rgba(0,115,244,0.25)', borderRadius: 12, padding: '12px 16px', marginBottom: 24 }}>
+                <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1.4 }}>🎯</span>
+                <p style={{ fontSize: 13, color: '#dbeafe', lineHeight: 1.55, margin: 0 }}>
+                  <span style={{ fontWeight: 800, color: '#93c5fd', textTransform: 'uppercase', letterSpacing: 0.4, fontSize: 11 }}>{t.enjeuLabel} — </span>
+                  {txt(axe.enjeu, lang)}
+                </p>
+              </div>
+            )}
 
             {/* Curseur de fait concret : une seule question a la fois, texte
                 dynamique sous le curseur — plus rapide a remplir que 6
