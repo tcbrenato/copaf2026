@@ -4,6 +4,17 @@ import { supabase } from '../supabase'
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
 
+// Meme algorithme que diagnostic_room_key() cote base et que
+// DiagnosticResultat.jsx : regroupe les diagnostics d'un meme port/site
+// pour retrouver sa position officielle eventuelle.
+const normaliseRoom = s => (s || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')
+function computeRoomKey(d) {
+  if (!d) return null
+  return d.organisation_id && d.organisation_id !== 'autre'
+    ? `${d.organisation_id}${d.site_id ? ':' + d.site_id : ''}`
+    : d.organisation ? `autre:${normaliseRoom(d.organisation)}:${normaliseRoom(d.pays)}` : null
+}
+
 const AXES_LABELS = {
   infrastructure: 'Infrastructure digitale',
   automatisation: 'Automatisation',
@@ -203,12 +214,18 @@ export default function AdminDiagnostics() {
     showToast('Préférences réinitialisées')
   }
 
+  const [positionsOfficielles, setPositionsOfficielles] = useState({})
+
   const load = useCallback(async () => {
     setActualisationEnCours(true)
     const { data: rows } = await supabase
       .from('diagnostics')
-      .select('id, nom, prenom, organisation, pays, scores, recommandations, created_at')
+      .select('id, nom, prenom, organisation, pays, scores, recommandations, created_at, organisation_id, site_id')
       .order('created_at', { ascending: false })
+
+    supabase.from('official_positions').select('port_id, scores, validated_at').then(({ data }) => {
+      setPositionsOfficielles(Object.fromEntries((data || []).map(p => [p.port_id, p])))
+    })
 
     setDiagnostics(prev => {
       if (!premierChargement.current && rows && rows.length > 0 && rows[0].id !== prev[0]?.id) {
@@ -296,15 +313,21 @@ export default function AdminDiagnostics() {
 
   const exporterCSV = () => {
     const cles = Object.keys(AXES_LABELS)
-    const entetes = ['Organisation', 'Pays', 'Prénom', 'Nom', 'Email', 'Téléphone', ...cles.map(k => AXES_LABELS[k]), 'Score moyen', 'Date']
+    const entetes = [
+      'Organisation', 'Pays', 'Prénom', 'Nom', 'Email', 'Téléphone', ...cles.map(k => AXES_LABELS[k]), 'Score moyen', 'Date',
+      'Position officielle validée', 'Date validation position officielle', ...cles.map(k => `Officiel — ${AXES_LABELS[k]}`),
+    ]
     const lignes = filtres.map(d => {
       const scores = cles.map(k => d.scores?.[k] ?? '')
       const moy = Object.values(d.scores || {}).length
         ? (Object.values(d.scores).reduce((s, v) => s + v, 0) / Object.values(d.scores).length).toFixed(1)
         : ''
+      const officiel = positionsOfficielles[computeRoomKey(d)]
       return [
         d.organisation || '', d.pays || '', d.prenom || '', d.nom || '', d.email || '', d.telephone || '',
         ...scores, moy, new Date(d.created_at).toLocaleDateString('fr-FR'),
+        officiel ? 'Oui' : 'Non', officiel ? new Date(officiel.validated_at).toLocaleDateString('fr-FR') : '',
+        ...cles.map(k => officiel?.scores?.[k] ?? ''),
       ]
     })
     const csv = [entetes, ...lignes]
@@ -820,7 +843,16 @@ export default function AdminDiagnostics() {
             <div key={d.id} style={{ ...cardStyle, padding: densiteCompacte ? 10 : 16, marginBottom: densiteCompacte ? 6 : 10 }}>
               <div onClick={() => setOuvert(isOuvert ? null : d.id)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', gap: 12 }}>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: densiteCompacte ? 13 : 14, fontWeight: 800, color: T.text }}>{d.organisation || `${d.prenom} ${d.nom}`}</div>
+                  <div style={{ fontSize: densiteCompacte ? 13 : 14, fontWeight: 800, color: T.text, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {d.organisation || `${d.prenom} ${d.nom}`}
+                    {positionsOfficielles[computeRoomKey(d)] && (
+                      <span title={`Position officielle validée le ${new Date(positionsOfficielles[computeRoomKey(d)].validated_at).toLocaleDateString('fr-FR')}`} style={{
+                        fontSize: 9.5, fontWeight: 800, color: '#065f46', background: '#d1fae5', borderRadius: 20, padding: '2px 8px', flexShrink: 0, whiteSpace: 'nowrap',
+                      }}>
+                        ✓ Position officielle
+                      </span>
+                    )}
+                  </div>
                   {!densiteCompacte && <div style={{ fontSize: 11.5, color: T.textMuted }}>{d.prenom} {d.nom} · {d.pays}</div>}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>

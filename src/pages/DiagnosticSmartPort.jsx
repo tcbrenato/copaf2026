@@ -24,6 +24,7 @@ const TR = {
     nom: 'Nom *', nomP: 'Votre nom',
     telephone: 'Téléphone', telephoneP: '+xxx xxx xxx xxx',
     email: 'Email', emailP: 'votre@email.com',
+    poste: 'Poste / fonction', posteP: 'Ex : Directeur Général, DSI, Responsable Opérations...',
     organisation: 'Organisation *',
     organisationSearch: 'Rechercher votre organisation, votre pays...',
     organisationAucun: 'Aucune organisation trouvée pour cette recherche.',
@@ -70,6 +71,7 @@ const TR = {
     nom: 'Last name *', nomP: 'Your last name',
     telephone: 'Phone', telephoneP: '+xxx xxx xxx xxx',
     email: 'Email', emailP: 'your@email.com',
+    poste: 'Job title / role', posteP: 'E.g.: General Manager, CIO, Head of Operations...',
     organisation: 'Organisation *',
     organisationSearch: 'Search your organisation, your country...',
     organisationAucun: 'No organisation found for this search.',
@@ -140,7 +142,7 @@ export default function DiagnosticSmartPort() {
   const [chercheEnCours, setChercheEnCours] = useState(false)
   const [erreurRecherche, setErreurRecherche] = useState('')
 
-  const [form, setForm] = useState({ prenom: '', nom: '', telephone: '', email: '', organisation: '', pays: '' })
+  const [form, setForm] = useState({ prenom: '', nom: '', telephone: '', email: '', organisation: '', pays: '', poste: '' })
   const [erreurForm, setErreurForm] = useState('')
 
   // Identification a deux niveaux : organisation, puis site precis si
@@ -307,7 +309,7 @@ export default function DiagnosticSmartPort() {
     const c = rows[0]
     setForm({
       prenom: c.prenom || '', nom: c.nom || '', telephone: c.telephone || '',
-      email: c.email || '', organisation: c.organisation || '', pays: c.pays || '',
+      email: c.email || '', organisation: c.organisation || '', pays: c.pays || '', poste: c.poste || '',
     })
     setEtape(0)
   }
@@ -342,7 +344,7 @@ export default function DiagnosticSmartPort() {
     const id = crypto.randomUUID()
     const { error } = await supabase.from('diagnostics').insert([{
       id, nom: form.nom, prenom: form.prenom, telephone: form.telephone,
-      email: form.email, organisation: form.organisation, pays: form.pays,
+      email: form.email, organisation: form.organisation, pays: form.pays, poste: form.poste || null,
       scores: reponses,
       organisation_id: orgId || null,
       site_id: siteId || null,
@@ -469,6 +471,11 @@ export default function DiagnosticSmartPort() {
                   <label style={labelStyle}>{t.email}</label>
                   <input style={inputStyle} type="email" value={form.email} onChange={e => handleFormChange('email', e.target.value)} placeholder={t.emailP} />
                 </div>
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <label style={labelStyle}>{t.poste}</label>
+                <input style={inputStyle} value={form.poste} onChange={e => handleFormChange('poste', e.target.value)} placeholder={t.posteP} />
               </div>
 
               <div style={{ marginBottom: 16 }}>

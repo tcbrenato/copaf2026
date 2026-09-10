@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts'
 import { supabase } from '../supabase'
@@ -46,6 +46,22 @@ const TR = {
       : `Basée sur ${n} diagnostics soumis pour ce port pendant la conférence.`,
     focusTitre: '🎯 Focus COPAF 2026 — IA & Cyber-résilience',
     focusSousTitre: 'Les deux dimensions suivies en priorité par le comité d\'organisation cette année.',
+    comparatifTitre: 'Comparaison des répondants',
+    comparatifSousTitre: 'Chaque colonne est une personne de votre organisation ayant rempli ce diagnostic.',
+    comparatifDimension: 'Dimension',
+    dgBadge: 'DG',
+    posteInconnu: 'Fonction non renseignée',
+    divergenceMsg: nom => `Divergence détectée sur ${nom} : débattez pour aligner votre note officielle.`,
+    positionBtn: 'Valider comme position officielle du port',
+    positionBtnMaj: 'Mettre à jour la position officielle',
+    positionReviewTitre: 'Choisissez le score retenu pour chaque dimension',
+    positionReviewSousTitre: 'Pré-rempli avec vos propres scores — modifiez chaque dimension si besoin, aucune moyenne automatique.',
+    positionConfirmer: 'Confirmer la position officielle',
+    positionAnnuler: 'Annuler',
+    positionEnCours: 'Enregistrement...',
+    positionErreur: 'Impossible d\'enregistrer la position officielle. Réessayez.',
+    positionTitre: 'Position officielle du port',
+    positionValideeLe: date => `Validée le ${date}`,
   },
   en: {
     badge: 'COPAF 2026 · Smart Port Diagnostic',
@@ -83,7 +99,34 @@ const TR = {
       : `Based on ${n} diagnostics submitted for this port during the conference.`,
     focusTitre: '🎯 COPAF 2026 Focus — AI & Cyber-resilience',
     focusSousTitre: "The two dimensions tracked as this year's organising committee priority.",
+    comparatifTitre: 'Respondent comparison',
+    comparatifSousTitre: 'Each column is a person from your organisation who filled in this diagnostic.',
+    comparatifDimension: 'Dimension',
+    dgBadge: 'GM',
+    posteInconnu: 'Role not provided',
+    divergenceMsg: nom => `Divergence detected on ${nom}: discuss to align on your official score.`,
+    positionBtn: 'Validate as official port position',
+    positionBtnMaj: 'Update the official position',
+    positionReviewTitre: 'Choose the score to keep for each dimension',
+    positionReviewSousTitre: 'Pre-filled with your own scores — edit any dimension as needed, no automatic average.',
+    positionConfirmer: 'Confirm official position',
+    positionAnnuler: 'Cancel',
+    positionEnCours: 'Saving...',
+    positionErreur: 'Could not save the official position. Please try again.',
+    positionTitre: 'Official port position',
+    positionValideeLe: date => `Validated on ${date}`,
   },
+}
+
+// Meme algorithme que diagnostic_room_key() cote base (voir migration
+// add_diagnostic_dg_consensus_schema) : regroupe les repondants d'un meme
+// port/site, deja utilise pour le chat et la moyenne collective.
+const normaliseRoom = s => (s || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')
+function computeRoomKey(diag) {
+  if (!diag) return null
+  return diag.organisation_id && diag.organisation_id !== 'autre'
+    ? `${diag.organisation_id}${diag.site_id ? ':' + diag.site_id : ''}`
+    : diag.organisation ? `autre:${normaliseRoom(diag.organisation)}:${normaliseRoom(diag.pays)}` : null
 }
 
 function couleurNiveau(v) {
@@ -183,6 +226,12 @@ export default function DiagnosticResultat() {
   const [lienCopie, setLienCopie] = useState(false)
   const [lang, setLang] = useState(searchParams.get('lang') === 'en' ? 'en' : 'fr')
   const [collectif, setCollectif] = useState(null)
+  const [peers, setPeers] = useState([])
+  const [officialPosition, setOfficialPosition] = useState(null)
+  const [editionPosition, setEditionPosition] = useState(false)
+  const [brouillonScores, setBrouillonScores] = useState({})
+  const [validationEnCours, setValidationEnCours] = useState(false)
+  const [validationErreur, setValidationErreur] = useState('')
   const timerStarted = useRef(false)
 
   const load = useCallback(async () => {
@@ -219,6 +268,24 @@ export default function DiagnosticResultat() {
       if (nbReponses > 0) setCollectif({ parAxe, nbReponses })
     })
   }, [diag])
+
+  // Bloc "Consensus & Alignement Interne" : pairs du meme port (tableau
+  // comparatif) + position officielle deja validee, si elle existe. La
+  // detection DG (diag.is_dg) est deja calculee cote serveur a la
+  // soumission -- jamais recalculee ici.
+  const rechargerConsensus = useCallback(async () => {
+    if (!diag?.id) return
+    const room = computeRoomKey(diag)
+    const [{ data: peersData }, officialRes] = await Promise.all([
+      supabase.rpc('get_diagnostic_peers', { p_diagnostic_id: diag.id }),
+      room ? supabase.from('official_positions').select('*').eq('port_id', room).maybeSingle() : Promise.resolve({ data: null }),
+    ])
+    setPeers(peersData || [])
+    setOfficialPosition(officialRes.data || null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diag?.id, diag?.organisation_id, diag?.site_id, diag?.organisation, diag?.pays])
+
+  useEffect(() => { rechargerConsensus() }, [rechargerConsensus])
 
   const t = TR[lang]
 
@@ -277,6 +344,34 @@ export default function DiagnosticResultat() {
     }
   }
 
+  // Ouvre la vue de revision DG : pre-remplie avec le propre score du DG
+  // sur chaque axe (jamais une moyenne/mediane automatique — le DG doit
+  // trancher lui-meme, voir consigne).
+  const ouvrirEditionPosition = () => {
+    const defaut = {}
+    AXES.forEach(axe => { defaut[axe.id] = (diag.scores || {})[axe.id] ?? 0 })
+    setBrouillonScores(defaut)
+    setValidationErreur('')
+    setEditionPosition(true)
+  }
+
+  const validerPosition = async () => {
+    setValidationEnCours(true); setValidationErreur('')
+    try {
+      const { data, error } = await supabase.rpc('validate_official_position', {
+        p_diagnostic_id: id, p_scores: brouillonScores,
+      })
+      if (error) throw error
+      setOfficialPosition(data)
+      setEditionPosition(false)
+    } catch (err) {
+      console.error('Erreur validation position officielle:', err)
+      setValidationErreur(t.positionErreur)
+    } finally {
+      setValidationEnCours(false)
+    }
+  }
+
   const wrap = { minHeight: '100vh', position: 'relative', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '40px 20px', color: '#f8fafc' }
   const bgImage = { position: 'fixed', inset: 0, zIndex: -2, backgroundColor: '#0b0f1c', backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.75) saturate(1.2)' }
   const bgOverlay = { position: 'fixed', inset: 0, zIndex: -1, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.55) 0%, rgba(9,13,22,0.78) 70%)' }
@@ -329,10 +424,7 @@ export default function DiagnosticResultat() {
   }))
   const moyenne = chartData.length ? (chartData.reduce((s, d) => s + d.valeur, 0) / chartData.length) : 0
 
-  const normalise = s => (s || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')
-  const roomKey = diag.organisation_id && diag.organisation_id !== 'autre'
-    ? `${diag.organisation_id}${diag.site_id ? ':' + diag.site_id : ''}`
-    : diag.organisation ? `autre:${normalise(diag.organisation)}:${normalise(diag.pays)}` : null
+  const roomKey = computeRoomKey(diag)
 
   const panelStyle = { background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: 20, boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }
 
@@ -583,9 +675,140 @@ export default function DiagnosticResultat() {
           )}
         </div>
 
-        {/* Chat entre repondants du meme port — pleine largeur */}
+        {/* Consensus & Alignement Interne — position officielle (si validee),
+            tableau comparatif entre repondants du meme port (avec detection
+            de divergence), puis le chat existant juste en dessous pour
+            debattre des ecarts affiches au-dessus. */}
         {roomKey && (
           <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
+
+            {officialPosition && (
+              <div style={{ background: 'linear-gradient(135deg, rgba(74,222,128,0.12), rgba(0,115,244,0.08))', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 14, padding: '16px 18px', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <Ico name="check" size={15} color="#4ade80" />
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: '#fff' }}>{t.positionTitre}</div>
+                </div>
+                <p style={{ fontSize: 11.5, color: '#94a3b8', marginBottom: 12 }}>
+                  {t.positionValideeLe(new Date(officialPosition.validated_at).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: '2-digit', month: 'long', year: 'numeric' }))}
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                  {AXES.map(axe => {
+                    const v = officialPosition.scores?.[axe.id]
+                    if (v === undefined) return null
+                    return (
+                      <div key={axe.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 10px', background: 'rgba(255,255,255,0.05)', borderRadius: 20, fontSize: 12, color: '#e2e8f0' }}>
+                        <span style={{ fontWeight: 800, color: couleurNiveau(v) }}>{v}</span>
+                        <span style={{ color: '#94a3b8' }}>{txt(axe.nom, lang)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {diag.is_dg && !editionPosition && (
+              <button onClick={ouvrirEditionPosition} className="dash-btn" style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '11px 20px', marginBottom: 20,
+                background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none', borderRadius: 12,
+                color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                boxShadow: '0 6px 20px rgba(0,115,244,0.35)',
+              }}>
+                <Ico name="check" size={14} color="#fff" />
+                {officialPosition ? t.positionBtnMaj : t.positionBtn}
+              </button>
+            )}
+
+            {diag.is_dg && editionPosition && (
+              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: 20, marginBottom: 20 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{t.positionReviewTitre}</div>
+                <p style={{ fontSize: 11.5, color: '#94a3b8', marginBottom: 16 }}>{t.positionReviewSousTitre}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {AXES.map(axe => (
+                    <div key={axe.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                      <span style={{ fontSize: 12.5, color: '#e2e8f0', flex: 1 }}>{txt(axe.nom, lang)}</span>
+                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                        {ECHELLE.map(n => (
+                          <button key={n.valeur} type="button" onClick={() => setBrouillonScores(s => ({ ...s, [axe.id]: n.valeur }))} style={{
+                            width: 26, height: 26, borderRadius: 8, fontSize: 11.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+                            border: `1.5px solid ${brouillonScores[axe.id] === n.valeur ? '#0073F4' : 'rgba(255,255,255,0.12)'}`,
+                            background: brouillonScores[axe.id] === n.valeur ? 'linear-gradient(135deg,#0073F4,#000E91)' : 'transparent',
+                            color: brouillonScores[axe.id] === n.valeur ? '#fff' : '#94a3b8',
+                          }}>{n.valeur}</button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {validationErreur && <p style={{ fontSize: 12, color: '#f87171', marginTop: 12 }}>{validationErreur}</p>}
+                <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+                  <button onClick={() => setEditionPosition(false)} disabled={validationEnCours} style={{
+                    padding: '11px 18px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: 10, color: '#cbd5e1', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  }}>{t.positionAnnuler}</button>
+                  <button onClick={validerPosition} disabled={validationEnCours} style={{
+                    padding: '11px 20px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
+                    borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                  }}>{validationEnCours ? t.positionEnCours : t.positionConfirmer}</button>
+                </div>
+              </div>
+            )}
+
+            {peers.length > 1 && (
+              <div style={{ marginBottom: 24, overflowX: 'auto' }}>
+                <div style={{ fontSize: 13.5, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{t.comparatifTitre}</div>
+                <p style={{ fontSize: 11.5, color: '#94a3b8', marginBottom: 14 }}>{t.comparatifSousTitre}</p>
+                <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 120 + peers.length * 110 }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: 'left', fontSize: 10.5, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, padding: '6px 10px 10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>{t.comparatifDimension}</th>
+                      {peers.map(p => (
+                        <th key={p.id} style={{ textAlign: 'center', padding: '6px 10px 10px', borderBottom: '1px solid rgba(255,255,255,0.1)', minWidth: 100 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>
+                            {p.prenom} {p.nom}
+                            {p.is_dg && <span style={{ marginLeft: 6, fontSize: 9.5, fontWeight: 800, color: '#000E91', background: '#93c5fd', borderRadius: 20, padding: '1px 6px' }}>{t.dgBadge}</span>}
+                          </div>
+                          <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 500 }}>{p.poste || t.posteInconnu}</div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {AXES.map(axe => {
+                      const valeurs = peers.map(p => p.scores?.[axe.id]).filter(v => v !== undefined && v !== null)
+                      const divergence = valeurs.length > 1 && (Math.max(...valeurs) - Math.min(...valeurs)) >= 2
+                      return (
+                        <Fragment key={axe.id}>
+                          <tr style={{ background: divergence ? 'rgba(248,113,113,0.08)' : 'transparent' }}>
+                            <td style={{ fontSize: 12, color: '#e2e8f0', padding: '9px 10px 9px 0', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                              {divergence && <span title="Divergence" style={{ color: '#f87171', flexShrink: 0 }}>⚠️</span>}
+                              {txt(axe.nom, lang)}
+                            </td>
+                            {peers.map(p => {
+                              const v = p.scores?.[axe.id]
+                              return (
+                                <td key={p.id} style={{ textAlign: 'center', padding: '9px 10px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                  {v !== undefined && v !== null ? (
+                                    <span style={{ fontWeight: 800, fontSize: 13, color: couleurNiveau(v) }}>{v}</span>
+                                  ) : <span style={{ color: '#475569' }}>—</span>}
+                                </td>
+                              )
+                            })}
+                          </tr>
+                          {divergence && (
+                            <tr>
+                              <td colSpan={peers.length + 1} style={{ padding: '0 0 9px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                <span style={{ fontSize: 11, color: '#f87171', fontStyle: 'italic' }}>{t.divergenceMsg(txt(axe.nom, lang))}</span>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             <DiagnosticChat roomKey={roomKey} pseudoInitial={`${diag.prenom || ''} ${diag.nom || ''}`.trim()} lang={lang} />
           </div>
         )}

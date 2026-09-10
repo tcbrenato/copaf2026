@@ -39,6 +39,7 @@ const TR = {
     panneauStatutPlusieurs: n => `${n} personnes répondent actuellement`,
     panneauAttenteTitre: 'En attente de réponses',
     panneauAttenteTexte: "Dès qu'un participant sélectionne son pays, il apparaît ici en direct.",
+    positionValidee: '✓ Position officielle validée',
   },
   en: {
     badge: 'COPAF 2026 · SMART PORT DIAGNOSTIC',
@@ -59,6 +60,7 @@ const TR = {
     panneauStatutPlusieurs: n => `${n} people currently answering`,
     panneauAttenteTitre: 'Waiting for responses',
     panneauAttenteTexte: 'As soon as a participant selects their country, it appears here live.',
+    positionValidee: '✓ Official position validated',
   },
 }
 
@@ -118,6 +120,22 @@ export default function ProjectionDiagnostic() {
   const [liveByCountry, setLiveByCountry] = useState(() => new Map())
   const [vueOuverte, setVueOuverte] = useState(null)
   const channelRef = useRef(null)
+
+  // Cet ecran n'a pas de notion de "port" individuel (il agrege par
+  // reseau) : le rapprochement avec une position officielle validee se
+  // fait donc par nom d'organisation affiche, identique des deux cotes
+  // (meme construction "Nom — Site" a la soumission et en presence live).
+  const [organisationsAvecPositionOfficielle, setOrganisationsAvecPositionOfficielle] = useState(() => new Set())
+  useEffect(() => {
+    const chargerPositions = () => {
+      supabase.rpc('list_official_positions_with_names').then(({ data }) => {
+        setOrganisationsAvecPositionOfficielle(new Set((data || []).map(p => p.organisation).filter(Boolean)))
+      })
+    }
+    chargerPositions()
+    const poll = setInterval(chargerPositions, 60000)
+    return () => clearInterval(poll)
+  }, [])
 
   // Pays actuellement mis en avant dans le panneau lateral (survol/clic sur
   // la carte, ou cycle automatique parmi les pays en direct — meme
@@ -289,10 +307,17 @@ export default function ProjectionDiagnostic() {
 
                 <div style={{ marginBottom: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                   <span style={{ fontSize: 11, color: '#94a3b8' }}>{t.panneauPortsLabel}</span>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, marginTop: 6, lineHeight: 1.5 }}>
-                    {activeEntry && activeEntry.organisations.size > 0
-                      ? [...activeEntry.organisations].join(' · ')
-                      : '—'}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
+                    {activeEntry && activeEntry.organisations.size > 0 ? [...activeEntry.organisations].map(nom => (
+                      <div key={nom} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 13.5, fontWeight: 700, lineHeight: 1.5 }}>{nom}</span>
+                        {organisationsAvecPositionOfficielle.has(nom) && (
+                          <span style={{ fontSize: 10, fontWeight: 800, color: '#065f46', background: '#d1fae5', borderRadius: 20, padding: '2px 8px', flexShrink: 0 }}>
+                            {t.positionValidee}
+                          </span>
+                        )}
+                      </div>
+                    )) : <span style={{ fontSize: 13.5, fontWeight: 700 }}>—</span>}
                   </div>
                 </div>
 
