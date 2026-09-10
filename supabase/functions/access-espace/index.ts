@@ -85,12 +85,17 @@ Deno.serve(async req => {
     }
 
     if (!realEmail) {
-      const { data: membre } = await supabase
+      // Un dossier de delegation a PLUSIEURS lignes inscription_participants
+      // (une par membre) : .single() echouerait des qu'il y a plus d'un
+      // membre. On recupere donc toutes les lignes du dossier et on
+      // compare l'email cote JS (insensible a la casse), comme pour le
+      // contact principal ci-dessus.
+      const { data: membres } = await supabase
         .from('inscription_participants')
         .select('email')
         .eq('dossier', dossierTrim)
-        .single()
-      if (membre?.email && membre.email.trim().toLowerCase() === emailTrim) {
+      const membre = membres?.find(m => m.email && m.email.trim().toLowerCase() === emailTrim)
+      if (membre) {
         realEmail = membre.email
       }
     }
