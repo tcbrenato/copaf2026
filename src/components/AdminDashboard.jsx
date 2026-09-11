@@ -653,24 +653,9 @@ function ModalParticipant({ row, onClose, onUpdate }) {
     const { error } = await supabase.from('inscriptions').update({ paiement_status: status }).eq('id', row.id)
     setSaving(false)
     if (!error) {
-      const wasConfirmed = row.paiement_status === 'confirme'
       const updated = { ...row, paiement_status: status }
       onUpdate(updated)
-      if (status === 'confirme' && !wasConfirmed) {
-        t('Statut confirmé — génération du badge...')
-        setGenBadge(true)
-        try {
-          await generateBadge({
-            nomPrenom: `${updated.contacts?.prenom || ''} ${updated.contacts?.nom || ''}`.trim(),
-            fonction: updated.contacts?.pays || '',
-            dossier: updated.dossier || updated.id,
-            photoSrc: updated.photo_url || undefined,
-          })
-        } catch (e) { console.error(e) }
-        setGenBadge(false)
-      } else {
-        t('Statut mis a jour avec succes')
-      }
+      t('Statut mis a jour avec succes')
     }
     else t('Erreur : ' + error.message)
   }
