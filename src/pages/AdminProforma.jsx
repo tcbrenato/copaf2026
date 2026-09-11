@@ -5,6 +5,7 @@ import { generateRecapPDF } from '../utils/generateRecapPDF'
 import { generateBadge } from '../utils/generateBadge'
 import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitivePDF'
 import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmationInscriptionPDF'
+import DocumentsSection from '../components/DocumentsSection'
 
 const NAVY = '#000E91'
 const MAROON = '#96182A'
@@ -431,7 +432,7 @@ export default function AdminProforma() {
 
     const { data: membresLies } = await supabase
       .from('inscription_participants')
-      .select('prenom, nom, poste')
+      .select('id, prenom, nom, poste')
       .eq('dossier', row.dossier)
       .order('ordre')
 
@@ -439,7 +440,7 @@ export default function AdminProforma() {
       const unitaire = row.participants > 0 ? Math.round((row.montant || 0) / row.participants) : 3500
       liste = [
         { prenom: row.contacts?.prenom || '', nom: row.contacts?.nom || '', fonction: row.contacts?.poste || '', tarif: unitaire },
-        ...membresLies.map(m => ({ prenom: m.prenom || '', nom: m.nom || '', fonction: m.poste || '', tarif: unitaire })),
+        ...membresLies.map(m => ({ prenom: m.prenom || '', nom: m.nom || '', fonction: m.poste || '', tarif: unitaire, participantId: m.id })),
       ]
     }
 
@@ -447,7 +448,7 @@ export default function AdminProforma() {
     setParticipantsListe(liste.map(p => ({
       _id: p._id || newParticipantRow()._id,
       prenom: p.prenom || '', nom: p.nom || '', fonction: p.fonction || '', tarif: p.tarif ?? 3500,
-      dossier: p.dossier ?? '',
+      dossier: p.dossier ?? '', participantId: p.participantId || null,
     })))
     setIsGroup(!!row.delegation_nom || liste.length > 1)
 
@@ -1132,6 +1133,22 @@ export default function AdminProforma() {
                 Le badge et la facture définitive seront disponibles une fois le statut passé à "Confirmé".
               </p>
             )}
+          </div>
+
+          {/* Documents deposes manuellement (preuves, pieces d'identite...) —
+              distinct de l'historique des documents GENERES ci-dessous.
+              Contact principal + un bloc par membre de delegation, chacun
+              avec ses propres documents personnels (en plus des partages du
+              dossier) — avant ca, cette fiche n'offrait aucun moyen de
+              deposer/voir un document, ni pour le contact ni pour les
+              membres. */}
+          <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
+            <DocumentsSection dossier={data.dossier} titre={`Documents — ${data.prenom} ${data.nom} (contact principal)`} />
+            {isGroup && participantsListe.filter(p => p.participantId).map(p => (
+              <div key={p._id} style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #f1f5f9' }}>
+                <DocumentsSection dossier={data.dossier} participantId={p.participantId} titre={`Documents — ${p.prenom} ${p.nom}`} />
+              </div>
+            ))}
           </div>
 
           {/* Historique */}

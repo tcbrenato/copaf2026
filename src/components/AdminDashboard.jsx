@@ -7,6 +7,7 @@ import { generateBadge } from '../utils/generateBadge'
 import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmationInscriptionPDF'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { useAdminAuth } from '../adminAuth'
+import DocumentsSection from './DocumentsSection'
 import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
 import AdminDiagnostics from '../pages/AdminDiagnostics'
@@ -349,106 +350,6 @@ const EXTRAS_INPUT = { flex: 1, padding: '9px 12px', fontSize: 12.5, fontFamily:
 const EXTRAS_ICONBTN = { background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 8, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }
 const PREUVE_STATUT_LABEL = { en_attente: 'En attente', validee: 'Validee', rejetee: 'Rejetee' }
 const PREUVE_STATUT_COLOR = { en_attente: { bg: '#fef3c7', color: '#92400e' }, validee: { bg: '#d1fae5', color: '#065f46' }, rejetee: { bg: '#fee2e2', color: '#991b1b' } }
-
-// ─── DOCUMENTS D'UN DOSSIER ─────────────────────────────────────────────────
-// Composant autonome (charge/upload/masque/supprime lui-meme), reutilise
-// pour le dossier principal ET pour le dossier propre de chaque membre de
-// delegation -- meme mecanisme partout, pas de systeme different a
-// apprendre selon qui on regarde. Deposer ici un fichier pour le dossier
-// d'un membre (ex. COPAF2026-68908) le rend visible UNIQUEMENT dans son
-// espace personnel a lui ; deposer sur le dossier principal du groupe le
-// rend visible a tout le monde dans ce groupe (voir mon_dossier() cote SQL).
-// participantId absent (vue dossier/contact principal) : ne montre/depose
-// que les documents partages (participant_id null). participantId fourni
-// (vue d'un membre de delegation) : montre les documents partages + ceux
-// propres a ce membre, et tout depot depuis cette vue est tague a lui seul
-// -- jamais visible par les autres membres du meme dossier.
-function DocumentsSection({ dossier, participantId = null }) {
-  const [docs, setDocs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [uploading, setUploading] = useState(false)
-  const fileRef = useRef(null)
-
-  const load = useCallback(async () => {
-    setLoading(true)
-    let q = supabase.from('documents_participants').select('*').eq('dossier', dossier)
-    q = participantId ? q.or(`participant_id.is.null,participant_id.eq.${participantId}`) : q.is('participant_id', null)
-    const { data } = await q.order('created_at')
-    setDocs(data || [])
-    setLoading(false)
-  }, [dossier, participantId])
-
-  useEffect(() => { load() }, [load])
-
-  const uploadDoc = async e => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    const path = `${dossier}/${Date.now()}_${file.name}`.replace(/\s+/g, '_')
-    const { error: upErr } = await supabase.storage.from('documents-participants').upload(path, file)
-    if (!upErr) {
-      const url = supabase.storage.from('documents-participants').getPublicUrl(path).data.publicUrl
-      const { data: userData } = await supabase.auth.getUser()
-      await supabase.from('documents_participants').insert({
-        dossier, participant_id: participantId, type: 'autre', label: file.name, url, ajoute_par: userData?.user?.email || null,
-      })
-      await load()
-    }
-    setUploading(false)
-    if (fileRef.current) fileRef.current.value = ''
-  }
-
-  const toggleDocVisible = async doc => {
-    await supabase.from('documents_participants').update({ visible: !doc.visible }).eq('id', doc.id)
-    load()
-  }
-
-  const deleteDoc = async doc => {
-    await supabase.from('documents_participants').delete().eq('id', doc.id)
-    load()
-  }
-
-  if (loading) return null
-
-  return (
-    <div style={{ marginTop: 20 }}>
-      <div style={EXTRAS_LABEL}>
-        Documents déposés (visibles dans son espace personnel)
-        {participantId && ' — personnels à cette personne + partagés du dossier'}
-      </div>
-      {docs.map(doc => (
-        <div key={doc.id} style={EXTRAS_ROW}>
-          <a href={doc.url} target="_blank" rel="noreferrer" style={{ fontSize: 12.5, color: '#0f172a', fontWeight: 600, textDecoration: 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {doc.label}
-          </a>
-          {participantId && (
-            <span style={{
-              fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100, flexShrink: 0,
-              color: doc.participant_id ? '#7c3aed' : '#0369a1', background: doc.participant_id ? '#f3e8ff' : '#e0f2fe',
-            }}>
-              {doc.participant_id ? 'Personnel' : 'Partagé'}
-            </span>
-          )}
-          <button type="button" onClick={() => toggleDocVisible(doc)} title={doc.visible ? 'Masquer' : 'Rendre visible'} style={EXTRAS_ICONBTN}>
-            <Icon name={doc.visible ? 'eye' : 'eyeOff'} size={13} color={doc.visible ? '#059669' : '#94a3b8'} />
-          </button>
-          <button type="button" onClick={() => deleteDoc(doc)} title="Supprimer" style={EXTRAS_ICONBTN}>
-            <Icon name="trash" size={13} color="#ef4444" />
-          </button>
-        </div>
-      ))}
-      <label style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        padding: '9px 12px', border: '1.5px dashed #cbd5e1', borderRadius: 10,
-        fontSize: 12, fontWeight: 600, color: '#64748b', cursor: uploading ? 'not-allowed' : 'pointer', marginTop: 4,
-      }}>
-        <Icon name="upload" size={13} color="#64748b" />
-        {uploading ? 'Envoi en cours...' : participantId ? 'Déposer un document pour cette personne' : 'Déposer un document (badge, attestation...)'}
-        <input ref={fileRef} type="file" onChange={uploadDoc} disabled={uploading} style={{ display: 'none' }} />
-      </label>
-    </div>
-  )
-}
 
 // Ligne "membre de delegation" avec son propre QR affiche inline (et pas
 // seulement un lien "Voir le badge") : sans ca, seul le contact principal
