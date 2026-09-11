@@ -1,4 +1,4 @@
-﻿import { lazy, Suspense } from 'react'
+﻿import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import HeaderStack from './components/HeaderStack'
 import Hero from './components/Hero'
@@ -100,6 +100,19 @@ const InstallPromptGate = () => {
   return <InstallPrompt />
 }
 
+// ─── Remonte en haut de page a chaque changement de route : react-router ne
+// le fait pas tout seul, donc un lien vers /inscription (ou toute autre
+// page) depuis le bas d'une page precedente atterrissait la ou on avait
+// scrolle avant, potentiellement tout en bas (le footer), au lieu du haut
+// de la nouvelle page. Ne reagit qu'au changement de CHEMIN, pas de hash,
+// pour ne jamais casser un lien d'ancrage interne (#section) sur la meme
+// page.
+const ScrollToTop = () => {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
+
 // ─── Popup promo (visuel COPAF 2026, une seule apparition par visite) : memes
 // exclusions que ContactHub/InstallPrompt, + pas de sens sur la page
 // d'inscription elle-meme (le visiteur y est deja).
@@ -184,6 +197,7 @@ const StaffScanPage = () => (
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <AnalyticsTracker />
       <CookieBannerGate />
       <ContactHubGate />
