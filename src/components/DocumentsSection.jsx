@@ -51,6 +51,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre 
   const [remplacementId, setRemplacementId] = useState(null)
   const [editionId, setEditionId] = useState(null)
   const [libelleEdite, setLibelleEdite] = useState('')
+  const [erreur, setErreur] = useState('')
   const fileRef = useRef(null)
   const replaceFileRef = useRef(null)
 
@@ -69,16 +70,27 @@ export default function DocumentsSection({ dossier, participantId = null, titre 
   const uploadDoc = async e => {
     const file = e.target.files?.[0]
     if (!file) return
-    setUploading(true)
+    setUploading(true); setErreur('')
     const path = `${dossier}/${Date.now()}_${file.name}`.replace(/\s+/g, '_')
     const { error: upErr } = await supabase.storage.from('documents-participants').upload(path, file)
-    if (!upErr) {
+    if (upErr) {
+      setErreur(`Échec de l'envoi du fichier : ${upErr.message}`)
+    } else {
       const url = supabase.storage.from('documents-participants').getPublicUrl(path).data.publicUrl
       const { data: userData } = await supabase.auth.getUser()
-      await supabase.from('documents_participants').insert({
+      const { error: insErr } = await supabase.from('documents_participants').insert({
         dossier, participant_id: participantId, type: 'autre', label: file.name, url, ajoute_par: userData?.user?.email || null,
       })
-      await load()
+      if (insErr) {
+        // Le fichier est deja sur le stockage a ce stade ; seul l'enregistrement
+        // en base a echoue (ex. contrainte de base de donnees) — sans ce
+        // message, le depot semblait avoir reussi alors que rien n'etait
+        // visible ensuite (bug reel rencontre : cf. contrainte dossier retiree
+        // en migration).
+        setErreur(`Fichier envoyé mais non enregistré : ${insErr.message}`)
+      } else {
+        await load()
+      }
     }
     setUploading(false)
     if (fileRef.current) fileRef.current.value = ''
@@ -87,15 +99,21 @@ export default function DocumentsSection({ dossier, participantId = null, titre 
   const remplacerFichier = async (doc, e) => {
     const file = e.target.files?.[0]
     if (!file) return
-    setRemplacementId(doc.id)
+    setRemplacementId(doc.id); setErreur('')
     const path = `${dossier}/${Date.now()}_${file.name}`.replace(/\s+/g, '_')
     const { error: upErr } = await supabase.storage.from('documents-participants').upload(path, file)
-    if (!upErr) {
+    if (upErr) {
+      setErreur(`Échec de l'envoi du fichier : ${upErr.message}`)
+    } else {
       const url = supabase.storage.from('documents-participants').getPublicUrl(path).data.publicUrl
-      await supabase.from('documents_participants').update({ url, label: doc.label === doc.url ? file.name : doc.label }).eq('id', doc.id)
-      const ancienPath = storagePathFromUrl(doc.url)
-      if (ancienPath) await supabase.storage.from('documents-participants').remove([ancienPath])
-      await load()
+      const { error: updErr } = await supabase.from('documents_participants').update({ url, label: doc.label === doc.url ? file.name : doc.label }).eq('id', doc.id)
+      if (updErr) {
+        setErreur(`Fichier envoyé mais non enregistré : ${updErr.message}`)
+      } else {
+        const ancienPath = storagePathFromUrl(doc.url)
+        if (ancienPath) await supabase.storage.from('documents-participants').remove([ancienPath])
+        await load()
+      }
     }
     setRemplacementId(null)
     if (replaceFileRef.current) replaceFileRef.current.value = ''
@@ -168,6 +186,11 @@ export default function DocumentsSection({ dossier, participantId = null, titre 
           </button>
         </div>
       ))}
+      {erreur && (
+        <p style={{ fontSize: 11.5, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '6px 10px', marginTop: 6, marginBottom: 0 }}>
+          {erreur}
+        </p>
+      )}
       <label style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         padding: '9px 12px', border: '1.5px dashed #cbd5e1', borderRadius: 10,
