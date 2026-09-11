@@ -2379,6 +2379,180 @@ function SectionAnalytics({ inscriptions = [] }) {
   )
 }
 
+// ─── ASSISTANT ADMIN ────────────────────────────────────────────────────────
+// Reponses instantanees a partir des donnees DEJA chargees dans allData
+// (aucun appel reseau supplementaire, aucune IA generative) : reconnaissance
+// de questions frequentes par mots-cles plutot qu'une vraie comprehension du
+// langage -- gratuit et immediat, au prix de ne repondre qu'aux formulations
+// prevues (liste d'exemples affichee au demarrage et en cas d'echec).
+const normaliserTexte = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim()
+
+function construireAnnuaire(allData) {
+  const parInscriptionId = new Map((allData.inscriptions || []).map(i => [i.id, i]))
+  const principaux = (allData.inscriptions || []).map(i => ({
+    dossier: i.dossier, prenom: i.contacts?.prenom || '', nom: i.contacts?.nom || '',
+    pays: i.contacts?.pays || '', organisation: i.contacts?.organisation || '',
+    paiement_status: i.paiement_status, badge_token: i.badge_token, arrived: i.arrived,
+    role: 'Contact principal',
+  }))
+  const membres = (allData.membres || []).map(m => {
+    const parent = parInscriptionId.get(m.inscription_id)
+    return {
+      dossier: m.dossier, prenom: m.prenom || '', nom: m.nom || '',
+      pays: parent?.contacts?.pays || '', organisation: parent?.contacts?.organisation || '',
+      paiement_status: parent?.paiement_status, badge_token: m.badge_token, arrived: m.arrived,
+      role: 'Membre de délégation',
+    }
+  })
+  return [...principaux, ...membres]
+}
+
+const EXEMPLES_QUESTIONS = [
+  'Combien de personnes sont inscrites ?',
+  'Quel est le dossier de [nom] ?',
+  'Qui vient du Sénégal ?',
+  "Qui n'a pas encore payé ?",
+  "Qui n'a pas encore de badge ?",
+  'Qui est arrivé ?',
+  'Combien de pays sont représentés ?',
+]
+
+// Retire ponctuation finale ("?", ".") et article/preposition en tete
+// ("le ", "du ", "d'"...) d'une cible capturee par regex, pour que "le
+// Ghana ?" se compare correctement a la valeur stockee "Ghana".
+const nettoyerCible = s => s
+  .replace(/[?!.,;:]+\s*$/, '')
+  .replace(/^(le|la|les|l'|du|des|d')\s*/i, '')
+  .trim()
+
+function repondreAssistant(question, allData) {
+  const q = normaliserTexte(question)
+  const annuaire = construireAnnuaire(allData)
+  const nomComplet = p => normaliserTexte(`${p.prenom} ${p.nom}`)
+  const ligne = p => `• ${p.prenom} ${p.nom} — ${p.dossier}`
+
+  if (/\bcombien\b.*(inscri|personne|participant|dossier)/.test(q) && !/pays/.test(q)) {
+    const dossiers = new Set(annuaire.map(p => p.dossier))
+    return `Il y a ${annuaire.length} personne(s) inscrite(s), réparties sur ${dossiers.size} dossier(s).`
+  }
+
+  if (/\bcombien\b.*pays/.test(q) || /quels? pays/.test(q)) {
+    const pays = [...new Set(annuaire.map(p => p.pays).filter(Boolean))].sort()
+    return pays.length ? `${pays.length} pays représenté(s) : ${pays.join(', ')}.` : 'Aucun pays renseigné pour le moment.'
+  }
+
+  const matchDossierDe = q.match(/dossier[s]?\s+(?:de|pour|d')\s*(.+)/)
+  if (matchDossierDe) {
+    const cible = nettoyerCible(matchDossierDe[1])
+    if (cible.length > 2) {
+      const parPays = annuaire.filter(p => normaliserTexte(p.pays).includes(cible))
+      if (parPays.length) return `${parPays.length} dossier(s) pour "${cible}" :\n` + parPays.map(ligne).join('\n')
+    }
+    const parNom = annuaire.filter(p => nomComplet(p).includes(cible))
+    if (parNom.length) return parNom.map(p => `${p.prenom} ${p.nom} → dossier ${p.dossier} (${p.role.toLowerCase()}${p.pays ? `, ${p.pays}` : ''})`).join('\n')
+    return `Je n'ai trouvé personne ni aucun pays correspondant à "${cible}".`
+  }
+
+  const matchPays = q.match(/(?:qui vient|qui est|qui sont|liste).*(?:du|de|d')\s+(.+)/)
+  if (matchPays) {
+    const cible = nettoyerCible(matchPays[1])
+    const res = annuaire.filter(p => normaliserTexte(p.pays).includes(cible))
+    return res.length ? `${res.length} personne(s) de "${cible}" :\n` + res.map(ligne).join('\n') : `Personne trouvé pour "${cible}".`
+  }
+
+  if (/n.?a pas|pas encore|impaye/.test(q) && /(paye|paiement|regle)/.test(q)) {
+    const res = annuaire.filter(p => p.paiement_status && p.paiement_status !== 'confirme')
+    return res.length ? `${res.length} en attente de paiement :\n` + res.map(p => `• ${p.prenom} ${p.nom} — ${p.dossier} (${p.paiement_status})`).join('\n') : 'Tout le monde a un paiement confirmé.'
+  }
+
+  if (/sans badge|pas.*badge|badge.*pas/.test(q)) {
+    const res = annuaire.filter(p => !p.badge_token)
+    return res.length ? `${res.length} sans badge :\n` + res.map(ligne).join('\n') : 'Tout le monde a un badge généré.'
+  }
+
+  if (/qui est arrive|presents?\b/.test(q) && !/pas/.test(q)) {
+    const res = annuaire.filter(p => p.arrived)
+    return res.length ? `${res.length} arrivé(s) :\n` + res.map(ligne).join('\n') : "Personne n'est encore marqué arrivé."
+  }
+  if (/pas encore arrive|absents?\b|qui n.?est pas arrive/.test(q)) {
+    const res = annuaire.filter(p => !p.arrived)
+    return `${res.length} pas encore arrivé(s)` + (res.length ? ` :\n${res.map(ligne).join('\n')}` : '.')
+  }
+
+  return "Je ne sais pas encore répondre à ça. Essayez par exemple :\n" + EXEMPLES_QUESTIONS.map(e => `• ${e}`).join('\n')
+}
+
+function AdminAssistant({ allData }) {
+  const [ouvert, setOuvert] = useState(false)
+  const [question, setQuestion] = useState('')
+  const [messages, setMessages] = useState([
+    { role: 'bot', text: 'Posez-moi une question sur les inscriptions, par exemple :\n' + EXEMPLES_QUESTIONS.map(e => `• ${e}`).join('\n') },
+  ])
+  const listeRef = useRef(null)
+
+  useEffect(() => { if (listeRef.current) listeRef.current.scrollTop = listeRef.current.scrollHeight }, [messages, ouvert])
+
+  const envoyer = e => {
+    e.preventDefault()
+    const q = question.trim()
+    if (!q) return
+    const reponse = repondreAssistant(q, allData)
+    setMessages(prev => [...prev, { role: 'user', text: q }, { role: 'bot', text: reponse }])
+    setQuestion('')
+  }
+
+  return (
+    <>
+      <button onClick={() => setOuvert(v => !v)} title="Assistant admin" style={{
+        position: 'fixed', bottom: 24, right: 24, width: 56, height: 56, borderRadius: '50%',
+        background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none', boxShadow: '0 8px 24px rgba(0,14,145,.35)',
+        cursor: 'pointer', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22,
+      }}>
+        {ouvert ? <Icon name="close" size={20} color="#fff" /> : '💬'}
+      </button>
+
+      {ouvert && (
+        <div style={{
+          position: 'fixed', bottom: 92, right: 24, width: 360, maxWidth: 'calc(100vw - 32px)', height: 480,
+          maxHeight: 'calc(100vh - 140px)', background: '#fff', borderRadius: 20, boxShadow: '0 24px 60px rgba(0,0,0,.2)',
+          zIndex: 2000, display: 'flex', flexDirection: 'column', overflow: 'hidden', border: '1px solid #e2e8f0',
+        }}>
+          <div style={{ padding: '14px 18px', background: 'linear-gradient(135deg,#0073F4,#000E91)', color: '#fff', flexShrink: 0 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 800 }}>Assistant admin</div>
+            <div style={{ fontSize: 10.5, opacity: .8 }}>Réponses instantanées à partir de vos données</div>
+          </div>
+          <div ref={listeRef} style={{ flex: 1, overflowY: 'auto', padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {messages.map((m, i) => (
+              <div key={i} style={{
+                alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+                background: m.role === 'user' ? '#000E91' : '#f1f5f9',
+                color: m.role === 'user' ? '#fff' : '#0f172a',
+                borderRadius: 12, padding: '9px 12px', fontSize: 12.5, lineHeight: 1.55,
+                maxWidth: '88%', whiteSpace: 'pre-line',
+              }}>
+                {m.text}
+              </div>
+            ))}
+          </div>
+          <form onSubmit={envoyer} style={{ display: 'flex', gap: 8, padding: 12, borderTop: '1px solid #f1f5f9', flexShrink: 0 }}>
+            <input
+              value={question} onChange={e => setQuestion(e.target.value)}
+              placeholder="Posez votre question..."
+              style={{ flex: 1, minWidth: 0, padding: '9px 12px', fontSize: 12.5, fontFamily: 'inherit', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none' }}
+            />
+            <button type="submit" style={{
+              padding: '9px 14px', background: '#000E91', border: 'none', borderRadius: 10, color: '#fff',
+              fontWeight: 700, fontSize: 12.5, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0,
+            }}>
+              →
+            </button>
+          </form>
+        </div>
+      )}
+    </>
+  )
+}
+
 // ─── COMPOSANT PRINCIPAL ──────────────────────────────────────────────────────
 export default function AdminPage() {
   const { scope, role, signOut, session } = useAdminAuth()
@@ -2702,6 +2876,7 @@ export default function AdminPage() {
           )}
         </main>
       </div>
+      <AdminAssistant allData={allData} />
     </div>
   )
 }
