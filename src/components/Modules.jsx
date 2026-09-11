@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useTranslation } from 'react-i18next'
 
+// Emoji plutot que la librairie flag-icons (retiree du projet) : celle-ci
+// embarquait ~250 SVG de drapeaux du monde entier (y compris des
+// subdivisions type Ecosse/Pays de Galles/Sainte-Helene) rien que pour les
+// ~29 pays affiches ici, alourdissant le bundle ET le precache PWA de
+// plusieurs Mo — d'ou la lenteur au chargement/rafraichissement signalee.
+// Meme technique deja utilisee ailleurs dans l'appli (selecteurs de langue).
+const flagEmoji = code => (code || '').toUpperCase().replace(/./g, c => String.fromCodePoint(127397 + c.charCodeAt(0)))
+
 const icons = {
   compass: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>,
   shield: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>,
@@ -291,7 +299,7 @@ const AxesThematiques = () => {
                       borderStyle: p.associe ? 'dashed' : 'solid', borderRadius: 12,
                     }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-                        <span className={`fi fi-${p.code}`} style={{ borderRadius: 3, flexShrink: 0, boxShadow: '0 0 0 1px rgba(0,0,0,0.08)' }} />
+                        <span style={{ fontSize: 17, lineHeight: 1, flexShrink: 0 }}>{flagEmoji(p.code)}</span>
                         <span style={{ fontSize: 12.5, fontWeight: 700, color: C.navy, lineHeight: 1.25 }}>{p.nom}{p.associe && <sup style={{ marginLeft: 2 }}>*</sup>}</span>
                       </div>
                       {p.visa && (
