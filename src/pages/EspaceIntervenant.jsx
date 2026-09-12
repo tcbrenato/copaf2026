@@ -75,7 +75,7 @@ export default function EspaceIntervenant() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F8FAFC', color: '#1E293B', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", position: 'relative' }}>
+    <div style={{ minHeight: '100vh', width: '100%', maxWidth: '100vw', overflowX: 'hidden', boxSizing: 'border-box', background: '#F8FAFC', color: '#1E293B', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", position: 'relative' }}>
       <SeoHead title="Espace Intervenant — COPAF 2026" description="Espace personnel des intervenants COPAF 2026" type="website" />
 
       <style>{`
@@ -87,7 +87,15 @@ export default function EspaceIntervenant() {
           border-radius: 20px;
           box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
           transition: transform 0.2s ease, box-shadow 0.2s ease;
+          min-width: 0;
+          box-sizing: border-box;
         }
+        /* Les enfants flex/grid ne retrecissent pas sous la largeur de leur
+           contenu par defaut (min-width:auto) — un titre d'intervention ou
+           un nom de fichier un peu long poussait alors toute la carte, et
+           la page entiere, plus large que l'ecran sur mobile au lieu de
+           passer a la ligne. */
+        .bento-grid, .bento-grid > * { min-width: 0; }
         .bento-card-light:hover {
           box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
         }
@@ -296,13 +304,13 @@ export default function EspaceIntervenant() {
                         <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#F1F5F9', border: `2px solid ${BLUE}`, display: 'grid', placeItems: 'center', flexShrink: 0, zIndex: 1 }}>
                           <span style={{ fontSize: 11, fontWeight: 900, color: BLUE }}>J{iv.jour}</span>
                         </div>
-                        <div style={{ flex: 1, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 16, padding: 16 }}>
+                        <div style={{ flex: 1, minWidth: 0, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 16, padding: 16, boxSizing: 'border-box' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
                             <span style={{ fontSize: 11.5, fontWeight: 800, color: BLUE, background: '#E0F2FE', padding: '4px 8px', borderRadius: 6 }}>
                               {infoJour.date} • {iv.heure}
                             </span>
                           </div>
-                          <div style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>{iv.titre}</div>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', lineHeight: 1.4, overflowWrap: 'break-word' }}>{iv.titre}</div>
                           {iv.avec && (
                             <div style={{ fontSize: 12.5, color: '#64748B', marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
