@@ -46,7 +46,7 @@ const intervenants = [
   {
     initiales: 'MB',
     photo: '/marc.jpg',
-    nom: 'M. Marc BIEGNIÉBÉ',
+    nom: 'M. Marc BIEGNIEBE',
     titre: 'Directeur Général',
     organisation: 'ANAXAR',
     bioKey: 'biegniebeBio',
