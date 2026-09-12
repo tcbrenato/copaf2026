@@ -318,7 +318,7 @@ export default function VerifierDossier() {
         .lang-switch:hover{border-color:#0073F4;background:#EBF3FF}
       `}</style>
 
-      <img src="/coverscopaf.png" alt="COPAF 2026 — Conférence des Ports Africains" style={{ width: '100%', display: 'block', marginBottom: 'clamp(40px,8vw,72px)' }} />
+      <img src="/coverscopaf.png" alt="COPAF 2026 — Conférence des Ports Africains" style={{ width: '100%', height: 'clamp(90px,18vw,190px)', objectFit: 'cover', objectPosition: 'top', display: 'block', marginBottom: 'clamp(40px,8vw,72px)' }} />
 
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 20px' }}>
 

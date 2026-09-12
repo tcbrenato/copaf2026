@@ -84,7 +84,7 @@ export default function EspaceIntervenant() {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');`}</style>
 
       <header style={{ background: NAVY }}>
-        <img src="/coverscopaf.png" alt="COPAF 2026 — Conférence des Ports Africains" style={{ width: '100%', display: 'block' }} />
+        <img src="/coverscopaf.png" alt="COPAF 2026 — Conférence des Ports Africains" style={{ width: '100%', height: 'clamp(90px,18vw,190px)', objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
         <div style={{ maxWidth: 640, margin: '0 auto', padding: '18px clamp(20px, 5vw, 48px) 22px' }}>
           <h1 style={{ fontSize: 'clamp(20px, 3vw, 26px)', fontWeight: 900, margin: '0 0 6px', color: '#fff', letterSpacing: '-0.01em' }}>
             Espace intervenant
