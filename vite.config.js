@@ -82,7 +82,11 @@ export default defineConfig({
         // ouverte. Mis en cache a la demande (CacheFirst) au lieu de gonfler
         // le precache de plusieurs Mo pour des icones que la plupart des
         // visiteurs ne verront jamais.
-        globIgnores: ['**/assets/*.svg'],
+        // coverscopaf.png n'est utilise nulle part dans l'app elle-meme —
+        // uniquement par son URL publique, embarquee dans le template
+        // EmailJS (edite hors de ce depot) comme image d'en-tete des emails
+        // de confirmation. Aucune raison de le precacher pour les visiteurs.
+        globIgnores: ['**/assets/*.svg', '**/coverscopaf.png'],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
