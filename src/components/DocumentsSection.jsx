@@ -44,6 +44,14 @@ function storagePathFromUrl(url, bucket) {
   return i === -1 ? null : decodeURIComponent(url.slice(i + marker.length))
 }
 
+// Supabase Storage rejette les cles contenant des caracteres accentues (ex.
+// "MATURITÉ" — erreur "Invalid key") ; on retire les accents et on remplace
+// tout caractere hors [A-Za-z0-9._-] par un underscore avant l'upload.
+function sanitizeFileName(name) {
+  const sansAccents = (name || 'fichier').normalize('NFD').replace(/[̀-ͯ]/g, '')
+  return sansAccents.replace(/[^A-Za-z0-9._-]+/g, '_')
+}
+
 // `table`/`bucket` permettent de reutiliser ce composant pour l'espace
 // intervenants (documents_intervenants / documents-intervenants), qui n'a
 // pas de participant_id et n'exige pas de session Supabase Auth — d'ou
@@ -57,6 +65,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
   const [editionId, setEditionId] = useState(null)
   const [libelleEdite, setLibelleEdite] = useState('')
   const [erreur, setErreur] = useState('')
+  const [dragOver, setDragOver] = useState(false)
   const fileRef = useRef(null)
   const replaceFileRef = useRef(null)
 
@@ -74,11 +83,10 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
 
   useEffect(() => { load() }, [load])
 
-  const uploadDoc = async e => {
-    const file = e.target.files?.[0]
+  const uploadFile = async file => {
     if (!file) return
     setUploading(true); setErreur('')
-    const path = `${dossier}/${Date.now()}_${file.name}`.replace(/\s+/g, '_')
+    const path = `${dossier}/${Date.now()}_${sanitizeFileName(file.name)}`
     const { error: upErr } = await supabase.storage.from(bucket).upload(path, file)
     if (upErr) {
       setErreur(`Échec de l'envoi du fichier : ${upErr.message}`)
@@ -107,11 +115,20 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
     if (fileRef.current) fileRef.current.value = ''
   }
 
+  const uploadDoc = e => uploadFile(e.target.files?.[0])
+
+  const onDropZoneDrop = e => {
+    e.preventDefault()
+    setDragOver(false)
+    if (uploading) return
+    uploadFile(e.dataTransfer.files?.[0])
+  }
+
   const remplacerFichier = async (doc, e) => {
     const file = e.target.files?.[0]
     if (!file) return
     setRemplacementId(doc.id); setErreur('')
-    const path = `${dossier}/${Date.now()}_${file.name}`.replace(/\s+/g, '_')
+    const path = `${dossier}/${Date.now()}_${sanitizeFileName(file.name)}`
     const { error: upErr } = await supabase.storage.from(bucket).upload(path, file)
     if (upErr) {
       setErreur(`Échec de l'envoi du fichier : ${upErr.message}`)
@@ -202,13 +219,20 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
           {erreur}
         </p>
       )}
-      <label style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        padding: '9px 12px', border: '1.5px dashed #cbd5e1', borderRadius: 10,
-        fontSize: 12, fontWeight: 600, color: '#64748b', cursor: uploading ? 'not-allowed' : 'pointer', marginTop: 4,
-      }}>
-        <Icon name="upload" />
-        {uploading ? 'Envoi en cours...' : participantId ? 'Déposer un document pour cette personne' : 'Déposer un document (badge, attestation...)'}
+      <label
+        onDragOver={e => { e.preventDefault(); if (!uploading) setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDropZoneDrop}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+          padding: '9px 12px', border: `1.5px dashed ${dragOver ? '#0073F4' : '#cbd5e1'}`, borderRadius: 10,
+          background: dragOver ? '#EBF3FF' : 'transparent',
+          fontSize: 12, fontWeight: 600, color: dragOver ? '#0073F4' : '#64748b', cursor: uploading ? 'not-allowed' : 'pointer', marginTop: 4,
+          transition: 'all .15s',
+        }}
+      >
+        <Icon name="upload" color={dragOver ? '#0073F4' : '#64748b'} />
+        {uploading ? 'Envoi en cours...' : dragOver ? 'Déposez le fichier ici' : participantId ? 'Déposer un document pour cette personne (ou glisser-déposer)' : 'Déposer un document (badge, attestation...) — ou glisser-déposer'}
         <input ref={fileRef} type="file" onChange={uploadDoc} disabled={uploading} style={{ display: 'none' }} />
       </label>
     </div>

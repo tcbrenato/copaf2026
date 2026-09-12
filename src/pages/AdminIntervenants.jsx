@@ -26,7 +26,7 @@ function texteToInterventions(texte) {
   })
 }
 
-function FormeIntervenant({ initial, onCancel, onSaved }) {
+function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
   const [nom, setNom] = useState(initial?.nom || '')
   const [prenom, setPrenom] = useState(initial?.prenom || '')
   const [organisation, setOrganisation] = useState(initial?.organisation || '')
@@ -50,7 +50,7 @@ function FormeIntervenant({ initial, onCancel, onSaved }) {
     }
     const resultat = initial
       ? await supabase.from('intervenants').update(champs).eq('id', initial.id)
-      : await supabase.from('intervenants').insert({ ...champs, dossier: `INT2026-${Date.now().toString().slice(-6)}` })
+      : await supabase.from('intervenants').insert({ ...champs, dossier: `INT2026-${Date.now().toString().slice(-6)}`, ordre: nextOrdre })
     const { error } = resultat
     setSaving(false)
     if (error) { setErreur(error.message); return }
@@ -151,10 +151,12 @@ export default function AdminIntervenants() {
   const [ouvert, setOuvert] = useState(null)
   const [copie, setCopie] = useState(false)
   const [codeCopieId, setCodeCopieId] = useState(null)
+  const [draggedId, setDraggedId] = useState(null)
+  const [overId, setOverId] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data: iv } = await supabase.from('intervenants').select('*').order('created_at')
+    const { data: iv } = await supabase.from('intervenants').select('*').order('ordre')
     setIntervenants(iv || [])
     setLoading(false)
   }, [])
@@ -163,6 +165,22 @@ export default function AdminIntervenants() {
 
   const copierCode = async iv => {
     try { await navigator.clipboard.writeText(iv.code_acces); setCodeCopieId(iv.id); setTimeout(() => setCodeCopieId(null), 2000) } catch { /* clipboard indisponible */ }
+  }
+
+  const onDragStartRow = (e, id) => { setDraggedId(id); e.dataTransfer.effectAllowed = 'move' }
+  const onDragOverRow = (e, id) => { e.preventDefault(); if (id !== overId) setOverId(id) }
+  const onDragEndRow = () => { setDraggedId(null); setOverId(null) }
+  const onDropRow = async (e, targetId) => {
+    e.preventDefault()
+    if (!draggedId || draggedId === targetId) { setDraggedId(null); setOverId(null); return }
+    const fromIdx = intervenants.findIndex(x => x.id === draggedId)
+    const toIdx = intervenants.findIndex(x => x.id === targetId)
+    const reordered = [...intervenants]
+    const [moved] = reordered.splice(fromIdx, 1)
+    reordered.splice(toIdx, 0, moved)
+    setIntervenants(reordered)
+    setDraggedId(null); setOverId(null)
+    await Promise.all(reordered.map((iv, i) => supabase.from('intervenants').update({ ordre: i + 1 }).eq('id', iv.id)))
   }
 
   const supprimer = async iv => {
@@ -191,7 +209,7 @@ export default function AdminIntervenants() {
         </div>
       </div>
 
-      {ajout && <FormeIntervenant onCancel={() => setAjout(false)} onSaved={() => { setAjout(false); load() }} />}
+      {ajout && <FormeIntervenant nextOrdre={intervenants.length + 1} onCancel={() => setAjout(false)} onSaved={() => { setAjout(false); load() }} />}
       {edition && (
         <FormeIntervenant initial={edition} onCancel={() => setEdition(null)} onSaved={() => { setEdition(null); load() }} />
       )}
@@ -203,14 +221,35 @@ export default function AdminIntervenants() {
       )}
 
       {intervenants.map(iv => (
-        <div key={iv.id} style={{ ...CARD, marginBottom: 12, padding: 0, overflow: 'hidden' }}>
+        <div
+          key={iv.id}
+          onDragOver={e => onDragOverRow(e, iv.id)}
+          onDrop={e => onDropRow(e, iv.id)}
+          style={{
+            ...CARD, marginBottom: 12, padding: 0, overflow: 'hidden',
+            opacity: draggedId === iv.id ? 0.4 : 1,
+            outline: overId === iv.id && draggedId && draggedId !== iv.id ? '2px solid #0073F4' : 'none',
+          }}
+        >
           <div
             onClick={() => setOuvert(ouvert === iv.id ? null : iv.id)}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', cursor: 'pointer' }}
           >
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{iv.prenom} {iv.nom}</div>
-              <div style={{ fontSize: 12, color: '#64748b' }}>{iv.fonction}{iv.organisation ? ` — ${iv.organisation}` : ''} · {iv.dossier}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span
+                draggable
+                onDragStart={e => onDragStartRow(e, iv.id)}
+                onDragEnd={onDragEndRow}
+                onClick={e => e.stopPropagation()}
+                title="Glisser pour réordonner"
+                style={{ cursor: 'grab', color: '#cbd5e1', fontSize: 16, lineHeight: 1, letterSpacing: -2, userSelect: 'none', flexShrink: 0 }}
+              >
+                ⠿
+              </span>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{iv.prenom} {iv.nom}</div>
+                <div style={{ fontSize: 12, color: '#64748b' }}>{iv.fonction}{iv.organisation ? ` — ${iv.organisation}` : ''} · {iv.dossier}</div>
+              </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={e => e.stopPropagation()}>
               <span style={{ fontSize: 11.5, fontFamily: 'monospace', color: '#0369a1', background: '#e0f2fe', borderRadius: 8, padding: '5px 10px' }}>
