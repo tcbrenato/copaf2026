@@ -34,12 +34,27 @@ const Ico = ({ name, size = 22, color = 'currentColor' }) => {
   return icons[name] || null
 }
 
+const wrap = { minHeight: '100vh', background: 'linear-gradient(180deg,#f0f6ff 0%,#f8faff 100%)', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '24px 16px' }
+const card = { maxWidth: 560, margin: '0 auto' }
+const inputIdentiteStyle = { width: '100%', padding: '10px 12px', fontSize: 13.5, fontFamily: 'inherit', color: '#0f172a', background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }
+
+const BoutonMenu = () => (
+  <a href="/tablette" style={{
+    position: 'fixed', top: 18, left: 18, zIndex: 10, display: 'inline-flex', alignItems: 'center', gap: 6,
+    padding: '9px 16px', borderRadius: 20, background: '#fff', border: '1.5px solid #e2e8f0',
+    color: '#334155', fontSize: 12.5, fontWeight: 700, textDecoration: 'none',
+    fontFamily: "'Plus Jakarta Sans',sans-serif", boxShadow: '0 4px 12px rgba(0,14,145,.08)',
+  }}>
+    ← Menu
+  </a>
+)
+
 export default function VoteSondage() {
   const [sondages, setSondages] = useState([])
   const [mesVotes, setMesVotes] = useState({}) // { sondage_id: option_index }
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState('')
-  const [identite, setIdentite] = useState(getIdentiteStockee)
+  const [identite, setIdentite] = useState(() => getIdentiteStockee())
   const [erreurIdentite, setErreurIdentite] = useState('')
   const deviceToken = getDeviceToken()
 
@@ -112,20 +127,6 @@ export default function VoteSondage() {
     // Si error (ex: doublon), on ignore silencieusement — le vote existant reste valable.
   }
 
-  const wrap = { minHeight: '100vh', background: 'linear-gradient(180deg,#f0f6ff 0%,#f8faff 100%)', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '24px 16px' }
-  const card = { maxWidth: 560, margin: '0 auto' }
-  const inputIdentite = { width: '100%', padding: '10px 12px', fontSize: 13.5, fontFamily: 'inherit', color: '#0f172a', background: '#fffbeb', border: '1.5px solid #fde68a', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }
-  const BoutonMenu = () => (
-    <a href="/tablette" style={{
-      position: 'fixed', top: 18, left: 18, zIndex: 10, display: 'inline-flex', alignItems: 'center', gap: 6,
-      padding: '9px 16px', borderRadius: 20, background: '#fff', border: '1.5px solid #e2e8f0',
-      color: '#334155', fontSize: 12.5, fontWeight: 700, textDecoration: 'none',
-      fontFamily: "'Plus Jakarta Sans',sans-serif", boxShadow: '0 4px 12px rgba(0,14,145,.08)',
-    }}>
-      ← Menu
-    </a>
-  )
-
   if (loading) {
     return <div style={wrap}><BoutonMenu /><div style={{ ...card, textAlign: 'center', paddingTop: 100, color: '#64748b' }}>Chargement...</div></div>
   }
@@ -154,11 +155,11 @@ export default function VoteSondage() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <input
-                style={inputIdentite} placeholder="Votre nom" value={identite.nom}
+                style={inputIdentiteStyle} placeholder="Votre nom" value={identite.nom}
                 onChange={e => setIdentite(v => ({ ...v, nom: e.target.value }))}
               />
               <select
-                style={inputIdentite} value={identite.port}
+                style={inputIdentiteStyle} value={identite.port}
                 onChange={e => setIdentite(v => ({ ...v, port: e.target.value }))}
               >
                 <option value="">Votre port</option>
@@ -174,7 +175,7 @@ export default function VoteSondage() {
             </div>
             {identite.port === PORTS_AUTRE.value && (
               <input
-                style={{ ...inputIdentite, marginTop: 10 }} placeholder="Précisez votre port / organisation"
+                style={{ ...inputIdentiteStyle, marginTop: 10 }} placeholder="Précisez votre port / organisation"
                 value={identite.portAutre} onChange={e => setIdentite(v => ({ ...v, portAutre: e.target.value }))}
               />
             )}

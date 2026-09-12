@@ -32,7 +32,7 @@ export default function AdminTirage() {
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const { data } = await supabase
       .from('tirage_entrees')
@@ -41,9 +41,9 @@ export default function AdminTirage() {
       .order('created_at', { ascending: true })
     setEntrees(data || [])
     setLoading(false)
-  }
+  }, [])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
 
   const ajouterUn = async () => {
     if (!nouveauNom.trim()) return

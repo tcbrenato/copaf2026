@@ -1,15 +1,3 @@
-// src/pages/EspaceIntervenant.jsx
-//
-// Espace personnel des intervenants du programme (distinct de l'espace
-// participant /verifier) : pas d'inscription, pas de paiement, pas d'email
-// requis — connexion par nom + code d'accès partage (voir migration
-// create_intervenants_espace et la fonction intervenant_login), pensee pour
-// une quinzaine de personnes connues a l'avance par l'organisation.
-//
-// Documents : reutilise DocumentsSection sur la table/bucket
-// documents_intervenants (separee de documents_participants pour ne pas
-// ouvrir en public l'upload sur les documents des participants).
-
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { supabase } from '../supabase'
@@ -17,10 +5,13 @@ import SeoHead from '../components/SeoHead'
 import DocumentsSection from '../components/DocumentsSection'
 import { generateQrCard } from '../utils/generateQrCard'
 
-const NAVY = '#00367F'
-const BLUE = '#1798F4'
+const BLUE = '#0284C7'
 
-const JOUR_LABEL = { 1: 'Jour 1 — 19 octobre', 2: 'Jour 2 — 20 octobre', 3: 'Jour 3 — 21 octobre' }
+const JOUR_LABEL = {
+  1: { date: '19 Octobre', sub: 'Jour 1' },
+  2: { date: '20 Octobre', sub: 'Jour 2' },
+  3: { date: '21 Octobre', sub: 'Jour 3' },
+}
 
 export default function EspaceIntervenant() {
   const [nom, setNom] = useState('')
@@ -32,10 +23,6 @@ export default function EspaceIntervenant() {
   const [telechargement, setTelechargement] = useState(false)
   const [badgeDoc, setBadgeDoc] = useState(null)
 
-  // Une fois que l'organisation depose le vrai visuel du badge (avec le QR
-  // deja integre dedans, cf. bouton "Telecharger" ci-dessous a coller dans
-  // Canva), il remplace le mini QR genere automatiquement — plus fidele a
-  // ce que la personne presentera reellement a l'accueil.
   const onDocsChange = docs => {
     setBadgeDoc(docs.find(d => /badge/i.test(d.label)) || null)
   }
@@ -52,7 +39,7 @@ export default function EspaceIntervenant() {
     if (!intervenant?.badge_token) { setQr(''); return }
     let cancelled = false
     const badgeUrl = `https://copaf-ports.com/badge/${intervenant.badge_token}`
-    QRCode.toDataURL(badgeUrl, { width: 320, margin: 1, color: { dark: '#000E91', light: '#FFFFFF' } })
+    QRCode.toDataURL(badgeUrl, { width: 320, margin: 1, color: { dark: '#0F172A', light: '#FFFFFF' } })
       .then(url => { if (!cancelled) setQr(url) })
       .catch(() => { if (!cancelled) setQr('') })
     return () => { cancelled = true }
@@ -88,136 +75,267 @@ export default function EspaceIntervenant() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f6f8fc', fontFamily: "'Plus Jakarta Sans', 'Helvetica Neue', sans-serif" }}>
-      <SeoHead title="Espace intervenant — COPAF 2026" description="Espace personnel des intervenants COPAF 2026" type="website" />
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');`}</style>
+    <div style={{ minHeight: '100vh', background: '#F8FAFC', color: '#1E293B', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", position: 'relative' }}>
+      <SeoHead title="Espace Intervenant — COPAF 2026" description="Espace personnel des intervenants COPAF 2026" type="website" />
 
-      <header style={{ background: NAVY }}>
-        <img src="/coverscopaf.png" alt="COPAF 2026 — Conférence des Ports Africains" style={{ width: '100%', height: 'clamp(90px,18vw,190px)', objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
-        <div style={{ maxWidth: 640, margin: '0 auto', padding: '18px clamp(20px, 5vw, 48px) 22px' }}>
-          <h1 style={{ fontSize: 'clamp(20px, 3vw, 26px)', fontWeight: 900, margin: '0 0 6px', color: '#fff', letterSpacing: '-0.01em' }}>
-            Espace intervenant
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+        
+        .bento-card-light {
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
+          border-radius: 20px;
+          box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .bento-card-light:hover {
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+        }
+        
+        .light-input {
+          background: #F1F5F9;
+          border: 1px solid #CBD5E1;
+          color: #0F172A;
+          transition: all 0.2s ease;
+        }
+        .light-input:focus {
+          outline: none;
+          border-color: ${BLUE};
+          background: #FFFFFF;
+          box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
+        }
+
+        .btn-blue {
+          background: #0284C7;
+          color: #FFFFFF;
+          font-weight: 700;
+          transition: all 0.2s ease;
+          border: none;
+          box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+        }
+        .btn-blue:hover:not(:disabled) {
+          background: #0369A1;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
+        }
+        .btn-blue:disabled { opacity: 0.6; cursor: wait; }
+
+        .timeline-item::before {
+          content: '';
+          position: absolute;
+          left: 19px;
+          top: 36px;
+          bottom: -20px;
+          width: 2px;
+          background: #E2E8F0;
+        }
+        .timeline-item:last-child::before { display: none; }
+
+        .bento-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+        @media (min-width: 900px) {
+          .bento-grid {
+            grid-template-columns: 360px 1fr;
+          }
+          .col-span-full { grid-column: 1 / -1; }
+        }
+      `}</style>
+
+      {/* Hero Header Lumineux */}
+      <header style={{ position: 'relative', zIndex: 1, background: '#FFFFFF', borderBottom: '1px solid #E2E8F0' }}>
+        <div style={{ position: 'relative', width: '100%', height: 'clamp(140px, 20vw, 220px)', overflow: 'hidden' }}>
+          <img 
+            src="/coverscopaf.png" 
+            alt="COPAF 2026" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} 
+          />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.9) 100%)' }} />
+        </div>
+
+        <div style={{ maxWidth: 1100, margin: '-50px auto 0', padding: '0 24px 24px', position: 'relative', zIndex: 2 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 20, background: '#E0F2FE', border: '1px solid #BAE6FD', marginBottom: 12 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: BLUE }} />
+            <span style={{ fontSize: 11.5, fontWeight: 800, color: '#0369A1', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Portail Conférencier</span>
+          </div>
+          <h1 style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 900, color: '#0F172A', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+            Espace Intervenant
           </h1>
-          <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.8)', margin: 0, lineHeight: 1.6 }}>
-            Retrouvez votre badge, votre lettre d'invitation et les documents liés à votre intervention — et déposez-y votre présentation.
+          <p style={{ fontSize: 14.5, color: '#64748B', margin: 0, maxWidth: 600, lineHeight: 1.6 }}>
+            Consultez vos accréditations, gérez vos horaires d'intervention et déposez vos supports de présentation.
           </p>
         </div>
       </header>
 
-      <div style={{ maxWidth: 640, margin: '0 auto', padding: 'clamp(28px, 5vw, 40px) clamp(20px, 5vw, 48px) 80px' }}>
+      {/* Main Content */}
+      <main style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px 80px', position: 'relative', zIndex: 1 }}>
         {!intervenant ? (
-          <form onSubmit={connexion} style={{ background: '#fff', borderRadius: 16, padding: 28, border: '1px solid rgba(0,54,127,0.08)', boxShadow: '0 8px 24px rgba(0,54,127,0.06)' }}>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#334155', marginBottom: 6 }}>Nom complet</label>
-              <input
-                value={nom} onChange={e => setNom(e.target.value)} placeholder="Ex. William Odah" autoFocus
-                style={{ width: '100%', padding: '11px 14px', fontSize: 14, fontFamily: 'inherit', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }}
-              />
-            </div>
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#334155', marginBottom: 6 }}>Code d'accès intervenant</label>
-              <input
-                value={code} onChange={e => setCode(e.target.value)} placeholder="Communiqué par l'organisation"
-                style={{ width: '100%', padding: '11px 14px', fontSize: 14, fontFamily: 'inherit', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }}
-              />
-            </div>
-            {erreur && (
-              <p style={{ fontSize: 12.5, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 12px', marginBottom: 16 }}>
-                {erreur}
-              </p>
-            )}
-            <button type="submit" disabled={loading} style={{
-              width: '100%', padding: '12px 16px', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700,
-              color: '#fff', background: NAVY, cursor: loading ? 'wait' : 'pointer',
-            }}>
-              {loading ? 'Vérification...' : 'Accéder à mon espace'}
-            </button>
-          </form>
-        ) : (
-          <div>
-            <div style={{ background: '#fff', borderRadius: 16, padding: 28, border: '1px solid rgba(0,54,127,0.08)', boxShadow: '0 8px 24px rgba(0,54,127,0.06)', marginBottom: 20 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
-                Bienvenue
+          /* Formulaire de Connexion */
+          <div className="bento-card-light" style={{ maxWidth: 440, margin: '20px auto 0', padding: '36px 32px' }}>
+            <div style={{ textAlign: 'center', marginBottom: 28 }}>
+              <div style={{ width: 52, height: 52, borderRadius: 16, background: '#E0F2FE', border: '1px solid #BAE6FD', display: 'grid', placeItems: 'center', margin: '0 auto 16px', color: BLUE }}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               </div>
-              <h2 style={{ fontSize: 20, fontWeight: 900, color: '#0a1128', margin: '0 0 4px' }}>
-                {intervenant.prenom} {intervenant.nom}
-              </h2>
-              <p style={{ fontSize: 13.5, color: '#64748b', margin: 0 }}>
-                {intervenant.fonction}{intervenant.organisation ? ` — ${intervenant.organisation}` : ''}
-              </p>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', margin: '0 0 6px' }}>Identification</h2>
+              <p style={{ fontSize: 13, color: '#64748B', margin: 0 }}>Entrez vos identifiants fournis par l'organisation</p>
+            </div>
 
-              {badgeDoc ? (
-                <div style={{ marginTop: 20, padding: '14px', background: '#f8fafc', border: '1px solid #eef1f8', borderRadius: 12 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#0a1128', marginBottom: 10 }}>Mon badge</div>
-                  {/\.(png|jpe?g|webp|gif)$/i.test(badgeDoc.url) ? (
-                    <a href={badgeDoc.url} target="_blank" rel="noreferrer">
-                      <img src={badgeDoc.url} alt="Mon badge" style={{ width: '100%', borderRadius: 10, border: '1.5px solid #e2e8f0', display: 'block' }} />
-                    </a>
-                  ) : (
-                    <a href={badgeDoc.url} target="_blank" rel="noreferrer" style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 14px', borderRadius: 10,
-                      fontSize: 12.5, fontWeight: 700, color: '#fff', background: NAVY, textDecoration: 'none',
-                    }}>
-                      Voir mon badge
-                    </a>
-                  )}
-                  <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 8 }}>À présenter à l'accueil pour le pointage</div>
+            <form onSubmit={connexion} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nom complet</label>
+                <input
+                  value={nom} onChange={e => setNom(e.target.value)} placeholder="Ex. William Odah" autoFocus
+                  className="light-input" style={{ width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Code d'accès</label>
+                <input
+                  type="password" value={code} onChange={e => setCode(e.target.value)} placeholder="Code reçu par email/organisation"
+                  className="light-input" style={{ width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, boxSizing: 'border-box' }}
+                />
+              </div>
+
+              {erreur && (
+                <div style={{ padding: '12px 14px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12, color: '#DC2626', fontSize: 13, display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span>{erreur}</span>
                 </div>
-              ) : qr && (
-                <div style={{ marginTop: 20, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', padding: '14px', background: '#f8fafc', border: '1px solid #eef1f8', borderRadius: 12 }}>
-                  <img src={qr} alt="QR code badge" style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />
-                  <div style={{ flex: 1, minWidth: 160 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0a1128' }}>Mon badge / QR code</div>
-                    <div style={{ fontSize: 11.5, color: '#64748b' }}>Badge en cours de préparation par l'organisation — voici votre QR de pointage en attendant</div>
+              )}
+
+              <button type="submit" disabled={loading} className="btn-blue" style={{ width: '100%', padding: '14px', borderRadius: 12, fontSize: 14, cursor: loading ? 'wait' : 'pointer', marginTop: 8 }}>
+                {loading ? 'Connexion en cours...' : 'Accéder à mon espace'}
+              </button>
+            </form>
+          </div>
+        ) : (
+          /* Bento Grid Intervenant Connecté */
+          <div className="bento-grid">
+            
+            {/* Bento Card 1 : Profil Intervenant */}
+            <div className="bento-card-light" style={{ padding: 24, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyBetween: 'space-between', gap: 12, marginBottom: 20 }}>
+                  <div style={{ width: 56, height: 56, borderRadius: 18, background: BLUE, display: 'grid', placeItems: 'center', fontSize: 22, fontWeight: 900, color: '#FFF', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)' }}>
+                    {intervenant.prenom?.[0]}{intervenant.nom?.[0]}
                   </div>
-                  <button type="button" onClick={telechargerQr} disabled={telechargement} style={{
-                    padding: '9px 14px', border: 'none', borderRadius: 10, fontSize: 12.5, fontWeight: 700,
-                    color: '#fff', background: NAVY, cursor: telechargement ? 'wait' : 'pointer', flexShrink: 0,
-                  }}>
-                    {telechargement ? 'Génération...' : 'Télécharger'}
+                  <button
+                    type="button" onClick={() => { setIntervenant(null); setNom(''); setCode('') }}
+                    style={{ background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: 10, padding: '7px 12px', color: '#475569', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
+                  >
+                    Déconnexion
                   </button>
                 </div>
-              )}
 
-              {Array.isArray(intervenant.interventions) && intervenant.interventions.length > 0 && (
-                <div style={{ marginTop: 20 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
-                    Mes interventions
+                <div style={{ fontSize: 11, fontWeight: 800, color: BLUE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Intervenant Officiel</div>
+                <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: '0 0 6px', letterSpacing: '-0.01em' }}>
+                  {intervenant.prenom} {intervenant.nom}
+                </h2>
+                <p style={{ fontSize: 13.5, color: '#64748B', margin: 0, lineHeight: 1.5 }}>
+                  {intervenant.fonction}{intervenant.organisation ? ` — ${intervenant.organisation}` : ''}
+                </p>
+              </div>
+
+              {/* Badge & Accès physique */}
+              <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="2.5"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/></svg>
+                  <span>Pass & Badge d'accès</span>
+                </div>
+
+                {badgeDoc ? (
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 16, padding: 12, textAlign: 'center' }}>
+                    {/\.(png|jpe?g|webp|gif)$/i.test(badgeDoc.url) ? (
+                      <a href={badgeDoc.url} target="_blank" rel="noreferrer" style={{ display: 'block', overflow: 'hidden', borderRadius: 10 }}>
+                        <img src={badgeDoc.url} alt="Badge" style={{ width: '100%', display: 'block', borderRadius: 10 }} />
+                      </a>
+                    ) : (
+                      <a href={badgeDoc.url} target="_blank" rel="noreferrer" className="btn-blue" style={{ display: 'inline-block', padding: '10px 16px', borderRadius: 10, fontSize: 13, textDecoration: 'none' }}>
+                        Afficher le badge PDF
+                      </a>
+                    )}
+                    <span style={{ display: 'block', fontSize: 11, color: '#64748B', marginTop: 8 }}>À présenter lors des contrôles d'accès</span>
                   </div>
-                  {intervenant.interventions.map((iv, i) => (
-                    <div key={i} style={{ padding: '10px 12px', background: '#f8fafc', border: '1px solid #eef1f8', borderRadius: 10, marginBottom: 8 }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: BLUE, marginBottom: 3 }}>
-                        {JOUR_LABEL[iv.jour] || `Jour ${iv.jour}`} · {iv.heure}
-                      </div>
-                      <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0a1128' }}>{iv.titre}</div>
-                      {iv.avec && <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{iv.avec}</div>}
+                ) : qr ? (
+                  <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 16, padding: 16, textAlign: 'center' }}>
+                    <div style={{ background: '#FFF', padding: 8, borderRadius: 12, display: 'inline-block', marginBottom: 12, border: '1px solid #E2E8F0' }}>
+                      <img src={qr} alt="QR Code Badge" style={{ width: 120, height: 120, display: 'block' }} />
                     </div>
-                  ))}
+                    <div style={{ fontSize: 11.5, color: '#64748B', marginBottom: 12 }}>Badge provisoire / QR d'émargement</div>
+                    <button type="button" onClick={telechargerQr} disabled={telechargement} className="btn-blue" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, fontSize: 12.5, cursor: telechargement ? 'wait' : 'pointer' }}>
+                      {telechargement ? 'Génération...' : 'Télécharger le Pass'}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            {/* Bento Card 2 : Timeline des Interventions */}
+            <div className="bento-card-light" style={{ padding: 28 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E0F2FE', border: '1px solid #BAE6FD', display: 'grid', placeItems: 'center', color: BLUE }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0F172A', margin: 0 }}>Planning d'intervention</h3>
+                    <span style={{ fontSize: 12, color: '#64748B' }}>Vos apparitions prévues lors du programme</span>
+                  </div>
+                </div>
+              </div>
+
+              {Array.isArray(intervenant.interventions) && intervenant.interventions.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'relative' }}>
+                  {intervenant.interventions.map((iv, i) => {
+                    const infoJour = JOUR_LABEL[iv.jour] || { date: `Jour ${iv.jour}`, sub: '' }
+                    return (
+                      <div key={i} className="timeline-item" style={{ display: 'flex', gap: 16, position: 'relative' }}>
+                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#F1F5F9', border: `2px solid ${BLUE}`, display: 'grid', placeItems: 'center', flexShrink: 0, zIndex: 1 }}>
+                          <span style={{ fontSize: 11, fontWeight: 900, color: BLUE }}>J{iv.jour}</span>
+                        </div>
+                        <div style={{ flex: 1, background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 16, padding: 16 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
+                            <span style={{ fontSize: 11.5, fontWeight: 800, color: BLUE, background: '#E0F2FE', padding: '4px 8px', borderRadius: 6 }}>
+                              {infoJour.date} • {iv.heure}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', lineHeight: 1.4 }}>{iv.titre}</div>
+                          {iv.avec && (
+                            <div style={{ fontSize: 12.5, color: '#64748B', marginTop: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                              <span>{iv.avec}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748B', fontSize: 13.5 }}>
+                  Aucune intervention enregistrée pour le moment.
                 </div>
               )}
             </div>
 
-            <div style={{ background: '#fff', borderRadius: 16, padding: 28, border: '1px solid rgba(0,54,127,0.08)', boxShadow: '0 8px 24px rgba(0,54,127,0.06)' }}>
+            {/* Bento Card 3 : Espace Documents (Plein Largeur) */}
+            <div className="bento-card-light col-span-full" style={{ padding: 28 }}>
               <DocumentsSection
                 dossier={intervenant.dossier}
                 table="documents_intervenants"
                 bucket="documents-intervenants"
-                titre="Mes documents"
+                titre="Supports & Documents"
                 ajoutePar={`${intervenant.prenom} ${intervenant.nom}`.trim()}
                 onDocsChange={onDocsChange}
               />
             </div>
 
-            <button
-              type="button"
-              onClick={() => { setIntervenant(null); setNom(''); setCode('') }}
-              style={{ marginTop: 16, background: 'none', border: 'none', color: '#64748b', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', padding: 0 }}
-            >
-              Se déconnecter
-            </button>
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }

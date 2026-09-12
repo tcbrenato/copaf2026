@@ -30,7 +30,7 @@ export default function AdminSondages() {
 
   const showToast = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     const { data: rows } = await supabase
       .from('sondages')
@@ -38,7 +38,7 @@ export default function AdminSondages() {
       .order('created_at', { ascending: false })
     setSondages(rows || [])
     setLoading(false)
-  }
+  }, [])
 
   useEffect(() => {
     load()
@@ -48,7 +48,7 @@ export default function AdminSondages() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'sondages' }, load)
       .subscribe()
     return () => supabase.removeChannel(channel)
-  }, [])
+  }, [load])
 
   const addOptionRow = () => setOptions(o => [...o, newOptionRow()])
   const removeOptionRow = id => setOptions(o => o.filter(r => r._id !== id))
