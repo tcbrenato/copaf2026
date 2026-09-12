@@ -38,13 +38,18 @@ const Icon = ({ name, size = 13, color = '#64748b' }) => {
 // Les URLs publiques Supabase Storage suivent toujours ce format ; on en
 // deduit le chemin de stockage pour pouvoir supprimer l'ancien fichier lors
 // d'un remplacement, sans avoir a stocker une colonne path dediee.
-function storagePathFromUrl(url) {
-  const marker = '/object/public/documents-participants/'
+function storagePathFromUrl(url, bucket) {
+  const marker = `/object/public/${bucket}/`
   const i = (url || '').indexOf(marker)
   return i === -1 ? null : decodeURIComponent(url.slice(i + marker.length))
 }
 
-export default function DocumentsSection({ dossier, participantId = null, titre }) {
+// `table`/`bucket` permettent de reutiliser ce composant pour l'espace
+// intervenants (documents_intervenants / documents-intervenants), qui n'a
+// pas de participant_id et n'exige pas de session Supabase Auth — d'ou
+// `ajoutePar` en override, l'appelant public n'ayant pas de session admin
+// dont on pourrait lire l'email via supabase.auth.getUser().
+export default function DocumentsSection({ dossier, participantId = null, titre, table = 'documents_participants', bucket = 'documents-participants', ajoutePar }) {
   const [docs, setDocs] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -57,13 +62,15 @@ export default function DocumentsSection({ dossier, participantId = null, titre 
 
   const load = useCallback(async () => {
     setLoading(true)
-    let q = supabase.from('documents_participants').select('*').eq('dossier', dossier)
-    q = participantId ? q.or(`participant_id.is.null,participant_id.eq.${participantId}`) : q.is('participant_id', null)
+    let q = supabase.from(table).select('*').eq('dossier', dossier)
+    if (table === 'documents_participants') {
+      q = participantId ? q.or(`participant_id.is.null,participant_id.eq.${participantId}`) : q.is('participant_id', null)
+    }
     const { data, error } = await q.order('created_at')
     if (error) console.error('Erreur chargement documents:', error)
     setDocs(data || [])
     setLoading(false)
-  }, [dossier, participantId])
+  }, [dossier, participantId, table])
 
   useEffect(() => { load() }, [load])
 
@@ -72,15 +79,19 @@ export default function DocumentsSection({ dossier, participantId = null, titre 
     if (!file) return
     setUploading(true); setErreur('')
     const path = `${dossier}/${Date.now()}_${file.name}`.replace(/\s+/g, '_')
-    const { error: upErr } = await supabase.storage.from('documents-participants').upload(path, file)
+    const { error: upErr } = await supabase.storage.from(bucket).upload(path, file)
     if (upErr) {
       setErreur(`Échec de l'envoi du fichier : ${upErr.message}`)
     } else {
-      const url = supabase.storage.from('documents-participants').getPublicUrl(path).data.publicUrl
-      const { data: userData } = await supabase.auth.getUser()
-      const { error: insErr } = await supabase.from('documents_participants').insert({
-        dossier, participant_id: participantId, type: 'autre', label: file.name, url, ajoute_par: userData?.user?.email || null,
-      })
+      const url = supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
+      let auteur = ajoutePar || null
+      if (!auteur) {
+        const { data: userData } = await supabase.auth.getUser()
+        auteur = userData?.user?.email || null
+      }
+      const champs = { dossier, type: 'autre', label: file.name, url, ajoute_par: auteur }
+      if (table === 'documents_participants') champs.participant_id = participantId
+      const { error: insErr } = await supabase.from(table).insert(champs)
       if (insErr) {
         // Le fichier est deja sur le stockage a ce stade ; seul l'enregistrement
         // en base a echoue (ex. contrainte de base de donnees) — sans ce
@@ -101,17 +112,17 @@ export default function DocumentsSection({ dossier, participantId = null, titre 
     if (!file) return
     setRemplacementId(doc.id); setErreur('')
     const path = `${dossier}/${Date.now()}_${file.name}`.replace(/\s+/g, '_')
-    const { error: upErr } = await supabase.storage.from('documents-participants').upload(path, file)
+    const { error: upErr } = await supabase.storage.from(bucket).upload(path, file)
     if (upErr) {
       setErreur(`Échec de l'envoi du fichier : ${upErr.message}`)
     } else {
-      const url = supabase.storage.from('documents-participants').getPublicUrl(path).data.publicUrl
-      const { error: updErr } = await supabase.from('documents_participants').update({ url, label: doc.label === doc.url ? file.name : doc.label }).eq('id', doc.id)
+      const url = supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
+      const { error: updErr } = await supabase.from(table).update({ url, label: doc.label === doc.url ? file.name : doc.label }).eq('id', doc.id)
       if (updErr) {
         setErreur(`Fichier envoyé mais non enregistré : ${updErr.message}`)
       } else {
-        const ancienPath = storagePathFromUrl(doc.url)
-        if (ancienPath) await supabase.storage.from('documents-participants').remove([ancienPath])
+        const ancienPath = storagePathFromUrl(doc.url, bucket)
+        if (ancienPath) await supabase.storage.from(bucket).remove([ancienPath])
         await load()
       }
     }
@@ -122,20 +133,20 @@ export default function DocumentsSection({ dossier, participantId = null, titre 
   const commencerEdition = doc => { setEditionId(doc.id); setLibelleEdite(doc.label) }
   const validerEdition = async doc => {
     const label = libelleEdite.trim()
-    if (label && label !== doc.label) await supabase.from('documents_participants').update({ label }).eq('id', doc.id)
+    if (label && label !== doc.label) await supabase.from(table).update({ label }).eq('id', doc.id)
     setEditionId(null)
     load()
   }
 
   const toggleDocVisible = async doc => {
-    await supabase.from('documents_participants').update({ visible: !doc.visible }).eq('id', doc.id)
+    await supabase.from(table).update({ visible: !doc.visible }).eq('id', doc.id)
     load()
   }
 
   const deleteDoc = async doc => {
-    await supabase.from('documents_participants').delete().eq('id', doc.id)
-    const path = storagePathFromUrl(doc.url)
-    if (path) await supabase.storage.from('documents-participants').remove([path])
+    await supabase.from(table).delete().eq('id', doc.id)
+    const path = storagePathFromUrl(doc.url, bucket)
+    if (path) await supabase.storage.from(bucket).remove([path])
     load()
   }
 

@@ -15,6 +15,7 @@ import AdminTirage from '../pages/AdminTirage'
 import AdminLoginLog from '../pages/AdminLoginLog'
 import AdminActivityLog from '../pages/AdminActivityLog'
 import AdminNewsletter from '../pages/AdminNewsletter'
+import AdminIntervenants from '../pages/AdminIntervenants'
 
 // ============================================================
 // REMPLACEZ CETTE URL par celle de votre déploiement Apps Script
@@ -80,6 +81,7 @@ const MODULES = [
   { id: 'sondages',    label: 'Sondages',         icon: 'check',    table: null,            scope: 'sondages' },
   { id: 'diagnostics', label: 'Diagnostics',      icon: 'search',   table: null,            scope: 'diagnostics' },
   { id: 'tirage',      label: 'Tirage au sort',   icon: 'gift',     table: null,            scope: 'all' },
+  { id: 'intervenants',label: 'Intervenants',     icon: 'users',    table: null,            scope: 'all' },
   { id: 'login-log',   label: 'Connexions',       icon: 'clock',    table: null,            scope: 'all', adminOnly: true },
   { id: 'activity-log',label: 'Journal d\'activité', icon: 'search', table: null,            scope: 'all', adminOnly: true },
   { id: 'newsletter',  label: 'Newsletter',       icon: 'mail',     table: null,            scope: 'all', adminOnly: true },
@@ -2831,6 +2833,8 @@ export default function AdminPage() {
             <AdminActivityLog />
           ) : activeModule === 'newsletter' ? (
             <AdminNewsletter />
+          ) : activeModule === 'intervenants' ? (
+            <AdminIntervenants />
           ) : activeModule === 'analytics' ? (
             <SectionAnalytics inscriptions={allData.inscriptions} />
           ) : loading ? (

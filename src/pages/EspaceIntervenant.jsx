@@ -1,0 +1,150 @@
+// src/pages/EspaceIntervenant.jsx
+//
+// Espace personnel des intervenants du programme (distinct de l'espace
+// participant /verifier) : pas d'inscription, pas de paiement, pas d'email
+// requis — connexion par nom + code d'accès partage (voir migration
+// create_intervenants_espace et la fonction intervenant_login), pensee pour
+// une quinzaine de personnes connues a l'avance par l'organisation.
+//
+// Documents : reutilise DocumentsSection sur la table/bucket
+// documents_intervenants (separee de documents_participants pour ne pas
+// ouvrir en public l'upload sur les documents des participants).
+
+import { useEffect, useState } from 'react'
+import { supabase } from '../supabase'
+import SeoHead from '../components/SeoHead'
+import DocumentsSection from '../components/DocumentsSection'
+
+const NAVY = '#00367F'
+const BLUE = '#1798F4'
+
+const JOUR_LABEL = { 1: 'Jour 1 — 19 octobre', 2: 'Jour 2 — 20 octobre', 3: 'Jour 3 — 21 octobre' }
+
+export default function EspaceIntervenant() {
+  const [nom, setNom] = useState('')
+  const [code, setCode] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [erreur, setErreur] = useState('')
+  const [intervenant, setIntervenant] = useState(null)
+
+  useEffect(() => {
+    const meta = document.createElement('meta')
+    meta.name = 'robots'
+    meta.content = 'noindex, nofollow'
+    document.head.appendChild(meta)
+    return () => document.head.removeChild(meta)
+  }, [])
+
+  const connexion = async e => {
+    e.preventDefault()
+    if (!nom.trim() || !code.trim()) return
+    setLoading(true); setErreur('')
+    const { data, error } = await supabase.rpc('intervenant_login', { p_nom: nom.trim(), p_code: code.trim() })
+    setLoading(false)
+    if (error || !data) {
+      setErreur("Nom non reconnu ou code d'accès invalide. Vérifiez ces informations ou contactez l'organisation.")
+      return
+    }
+    setIntervenant(data)
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#f6f8fc', fontFamily: "'Plus Jakarta Sans', 'Helvetica Neue', sans-serif" }}>
+      <SeoHead title="Espace intervenant — COPAF 2026" description="Espace personnel des intervenants COPAF 2026" type="website" />
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');`}</style>
+
+      <header style={{ background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`, padding: 'clamp(32px, 5vw, 48px) clamp(20px, 5vw, 48px)', color: '#fff' }}>
+        <div style={{ maxWidth: 640, margin: '0 auto' }}>
+          <img src="/logocopaf.png" alt="COPAF 2026" style={{ height: 40, marginBottom: 22 }} />
+          <h1 style={{ fontSize: 'clamp(22px, 3.4vw, 30px)', fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.01em' }}>
+            Espace intervenant
+          </h1>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.6 }}>
+            Retrouvez votre badge, votre lettre d'invitation et les documents liés à votre intervention — et déposez-y votre présentation.
+          </p>
+        </div>
+      </header>
+
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: 'clamp(28px, 5vw, 40px) clamp(20px, 5vw, 48px) 80px' }}>
+        {!intervenant ? (
+          <form onSubmit={connexion} style={{ background: '#fff', borderRadius: 16, padding: 28, border: '1px solid rgba(0,54,127,0.08)', boxShadow: '0 8px 24px rgba(0,54,127,0.06)' }}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#334155', marginBottom: 6 }}>Nom complet</label>
+              <input
+                value={nom} onChange={e => setNom(e.target.value)} placeholder="Ex. William Odah" autoFocus
+                style={{ width: '100%', padding: '11px 14px', fontSize: 14, fontFamily: 'inherit', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#334155', marginBottom: 6 }}>Code d'accès intervenant</label>
+              <input
+                value={code} onChange={e => setCode(e.target.value)} placeholder="Communiqué par l'organisation"
+                style={{ width: '100%', padding: '11px 14px', fontSize: 14, fontFamily: 'inherit', border: '1.5px solid #e2e8f0', borderRadius: 10, outline: 'none', boxSizing: 'border-box' }}
+              />
+            </div>
+            {erreur && (
+              <p style={{ fontSize: 12.5, color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '10px 12px', marginBottom: 16 }}>
+                {erreur}
+              </p>
+            )}
+            <button type="submit" disabled={loading} style={{
+              width: '100%', padding: '12px 16px', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700,
+              color: '#fff', background: NAVY, cursor: loading ? 'wait' : 'pointer',
+            }}>
+              {loading ? 'Vérification...' : 'Accéder à mon espace'}
+            </button>
+          </form>
+        ) : (
+          <div>
+            <div style={{ background: '#fff', borderRadius: 16, padding: 28, border: '1px solid rgba(0,54,127,0.08)', boxShadow: '0 8px 24px rgba(0,54,127,0.06)', marginBottom: 20 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>
+                Bienvenue
+              </div>
+              <h2 style={{ fontSize: 20, fontWeight: 900, color: '#0a1128', margin: '0 0 4px' }}>
+                {intervenant.prenom} {intervenant.nom}
+              </h2>
+              <p style={{ fontSize: 13.5, color: '#64748b', margin: 0 }}>
+                {intervenant.fonction}{intervenant.organisation ? ` — ${intervenant.organisation}` : ''}
+              </p>
+
+              {Array.isArray(intervenant.interventions) && intervenant.interventions.length > 0 && (
+                <div style={{ marginTop: 20 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>
+                    Mes interventions
+                  </div>
+                  {intervenant.interventions.map((iv, i) => (
+                    <div key={i} style={{ padding: '10px 12px', background: '#f8fafc', border: '1px solid #eef1f8', borderRadius: 10, marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: BLUE, marginBottom: 3 }}>
+                        {JOUR_LABEL[iv.jour] || `Jour ${iv.jour}`} · {iv.heure}
+                      </div>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0a1128' }}>{iv.titre}</div>
+                      {iv.avec && <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Avec {iv.avec}</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div style={{ background: '#fff', borderRadius: 16, padding: 28, border: '1px solid rgba(0,54,127,0.08)', boxShadow: '0 8px 24px rgba(0,54,127,0.06)' }}>
+              <DocumentsSection
+                dossier={intervenant.dossier}
+                table="documents_intervenants"
+                bucket="documents-intervenants"
+                titre="Mes documents"
+                ajoutePar={`${intervenant.prenom} ${intervenant.nom}`.trim()}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => { setIntervenant(null); setNom(''); setCode('') }}
+              style={{ marginTop: 16, background: 'none', border: 'none', color: '#64748b', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', padding: 0 }}
+            >
+              Se déconnecter
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

@@ -50,6 +50,7 @@ const Documentation        = lazy(() => import('./pages/Documentation'))
 const RecommandationsActes = lazy(() => import('./pages/RecommandationsActes'))
 const BadgeToken           = lazy(() => import('./pages/BadgeToken'))
 const StaffScan            = lazy(() => import('./pages/StaffScan'))
+const EspaceIntervenant    = lazy(() => import('./pages/EspaceIntervenant'))
 
 // ─── Repli affiche pendant le telechargement d'une route secondaire ──────────
 const RouteFallback = () => (
@@ -222,6 +223,7 @@ function App() {
         <Route path="/suivi-inscriptions"     element={<SuiviInscriptions />} />
         <Route path="/admin"                  element={<AdminPage />} />
         <Route path="/badge/:token"           element={<BadgeToken />} />
+        <Route path="/intervenant"            element={<EspaceIntervenant />} />
         <Route path="/staff/scan"             element={<StaffScanPage />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />
