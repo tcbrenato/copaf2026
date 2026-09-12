@@ -30,6 +30,15 @@ export default function EspaceIntervenant() {
   const [intervenant, setIntervenant] = useState(null)
   const [qr, setQr] = useState('')
   const [telechargement, setTelechargement] = useState(false)
+  const [badgeDoc, setBadgeDoc] = useState(null)
+
+  // Une fois que l'organisation depose le vrai visuel du badge (avec le QR
+  // deja integre dedans, cf. bouton "Telecharger" ci-dessous a coller dans
+  // Canva), il remplace le mini QR genere automatiquement — plus fidele a
+  // ce que la personne presentera reellement a l'accueil.
+  const onDocsChange = docs => {
+    setBadgeDoc(docs.find(d => /badge/i.test(d.label)) || null)
+  }
 
   useEffect(() => {
     const meta = document.createElement('meta')
@@ -137,12 +146,29 @@ export default function EspaceIntervenant() {
                 {intervenant.fonction}{intervenant.organisation ? ` — ${intervenant.organisation}` : ''}
               </p>
 
-              {qr && (
+              {badgeDoc ? (
+                <div style={{ marginTop: 20, padding: '14px', background: '#f8fafc', border: '1px solid #eef1f8', borderRadius: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#0a1128', marginBottom: 10 }}>Mon badge</div>
+                  {/\.(png|jpe?g|webp|gif)$/i.test(badgeDoc.url) ? (
+                    <a href={badgeDoc.url} target="_blank" rel="noreferrer">
+                      <img src={badgeDoc.url} alt="Mon badge" style={{ width: '100%', borderRadius: 10, border: '1.5px solid #e2e8f0', display: 'block' }} />
+                    </a>
+                  ) : (
+                    <a href={badgeDoc.url} target="_blank" rel="noreferrer" style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 14px', borderRadius: 10,
+                      fontSize: 12.5, fontWeight: 700, color: '#fff', background: NAVY, textDecoration: 'none',
+                    }}>
+                      Voir mon badge
+                    </a>
+                  )}
+                  <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 8 }}>À présenter à l'accueil pour le pointage</div>
+                </div>
+              ) : qr && (
                 <div style={{ marginTop: 20, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', padding: '14px', background: '#f8fafc', border: '1px solid #eef1f8', borderRadius: 12 }}>
                   <img src={qr} alt="QR code badge" style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 160 }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: '#0a1128' }}>Mon badge / QR code</div>
-                    <div style={{ fontSize: 11.5, color: '#64748b' }}>À présenter à l'accueil pour le pointage</div>
+                    <div style={{ fontSize: 11.5, color: '#64748b' }}>Badge en cours de préparation par l'organisation — voici votre QR de pointage en attendant</div>
                   </div>
                   <button type="button" onClick={telechargerQr} disabled={telechargement} style={{
                     padding: '9px 14px', border: 'none', borderRadius: 10, fontSize: 12.5, fontWeight: 700,
@@ -178,6 +204,7 @@ export default function EspaceIntervenant() {
                 bucket="documents-intervenants"
                 titre="Mes documents"
                 ajoutePar={`${intervenant.prenom} ${intervenant.nom}`.trim()}
+                onDocsChange={onDocsChange}
               />
             </div>
 

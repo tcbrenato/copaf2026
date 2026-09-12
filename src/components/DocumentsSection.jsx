@@ -57,7 +57,7 @@ function sanitizeFileName(name) {
 // pas de participant_id et n'exige pas de session Supabase Auth — d'ou
 // `ajoutePar` en override, l'appelant public n'ayant pas de session admin
 // dont on pourrait lire l'email via supabase.auth.getUser().
-export default function DocumentsSection({ dossier, participantId = null, titre, table = 'documents_participants', bucket = 'documents-participants', ajoutePar }) {
+export default function DocumentsSection({ dossier, participantId = null, titre, table = 'documents_participants', bucket = 'documents-participants', ajoutePar, onDocsChange }) {
   const [docs, setDocs] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -78,6 +78,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
     const { data, error } = await q.order('created_at')
     if (error) console.error('Erreur chargement documents:', error)
     setDocs(data || [])
+    onDocsChange?.(data || [])
     setLoading(false)
   }, [dossier, participantId, table])
 
