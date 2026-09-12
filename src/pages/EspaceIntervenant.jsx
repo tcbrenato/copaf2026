@@ -15,6 +15,7 @@ const JOUR_LABEL = {
 
 export default function EspaceIntervenant() {
   const [nom, setNom] = useState('')
+  const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [erreur, setErreur] = useState('')
@@ -63,12 +64,12 @@ export default function EspaceIntervenant() {
 
   const connexion = async e => {
     e.preventDefault()
-    if (!nom.trim() || !code.trim()) return
+    if (!nom.trim() || !email.trim() || !code.trim()) return
     setLoading(true); setErreur('')
-    const { data, error } = await supabase.rpc('intervenant_login', { p_nom: nom.trim(), p_code: code.trim() })
+    const { data, error } = await supabase.rpc('intervenant_login', { p_nom: nom.trim(), p_code: code.trim(), p_email: email.trim() })
     setLoading(false)
     if (error || !data) {
-      setErreur("Nom non reconnu ou code d'accès invalide. Vérifiez ces informations ou contactez l'organisation.")
+      setErreur("Nom, email ou code d'accès non reconnus. Vérifiez ces informations ou contactez l'organisation.")
       return
     }
     setIntervenant(data)
@@ -200,6 +201,14 @@ export default function EspaceIntervenant() {
               </div>
 
               <div>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</label>
+                <input
+                  type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Votre email communiqué à l'organisation"
+                  className="light-input" style={{ width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div>
                 <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Code d'accès</label>
                 <input
                   type="password" value={code} onChange={e => setCode(e.target.value)} placeholder="Code reçu par email/organisation"
@@ -231,7 +240,7 @@ export default function EspaceIntervenant() {
                     {intervenant.prenom?.[0]}{intervenant.nom?.[0]}
                   </div>
                   <button
-                    type="button" onClick={() => { setIntervenant(null); setNom(''); setCode('') }}
+                    type="button" onClick={() => { setIntervenant(null); setNom(''); setEmail(''); setCode('') }}
                     style={{ background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: 10, padding: '7px 12px', color: '#475569', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
                   >
                     Déconnexion
