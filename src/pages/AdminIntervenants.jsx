@@ -31,16 +31,18 @@ function FormeIntervenant({ initial, onCancel, onSaved }) {
   const [prenom, setPrenom] = useState(initial?.prenom || '')
   const [organisation, setOrganisation] = useState(initial?.organisation || '')
   const [fonction, setFonction] = useState(initial?.fonction || '')
+  const [codeAcces, setCodeAcces] = useState(initial?.code_acces || 'COPAF2026-SPEAKER')
   const [interventionsTxt, setInterventionsTxt] = useState(interventionsToTexte(initial?.interventions))
   const [saving, setSaving] = useState(false)
   const [erreur, setErreur] = useState('')
 
   const save = async () => {
     if (!nom.trim()) { setErreur('Le nom est obligatoire.'); return }
+    if (!codeAcces.trim()) { setErreur("Le code d'accès est obligatoire."); return }
     setSaving(true); setErreur('')
     const champs = {
       nom: nom.trim(), prenom: prenom.trim(), organisation: organisation.trim() || null,
-      fonction: fonction.trim() || null, interventions: texteToInterventions(interventionsTxt),
+      fonction: fonction.trim() || null, code_acces: codeAcces.trim(), interventions: texteToInterventions(interventionsTxt),
     }
     const resultat = initial
       ? await supabase.from('intervenants').update(champs).eq('id', initial.id)
@@ -69,6 +71,12 @@ function FormeIntervenant({ initial, onCancel, onSaved }) {
         <div>
           <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Fonction</label>
           <input value={fonction} onChange={e => setFonction(e.target.value)} style={INPUT} />
+        </div>
+        <div style={{ gridColumn: '1 / -1' }}>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>
+            Code d'accès personnel *
+          </label>
+          <input value={codeAcces} onChange={e => setCodeAcces(e.target.value)} style={{ ...INPUT, maxWidth: 280 }} />
         </div>
       </div>
       <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>
@@ -122,35 +130,23 @@ function IntervenantQr({ iv }) {
 export default function AdminIntervenants() {
   const [intervenants, setIntervenants] = useState([])
   const [loading, setLoading] = useState(true)
-  const [code, setCode] = useState('')
-  const [codeInput, setCodeInput] = useState('')
-  const [savingCode, setSavingCode] = useState(false)
-  const [codeSaved, setCodeSaved] = useState(false)
   const [ajout, setAjout] = useState(false)
   const [edition, setEdition] = useState(null)
   const [ouvert, setOuvert] = useState(null)
   const [copie, setCopie] = useState(false)
+  const [codeCopieId, setCodeCopieId] = useState(null)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const [{ data: iv }, { data: cfg }] = await Promise.all([
-      supabase.from('intervenants').select('*').order('created_at'),
-      supabase.from('intervenant_config').select('code_acces').eq('id', 1).single(),
-    ])
+    const { data: iv } = await supabase.from('intervenants').select('*').order('created_at')
     setIntervenants(iv || [])
-    setCode(cfg?.code_acces || '')
-    setCodeInput(cfg?.code_acces || '')
     setLoading(false)
   }, [])
 
   useEffect(() => { load() }, [load])
 
-  const saveCode = async () => {
-    if (!codeInput.trim() || codeInput.trim() === code) return
-    setSavingCode(true)
-    const { error } = await supabase.from('intervenant_config').update({ code_acces: codeInput.trim() }).eq('id', 1)
-    setSavingCode(false)
-    if (!error) { setCode(codeInput.trim()); setCodeSaved(true); setTimeout(() => setCodeSaved(false), 2500) }
+  const copierCode = async iv => {
+    try { await navigator.clipboard.writeText(iv.code_acces); setCodeCopieId(iv.id); setTimeout(() => setCodeCopieId(null), 2000) } catch { /* clipboard indisponible */ }
   }
 
   const supprimer = async iv => {
@@ -169,17 +165,10 @@ export default function AdminIntervenants() {
   return (
     <div>
       <div style={{ ...CARD, marginBottom: 20 }}>
-        <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>Code d'accès partagé</div>
+        <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>Accès à l'espace intervenant</div>
         <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 12px' }}>
-          À communiquer à tous les intervenants (WhatsApp, lettre d'invitation...), avec le lien de leur espace personnel.
-          Chacun se connecte avec son propre nom + ce même code.
+          Chaque intervenant a son propre code (modifiable dans sa fiche ci-dessous). Communiquez-lui son nom + son code + le lien ci-dessous.
         </p>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-          <input value={codeInput} onChange={e => setCodeInput(e.target.value)} style={{ ...INPUT, maxWidth: 260 }} />
-          <button type="button" onClick={saveCode} disabled={savingCode} style={BTN_PRIMARY}>
-            {savingCode ? 'Enregistrement...' : codeSaved ? 'Enregistré ✓' : 'Mettre à jour le code'}
-          </button>
-        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#334155' }}>
           <span>Lien de l'espace : <strong>{lienEspace}</strong></span>
           <button type="button" onClick={copierLien} style={{ ...BTN_GHOST, padding: '4px 10px' }}>{copie ? 'Copié !' : 'Copier'}</button>
@@ -207,7 +196,11 @@ export default function AdminIntervenants() {
               <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{iv.prenom} {iv.nom}</div>
               <div style={{ fontSize: 12, color: '#64748b' }}>{iv.fonction}{iv.organisation ? ` — ${iv.organisation}` : ''} · {iv.dossier}</div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={e => e.stopPropagation()}>
+              <span style={{ fontSize: 11.5, fontFamily: 'monospace', color: '#0369a1', background: '#e0f2fe', borderRadius: 8, padding: '5px 10px' }}>
+                {iv.code_acces}
+              </span>
+              <button type="button" onClick={() => copierCode(iv)} style={{ ...BTN_GHOST, padding: '5px 10px' }}>{codeCopieId === iv.id ? 'Copié !' : 'Copier'}</button>
               <button type="button" onClick={() => { setEdition(iv); setAjout(false) }} style={BTN_GHOST}>Modifier</button>
               <button type="button" onClick={() => supprimer(iv)} style={{ ...BTN_GHOST, color: '#dc2626', borderColor: '#fecaca' }}>Supprimer</button>
             </div>
