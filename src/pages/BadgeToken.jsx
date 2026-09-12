@@ -97,6 +97,7 @@ export default function BadgeToken() {
         {[
           { label: 'Fonction', value: data.poste },
           { label: 'Organisation', value: data.organisation },
+          { label: 'Pays', value: data.pays },
           { label: 'Dossier', value: data.dossier },
           { label: 'Email', value: data.email },
           { label: 'Téléphone', value: data.telephone },

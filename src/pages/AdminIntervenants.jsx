@@ -31,6 +31,9 @@ function FormeIntervenant({ initial, onCancel, onSaved }) {
   const [prenom, setPrenom] = useState(initial?.prenom || '')
   const [organisation, setOrganisation] = useState(initial?.organisation || '')
   const [fonction, setFonction] = useState(initial?.fonction || '')
+  const [pays, setPays] = useState(initial?.pays || '')
+  const [email, setEmail] = useState(initial?.email || '')
+  const [telephone, setTelephone] = useState(initial?.telephone || '')
   const [codeAcces, setCodeAcces] = useState(initial?.code_acces || 'COPAF2026-SPEAKER')
   const [interventionsTxt, setInterventionsTxt] = useState(interventionsToTexte(initial?.interventions))
   const [saving, setSaving] = useState(false)
@@ -42,7 +45,8 @@ function FormeIntervenant({ initial, onCancel, onSaved }) {
     setSaving(true); setErreur('')
     const champs = {
       nom: nom.trim(), prenom: prenom.trim(), organisation: organisation.trim() || null,
-      fonction: fonction.trim() || null, code_acces: codeAcces.trim(), interventions: texteToInterventions(interventionsTxt),
+      fonction: fonction.trim() || null, pays: pays.trim() || null, email: email.trim() || null,
+      telephone: telephone.trim() || null, code_acces: codeAcces.trim(), interventions: texteToInterventions(interventionsTxt),
     }
     const resultat = initial
       ? await supabase.from('intervenants').update(champs).eq('id', initial.id)
@@ -72,6 +76,18 @@ function FormeIntervenant({ initial, onCancel, onSaved }) {
           <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Fonction</label>
           <input value={fonction} onChange={e => setFonction(e.target.value)} style={INPUT} />
         </div>
+        <div>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Pays</label>
+          <input value={pays} onChange={e => setPays(e.target.value)} style={INPUT} />
+        </div>
+        <div>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Email</label>
+          <input value={email} onChange={e => setEmail(e.target.value)} style={INPUT} />
+        </div>
+        <div>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Téléphone</label>
+          <input value={telephone} onChange={e => setTelephone(e.target.value)} style={INPUT} />
+        </div>
         <div style={{ gridColumn: '1 / -1' }}>
           <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>
             Code d'accès personnel *
@@ -80,7 +96,7 @@ function FormeIntervenant({ initial, onCancel, onSaved }) {
         </div>
       </div>
       <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>
-        Interventions — une par ligne : Jour | Horaire | Titre | Avec (optionnel)
+        Interventions — une par ligne : Jour | Horaire | Titre | Mention co-intervenant (optionnel, texte libre — ex. "Avec Mme X" ou "Assisté de M. Y")
       </label>
       <textarea
         value={interventionsTxt} onChange={e => setInterventionsTxt(e.target.value)} rows={4}

@@ -164,7 +164,7 @@ export default function EspaceIntervenant() {
                         {JOUR_LABEL[iv.jour] || `Jour ${iv.jour}`} · {iv.heure}
                       </div>
                       <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0a1128' }}>{iv.titre}</div>
-                      {iv.avec && <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Avec {iv.avec}</div>}
+                      {iv.avec && <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{iv.avec}</div>}
                     </div>
                   ))}
                 </div>
