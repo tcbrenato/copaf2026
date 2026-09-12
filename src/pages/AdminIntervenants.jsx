@@ -36,8 +36,23 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
   const [telephone, setTelephone] = useState(initial?.telephone || '')
   const [codeAcces, setCodeAcces] = useState(initial?.code_acces || 'COPAF2026-SPEAKER')
   const [interventionsTxt, setInterventionsTxt] = useState(interventionsToTexte(initial?.interventions))
+  const [photoUrl, setPhotoUrl] = useState(initial?.photo_url || '')
+  const [photoUploading, setPhotoUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [erreur, setErreur] = useState('')
+
+  const uploaderPhoto = async e => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhotoUploading(true); setErreur('')
+    const dossierRef = initial?.dossier || `INT2026-${Date.now().toString().slice(-6)}`
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+    const path = `${dossierRef}-${Date.now()}.${ext}`
+    const { error: upErr } = await supabase.storage.from('badges-photos').upload(path, file, { upsert: true })
+    setPhotoUploading(false)
+    if (upErr) { setErreur(`Échec de l'envoi de la photo : ${upErr.message}`); return }
+    setPhotoUrl(supabase.storage.from('badges-photos').getPublicUrl(path).data.publicUrl)
+  }
 
   const save = async () => {
     if (!nom.trim()) { setErreur('Le nom est obligatoire.'); return }
@@ -46,7 +61,8 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
     const champs = {
       nom: nom.trim(), prenom: prenom.trim(), organisation: organisation.trim() || null,
       fonction: fonction.trim() || null, pays: pays.trim() || null, email: email.trim() || null,
-      telephone: telephone.trim() || null, code_acces: codeAcces.trim(), interventions: texteToInterventions(interventionsTxt),
+      telephone: telephone.trim() || null, photo_url: photoUrl || null,
+      code_acces: codeAcces.trim(), interventions: texteToInterventions(interventionsTxt),
     }
     const resultat = initial
       ? await supabase.from('intervenants').update(champs).eq('id', initial.id)
@@ -87,6 +103,14 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
         <div>
           <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Téléphone</label>
           <input value={telephone} onChange={e => setTelephone(e.target.value)} style={INPUT} />
+        </div>
+        <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Photo</label>
+            <input type="file" accept="image/*" onChange={uploaderPhoto} disabled={photoUploading} style={{ fontSize: 12 }} />
+          </div>
+          {photoUrl && <img src={photoUrl} alt="Photo" style={{ width: 52, height: 52, borderRadius: 10, objectFit: 'cover', border: '1.5px solid #e2e8f0' }} />}
+          {photoUploading && <span style={{ fontSize: 11.5, color: '#64748b' }}>Envoi...</span>}
         </div>
         <div style={{ gridColumn: '1 / -1' }}>
           <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>
