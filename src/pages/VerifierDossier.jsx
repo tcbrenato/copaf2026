@@ -306,7 +306,7 @@ export default function VerifierDossier() {
 
   return (
     <section style={{
-      padding: 'clamp(64px,10vw,120px) 0', minHeight: '100vh',
+      paddingBottom: 'clamp(64px,10vw,120px)', minHeight: '100vh',
       background: 'linear-gradient(180deg,#f0f6ff 0%,#f8faff 100%)',
       fontFamily: "'Plus Jakarta Sans', sans-serif",
     }}>
@@ -317,6 +317,8 @@ export default function VerifierDossier() {
         .lang-switch{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:#fff;border:1.5px solid #e2e8f0;border-radius:100px;cursor:pointer;font-family:inherit;font-size:12.5px;font-weight:700;color:#0073F4;transition:all .2s}
         .lang-switch:hover{border-color:#0073F4;background:#EBF3FF}
       `}</style>
+
+      <img src="/coverscopaf.png" alt="COPAF 2026 — Conférence des Ports Africains" style={{ width: '100%', display: 'block', marginBottom: 'clamp(40px,8vw,72px)' }} />
 
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 20px' }}>
 

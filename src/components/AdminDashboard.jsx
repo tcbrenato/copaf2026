@@ -4,6 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import { generateBadge } from '../utils/generateBadge'
+import { generateQrCard } from '../utils/generateQrCard'
 import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmationInscriptionPDF'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { useAdminAuth } from '../adminAuth'
@@ -381,10 +382,10 @@ function MembreBadgeRow({ membre: m, toggling, onToggleArrivee }) {
 
   const downloadQr = () => {
     if (!qr) return
-    const a = document.createElement('a')
-    a.href = qr
-    a.download = `QR-badge-${m.dossier}-${(m.prenom || '')}-${(m.nom || '')}.png`.replace(/\s+/g, '_')
-    a.click()
+    generateQrCard({
+      qrDataUrl: qr, nomPrenom: `${m.prenom || ''} ${m.nom || ''}`.trim(), sousTitre: m.poste, dossier: m.dossier,
+      fileName: `QR-badge-${m.dossier}-${(m.prenom || '')}-${(m.nom || '')}.png`.replace(/\s+/g, '_'),
+    })
   }
 
   return (
@@ -442,10 +443,7 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
 
   const downloadBadgeQr = () => {
     if (!badgeQr) return
-    const a = document.createElement('a')
-    a.href = badgeQr
-    a.download = `QR-badge-${dossier}.png`
-    a.click()
+    generateQrCard({ qrDataUrl: badgeQr, nomPrenom: contactName || dossier, dossier, fileName: `QR-badge-${dossier}.png` })
   }
 
   const load = useCallback(async () => {
@@ -516,10 +514,10 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
   return (
     <div style={{ padding: '0 28px 8px', borderTop: '1px solid #f1f5f9', marginTop: 4 }}>
 
-      {/* Badge QR — token a coller dans Canva pour composer le visuel du badge */}
+      {/* Badge QR — telechargement direct en carte brandee (voir generateQrCard) */}
       {badgeToken && (
         <div style={{ marginTop: 20 }}>
-          <div style={EXTRAS_LABEL}>Badge — QR code de {contactName || 'ce contact'} (contact principal) — a integrer dans Canva</div>
+          <div style={EXTRAS_LABEL}>Badge — QR code de {contactName || 'ce contact'} (contact principal)</div>
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             {badgeQr && (
               <img src={badgeQr} alt="QR code badge" style={{ width: 96, height: 96, borderRadius: 10, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />
@@ -563,7 +561,7 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
           et son propre pointage, independant du contact principal ci-dessus.
           Chaque membre a son propre QR affiche ici (pas seulement un lien),
           pour la meme raison que le contact principal ci-dessus : le
-          generer pour Canva sans avoir a rouvrir sa fiche. */}
+          telecharger directement sans avoir a rouvrir sa fiche. */}
       {membres.length > 0 && (
         <div style={{ marginTop: 20 }}>
           <div style={EXTRAS_LABEL}>Membres de la délégation ({membres.length}) — chacun son propre badge/QR</div>
@@ -779,10 +777,10 @@ function ModalMembre({ membre, onClose, onUpdate }) {
 
   const downloadBadgeQr = () => {
     if (!badgeQr) return
-    const a = document.createElement('a')
-    a.href = badgeQr
-    a.download = `QR-badge-${membre.dossier}.png`
-    a.click()
+    generateQrCard({
+      qrDataUrl: badgeQr, nomPrenom: `${membre.contacts?.prenom || ''} ${membre.contacts?.nom || ''}`.trim(),
+      sousTitre: membre.contacts?.poste, dossier: membre.dossier, fileName: `QR-badge-${membre.dossier}.png`,
+    })
   }
 
   const toggleArrivee = async () => {
@@ -832,7 +830,7 @@ function ModalMembre({ membre, onClose, onUpdate }) {
         </div>
 
         <div style={{ padding: '4px 28px 28px' }}>
-          <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 10 }}>Badge — QR code (à intégrer dans Canva)</div>
+          <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 10 }}>Badge — QR code</div>
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 16 }}>
             {badgeQr && <img src={badgeQr} alt="QR code badge" style={{ width: 96, height: 96, borderRadius: 10, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />}
             <button type="button" onClick={downloadBadgeQr} disabled={!badgeQr} style={{

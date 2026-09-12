@@ -11,9 +11,11 @@
 // ouvrir en public l'upload sur les documents des participants).
 
 import { useEffect, useState } from 'react'
+import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import SeoHead from '../components/SeoHead'
 import DocumentsSection from '../components/DocumentsSection'
+import { generateQrCard } from '../utils/generateQrCard'
 
 const NAVY = '#00367F'
 const BLUE = '#1798F4'
@@ -26,6 +28,8 @@ export default function EspaceIntervenant() {
   const [loading, setLoading] = useState(false)
   const [erreur, setErreur] = useState('')
   const [intervenant, setIntervenant] = useState(null)
+  const [qr, setQr] = useState('')
+  const [telechargement, setTelechargement] = useState(false)
 
   useEffect(() => {
     const meta = document.createElement('meta')
@@ -34,6 +38,32 @@ export default function EspaceIntervenant() {
     document.head.appendChild(meta)
     return () => document.head.removeChild(meta)
   }, [])
+
+  useEffect(() => {
+    if (!intervenant?.badge_token) { setQr(''); return }
+    let cancelled = false
+    const badgeUrl = `https://copaf-ports.com/badge/${intervenant.badge_token}`
+    QRCode.toDataURL(badgeUrl, { width: 320, margin: 1, color: { dark: '#000E91', light: '#FFFFFF' } })
+      .then(url => { if (!cancelled) setQr(url) })
+      .catch(() => { if (!cancelled) setQr('') })
+    return () => { cancelled = true }
+  }, [intervenant?.badge_token])
+
+  const telechargerQr = async () => {
+    if (!qr || !intervenant) return
+    setTelechargement(true)
+    try {
+      await generateQrCard({
+        qrDataUrl: qr,
+        nomPrenom: `${intervenant.prenom} ${intervenant.nom}`.trim(),
+        sousTitre: intervenant.fonction,
+        dossier: intervenant.dossier,
+        fileName: `Badge-${intervenant.dossier}.png`,
+      })
+    } finally {
+      setTelechargement(false)
+    }
+  }
 
   const connexion = async e => {
     e.preventDefault()
@@ -53,13 +83,13 @@ export default function EspaceIntervenant() {
       <SeoHead title="Espace intervenant — COPAF 2026" description="Espace personnel des intervenants COPAF 2026" type="website" />
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');`}</style>
 
-      <header style={{ background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`, padding: 'clamp(32px, 5vw, 48px) clamp(20px, 5vw, 48px)', color: '#fff' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto' }}>
-          <img src="/logocopaf.png" alt="COPAF 2026" style={{ height: 40, marginBottom: 22 }} />
-          <h1 style={{ fontSize: 'clamp(22px, 3.4vw, 30px)', fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.01em' }}>
+      <header style={{ background: NAVY }}>
+        <img src="/coverscopaf.png" alt="COPAF 2026 — Conférence des Ports Africains" style={{ width: '100%', display: 'block' }} />
+        <div style={{ maxWidth: 640, margin: '0 auto', padding: '18px clamp(20px, 5vw, 48px) 22px' }}>
+          <h1 style={{ fontSize: 'clamp(20px, 3vw, 26px)', fontWeight: 900, margin: '0 0 6px', color: '#fff', letterSpacing: '-0.01em' }}>
             Espace intervenant
           </h1>
-          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', margin: 0, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.8)', margin: 0, lineHeight: 1.6 }}>
             Retrouvez votre badge, votre lettre d'invitation et les documents liés à votre intervention — et déposez-y votre présentation.
           </p>
         </div>
@@ -106,6 +136,22 @@ export default function EspaceIntervenant() {
               <p style={{ fontSize: 13.5, color: '#64748b', margin: 0 }}>
                 {intervenant.fonction}{intervenant.organisation ? ` — ${intervenant.organisation}` : ''}
               </p>
+
+              {qr && (
+                <div style={{ marginTop: 20, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', padding: '14px', background: '#f8fafc', border: '1px solid #eef1f8', borderRadius: 12 }}>
+                  <img src={qr} alt="QR code badge" style={{ width: 72, height: 72, borderRadius: 10, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 160 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#0a1128' }}>Mon badge / QR code</div>
+                    <div style={{ fontSize: 11.5, color: '#64748b' }}>À présenter à l'accueil pour le pointage</div>
+                  </div>
+                  <button type="button" onClick={telechargerQr} disabled={telechargement} style={{
+                    padding: '9px 14px', border: 'none', borderRadius: 10, fontSize: 12.5, fontWeight: 700,
+                    color: '#fff', background: NAVY, cursor: telechargement ? 'wait' : 'pointer', flexShrink: 0,
+                  }}>
+                    {telechargement ? 'Génération...' : 'Télécharger'}
+                  </button>
+                </div>
+              )}
 
               {Array.isArray(intervenant.interventions) && intervenant.interventions.length > 0 && (
                 <div style={{ marginTop: 20 }}>
