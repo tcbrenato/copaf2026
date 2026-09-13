@@ -44,6 +44,11 @@ const TR = {
     scannerTitre: 'Pas encore répondu ?',
     scannerTexte: 'Scannez pour participer',
     vientDeRepondre: pays => `${pays} vient de répondre`,
+    individuelsTitre: 'Profils individuels — anonymes',
+    individuelsTexte: 'Chaque toile représente un port ayant répondu. Aucune donnée d’identité — uniquement le profil, pour comparer les niveaux de maturité.',
+    portLabel: n => `Port ${n}`,
+    portSur: (n, total) => `Port ${n} / ${total}`,
+    individuelsVide: 'Aucun diagnostic individuel à afficher pour le moment.',
   },
   en: {
     badge: 'COPAF 2026 · SMART PORT DIAGNOSTIC',
@@ -68,6 +73,11 @@ const TR = {
     scannerTitre: "Haven't answered yet?",
     scannerTexte: 'Scan to take part',
     vientDeRepondre: pays => `${pays} just answered`,
+    individuelsTitre: 'Individual profiles — anonymous',
+    individuelsTexte: 'Each web represents one port that answered. No identity data — just the profile, to compare maturity levels.',
+    portLabel: n => `Port ${n}`,
+    portSur: (n, total) => `Port ${n} / ${total}`,
+    individuelsVide: 'No individual diagnostic to show yet.',
   },
 }
 
@@ -82,6 +92,22 @@ function couleurScore(v) {
   if (v < 2) return '#ef4444'
   if (v < 3.5) return '#f59e0b'
   return '#22c55e'
+}
+
+// ─── Mini radar (carte de la grille individuelle) — juste la forme, sans
+// axes ni legende, pour rester lisible en petit format cote a cote. ───────
+function MiniRadar({ scores }) {
+  const data = AXES.map(axe => ({ axis: axe.id, valeur: scores?.[axe.id] ?? 0, fullMark: 5 }))
+  return (
+    <ResponsiveContainer width="100%" height={120}>
+      <RadarChart data={data} outerRadius="72%">
+        <PolarGrid stroke="rgba(255,255,255,0.12)" />
+        <PolarAngleAxis dataKey="axis" tick={false} axisLine={false} />
+        <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
+        <Radar dataKey="valeur" stroke="#60a5fa" fill={BLUE} fillOpacity={0.45} strokeWidth={2} isAnimationActive={false} />
+      </RadarChart>
+    </ResponsiveContainer>
+  )
 }
 
 // ─── Detail complet d'une vue : radar + 10 axes (contenu de la modale) ─────
@@ -126,6 +152,11 @@ export default function ProjectionDiagnostic() {
   const [liveCountries, setLiveCountries] = useState(() => new Set())
   const [liveByCountry, setLiveByCountry] = useState(() => new Map())
   const [vueOuverte, setVueOuverte] = useState(null)
+  // Liste anonyme des diagnostics individuels (un objet scores par port
+  // ayant repondu, aucune donnee d'identite) — alimente la grille de toiles
+  // d'araignee individuelles et sa modale de navigation prev/suivant.
+  const [individuels, setIndividuels] = useState([])
+  const [individuelOuvert, setIndividuelOuvert] = useState(null)
   const channelRef = useRef(null)
 
   // QR code statique vers le questionnaire, genere une seule fois.
@@ -182,6 +213,9 @@ export default function ProjectionDiagnostic() {
       return [id, { moyennes, nb }]
     }))
     setAggregates(Object.fromEntries(results))
+
+    const { data: indivData } = await supabase.rpc('get_diagnostic_individual_scores', { p_reseau: null })
+    setIndividuels(indivData || [])
   }, [])
 
   useEffect(() => {
@@ -256,6 +290,20 @@ export default function ProjectionDiagnostic() {
     setActiveCountry(nom)
     resumeTimeoutRef.current = setTimeout(() => { pausedRef.current = false }, 6000)
   }
+
+  const individuelPrecedent = () => setIndividuelOuvert(i => (i === null ? null : (i - 1 + individuels.length) % individuels.length))
+  const individuelSuivant = () => setIndividuelOuvert(i => (i === null ? null : (i + 1) % individuels.length))
+
+  useEffect(() => {
+    if (individuelOuvert === null) return
+    const total = individuels.length
+    const onKey = e => {
+      if (e.key === 'ArrowLeft') setIndividuelOuvert(i => (i === null ? null : (i - 1 + total) % total))
+      if (e.key === 'ArrowRight') setIndividuelOuvert(i => (i === null ? null : (i + 1) % total))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [individuelOuvert, individuels.length])
 
   const vuesActives = VUE_IDS.filter(id => id === 'global' || aggregates[id]?.nb > 0)
   const aggGlobal = aggregates.global
@@ -447,7 +495,82 @@ export default function ProjectionDiagnostic() {
             )
           })}
         </div>
+
+        {/* Grille des profils individuels anonymes : une toile d'araignee par
+            port ayant repondu, sans aucune donnee d'identite — seul le
+            profil de maturite est affiche, pour comparaison en salle. */}
+        <div style={{ width: '100%' }}>
+          <div style={{ textAlign: 'center', marginBottom: 18 }}>
+            <h2 style={{ fontSize: 'clamp(18px, 1.8vw, 24px)', fontWeight: 900, margin: 0 }}>{t.individuelsTitre}</h2>
+            <p style={{ fontSize: 12.5, color: '#94a3b8', margin: '6px 0 0', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' }}>{t.individuelsTexte}</p>
+          </div>
+
+          {individuels.length === 0 ? (
+            <div style={{ ...card, padding: '24px', textAlign: 'center' }}>
+              <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>{t.individuelsVide}</p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}>
+              {individuels.map((diag, i) => {
+                const valeurs = Object.values(diag.scores || {})
+                const score = valeurs.length ? valeurs.reduce((s, v) => s + Number(v), 0) / valeurs.length : 0
+                return (
+                  <button
+                    key={diag.diag_id}
+                    type="button"
+                    onClick={() => setIndividuelOuvert(i)}
+                    style={{
+                      ...card, padding: '14px 14px 16px', textAlign: 'center', cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, color: '#fff', fontFamily: 'inherit',
+                      transition: 'transform .2s ease, border-color .2s ease',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = 'rgba(0,115,244,0.5)' }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
+                  >
+                    <MiniRadar scores={diag.scores} />
+                    <div style={{ fontSize: 12, fontWeight: 800, color: '#cbd5e1' }}>{t.portLabel(i + 1)}</div>
+                    <div style={{ fontSize: 18, fontWeight: 900, color: couleurScore(score) }}>{score.toFixed(1)}</div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Modale de navigation d'un profil individuel anonyme (fleches
+          precedent/suivant pour parcourir tous les ports en direct). */}
+      {individuelOuvert !== null && individuels[individuelOuvert] && createPortal((
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(6,9,18,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          onClick={() => setIndividuelOuvert(null)}
+        >
+          <div style={{ ...card, maxWidth: 1000, width: '100%', maxHeight: '88vh', overflowY: 'auto', padding: '32px 36px', position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setIndividuelOuvert(null)} style={{
+              position: 'absolute', top: 16, right: 16, width: 36, height: 36, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)',
+              background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontWeight: 700,
+            }}>✕</button>
+
+            {individuels.length > 1 && (
+              <>
+                <button onClick={individuelPrecedent} aria-label="Precedent" style={{
+                  position: 'absolute', top: '50%', left: 12, transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%',
+                  border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontWeight: 900, fontSize: 18,
+                }}>‹</button>
+                <button onClick={individuelSuivant} aria-label="Suivant" style={{
+                  position: 'absolute', top: '50%', right: 12, transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%',
+                  border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontWeight: 900, fontSize: 18,
+                }}>›</button>
+              </>
+            )}
+
+            <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 20, textAlign: 'center' }}>
+              {t.portSur(individuelOuvert + 1, individuels.length)}
+            </div>
+            <DetailVue agg={{ moyennes: individuels[individuelOuvert].scores }} lang={lang} t={t} />
+          </div>
+        </div>
+      ), document.body)}
 
       {/* Modale d'analyse detaillee */}
       {vueOuverte && createPortal((
