@@ -2594,19 +2594,29 @@ export default function AdminPage() {
     setNotifPermission(perm)
   }
 
+  const allerVersInscription = () => {
+    window.focus()
+    setActiveModule('participants')
+    setNotifToast(null)
+  }
+
   useEffect(() => {
     const channel = supabase
       .channel('admin-notif-inscriptions')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inscriptions' }, payload => {
         const row = payload.new
         const texte = `Nouvelle inscription — dossier ${row?.dossier || '—'}`
+        console.log('[notif] nouvelle inscription reçue via Realtime', row)
         setNotifToast(texte)
         setTimeout(() => setNotifToast(null), 7000)
         if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          new Notification('COPAF 2026 — Nouvelle inscription', { body: texte, icon: '/icons/icon-192.png' })
+          const n = new Notification('COPAF 2026 — Nouvelle inscription', { body: texte, icon: '/icons/icon-192.png' })
+          n.onclick = () => { allerVersInscription(); n.close() }
         }
       })
-      .subscribe()
+      .subscribe((status, err) => {
+        console.log('[notif] statut abonnement Realtime inscriptions :', status, err || '')
+      })
     return () => supabase.removeChannel(channel)
   }, [])
 
@@ -2931,15 +2941,22 @@ export default function AdminPage() {
       <AdminAssistant allData={allData} />
 
       {notifToast && (
-        <div style={{
-          position: 'fixed', top: 20, right: 20, zIndex: 3000, maxWidth: 340,
-          background: '#fff', border: '1.5px solid #000E91', borderRadius: 14,
-          padding: '14px 16px', boxShadow: '0 12px 32px rgba(0,14,145,.2)',
-          display: 'flex', alignItems: 'center', gap: 10, animation: 'modalIn .2s ease',
-        }}>
+        <button
+          type="button"
+          onClick={allerVersInscription}
+          title="Voir dans Participants"
+          style={{
+            position: 'fixed', top: 20, right: 20, zIndex: 3000, maxWidth: 340,
+            background: '#fff', border: '1.5px solid #000E91', borderRadius: 14,
+            padding: '14px 16px', boxShadow: '0 12px 32px rgba(0,14,145,.2)',
+            display: 'flex', alignItems: 'center', gap: 10, animation: 'modalIn .2s ease',
+            cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+          }}
+        >
           <span style={{ fontSize: 20, flexShrink: 0 }}>🎉</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{notifToast}</span>
-        </div>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', flex: 1 }}>{notifToast}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#0073F4', flexShrink: 0 }}>Voir →</span>
+        </button>
       )}
     </div>
   )
