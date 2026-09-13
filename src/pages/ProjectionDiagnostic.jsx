@@ -43,12 +43,19 @@ const TR = {
     positionValidee: '✓ Position officielle validée',
     scannerTitre: 'Pas encore répondu ?',
     scannerTexte: 'Scannez pour participer',
-    vientDeRepondre: pays => `${pays} vient de répondre`,
+    vientDeRepondre: region => `Un port de ${region} vient de valider son diagnostic !`,
+    vientDeRepondreGenerique: 'Un port vient de valider son diagnostic !',
     individuelsTitre: 'Profils individuels — anonymes',
     individuelsTexte: 'Chaque toile représente un port ayant répondu. Aucune donnée d’identité — uniquement le profil, pour comparer les niveaux de maturité.',
     portLabel: n => `Port ${n}`,
     portSur: (n, total) => `Port ${n} / ${total}`,
     individuelsVide: 'Aucun diagnostic individuel à afficher pour le moment.',
+    jaugeLabel: (n, total) => `${n} connecté${n > 1 ? 's' : ''} sur ${total} attendus`,
+    legendCePort: 'Ce port',
+    legendMoyenne: 'Moyenne conférence',
+    topFlopTitre: 'Points forts & axes prioritaires — moyenne de la conférence',
+    topLabel: 'Points forts',
+    flopLabel: 'Axes prioritaires',
   },
   en: {
     badge: 'COPAF 2026 · SMART PORT DIAGNOSTIC',
@@ -72,12 +79,19 @@ const TR = {
     positionValidee: '✓ Official position validated',
     scannerTitre: "Haven't answered yet?",
     scannerTexte: 'Scan to take part',
-    vientDeRepondre: pays => `${pays} just answered`,
+    vientDeRepondre: region => `A port from ${region} just completed its diagnostic!`,
+    vientDeRepondreGenerique: 'A port just completed its diagnostic!',
     individuelsTitre: 'Individual profiles — anonymous',
     individuelsTexte: 'Each web represents one port that answered. No identity data — just the profile, to compare maturity levels.',
     portLabel: n => `Port ${n}`,
     portSur: (n, total) => `Port ${n} / ${total}`,
     individuelsVide: 'No individual diagnostic to show yet.',
+    jaugeLabel: (n, total) => `${n} connected out of ${total} expected`,
+    legendCePort: 'This port',
+    legendMoyenne: 'Conference average',
+    topFlopTitre: 'Strengths & priority areas — conference average',
+    topLabel: 'Strengths',
+    flopLabel: 'Priority areas',
   },
 }
 
@@ -111,16 +125,37 @@ function MiniRadar({ scores }) {
 }
 
 // ─── Detail complet d'une vue : radar + 10 axes (contenu de la modale) ─────
-function DetailVue({ agg, lang, t }) {
-  const data = AXES.map(axe => ({ axis: txt(axe.nom, lang), valeur: agg?.moyennes?.[axe.id] ?? 0, fullMark: 5 }))
+// `benchmark` (optionnel) superpose la moyenne de la conference en tache de
+// fond sur le radar — sert uniquement pour les profils individuels, pour
+// que chaque port se situe instantanement par rapport a la moyenne globale.
+function DetailVue({ agg, lang, t, benchmark }) {
+  const data = AXES.map(axe => ({
+    axis: txt(axe.nom, lang),
+    valeur: agg?.moyennes?.[axe.id] ?? 0,
+    benchmark: benchmark?.[axe.id] ?? 0,
+    fullMark: 5,
+  }))
   return (
     <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap', justifyContent: 'center', alignItems: 'stretch', width: '100%' }}>
       <div style={{ flex: '1 1 480px', maxWidth: 560, minHeight: 380 }}>
-        <ResponsiveContainer width="100%" height={380}>
+        {benchmark && (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 18, marginBottom: 6 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#cbd5e1', fontWeight: 700 }}>
+              <span style={{ width: 16, height: 2, background: '#60a5fa', display: 'inline-block' }} /> {t.legendCePort}
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#94a3b8', fontWeight: 700 }}>
+              <span style={{ width: 16, height: 2, background: '#94a3b8', display: 'inline-block', borderTop: '2px dashed #94a3b8' }} /> {t.legendMoyenne}
+            </span>
+          </div>
+        )}
+        <ResponsiveContainer width="100%" height={benchmark ? 356 : 380}>
           <RadarChart data={data} outerRadius="60%">
             <PolarGrid stroke="rgba(255,255,255,0.1)" />
             <PolarAngleAxis dataKey="axis" tick={{ fontSize: 11, fill: '#cbd5e1' }} />
             <PolarRadiusAxis angle={30} domain={[0, 5]} tick={false} axisLine={false} />
+            {benchmark && (
+              <Radar dataKey="benchmark" stroke="#94a3b8" strokeDasharray="4 4" fill="#94a3b8" fillOpacity={0.08} strokeWidth={1.75} isAnimationActive={false} />
+            )}
             <Radar dataKey="valeur" stroke="#60a5fa" fill={BLUE} fillOpacity={0.4} strokeWidth={2.5} isAnimationActive animationDuration={500} />
           </RadarChart>
         </ResponsiveContainer>
@@ -167,18 +202,32 @@ export default function ProjectionDiagnostic() {
       .catch(() => setQrDiagnostic(''))
   }, [])
 
-  // Ticker "dernieres reponses" — pays uniquement, jamais l'organisation
-  // (demande explicite : ne jamais devoiler qui repond en projection,
-  // contrairement au panneau pays qui lui montre l'organisation pendant
-  // qu'elle repond — deux niveaux de discretion assumes differemment).
-  // Chaque entree disparait d'elle-meme apres quelques secondes.
+  // Ticker "dernieres reponses" — region (reseau) uniquement, jamais le
+  // pays ni l'organisation (demande explicite : ne jamais devoiler qui
+  // repond en projection, avec un niveau de discretion encore plus large
+  // que le pays pour ces popups dynamiques). Chaque entree disparait
+  // d'elle-meme apres quelques secondes.
   const [ticker, setTicker] = useState([])
-  const ajouterAuTicker = pays => {
-    if (!pays) return
+  const ajouterAuTicker = reseau => {
     const id = crypto.randomUUID()
-    setTicker(list => [{ id, pays }, ...list].slice(0, 5))
+    setTicker(list => [{ id, reseau: reseau || null }, ...list].slice(0, 5))
     setTimeout(() => setTicker(list => list.filter(e => e.id !== id)), 8000)
   }
+
+  // Jauge d'engagement : participants actuellement connectes (presence,
+  // deja suivi ci-dessous) rapportes au nombre total d'inscrits a la
+  // conference (RPC anonyme, aucune donnee d'identite).
+  const [inscriptionsCount, setInscriptionsCount] = useState(0)
+  useEffect(() => {
+    const charger = () => {
+      supabase.rpc('get_inscriptions_count').then(({ data }) => {
+        if (typeof data === 'number') setInscriptionsCount(data)
+      })
+    }
+    charger()
+    const poll = setInterval(charger, 60000)
+    return () => clearInterval(poll)
+  }, [])
 
   // Cet ecran n'a pas de notion de "port" individuel (il agrege par
   // reseau) : le rapprochement avec une position officielle validee se
@@ -244,7 +293,7 @@ export default function ProjectionDiagnostic() {
       })
       .on('broadcast', { event: 'nouvelle-reponse' }, ({ payload }) => {
         fetchAll()
-        ajouterAuTicker(payload?.pays)
+        ajouterAuTicker(payload?.reseau)
       })
       .subscribe()
 
@@ -309,6 +358,13 @@ export default function ProjectionDiagnostic() {
   const aggGlobal = aggregates.global
   const activeEntry = activeCountry ? liveByCountry.get(activeCountry) : null
 
+  // Top/Flop des axes strategiques — calcule sur la moyenne globale de la
+  // conference, pour donner aux decideurs une lecture immediate des forces
+  // et des priorites d'investissement a l'echelle continentale.
+  const axesTries = aggGlobal ? [...AXES].sort((a, b) => (aggGlobal.moyennes[b.id] ?? 0) - (aggGlobal.moyennes[a.id] ?? 0)) : []
+  const axesForts = axesTries.slice(0, 3)
+  const axesPrioritaires = axesTries.slice(-3).reverse()
+
   const wrap = { minHeight: '100vh', width: '100vw', position: 'relative', overflow: 'auto', fontFamily: "'Plus Jakarta Sans',sans-serif", color: '#f8fafc', display: 'flex', flexDirection: 'column' }
   const bgImage = { position: 'fixed', inset: 0, zIndex: -3, backgroundColor: '#0b0f1c', backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.55) saturate(1.25)' }
   const bgOverlay = { position: 'fixed', inset: 0, zIndex: -2, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.6) 0%, rgba(6,9,18,0.9) 75%)' }
@@ -346,7 +402,7 @@ export default function ProjectionDiagnostic() {
         </div>
       )}
 
-      {/* Ticker "dernieres reponses" — pays uniquement, jamais l'organisation. */}
+      {/* Ticker "dernieres reponses" — region uniquement, jamais le pays ni l'organisation. */}
       <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 50, display: 'flex', flexDirection: 'column-reverse', gap: 8, alignItems: 'flex-end' }}>
         {ticker.map(entry => (
           <div key={entry.id} style={{
@@ -354,7 +410,7 @@ export default function ProjectionDiagnostic() {
             fontSize: 12.5, fontWeight: 700, animation: 'copaf-proj-ticker-in .3s ease',
           }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', flexShrink: 0 }} />
-            {t.vientDeRepondre(entry.pays)}
+            {entry.reseau && entry.reseau !== 'global' ? t.vientDeRepondre(labelVue(entry.reseau, lang)) : t.vientDeRepondreGenerique}
           </div>
         ))}
       </div>
@@ -370,11 +426,59 @@ export default function ProjectionDiagnostic() {
           <p style={{ fontSize: 'clamp(13px, 1.1vw, 16px)', color: '#94a3b8', margin: '10px 0 0', maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }}>{t.sousTitre}</p>
         </div>
 
-        <div style={{ ...card, padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#22c55e', flexShrink: 0, animation: 'copaf-proj-pulse 1.4s ease-in-out infinite' }} />
-          <div style={{ fontSize: 14, fontWeight: 800 }}>{participantsCount}</div>
-          <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>{t.enLigne}</div>
+        <div style={{ ...card, padding: '14px 24px', display: 'flex', flexDirection: 'column', gap: 10, minWidth: 260 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#22c55e', flexShrink: 0, animation: 'copaf-proj-pulse 1.4s ease-in-out infinite' }} />
+            <div style={{ fontSize: 14, fontWeight: 800 }}>{participantsCount}</div>
+            <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>{t.enLigne}</div>
+          </div>
+          {inscriptionsCount > 0 && (
+            <div>
+              <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                <div style={{
+                  width: `${Math.min(100, (participantsCount / inscriptionsCount) * 100)}%`, height: '100%',
+                  background: 'linear-gradient(90deg, #0073F4, #60a5fa)', borderRadius: 3, transition: 'width .6s ease',
+                }} />
+              </div>
+              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6, fontWeight: 600 }}>{t.jaugeLabel(participantsCount, inscriptionsCount)}</div>
+            </div>
+          )}
         </div>
+
+        {/* Top/Flop des axes strategiques — moyenne globale de la conference. */}
+        {aggGlobal && aggGlobal.nb > 0 && (
+          <div style={{ ...card, padding: 'clamp(16px,3vw,28px)', width: '100%' }}>
+            <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 800, color: '#cbd5e1', marginBottom: 18, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+              {t.topFlopTitre}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 28 }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#22c55e', marginBottom: 12 }}>▲ {t.topLabel}</div>
+                {axesForts.map(axe => {
+                  const v = aggGlobal.moyennes[axe.id] ?? 0
+                  return (
+                    <div key={axe.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <span style={{ fontSize: 12.5, color: '#e2e8f0', flex: 1, lineHeight: 1.3 }}>{txt(axe.nom, lang)}</span>
+                      <span style={{ fontSize: 13, fontWeight: 900, color: couleurScore(v), flexShrink: 0 }}>{v.toFixed(1)}</span>
+                    </div>
+                  )
+                })}
+              </div>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#ef4444', marginBottom: 12 }}>▼ {t.flopLabel}</div>
+                {axesPrioritaires.map(axe => {
+                  const v = aggGlobal.moyennes[axe.id] ?? 0
+                  return (
+                    <div key={axe.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                      <span style={{ fontSize: 12.5, color: '#e2e8f0', flex: 1, lineHeight: 1.3 }}>{txt(axe.nom, lang)}</span>
+                      <span style={{ fontSize: 13, fontWeight: 900, color: couleurScore(v), flexShrink: 0 }}>{v.toFixed(1)}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Carte vectorielle live (gauche) + panneau pays (droite) : meme
             disposition que la carte AGPAOC/UAPNA de la page d'accueil. Le
@@ -567,7 +671,7 @@ export default function ProjectionDiagnostic() {
             <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 20, textAlign: 'center' }}>
               {t.portSur(individuelOuvert + 1, individuels.length)}
             </div>
-            <DetailVue agg={{ moyennes: individuels[individuelOuvert].scores }} lang={lang} t={t} />
+            <DetailVue agg={{ moyennes: individuels[individuelOuvert].scores }} lang={lang} t={t} benchmark={aggGlobal?.moyennes} />
           </div>
         </div>
       ), document.body)}

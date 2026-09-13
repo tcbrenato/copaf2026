@@ -355,10 +355,11 @@ export default function DiagnosticSmartPort() {
     setSoumission(false)
 
     if (error) { setErreurSoumission(t.erreur + error.message); return }
-    // Pays uniquement dans le payload — jamais l'organisation/le port, pour
-    // que le ticker "dernieres reponses" en mode projection reste anonyme
-    // (demande explicite : ne jamais devoiler qui repond, juste le pays).
-    const payloadAnonyme = { pays: form.pays || null }
+    // Region (reseau) uniquement dans le payload — jamais le pays, jamais
+    // l'organisation/le port, pour que le ticker "dernieres reponses" en
+    // mode projection reste anonyme (demande explicite : ne jamais devoiler
+    // qui repond, un niveau de granularite encore plus large que le pays).
+    const payloadAnonyme = { reseau: orgSelectionnee?.network || null }
     // On attend l'envoi effectif des broadcasts avant de naviguer : navigate()
     // demonte le composant et ferme les canaux (cleanup des useEffect), donc
     // un simple appel sans attendre risquait de couper le message en route
