@@ -13,9 +13,20 @@ import App from './App.jsx'
 // aleatoire". Un seul rechargement controle des que le nouveau SW prend le
 // controle evite ce decalage, plutot que de laisser tourner une version
 // figee dont les chunks ne correspondent plus a ce que sert le serveur.
+//
+// Piege classique (deja rencontre — cause d'un ecran blanc "useCallback is
+// not defined" juste apres deploiement) : le tout premier controllerchange
+// d'un onglet correspond simplement a l'activation initiale du service
+// worker (aucun controleur -> ce SW), pas a une vraie mise a jour vers une
+// nouvelle version. Recharger sur CET evenement-la recharge la page en
+// pleine installation du SW (cache de precache pas encore garanti complet),
+// ce qui peut servir un jeu de fichiers incoherent. On n'ecoute donc que les
+// changements de controleur qui suivent un premier controleur deja en place.
 if ('serviceWorker' in navigator) {
+  let hadController = !!navigator.serviceWorker.controller
   let refreshing = false
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) { hadController = true; return }
     if (refreshing) return
     refreshing = true
     window.location.reload()
