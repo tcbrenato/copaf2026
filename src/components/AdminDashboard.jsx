@@ -2555,7 +2555,23 @@ export default function AdminPage() {
     // meme si un autre compte a scope='all' un jour.
     return mods.filter(m => !m.adminOnly || role === 'admin')
   }, [scope, isBroadRole, role])
-  const [activeModule,   setActiveModule]   = useState(() => visibleModules[0]?.id || 'dashboard')
+  // Persiste l'onglet actif (localStorage) pour qu'un rechargement de page
+  // (ex. le service worker qui reprend la main apres un nouveau deploiement,
+  // cf. main.jsx) ne renvoie pas systematiquement au tableau de bord —
+  // signale par l'admin : changer d'onglet navigateur puis revenir semblait
+  // "reinitialiser" l'admin sur le tableau de bord.
+  const ADMIN_MODULE_LS_KEY = 'copaf_admin_active_module'
+  const [activeModule,   setActiveModule]   = useState(() => {
+    let stored = null
+    try { stored = localStorage.getItem(ADMIN_MODULE_LS_KEY) } catch { /* localStorage indisponible */ }
+    if (stored && visibleModules.some(m => m.id === stored)) return stored
+    return visibleModules[0]?.id || 'dashboard'
+  })
+
+  useEffect(() => {
+    if (!visibleModules.some(m => m.id === activeModule)) return
+    try { localStorage.setItem(ADMIN_MODULE_LS_KEY, activeModule) } catch { /* localStorage indisponible */ }
+  }, [activeModule, visibleModules])
   const [sidebarOpen,    setSidebarOpen]    = useState(true)
   const [allData,        setAllData]        = useState({ inscriptions: [], sponsors: [], partenaires: [], exposants: [], membres: [] })
   const [sectionData,    setSectionData]    = useState([])
