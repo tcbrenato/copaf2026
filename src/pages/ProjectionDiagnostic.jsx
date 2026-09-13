@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts'
+import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import RetourMenu from '../components/RetourMenu'
 import DiagnosticLiveMap from '../components/DiagnosticLiveMap'
@@ -40,6 +41,9 @@ const TR = {
     panneauAttenteTitre: 'En attente de réponses',
     panneauAttenteTexte: "Dès qu'un participant sélectionne son pays, il apparaît ici en direct.",
     positionValidee: '✓ Position officielle validée',
+    scannerTitre: 'Pas encore répondu ?',
+    scannerTexte: 'Scannez pour participer',
+    vientDeRepondre: pays => `${pays} vient de répondre`,
   },
   en: {
     badge: 'COPAF 2026 · SMART PORT DIAGNOSTIC',
@@ -61,6 +65,9 @@ const TR = {
     panneauAttenteTitre: 'Waiting for responses',
     panneauAttenteTexte: 'As soon as a participant selects their country, it appears here live.',
     positionValidee: '✓ Official position validated',
+    scannerTitre: "Haven't answered yet?",
+    scannerTexte: 'Scan to take part',
+    vientDeRepondre: pays => `${pays} just answered`,
   },
 }
 
@@ -121,6 +128,27 @@ export default function ProjectionDiagnostic() {
   const [vueOuverte, setVueOuverte] = useState(null)
   const channelRef = useRef(null)
 
+  // QR code statique vers le questionnaire, genere une seule fois.
+  const [qrDiagnostic, setQrDiagnostic] = useState('')
+  useEffect(() => {
+    QRCode.toDataURL('https://copaf-ports.com/diagnostic', { width: 300, margin: 1, color: { dark: '#0b0f1c', light: '#FFFFFF' } })
+      .then(setQrDiagnostic)
+      .catch(() => setQrDiagnostic(''))
+  }, [])
+
+  // Ticker "dernieres reponses" — pays uniquement, jamais l'organisation
+  // (demande explicite : ne jamais devoiler qui repond en projection,
+  // contrairement au panneau pays qui lui montre l'organisation pendant
+  // qu'elle repond — deux niveaux de discretion assumes differemment).
+  // Chaque entree disparait d'elle-meme apres quelques secondes.
+  const [ticker, setTicker] = useState([])
+  const ajouterAuTicker = pays => {
+    if (!pays) return
+    const id = crypto.randomUUID()
+    setTicker(list => [{ id, pays }, ...list].slice(0, 5))
+    setTimeout(() => setTicker(list => list.filter(e => e.id !== id)), 8000)
+  }
+
   // Cet ecran n'a pas de notion de "port" individuel (il agrege par
   // reseau) : le rapprochement avec une position officielle validee se
   // fait donc par nom d'organisation affiche, identique des deux cotes
@@ -180,7 +208,10 @@ export default function ProjectionDiagnostic() {
         setLiveCountries(countries)
         setLiveByCountry(byCountry)
       })
-      .on('broadcast', { event: 'nouvelle-reponse' }, () => fetchAll())
+      .on('broadcast', { event: 'nouvelle-reponse' }, ({ payload }) => {
+        fetchAll()
+        ajouterAuTicker(payload?.pays)
+      })
       .subscribe()
 
     const poll = setInterval(fetchAll, 30000)
@@ -250,6 +281,35 @@ export default function ProjectionDiagnostic() {
       }}>
         {lang === 'fr' ? 'EN · Français' : 'FR · English'}
       </button>
+
+      {/* QR de participation — permanent, discret, pour les retardataires
+          dans la salle (l'ecran de projection n'indiquait avant aucun moyen
+          de rejoindre le questionnaire). */}
+      {qrDiagnostic && (
+        <div style={{
+          ...card, position: 'fixed', bottom: 20, left: 20, zIndex: 50, padding: 14,
+          display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+          <img src={qrDiagnostic} alt="QR" style={{ width: 72, height: 72, borderRadius: 8, display: 'block' }} />
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 800 }}>{t.scannerTitre}</div>
+            <div style={{ fontSize: 11, color: '#94a3b8' }}>{t.scannerTexte}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Ticker "dernieres reponses" — pays uniquement, jamais l'organisation. */}
+      <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 50, display: 'flex', flexDirection: 'column-reverse', gap: 8, alignItems: 'flex-end' }}>
+        {ticker.map(entry => (
+          <div key={entry.id} style={{
+            ...card, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8,
+            fontSize: 12.5, fontWeight: 700, animation: 'copaf-proj-ticker-in .3s ease',
+          }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#22c55e', flexShrink: 0 }} />
+            {t.vientDeRepondre(entry.pays)}
+          </div>
+        ))}
+      </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 40px', gap: 32, maxWidth: 1500, margin: '0 auto', width: '100%' }}>
 
@@ -406,7 +466,10 @@ export default function ProjectionDiagnostic() {
         </div>
       ), document.body)}
 
-      <style>{`@keyframes copaf-proj-pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,.5); } 50% { opacity: .6; box-shadow: 0 0 0 6px rgba(34,197,94,0); } }`}</style>
+      <style>{`
+        @keyframes copaf-proj-pulse { 0%,100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,.5); } 50% { opacity: .6; box-shadow: 0 0 0 6px rgba(34,197,94,0); } }
+        @keyframes copaf-proj-ticker-in { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+      `}</style>
     </div>
   )
 }

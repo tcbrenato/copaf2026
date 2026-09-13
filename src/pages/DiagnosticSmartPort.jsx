@@ -355,8 +355,12 @@ export default function DiagnosticSmartPort() {
     setSoumission(false)
 
     if (error) { setErreurSoumission(t.erreur + error.message); return }
-    channelRef.current?.send({ type: 'broadcast', event: 'nouvelle-reponse', payload: {} })
-    globalChannelRef.current?.send({ type: 'broadcast', event: 'nouvelle-reponse', payload: {} })
+    // Pays uniquement dans le payload — jamais l'organisation/le port, pour
+    // que le ticker "dernieres reponses" en mode projection reste anonyme
+    // (demande explicite : ne jamais devoiler qui repond, juste le pays).
+    const payloadAnonyme = { pays: form.pays || null }
+    channelRef.current?.send({ type: 'broadcast', event: 'nouvelle-reponse', payload: payloadAnonyme })
+    globalChannelRef.current?.send({ type: 'broadcast', event: 'nouvelle-reponse', payload: payloadAnonyme })
     navigate(`/diagnostic/resultat/${id}?lang=${lang}`)
   }
 
