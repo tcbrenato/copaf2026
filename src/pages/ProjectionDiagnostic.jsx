@@ -53,9 +53,11 @@ const TR = {
     jaugeLabel: (n, total) => `${n} connecté${n > 1 ? 's' : ''} sur ${total} attendus`,
     legendCePort: 'Ce port',
     legendMoyenne: 'Moyenne conférence',
-    topFlopTitre: 'Points forts & axes prioritaires — moyenne de la conférence',
+    topFlopTitre: label => `Points forts & axes prioritaires — ${label}`,
     topLabel: 'Points forts',
     flopLabel: 'Axes prioritaires',
+    moyenneConference: 'moyenne de la conférence',
+    filtreLabel: 'Filtrer par région :',
   },
   en: {
     badge: 'COPAF 2026 · SMART PORT DIAGNOSTIC',
@@ -89,9 +91,11 @@ const TR = {
     jaugeLabel: (n, total) => `${n} connected out of ${total} expected`,
     legendCePort: 'This port',
     legendMoyenne: 'Conference average',
-    topFlopTitre: 'Strengths & priority areas — conference average',
+    topFlopTitre: label => `Strengths & priority areas — ${label}`,
     topLabel: 'Strengths',
     flopLabel: 'Priority areas',
+    moyenneConference: 'conference average',
+    filtreLabel: 'Filter by region:',
   },
 }
 
@@ -187,11 +191,17 @@ export default function ProjectionDiagnostic() {
   const [liveCountries, setLiveCountries] = useState(() => new Set())
   const [liveByCountry, setLiveByCountry] = useState(() => new Map())
   const [vueOuverte, setVueOuverte] = useState(null)
-  // Liste anonyme des diagnostics individuels (un objet scores par port
-  // ayant repondu, aucune donnee d'identite) — alimente la grille de toiles
-  // d'araignee individuelles et sa modale de navigation prev/suivant.
+  // Liste anonyme des diagnostics individuels (id technique + reseau + un
+  // objet scores par port ayant repondu, aucune donnee d'identite) —
+  // alimente la grille de toiles d'araignee individuelles et sa modale de
+  // navigation prev/suivant. Le reseau sert uniquement au filtre region
+  // cote client (moderateur), jamais affiche comme identifiant.
   const [individuels, setIndividuels] = useState([])
   const [individuelOuvert, setIndividuelOuvert] = useState(null)
+  // Filtre region du moderateur : applique a la grille de profils
+  // individuels et au bloc points forts/axes prioritaires, pour comparer
+  // visuellement les zones maritimes en un clic.
+  const [filtreRegion, setFiltreRegion] = useState('global')
   const channelRef = useRef(null)
 
   // QR code statique vers le questionnaire, genere une seule fois.
@@ -340,28 +350,34 @@ export default function ProjectionDiagnostic() {
     resumeTimeoutRef.current = setTimeout(() => { pausedRef.current = false }, 6000)
   }
 
-  const individuelPrecedent = () => setIndividuelOuvert(i => (i === null ? null : (i - 1 + individuels.length) % individuels.length))
-  const individuelSuivant = () => setIndividuelOuvert(i => (i === null ? null : (i + 1) % individuels.length))
+  // Liste des profils individuels affiches, filtree par region si le
+  // moderateur a choisi un reseau precis (sinon tous les ports confondus).
+  const individuelsAffiches = filtreRegion === 'global' ? individuels : individuels.filter(d => d.reseau === filtreRegion)
+
+  const individuelPrecedent = () => setIndividuelOuvert(i => (i === null ? null : (i - 1 + individuelsAffiches.length) % individuelsAffiches.length))
+  const individuelSuivant = () => setIndividuelOuvert(i => (i === null ? null : (i + 1) % individuelsAffiches.length))
 
   useEffect(() => {
     if (individuelOuvert === null) return
-    const total = individuels.length
+    const total = individuelsAffiches.length
     const onKey = e => {
       if (e.key === 'ArrowLeft') setIndividuelOuvert(i => (i === null ? null : (i - 1 + total) % total))
       if (e.key === 'ArrowRight') setIndividuelOuvert(i => (i === null ? null : (i + 1) % total))
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [individuelOuvert, individuels.length])
+  }, [individuelOuvert, individuelsAffiches.length])
 
   const vuesActives = VUE_IDS.filter(id => id === 'global' || aggregates[id]?.nb > 0)
   const aggGlobal = aggregates.global
   const activeEntry = activeCountry ? liveByCountry.get(activeCountry) : null
 
-  // Top/Flop des axes strategiques — calcule sur la moyenne globale de la
-  // conference, pour donner aux decideurs une lecture immediate des forces
-  // et des priorites d'investissement a l'echelle continentale.
-  const axesTries = aggGlobal ? [...AXES].sort((a, b) => (aggGlobal.moyennes[b.id] ?? 0) - (aggGlobal.moyennes[a.id] ?? 0)) : []
+  // Top/Flop des axes strategiques — calcule sur la moyenne de la region
+  // selectionnee par le moderateur (globale par defaut), pour donner aux
+  // decideurs une lecture immediate des forces et des priorites
+  // d'investissement, a l'echelle continentale ou d'une zone maritime.
+  const aggAffiche = aggregates[filtreRegion]
+  const axesTries = aggAffiche ? [...AXES].sort((a, b) => (aggAffiche.moyennes[b.id] ?? 0) - (aggAffiche.moyennes[a.id] ?? 0)) : []
   const axesForts = axesTries.slice(0, 3)
   const axesPrioritaires = axesTries.slice(-3).reverse()
 
@@ -445,17 +461,40 @@ export default function ProjectionDiagnostic() {
           )}
         </div>
 
-        {/* Top/Flop des axes strategiques — moyenne globale de la conference. */}
-        {aggGlobal && aggGlobal.nb > 0 && (
+        {/* Filtre region du moderateur : s'applique au bloc points forts/axes
+            prioritaires ci-dessous et a la grille de profils individuels
+            plus bas — permet de comparer visuellement les zones maritimes. */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700 }}>{t.filtreLabel}</span>
+          {VUE_IDS.map(id => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => { setFiltreRegion(id); setIndividuelOuvert(null) }}
+              style={{
+                padding: '7px 16px', borderRadius: 100, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                border: filtreRegion === id ? '1px solid rgba(0,115,244,0.6)' : '1px solid rgba(255,255,255,0.12)',
+                background: filtreRegion === id ? 'rgba(0,115,244,0.22)' : 'rgba(255,255,255,0.04)',
+                color: filtreRegion === id ? '#93c5fd' : '#cbd5e1',
+                transition: 'all .15s ease',
+              }}
+            >
+              {labelVue(id, lang)}
+            </button>
+          ))}
+        </div>
+
+        {/* Top/Flop des axes strategiques — moyenne de la region filtree. */}
+        {aggAffiche && aggAffiche.nb > 0 && (
           <div style={{ ...card, padding: 'clamp(16px,3vw,28px)', width: '100%' }}>
             <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 800, color: '#cbd5e1', marginBottom: 18, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-              {t.topFlopTitre}
+              {t.topFlopTitre(filtreRegion === 'global' ? t.moyenneConference : labelVue(filtreRegion, lang))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 28 }}>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 800, color: '#22c55e', marginBottom: 12 }}>▲ {t.topLabel}</div>
                 {axesForts.map(axe => {
-                  const v = aggGlobal.moyennes[axe.id] ?? 0
+                  const v = aggAffiche.moyennes[axe.id] ?? 0
                   return (
                     <div key={axe.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                       <span style={{ fontSize: 12.5, color: '#e2e8f0', flex: 1, lineHeight: 1.3 }}>{txt(axe.nom, lang)}</span>
@@ -467,7 +506,7 @@ export default function ProjectionDiagnostic() {
               <div>
                 <div style={{ fontSize: 12, fontWeight: 800, color: '#ef4444', marginBottom: 12 }}>▼ {t.flopLabel}</div>
                 {axesPrioritaires.map(axe => {
-                  const v = aggGlobal.moyennes[axe.id] ?? 0
+                  const v = aggAffiche.moyennes[axe.id] ?? 0
                   return (
                     <div key={axe.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                       <span style={{ fontSize: 12.5, color: '#e2e8f0', flex: 1, lineHeight: 1.3 }}>{txt(axe.nom, lang)}</span>
@@ -609,13 +648,13 @@ export default function ProjectionDiagnostic() {
             <p style={{ fontSize: 12.5, color: '#94a3b8', margin: '6px 0 0', maxWidth: 560, marginLeft: 'auto', marginRight: 'auto' }}>{t.individuelsTexte}</p>
           </div>
 
-          {individuels.length === 0 ? (
+          {individuelsAffiches.length === 0 ? (
             <div style={{ ...card, padding: '24px', textAlign: 'center' }}>
               <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>{t.individuelsVide}</p>
             </div>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}>
-              {individuels.map((diag, i) => {
+              {individuelsAffiches.map((diag, i) => {
                 const valeurs = Object.values(diag.scores || {})
                 const score = valeurs.length ? valeurs.reduce((s, v) => s + Number(v), 0) / valeurs.length : 0
                 return (
@@ -644,7 +683,7 @@ export default function ProjectionDiagnostic() {
 
       {/* Modale de navigation d'un profil individuel anonyme (fleches
           precedent/suivant pour parcourir tous les ports en direct). */}
-      {individuelOuvert !== null && individuels[individuelOuvert] && createPortal((
+      {individuelOuvert !== null && individuelsAffiches[individuelOuvert] && createPortal((
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(6,9,18,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
           onClick={() => setIndividuelOuvert(null)}
@@ -655,7 +694,7 @@ export default function ProjectionDiagnostic() {
               background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer', fontWeight: 700,
             }}>✕</button>
 
-            {individuels.length > 1 && (
+            {individuelsAffiches.length > 1 && (
               <>
                 <button onClick={individuelPrecedent} aria-label="Precedent" style={{
                   position: 'absolute', top: '50%', left: 12, transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%',
@@ -669,9 +708,9 @@ export default function ProjectionDiagnostic() {
             )}
 
             <div style={{ fontSize: 20, fontWeight: 900, marginBottom: 20, textAlign: 'center' }}>
-              {t.portSur(individuelOuvert + 1, individuels.length)}
+              {t.portSur(individuelOuvert + 1, individuelsAffiches.length)}
             </div>
-            <DetailVue agg={{ moyennes: individuels[individuelOuvert].scores }} lang={lang} t={t} benchmark={aggGlobal?.moyennes} />
+            <DetailVue agg={{ moyennes: individuelsAffiches[individuelOuvert].scores }} lang={lang} t={t} benchmark={aggGlobal?.moyennes} />
           </div>
         </div>
       ), document.body)}
