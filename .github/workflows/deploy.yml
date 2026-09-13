@@ -64,7 +64,13 @@ jobs:
           # a chaque build). Un nouveau nom de fichier d'etat repart de zero : ce
           # run traite tout comme neuf (aucune suppression tentee), et ecrit un
           # etat propre pour les prochains déploiements.
-          state-name: .ftp-deploy-sync-state-v2.json
+          #
+          # v3 (2026-09-13) : meme derive reapparue, cette fois sur actualites/
+          # (aucun article publie actuellement -> dist/actualites/ absent du
+          # build local, mais l'etat v2 le croyait encore present cote serveur
+          # -> "550 /actualites: No such file or directory", echec des 3
+          # derniers déploiements consecutifs). Nouveau reset du fichier d'etat.
+          state-name: .ftp-deploy-sync-state-v3.json
         continue-on-error: true
         id: ftp-attempt-1
 
@@ -92,7 +98,7 @@ jobs:
             **/node_modules/**
             documents/**
             documents
-          state-name: .ftp-deploy-sync-state-v2.json
+          state-name: .ftp-deploy-sync-state-v3.json
         id: ftp-attempt-2
 
       - name: ❌ Échec final si les deux tentatives ont échoué
