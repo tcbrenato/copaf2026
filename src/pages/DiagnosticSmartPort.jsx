@@ -128,6 +128,35 @@ const Ico = ({ name, size = 20, color = 'currentColor' }) => {
   return icons[name] || null
 }
 
+// Chrono indicatif du bloc en cours — pur affichage, ne verrouille rien.
+// Gere son propre intervalle d'1s pour ne pas re-rendre tout le formulaire
+// a chaque tick ; se demonte proprement quand deadline devient null.
+function ChronoBadge({ deadline }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!deadline) return undefined
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [deadline])
+  if (!deadline) return null
+  const restantMs = new Date(deadline).getTime() - now
+  if (restantMs <= 0) return null
+  const totalSec = Math.ceil(restantMs / 1000)
+  const mm = String(Math.floor(totalSec / 60)).padStart(2, '0')
+  const ss = String(totalSec % 60).padStart(2, '0')
+  const urgent = totalSec <= 60
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', borderRadius: 20, fontSize: 11, fontWeight: 700,
+      background: urgent ? 'rgba(239,68,68,0.15)' : 'rgba(96,165,250,0.12)',
+      border: `1px solid ${urgent ? 'rgba(239,68,68,0.4)' : 'rgba(96,165,250,0.3)'}`,
+      color: urgent ? '#f87171' : '#60a5fa',
+    }}>
+      ⏱ {mm}:{ss}
+    </span>
+  )
+}
+
 export default function DiagnosticSmartPort() {
   const navigate = useNavigate()
 
@@ -173,12 +202,12 @@ export default function DiagnosticSmartPort() {
   // ouvert affiche un ecran d'attente au lieu de la question — synchronise
   // en direct via Realtime (postgres_changes), avec repli par sondage toutes
   // les 10s en cas de coupure de la connexion temps reel.
-  const [sessionGate, setSessionGate] = useState({ session_active: false, bloc_ouvert: 0 })
+  const [sessionGate, setSessionGate] = useState({ session_active: false, bloc_ouvert: 0, bloc_verrouillage_at: null })
 
   useEffect(() => {
     let active = true
     const charger = async () => {
-      const { data } = await supabase.from('diagnostic_session').select('session_active, bloc_ouvert').eq('id', 1).maybeSingle()
+      const { data } = await supabase.from('diagnostic_session').select('session_active, bloc_ouvert, bloc_verrouillage_at').eq('id', 1).maybeSingle()
       if (active && data) setSessionGate(data)
     }
     charger()
@@ -797,6 +826,7 @@ export default function DiagnosticSmartPort() {
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8 }}>
               <span>{t.bloc.toUpperCase()} {axe.bloc} — {txt(BLOCS[axe.bloc], lang).toUpperCase()} ({etape}{t.sur}{AXES.length})</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ChronoBadge deadline={sessionGate.bloc_verrouillage_at} />
                 {participantsCount > 1 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px', background: 'rgba(74,222,128,0.12)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: 20, color: '#4ade80', fontSize: 11, fontWeight: 700 }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80' }} /> {participantsCount}

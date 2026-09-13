@@ -112,6 +112,36 @@ function couleurScore(v) {
   return '#22c55e'
 }
 
+// Chrono du bloc en cours, en grand format pour la salle — pur affichage,
+// cree un sentiment d'urgence mais ne verrouille rien automatiquement.
+// Gere son propre intervalle d'1s pour ne pas re-rendre tout l'ecran.
+function ChronoGeant({ deadline }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!deadline) return undefined
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [deadline])
+  if (!deadline) return null
+  const restantMs = new Date(deadline).getTime() - now
+  if (restantMs <= 0) return null
+  const totalSec = Math.ceil(restantMs / 1000)
+  const mm = String(Math.floor(totalSec / 60)).padStart(2, '0')
+  const ss = String(totalSec % 60).padStart(2, '0')
+  const urgent = totalSec <= 60
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 22px', borderRadius: 100,
+      background: urgent ? 'rgba(239,68,68,0.16)' : 'rgba(0,115,244,0.16)',
+      border: `1px solid ${urgent ? 'rgba(239,68,68,0.45)' : 'rgba(0,115,244,0.4)'}`,
+      animation: urgent ? 'copaf-proj-pulse 1s ease-in-out infinite' : 'none',
+    }}>
+      <span style={{ fontSize: 20 }}>⏱</span>
+      <span style={{ fontSize: 26, fontWeight: 900, color: urgent ? '#f87171' : '#60a5fa', fontVariantNumeric: 'tabular-nums' }}>{mm}:{ss}</span>
+    </div>
+  )
+}
+
 // ─── Mini radar (carte de la grille individuelle) — juste la forme, sans
 // axes ni legende, pour rester lisible en petit format cote a cote. ───────
 function MiniRadar({ scores }) {
@@ -237,6 +267,27 @@ export default function ProjectionDiagnostic() {
     charger()
     const poll = setInterval(charger, 60000)
     return () => clearInterval(poll)
+  }, [])
+
+  // Chrono indicatif du bloc en cours (feu vert admin) — meme etat que le
+  // panneau AdminDiagnostics.jsx et le formulaire participant, synchronise
+  // en direct via Realtime avec repli par sondage toutes les 10s.
+  const [blocVerrouillageAt, setBlocVerrouillageAt] = useState(null)
+  useEffect(() => {
+    const charger = () => {
+      supabase.from('diagnostic_session').select('bloc_verrouillage_at').eq('id', 1).maybeSingle().then(({ data }) => {
+        if (data) setBlocVerrouillageAt(data.bloc_verrouillage_at)
+      })
+    }
+    charger()
+    const channel = supabase
+      .channel('projection-diagnostic-session-gate')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'diagnostic_session' }, payload => {
+        setBlocVerrouillageAt(payload.new.bloc_verrouillage_at)
+      })
+      .subscribe()
+    const poll = setInterval(charger, 10000)
+    return () => { clearInterval(poll); supabase.removeChannel(channel) }
   }, [])
 
   // Cet ecran n'a pas de notion de "port" individuel (il agrege par
@@ -442,23 +493,26 @@ export default function ProjectionDiagnostic() {
           <p style={{ fontSize: 'clamp(13px, 1.1vw, 16px)', color: '#94a3b8', margin: '10px 0 0', maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }}>{t.sousTitre}</p>
         </div>
 
-        <div style={{ ...card, padding: '14px 24px', display: 'flex', flexDirection: 'column', gap: 10, minWidth: 260 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#22c55e', flexShrink: 0, animation: 'copaf-proj-pulse 1.4s ease-in-out infinite' }} />
-            <div style={{ fontSize: 14, fontWeight: 800 }}>{participantsCount}</div>
-            <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>{t.enLigne}</div>
-          </div>
-          {inscriptionsCount > 0 && (
-            <div>
-              <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-                <div style={{
-                  width: `${Math.min(100, (participantsCount / inscriptionsCount) * 100)}%`, height: '100%',
-                  background: 'linear-gradient(90deg, #0073F4, #60a5fa)', borderRadius: 3, transition: 'width .6s ease',
-                }} />
-              </div>
-              <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6, fontWeight: 600 }}>{t.jaugeLabel(participantsCount, inscriptionsCount)}</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'stretch', justifyContent: 'center', gap: 16 }}>
+          <div style={{ ...card, padding: '14px 24px', display: 'flex', flexDirection: 'column', gap: 10, minWidth: 260 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#22c55e', flexShrink: 0, animation: 'copaf-proj-pulse 1.4s ease-in-out infinite' }} />
+              <div style={{ fontSize: 14, fontWeight: 800 }}>{participantsCount}</div>
+              <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>{t.enLigne}</div>
             </div>
-          )}
+            {inscriptionsCount > 0 && (
+              <div>
+                <div style={{ height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${Math.min(100, (participantsCount / inscriptionsCount) * 100)}%`, height: '100%',
+                    background: 'linear-gradient(90deg, #0073F4, #60a5fa)', borderRadius: 3, transition: 'width .6s ease',
+                  }} />
+                </div>
+                <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6, fontWeight: 600 }}>{t.jaugeLabel(participantsCount, inscriptionsCount)}</div>
+              </div>
+            )}
+          </div>
+          <ChronoGeant deadline={blocVerrouillageAt} />
         </div>
 
         {/* Filtre region du moderateur : s'applique au bloc points forts/axes

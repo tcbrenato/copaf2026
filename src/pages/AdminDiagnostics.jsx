@@ -257,12 +257,15 @@ export default function AdminDiagnostics() {
   // min en conference. Hors session (session_active = false), le
   // questionnaire reste ouvert normalement pour tous les autres usages du
   // diagnostic (pas seulement pendant la conference).
-  const [sessionGate, setSessionGate] = useState({ session_active: false, bloc_ouvert: 0 })
+  const [sessionGate, setSessionGate] = useState({ session_active: false, bloc_ouvert: 0, bloc_verrouillage_at: null })
   const [gateEnCours, setGateEnCours] = useState(false)
+  // Duree (minutes) proposee pour le prochain chrono — simple champ local,
+  // n'est envoye en base qu'au clic sur "Lancer le chrono".
+  const [dureeChrono, setDureeChrono] = useState(5)
 
   useEffect(() => {
     const chargerGate = async () => {
-      const { data } = await supabase.from('diagnostic_session').select('session_active, bloc_ouvert').eq('id', 1).maybeSingle()
+      const { data } = await supabase.from('diagnostic_session').select('session_active, bloc_ouvert, bloc_verrouillage_at').eq('id', 1).maybeSingle()
       if (data) setSessionGate(data)
     }
     chargerGate()
@@ -518,7 +521,7 @@ export default function AdminDiagnostics() {
               {[1, 2, 3].map(bloc => (
                 <button
                   key={bloc}
-                  onClick={() => majGate({ bloc_ouvert: bloc })}
+                  onClick={() => majGate({ bloc_ouvert: bloc, bloc_verrouillage_at: null })}
                   disabled={gateEnCours}
                   style={{
                     padding: '10px 18px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: gateEnCours ? 'wait' : 'pointer', fontFamily: 'inherit',
@@ -533,6 +536,48 @@ export default function AdminDiagnostics() {
               <span style={{ fontSize: 12, color: T.textMuted, marginLeft: 4 }}>
                 {sessionGate.bloc_ouvert === 0 ? 'Aucun bloc ouvert — les participants attendent.' : `Bloc ${sessionGate.bloc_ouvert} ouvert (et les précédents).`}
               </span>
+            </div>
+          )}
+
+          {/* Chrono indicatif du bloc en cours — cree un sentiment d'urgence
+              chez les participants et en projection, mais ne verrouille rien
+              automatiquement : l'animateur ouvre toujours le bloc suivant
+              lui-meme quand il le juge bon. */}
+          {sessionGate.session_active && sessionGate.bloc_ouvert > 0 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 14, paddingTop: 14, borderTop: `1px solid ${T.rowBorder}` }}>
+              {sessionGate.bloc_verrouillage_at && new Date(sessionGate.bloc_verrouillage_at) > new Date() ? (
+                <>
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: T.text }}>
+                    ⏱ Chrono en cours — clôture à {new Date(sessionGate.bloc_verrouillage_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  <button onClick={() => majGate({ bloc_verrouillage_at: null })} disabled={gateEnCours} style={{
+                    padding: '7px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: gateEnCours ? 'wait' : 'pointer', fontFamily: 'inherit',
+                    background: T.chipBg, border: `1px solid ${T.chipBorder}`, color: T.text,
+                  }}>
+                    Annuler le chrono
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span style={{ fontSize: 12.5, color: T.textMuted }}>Lancer un chrono de</span>
+                  <input
+                    type="number" min={1} max={60} value={dureeChrono}
+                    onChange={e => setDureeChrono(Math.max(1, Math.min(60, Number(e.target.value) || 1)))}
+                    style={{ width: 56, padding: '7px 8px', fontSize: 12.5, fontFamily: 'inherit', color: T.text, background: T.inputBg, border: `1px solid ${T.inputBorder}`, borderRadius: 8, outline: 'none' }}
+                  />
+                  <span style={{ fontSize: 12.5, color: T.textMuted }}>min</span>
+                  <button
+                    onClick={() => majGate({ bloc_verrouillage_at: new Date(Date.now() + dureeChrono * 60000).toISOString() })}
+                    disabled={gateEnCours}
+                    style={{
+                      padding: '7px 16px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: gateEnCours ? 'wait' : 'pointer', fontFamily: 'inherit',
+                      background: T.accentBg, border: `1px solid ${T.accentBorder}`, color: T.accent,
+                    }}
+                  >
+                    Lancer le chrono
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
