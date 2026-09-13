@@ -68,7 +68,7 @@ function pointsPolygone(cx, cy, rayon, n, valeurs = null, maxVal = 5) {
   return pts
 }
 
-export async function generateDiagnosticPDF({ diag, download = true }) {
+export async function generateDiagnosticPDF({ diag, benchmark = null, download = true }) {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' })
   const W = doc.internal.pageSize.getWidth()
   const H = doc.internal.pageSize.getHeight()
@@ -80,6 +80,7 @@ export async function generateDiagnosticPDF({ diag, download = true }) {
   const cles = Object.keys(AXES_LABELS)
   const valeurs = cles.map(k => scores[k] ?? 0)
   const moyenne = valeurs.reduce((s, v) => s + v, 0) / valeurs.length
+  const valeursBenchmark = benchmark ? cles.map(k => benchmark[k] ?? 0) : null
 
   const drawFooter = () => {
     const footerY = H - 46
@@ -217,6 +218,21 @@ export async function generateDiagnosticPDF({ diag, download = true }) {
     doc.circle(p[0], p[1], 2, 'F')
   })
 
+  // Superposition benchmark (moyenne de la conference) — contour pointille
+  // uniquement, sans remplissage, pour rester lisible au-dessus du polygone
+  // plein du port. Dessinee apres les points de donnees pour rester visible.
+  if (valeursBenchmark) {
+    const benchPts = pointsPolygone(cx, cy, rayon, n, valeursBenchmark, 5)
+    doc.setDrawColor(...GRAY)
+    doc.setLineWidth(1.25)
+    doc.setLineDashPattern([3, 2], 0)
+    for (let i = 0; i < n; i++) {
+      const next = benchPts[(i + 1) % n]
+      doc.line(benchPts[i][0], benchPts[i][1], next[0], next[1])
+    }
+    doc.setLineDashPattern([], 0)
+  }
+
   // Labels des axes
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(7)
@@ -231,7 +247,28 @@ export async function generateDiagnosticPDF({ diag, download = true }) {
     doc.text(lines, lx, ly, { align })
   })
 
-  y += radarBoxH + 20
+  y += radarBoxH + 14
+
+  // Legende du radar (uniquement si une comparaison est affichee).
+  if (valeursBenchmark) {
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(7.5)
+    doc.setFillColor(...BLUE)
+    doc.rect(M, y - 6, 16, 3, 'F')
+    doc.setTextColor(...DARK)
+    doc.text('Ce port', M + 22, y)
+    const label2X = M + 22 + doc.getTextWidth('Ce port') + 18
+    doc.setDrawColor(...GRAY)
+    doc.setLineWidth(1.25)
+    doc.setLineDashPattern([3, 2], 0)
+    doc.line(label2X - 22, y - 4.5, label2X - 6, y - 4.5)
+    doc.setLineDashPattern([], 0)
+    doc.setTextColor(...GRAY)
+    doc.text('Moyenne conférence', label2X, y)
+    y += 20
+  } else {
+    y += 6
+  }
 
   // ══════════════════════════════════════════
   // DETAIL PAR AXE (2 colonnes)
@@ -240,7 +277,7 @@ export async function generateDiagnosticPDF({ diag, download = true }) {
 
   const colGap = 24
   const colW = (contentW - colGap) / 2
-  const rowH = 34
+  const rowH = valeursBenchmark ? 40 : 34
   cles.forEach((cle, i) => {
     const col = i % 2
     const row = Math.floor(i / 2)
@@ -264,6 +301,16 @@ export async function generateDiagnosticPDF({ diag, download = true }) {
     doc.roundedRect(x, barY, barW, 5, 2.5, 2.5, 'F')
     doc.setFillColor(...couleurNiveau(v))
     doc.roundedRect(x, barY, Math.max(6, (barW * v) / 5), 5, 2.5, 2.5, 'F')
+
+    // Ecart avec la moyenne de la conference, sous la barre.
+    if (valeursBenchmark) {
+      const delta = v - valeursBenchmark[i]
+      const signe = delta > 0 ? '+' : ''
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(6.5)
+      doc.setTextColor(...(delta >= 0 ? GREEN : RED))
+      doc.text(`${signe}${delta.toFixed(1)} vs moyenne conférence`, x + colW, barY + 11, { align: 'right' })
+    }
   })
 
   y += Math.ceil(cles.length / 2) * rowH + 14

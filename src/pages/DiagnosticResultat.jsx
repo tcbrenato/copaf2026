@@ -226,6 +226,19 @@ export default function DiagnosticResultat() {
   const [lienCopie, setLienCopie] = useState(false)
   const [lang, setLang] = useState(searchParams.get('lang') === 'en' ? 'en' : 'fr')
   const [collectif, setCollectif] = useState(null)
+  // Moyenne globale de tous les diagnostics soumis pendant la conference
+  // (RPC anonyme, deja utilisee par l'ecran de projection) — superposee
+  // au radar du rapport PDF pour que le port se situe instantanement par
+  // rapport au continent.
+  const [moyenneConference, setMoyenneConference] = useState(null)
+  useEffect(() => {
+    supabase.rpc('get_diagnostic_global_aggregate', { p_reseau: null }).then(({ data }) => {
+      if (!data || data.length === 0) return
+      const moyennes = {}
+      data.forEach(row => { moyennes[row.axis_id] = Number(row.moyenne) })
+      setMoyenneConference(moyennes)
+    })
+  }, [])
   const [peers, setPeers] = useState([])
   const [officialPosition, setOfficialPosition] = useState(null)
   const [editionPosition, setEditionPosition] = useState(false)
@@ -326,7 +339,7 @@ export default function DiagnosticResultat() {
   const telechargerPDF = async () => {
     setPdfLoading(true)
     try {
-      await generateDiagnosticPDF({ diag })
+      await generateDiagnosticPDF({ diag, benchmark: moyenneConference })
     } catch (err) {
       console.error('Erreur export PDF:', err)
     } finally {
