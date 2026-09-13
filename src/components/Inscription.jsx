@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../supabase'
 import emailjs from '@emailjs/browser'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
@@ -582,7 +583,11 @@ function ModalDocument({ type, onClose, t }) {
 export default function Inscription() {
   const navigate = useNavigate()
   const { trackFormStart, trackConversion } = useAnalytics()
-  const [lang,         setLang]        = useState('fr')
+  // Langue pilotee par le choix general du site (selecteur en haut de page,
+  // react-i18next) plutot qu'un etat local independant — sinon changer la
+  // langue en haut n'avait aucun effet ici, et inversement.
+  const { i18n } = useTranslation()
+  const lang = i18n.language?.startsWith('en') ? 'en' : 'fr'
   const t = TR[lang]
 
   const [etape,        setEtape]        = useState(1)
@@ -683,14 +688,12 @@ export default function Inscription() {
   // Si la langue change apres selection d'une organisation (hors "Autre"),
   // on re-synchronise le libelle stocke avec la nouvelle langue.
   const handleLangSwitch = () => {
-    setLang(l => {
-      const next = l === 'fr' ? 'en' : 'fr'
-      if (orgSelect && orgSelect !== PORTS_AUTRE.value) {
-        const opt = findPortByValue(orgSelect)
-        if (opt) setForm(f => ({ ...f, organisation: opt.label[next] }))
-      }
-      return next
-    })
+    const next = lang === 'fr' ? 'en' : 'fr'
+    if (orgSelect && orgSelect !== PORTS_AUTRE.value) {
+      const opt = findPortByValue(orgSelect)
+      if (opt) setForm(f => ({ ...f, organisation: opt.label[next] }))
+    }
+    i18n.changeLanguage(next)
   }
 
   const handleSubmit = async e => {
