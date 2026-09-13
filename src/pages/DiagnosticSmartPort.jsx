@@ -359,8 +359,14 @@ export default function DiagnosticSmartPort() {
     // que le ticker "dernieres reponses" en mode projection reste anonyme
     // (demande explicite : ne jamais devoiler qui repond, juste le pays).
     const payloadAnonyme = { pays: form.pays || null }
-    channelRef.current?.send({ type: 'broadcast', event: 'nouvelle-reponse', payload: payloadAnonyme })
-    globalChannelRef.current?.send({ type: 'broadcast', event: 'nouvelle-reponse', payload: payloadAnonyme })
+    // On attend l'envoi effectif des broadcasts avant de naviguer : navigate()
+    // demonte le composant et ferme les canaux (cleanup des useEffect), donc
+    // un simple appel sans attendre risquait de couper le message en route
+    // avant qu'il n'atteigne le serveur (broadcasts non recus en projection).
+    await Promise.all([
+      channelRef.current?.send({ type: 'broadcast', event: 'nouvelle-reponse', payload: payloadAnonyme }),
+      globalChannelRef.current?.send({ type: 'broadcast', event: 'nouvelle-reponse', payload: payloadAnonyme }),
+    ])
     navigate(`/diagnostic/resultat/${id}?lang=${lang}`)
   }
 
