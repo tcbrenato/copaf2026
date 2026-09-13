@@ -2580,6 +2580,36 @@ export default function AdminPage() {
   const [globalSyncing,  setGlobalSyncing]  = useState(false)
   const [globalSyncOk,   setGlobalSyncOk]   = useState(false)
 
+  // Notification navigateur a chaque nouvelle inscription — se declenche
+  // meme onglet en arriere-plan (autre appli au premier plan), tant que
+  // cet onglet/cette fenetre admin reste ouvert quelque part (pas besoin
+  // d'etre dessus). Ne survit pas a la fermeture complete du navigateur —
+  // pour ca il faudrait de vraies Web Push (abonnement + cle VAPID).
+  const [notifPermission, setNotifPermission] = useState(() => (typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'))
+  const [notifToast,      setNotifToast]      = useState(null)
+
+  const activerNotifications = async () => {
+    if (typeof Notification === 'undefined') return
+    const perm = await Notification.requestPermission()
+    setNotifPermission(perm)
+  }
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-notif-inscriptions')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inscriptions' }, payload => {
+        const row = payload.new
+        const texte = `Nouvelle inscription — dossier ${row?.dossier || '—'}`
+        setNotifToast(texte)
+        setTimeout(() => setNotifToast(null), 7000)
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          new Notification('COPAF 2026 — Nouvelle inscription', { body: texte, icon: '/icons/icon-192.png' })
+        }
+      })
+      .subscribe()
+    return () => supabase.removeChannel(channel)
+  }, [])
+
   // Chargement initial : toutes les tables pour le dashboard
   const loadAll = useCallback(async () => {
     setLoading(true)
@@ -2796,6 +2826,24 @@ export default function AdminPage() {
             </div>
           </div>
 
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {notifPermission === 'default' && (
+              <button
+                onClick={activerNotifications}
+                title="Recevoir une notification du navigateur a chaque nouvelle inscription"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 8, padding: '9px 14px',
+                  background: '#fef3c7', border: '1.5px solid #fde68a', borderRadius: 12,
+                  fontSize: 12.5, fontWeight: 700, color: '#92400e', cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >
+                🔔 Activer les notifications
+              </button>
+            )}
+            {notifPermission === 'granted' && (
+              <span title="Notifications actives" style={{ fontSize: 16 }}>🔔</span>
+            )}
+
           {!['proforma', 'sondages', 'diagnostics', 'tirage'].includes(activeModule) && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               {/* Sync tout vers Sheets */}
@@ -2829,6 +2877,7 @@ export default function AdminPage() {
               </button>
             </div>
           )}
+          </div>
         </header>
 
         {/* Contenu */}
@@ -2880,6 +2929,18 @@ export default function AdminPage() {
         </main>
       </div>
       <AdminAssistant allData={allData} />
+
+      {notifToast && (
+        <div style={{
+          position: 'fixed', top: 20, right: 20, zIndex: 3000, maxWidth: 340,
+          background: '#fff', border: '1.5px solid #000E91', borderRadius: 14,
+          padding: '14px 16px', boxShadow: '0 12px 32px rgba(0,14,145,.2)',
+          display: 'flex', alignItems: 'center', gap: 10, animation: 'modalIn .2s ease',
+        }}>
+          <span style={{ fontSize: 20, flexShrink: 0 }}>🎉</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{notifToast}</span>
+        </div>
+      )}
     </div>
   )
 }
