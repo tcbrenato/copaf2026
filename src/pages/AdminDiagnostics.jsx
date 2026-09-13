@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { supabase } from '../supabase'
+import { generateSyntheseAnimateurPDF } from '../utils/generateSyntheseAnimateurPDF'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -405,6 +406,28 @@ export default function AdminDiagnostics() {
   const axeFort = axesRenseignes.length ? axesRenseignes.reduce((m, a) => a.moyenne > m.moyenne ? a : m) : null
   const axeFaible = axesRenseignes.length ? axesRenseignes.reduce((m, a) => a.moyenne < m.moyenne ? a : m) : null
 
+  // Repartition par pays pour la synthese animateur — moyenne agregee
+  // uniquement, aucune donnee individuelle.
+  const paysStatsMap = new Map()
+  filtres.forEach(d => {
+    const pays = d.pays || 'Non renseigné'
+    const valeurs = Object.values(d.scores || {})
+    const moyenneDiag = valeurs.length ? valeurs.reduce((s, v) => s + v, 0) / valeurs.length : 0
+    const entry = paysStatsMap.get(pays) || { pays, n: 0, somme: 0 }
+    entry.n += 1
+    entry.somme += moyenneDiag
+    paysStatsMap.set(pays, entry)
+  })
+  const paysStats = [...paysStatsMap.values()]
+    .map(e => ({ pays: e.pays, n: e.n, moyenne: e.somme / e.n }))
+    .sort((a, b) => b.n - a.n)
+
+  const exporterSynthesePDF = () => {
+    generateSyntheseAnimateurPDF({
+      moyennesParAxe, nbDiagnostics: filtres.length, scoreGlobalMoyen, paysStats, filtrePays,
+    })
+  }
+
   const densiteCompacte = params.densite === 'compact'
 
   const wrap = { position: 'relative', overflow: 'hidden', borderRadius: 20, fontFamily: "'Plus Jakarta Sans', sans-serif", padding: '32px 20px', color: T.text, background: T.pageBg, transition: 'background .25s ease, color .25s ease' }
@@ -654,6 +677,10 @@ export default function AdminDiagnostics() {
 
                   <button onClick={copierResumeTexte} disabled={filtres.length === 0} style={{ ...boutonAction('#a78bfa'), opacity: filtres.length === 0 ? 0.5 : 1, cursor: filtres.length === 0 ? 'default' : 'pointer' }}>
                     📋 Copier le résumé des moyennes
+                  </button>
+
+                  <button onClick={exporterSynthesePDF} disabled={filtres.length === 0} title="Récapitulatif agrégé (radar, moyennes par axe, répartition par pays) pour le Livre Blanc / les résolutions" style={{ ...boutonAction('#f59e0b'), opacity: filtres.length === 0 ? 0.5 : 1, cursor: filtres.length === 0 ? 'default' : 'pointer' }}>
+                    📄 Exporter la synthèse (PDF)
                   </button>
 
                   <button onClick={load} style={boutonAction('#22c55e')}>
