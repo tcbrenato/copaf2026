@@ -9,7 +9,7 @@ import { Ico } from '../utils/dossierUi'
 import ParticipantDashboard from '../components/ParticipantDashboard'
 
 const CONTACT_PHONE = '+229 01 69 30 30 19'
-const OFFICIAL_IBAN = 'BJ66BJ1040010003762812010162'
+const OFFICIAL_IBAN = 'BJ66BJ1040100103762812010162'
 
 const STATUT_LABEL = {
   fr: {
@@ -525,7 +525,7 @@ export default function VerifierDossier() {
           </div>
           {[
             { l: t.bankLabels.banque,    v: 'Société Générale Bénin (SGB)', empha: false },
-            { l: 'IBAN',      v: 'BJ66 BJ10 4001 0003 7628 1201 0162', empha: true },
+            { l: 'IBAN',      v: 'BJ66 BJ10 4010 0103 7628 1201 0162', empha: true },
             { l: 'BIC',       v: 'SOGEBJBJ', empha: true },
             { l: t.bankLabels.titulaire, v: 'CRF PERFECTION', empha: false },
           ].map((item, i) => (

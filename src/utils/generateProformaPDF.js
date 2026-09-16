@@ -45,7 +45,7 @@ const EMETTEUR = {
 
 const RIB = {
   banque: 'Société Générale Bénin (SGB)',
-  iban: 'BJ66 BJ10 4001 0003 7628 1201 0162',
+  iban: 'BJ66 BJ10 4010 0103 7628 1201 0162',
   bic: 'SOGEBJBJ',
   titulaire: 'CRF PERFECTION',
 }
