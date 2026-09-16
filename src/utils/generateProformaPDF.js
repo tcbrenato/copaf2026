@@ -161,6 +161,18 @@ function fmtEur(n) {
   return `${Number.isInteger(num) ? num : num.toFixed(2)} EUR`
 }
 
+// Tronque avec ellipse pour tenir dans une largeur donnee — evite qu'un
+// intitule de poste long ne deborde sur la colonne MONTANT voisine dans
+// le tableau des participants (une seule ligne, pas de retour a la ligne).
+function tronquerTexte(doc, texte, maxW) {
+  if (doc.getTextWidth(texte) <= maxW) return texte
+  let tronque = texte
+  while (tronque.length > 1 && doc.getTextWidth(tronque + '…') > maxW) {
+    tronque = tronque.slice(0, -1)
+  }
+  return tronque + '…'
+}
+
 function fmtDateLong(d = new Date(), lang = 'fr') {
   return d.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
 }
@@ -552,7 +564,8 @@ export async function generateProformaPDF({
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8.5)
       doc.setTextColor(...GRAY)
-      doc.text(p.fonction || p.poste || '—', M + colDossier + colNom + 10, y + 13.5)
+      const posteMaxW = contentW - colDossier - colNom - 10 - 90
+      doc.text(tronquerTexte(doc, p.fonction || p.poste || '—', posteMaxW), M + colDossier + colNom + 10, y + 13.5)
 
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8.5)
