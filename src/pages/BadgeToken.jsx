@@ -142,6 +142,13 @@ export default function BadgeToken() {
   const [uploadEtat, setUploadEtat] = useState({ photo_url: 'idle', passeport_url: 'idle', email: 'idle', telephone: 'idle' })
   const [champsTexte, setChampsTexte] = useState({ email: '', telephone: '' })
 
+  // Notifie admin + personne par email a chaque action reussie (voir
+  // supabase/functions/notify-action) — best effort, ne bloque jamais
+  // l'UI si l'appel echoue (pas de session requise, pas de cle a fournir).
+  const notifierAction = (dossier, type) => {
+    supabase.functions.invoke('notify-action', { body: { dossier, type } }).catch(() => {})
+  }
+
   const uploaderDocument = async (champ, file) => {
     if (!file || !activeToken) return
     setUploadEtat(s => ({ ...s, [champ]: 'loading' }))
@@ -155,6 +162,7 @@ export default function BadgeToken() {
       const { data: ok, error: rpcErr } = await supabase.rpc('badge_upload_url', { p_token: activeToken, p_field: champ, p_url: url })
       if (rpcErr || !ok) throw rpcErr || new Error('Badge introuvable')
       setUploadEtat(s => ({ ...s, [champ]: 'done' }))
+      notifierAction(data.dossier, champ === 'photo_url' ? 'photo' : 'passeport')
     } catch {
       setUploadEtat(s => ({ ...s, [champ]: 'error' }))
     }
@@ -166,6 +174,7 @@ export default function BadgeToken() {
     setUploadEtat(s => ({ ...s, [champ]: 'loading' }))
     const { data: ok, error: rpcErr } = await supabase.rpc('badge_upload_url', { p_token: activeToken, p_field: champ, p_url: valeur })
     setUploadEtat(s => ({ ...s, [champ]: rpcErr || !ok ? 'error' : 'done' }))
+    if (!rpcErr && ok) notifierAction(data.dossier, champ)
   }
 
   const load = async () => {

@@ -347,6 +347,7 @@ export default function EspaceIntervenant() {
                 titre="Supports & Documents"
                 ajoutePar={`${intervenant.prenom} ${intervenant.nom}`.trim()}
                 onDocsChange={onDocsChange}
+                notifier
               />
             </div>
 

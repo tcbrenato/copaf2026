@@ -346,6 +346,7 @@ function TabDocuments({ myDossier, t, tt, genLoading, onDownloadRecap, onDownloa
       const { error: upErr } = await supabase.storage.from('preuves-paiement').upload(path, file)
       if (!upErr) {
         await supabase.from('preuves_paiement').insert({ dossier: myDossier.dossier, storage_path: path })
+        supabase.functions.invoke('notify-action', { body: { dossier: myDossier.dossier, type: 'preuve_paiement' } }).catch(() => {})
         await onRefresh()
       }
     } finally {
