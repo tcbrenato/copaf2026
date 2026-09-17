@@ -24,6 +24,31 @@ import { Ico } from '../utils/dossierUi'
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
 
+// Traductions de la carte "Participant" publique (nom/fonction + section
+// upload) — pilotees par la langue enregistree pour la personne (langue de
+// travail de sa delegation), pas de selecteur manuel : l'espace doit deja
+// etre dans la bonne langue au premier clic.
+const TR_BADGE = {
+  fr: {
+    completerTitre: 'Compléter mon dossier',
+    photo: 'Photo (badge)', passeport: 'Copie du passeport',
+    email: 'Email', telephone: 'Téléphone',
+    choisirFichier: 'Choisir un fichier', envoi: 'Envoi...', recu: '✓ Reçu', erreur: 'Erreur, réessayer',
+    enregistrer: 'Enregistrer', enregistre: '✓ Enregistré',
+    emailPlaceholder: 'votre@email.com', telephonePlaceholder: '+xxx xxx xxx xxx',
+    footer: 'Conférence des Ports Africains · 19–21 Oct. 2026, Casablanca',
+  },
+  en: {
+    completerTitre: 'Complete my profile',
+    photo: 'Photo (badge)', passeport: 'Passport copy',
+    email: 'Email', telephone: 'Phone',
+    choisirFichier: 'Choose a file', envoi: 'Uploading...', recu: '✓ Received', erreur: 'Error, try again',
+    enregistrer: 'Save', enregistre: '✓ Saved',
+    emailPlaceholder: 'your@email.com', telephonePlaceholder: '+xxx xxx xxx xxx',
+    footer: 'Conference of African Ports · Oct 19–21, 2026, Casablanca',
+  },
+}
+
 // Icones locales absentes du kit partage (dossierUi) — direct/telephone,
 // WhatsApp, enregistrement de contact.
 const MiniIco = ({ name, size = 18, color = '#fff' }) => {
@@ -100,10 +125,13 @@ export default function BadgeToken() {
   const [error, setError] = useState('')
   const [checkinLoading, setCheckinLoading] = useState(false)
   const [checkinResult, setCheckinResult] = useState(null)
-  // Upload photo/passeport depuis le lien personnel — aucune session requise,
-  // la possession du lien (token) suffit, meme modele de confiance que le
-  // reste des pages /badge/:token. Buckets deja ouverts en ecriture publique.
-  const [uploadEtat, setUploadEtat] = useState({ photo_url: 'idle', passeport_url: 'idle' })
+  // Completer/corriger son dossier depuis le lien personnel — aucune session
+  // requise, la possession du lien (token) suffit, meme modele de confiance
+  // que le reste des pages /badge/:token. Buckets deja ouverts en ecriture
+  // publique pour les fichiers ; badge_upload_url() gere aussi email/
+  // telephone (avec allowlist stricte des champs modifiables cote serveur).
+  const [uploadEtat, setUploadEtat] = useState({ photo_url: 'idle', passeport_url: 'idle', email: 'idle', telephone: 'idle' })
+  const [champsTexte, setChampsTexte] = useState({ email: '', telephone: '' })
 
   const uploaderDocument = async (champ, file) => {
     if (!file) return
@@ -121,6 +149,14 @@ export default function BadgeToken() {
     } catch {
       setUploadEtat(s => ({ ...s, [champ]: 'error' }))
     }
+  }
+
+  const enregistrerChampTexte = async champ => {
+    const valeur = champsTexte[champ].trim()
+    if (!valeur) return
+    setUploadEtat(s => ({ ...s, [champ]: 'loading' }))
+    const { data: ok, error: rpcErr } = await supabase.rpc('badge_upload_url', { p_token: token, p_field: champ, p_url: valeur })
+    setUploadEtat(s => ({ ...s, [champ]: rpcErr || !ok ? 'error' : 'done' }))
   }
 
   const load = async () => {
@@ -229,6 +265,7 @@ export default function BadgeToken() {
       )
     }
 
+    const tb = TR_BADGE[data.langue === 'en' ? 'en' : 'fr']
     return (
       <div style={wrapStyle}>
         <FondNeige />
@@ -239,11 +276,11 @@ export default function BadgeToken() {
           {data.organisation && <div style={{ fontSize: 13, opacity: 0.7, marginTop: 2 }}>{data.organisation}</div>}
 
           <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.2)' }}>
-            <div style={{ fontSize: 11, opacity: 0.75, fontWeight: 700, marginBottom: 10 }}>Compléter mon dossier</div>
+            <div style={{ fontSize: 11, opacity: 0.75, fontWeight: 700, marginBottom: 10 }}>{tb.completerTitre}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {[
-                { champ: 'photo_url', label: 'Photo (badge)' },
-                { champ: 'passeport_url', label: 'Copie du passeport' },
+                { champ: 'photo_url', label: tb.photo },
+                { champ: 'passeport_url', label: tb.passeport },
               ].map(({ champ, label }) => {
                 const etat = uploadEtat[champ]
                 return (
@@ -254,7 +291,7 @@ export default function BadgeToken() {
                   }}>
                     <span style={{ fontSize: 12.5, fontWeight: 700 }}>{label}</span>
                     <span style={{ fontSize: 11.5, fontWeight: 700, opacity: 0.9 }}>
-                      {etat === 'loading' ? 'Envoi...' : etat === 'done' ? '✓ Reçu' : etat === 'error' ? 'Erreur, réessayer' : 'Choisir un fichier'}
+                      {etat === 'loading' ? tb.envoi : etat === 'done' ? tb.recu : etat === 'error' ? tb.erreur : tb.choisirFichier}
                     </span>
                     <input
                       type="file" accept="image/*,.pdf" style={{ display: 'none' }}
@@ -263,11 +300,45 @@ export default function BadgeToken() {
                   </label>
                 )
               })}
+              {[
+                { champ: 'email', label: tb.email, placeholder: tb.emailPlaceholder, type: 'email' },
+                { champ: 'telephone', label: tb.telephone, placeholder: tb.telephonePlaceholder, type: 'tel' },
+              ].map(({ champ, label, placeholder, type }) => {
+                const etat = uploadEtat[champ]
+                return (
+                  <div key={champ} style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '10px 14px', borderRadius: 12, background: 'rgba(255,255,255,.12)',
+                    border: '1px solid rgba(255,255,255,.25)',
+                  }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, flexShrink: 0 }}>{label}</span>
+                    <input
+                      type={type} value={champsTexte[champ]} placeholder={placeholder}
+                      onChange={e => setChampsTexte(s => ({ ...s, [champ]: e.target.value }))}
+                      style={{
+                        flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none',
+                        color: '#fff', fontSize: 12.5, fontFamily: 'inherit', textAlign: 'right',
+                      }}
+                    />
+                    <button
+                      type="button" onClick={() => enregistrerChampTexte(champ)} disabled={etat === 'loading' || !champsTexte[champ].trim()}
+                      style={{
+                        flexShrink: 0, fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 8,
+                        background: 'rgba(255,255,255,.2)', border: 'none', color: '#fff',
+                        cursor: champsTexte[champ].trim() ? 'pointer' : 'default', opacity: champsTexte[champ].trim() ? 1 : 0.5,
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      {etat === 'loading' ? '…' : etat === 'done' ? tb.enregistre : etat === 'error' ? tb.erreur : tb.enregistrer}
+                    </button>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
           <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.2)', fontSize: 11, opacity: 0.6 }}>
-            Conférence des Ports Africains · 19–21 Oct. 2026, Casablanca
+            {tb.footer}
           </div>
         </div>
       </div>
