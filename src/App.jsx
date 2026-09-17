@@ -222,6 +222,7 @@ function App() {
         <Route path="/mot-du-dg"              element={<MotDuDG />} />
         <Route path="/suivi-inscriptions"     element={<SuiviInscriptions />} />
         <Route path="/admin"                  element={<AdminPage />} />
+        <Route path="/badge"                  element={<BadgeToken />} />
         <Route path="/badge/:token"           element={<BadgeToken />} />
         <Route path="/intervenant"            element={<EspaceIntervenant />} />
         <Route path="/staff/scan"             element={<StaffScanPage />} />

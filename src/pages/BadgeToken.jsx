@@ -119,31 +119,40 @@ function telechargerVCard(data) {
 }
 
 export default function BadgeToken() {
-  const { token } = useParams()
+  const { token: tokenParam } = useParams()
   const navigate = useNavigate()
-  const [data, setData] = useState(undefined)
+  const [data, setData] = useState(tokenParam ? undefined : null)
   const [error, setError] = useState('')
   const [checkinLoading, setCheckinLoading] = useState(false)
   const [checkinResult, setCheckinResult] = useState(null)
+  // Sans :token dans l'URL (/badge simple) : connexion par numero de
+  // dossier seul, pour les personnes qui n'ont que leur ID (pas de lien
+  // personnel transmis, ou lien perdu) — voir badge_lookup_by_dossier().
+  // activeToken devient alors le badge_token retrouve, utilise ensuite
+  // exactement comme si l'URL l'avait contenu depuis le debut.
+  const [activeToken, setActiveToken] = useState(tokenParam || null)
+  const [dossierInput, setDossierInput] = useState('')
+  const [dossierLoading, setDossierLoading] = useState(false)
+  const [dossierError, setDossierError] = useState('')
   // Completer/corriger son dossier depuis le lien personnel — aucune session
-  // requise, la possession du lien (token) suffit, meme modele de confiance
-  // que le reste des pages /badge/:token. Buckets deja ouverts en ecriture
-  // publique pour les fichiers ; badge_upload_url() gere aussi email/
-  // telephone (avec allowlist stricte des champs modifiables cote serveur).
+  // requise, la possession du lien (token) ou la connaissance du dossier
+  // suffit, meme modele de confiance que le reste des pages /badge. Buckets
+  // deja ouverts en ecriture publique pour les fichiers ; badge_upload_url()
+  // gere aussi email/telephone (avec allowlist stricte cote serveur).
   const [uploadEtat, setUploadEtat] = useState({ photo_url: 'idle', passeport_url: 'idle', email: 'idle', telephone: 'idle' })
   const [champsTexte, setChampsTexte] = useState({ email: '', telephone: '' })
 
   const uploaderDocument = async (champ, file) => {
-    if (!file) return
+    if (!file || !activeToken) return
     setUploadEtat(s => ({ ...s, [champ]: 'loading' }))
     try {
       const bucket = champ === 'photo_url' ? 'badges-photos' : 'documents-inscription'
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-      const path = `${token}/${champ}-${crypto.randomUUID()}.${ext}`
+      const path = `${activeToken}/${champ}-${crypto.randomUUID()}.${ext}`
       const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true })
       if (upErr) throw upErr
       const url = supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
-      const { data: ok, error: rpcErr } = await supabase.rpc('badge_upload_url', { p_token: token, p_field: champ, p_url: url })
+      const { data: ok, error: rpcErr } = await supabase.rpc('badge_upload_url', { p_token: activeToken, p_field: champ, p_url: url })
       if (rpcErr || !ok) throw rpcErr || new Error('Badge introuvable')
       setUploadEtat(s => ({ ...s, [champ]: 'done' }))
     } catch {
@@ -153,15 +162,16 @@ export default function BadgeToken() {
 
   const enregistrerChampTexte = async champ => {
     const valeur = champsTexte[champ].trim()
-    if (!valeur) return
+    if (!valeur || !activeToken) return
     setUploadEtat(s => ({ ...s, [champ]: 'loading' }))
-    const { data: ok, error: rpcErr } = await supabase.rpc('badge_upload_url', { p_token: token, p_field: champ, p_url: valeur })
+    const { data: ok, error: rpcErr } = await supabase.rpc('badge_upload_url', { p_token: activeToken, p_field: champ, p_url: valeur })
     setUploadEtat(s => ({ ...s, [champ]: rpcErr || !ok ? 'error' : 'done' }))
   }
 
   const load = async () => {
+    if (!tokenParam) return
     setError('')
-    const { data: rows, error: err } = await supabase.rpc('badge_lookup', { p_token: token })
+    const { data: rows, error: err } = await supabase.rpc('badge_lookup', { p_token: tokenParam })
     if (err || !rows || rows.length === 0) {
       setError('Badge introuvable.')
       setData(null)
@@ -171,12 +181,27 @@ export default function BadgeToken() {
     setCheckinResult(null)
   }
 
-  useEffect(() => { load() }, [token])
+  useEffect(() => { load() }, [tokenParam])
+
+  const handleDossierSubmit = async e => {
+    e.preventDefault()
+    if (!dossierInput.trim()) return
+    setDossierLoading(true); setDossierError('')
+    try {
+      const { data: rows, error: err } = await supabase.rpc('badge_lookup_by_dossier', { p_dossier: dossierInput.trim() })
+      if (err || !rows || rows.length === 0) { setDossierError('Dossier introuvable / Dossier not found'); return }
+      const r = rows[0]
+      setActiveToken(r.badge_token)
+      setData({ ...r, is_staff: false })
+    } finally {
+      setDossierLoading(false)
+    }
+  }
 
   const handleCheckin = async () => {
     setCheckinLoading(true)
     try {
-      const { data: rows, error: err } = await supabase.rpc('badge_checkin', { p_token: token })
+      const { data: rows, error: err } = await supabase.rpc('badge_checkin', { p_token: activeToken })
       if (err) { setError(err.message); return }
       setCheckinResult(rows?.[0] || null)
       await load()
@@ -187,6 +212,39 @@ export default function BadgeToken() {
 
   if (data === undefined) {
     return <div style={wrapStyle}><FondNeige /><p style={{ color: '#64748b', position: 'relative', zIndex: 1 }}>Chargement...</p></div>
+  }
+
+  // Pas de token dans l'URL (/badge simple) et aucun dossier resolu encore :
+  // formulaire de connexion par numero de dossier seul (bilingue, la langue
+  // de la personne n'est pas encore connue a ce stade).
+  if (!activeToken) {
+    return (
+      <div style={wrapStyle}>
+        <FondNeige />
+        <div style={{ ...cardStyle, position: 'relative', zIndex: 1, textAlign: 'left' }}>
+          <div style={{ fontSize: 10, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, textAlign: 'center' }}>COPAF 2026</div>
+          <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', marginTop: 10, textAlign: 'center' }}>Mon espace / My space</div>
+          <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 6, textAlign: 'center' }}>
+            Entrez votre numéro de dossier · Enter your dossier number
+          </p>
+          <form onSubmit={handleDossierSubmit} style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <input
+              type="text" value={dossierInput} onChange={e => setDossierInput(e.target.value)}
+              placeholder="COPAF2026-XXXXX" autoCapitalize="characters"
+              style={{ padding: '13px 14px', borderRadius: 12, border: '1.5px solid #e2e8f0', fontSize: 14, fontFamily: 'inherit', textAlign: 'center', outline: 'none' }}
+            />
+            {dossierError && <p style={{ fontSize: 12, color: '#dc2626', margin: 0, textAlign: 'center' }}>{dossierError}</p>}
+            <button type="submit" disabled={dossierLoading || !dossierInput.trim()} style={{
+              padding: '13px', border: 'none', borderRadius: 12,
+              background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`, color: '#fff', fontSize: 14, fontWeight: 700,
+              cursor: dossierLoading ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: dossierInput.trim() ? 1 : 0.6,
+            }}>
+              {dossierLoading ? '…' : 'Accéder / Access'}
+            </button>
+          </form>
+        </div>
+      </div>
+    )
   }
 
   if (data === null || error) {
@@ -311,9 +369,12 @@ export default function BadgeToken() {
                     padding: '10px 14px', borderRadius: 12, background: 'rgba(255,255,255,.12)',
                     border: '1px solid rgba(255,255,255,.25)',
                   }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 700, flexShrink: 0 }}>{label}</span>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, flexShrink: 0 }}>
+                      {label}
+                      {!data[champ] && etat !== 'done' && <span style={{ color: '#fca5a5' }}> *</span>}
+                    </span>
                     <input
-                      type={type} value={champsTexte[champ]} placeholder={placeholder}
+                      type={type} value={champsTexte[champ]} placeholder={placeholder} required
                       onChange={e => setChampsTexte(s => ({ ...s, [champ]: e.target.value }))}
                       style={{
                         flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none',
