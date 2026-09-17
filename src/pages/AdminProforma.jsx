@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { createPortal } from 'react-dom'
 import { supabase } from '../supabase'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
@@ -580,6 +581,39 @@ export default function AdminProforma() {
     } finally { setGenLoading('') }
   }
 
+  // Apercu avant envoi/telechargement — genere le meme document (download:
+  // false renvoie l'objet jsPDF au lieu de forcer un enregistrement), affiche
+  // dans une modale via une URL blob. Le meme objet doc sert ensuite au
+  // telechargement final, pas besoin de regenerer.
+  const [preview, setPreview] = useState(null)
+  const handlePreviewProforma = async () => {
+    setGenLoading('preview-proforma')
+    try {
+      const groupeActif = isGroup && participantsListe.length > 1
+      const doc = await generateProformaPDF({
+        form: formData(),
+        dossier: data.dossier,
+        nb: Number(data.participants) || 1,
+        total: Number(data.montant) || 0,
+        lang,
+        participants: groupeActif ? participantsListe.map(p => ({ ...p, dossier: p.dossier || data.dossier })) : [],
+        delegationName: groupeActif ? delegationName : '',
+        download: false,
+      })
+      setPreview({ doc, url: doc.output('bloburl'), titre: groupeActif ? 'Proforma groupée' : 'Facture proforma' })
+    } finally { setGenLoading('') }
+  }
+  const fermerPreview = () => {
+    if (preview?.url) URL.revokeObjectURL(preview.url)
+    setPreview(null)
+  }
+  const telechargerDepuisPreview = () => {
+    if (!preview) return
+    preview.doc.save(`COPAF2026-${preview.titre.replace(/\s+/g, '-')}-${data.dossier}.pdf`)
+    logDocument(data.dossier, 'proforma')
+    fermerPreview()
+  }
+
   const handleGenerateRecap = async () => {
     setGenLoading('recap')
     try {
@@ -1105,6 +1139,11 @@ export default function AdminProforma() {
                 {genLoading === 'proforma' ? 'Génération...' : (isGroup && participantsListe.length > 1 ? 'Proforma groupée' : 'Facture proforma')}
               </button>
 
+              <button onClick={handlePreviewProforma} disabled={genLoading === 'preview-proforma'} style={actionBtn('#fff', MAROON, '#f3c9d0')}>
+                <Ico name="eye" size={15} color={MAROON} />
+                {genLoading === 'preview-proforma' ? 'Génération...' : 'Aperçu'}
+              </button>
+
               <button onClick={handleGenerateRecap} disabled={genLoading === 'recap'} style={actionBtn('#EBF3FF', NAVY, '#bfdbfe')}>
                 <Ico name="file" size={15} color={NAVY} />
                 {genLoading === 'recap' ? 'Génération...' : (isGroup ? 'Récapitulatif groupé (attestation)' : 'Récapitulatif')}
@@ -1172,6 +1211,32 @@ export default function AdminProforma() {
           )}
         </>
       )}
+
+      {preview && createPortal((
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.75)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          onClick={fermerPreview}
+        >
+          <div
+            style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 900, height: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 60px rgba(0,0,0,.4)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1.5px solid #e2e8f0' }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Aperçu — {preview.titre} ({data.dossier})</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={telechargerDepuisPreview} style={actionBtn('#fdf2f4', MAROON, '#f3c9d0')}>
+                  <Ico name="file" size={14} color={MAROON} />
+                  Télécharger
+                </button>
+                <button onClick={fermerPreview} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 18, fontWeight: 700, padding: '0 6px' }}>
+                  ✕
+                </button>
+              </div>
+            </div>
+            <iframe src={preview.url} title="Aperçu de la proforma" style={{ flex: 1, border: 'none' }} />
+          </div>
+        </div>
+      ), document.body)}
     </div>
   )
 }
