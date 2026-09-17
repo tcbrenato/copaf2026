@@ -100,6 +100,28 @@ export default function BadgeToken() {
   const [error, setError] = useState('')
   const [checkinLoading, setCheckinLoading] = useState(false)
   const [checkinResult, setCheckinResult] = useState(null)
+  // Upload photo/passeport depuis le lien personnel — aucune session requise,
+  // la possession du lien (token) suffit, meme modele de confiance que le
+  // reste des pages /badge/:token. Buckets deja ouverts en ecriture publique.
+  const [uploadEtat, setUploadEtat] = useState({ photo_url: 'idle', passeport_url: 'idle' })
+
+  const uploaderDocument = async (champ, file) => {
+    if (!file) return
+    setUploadEtat(s => ({ ...s, [champ]: 'loading' }))
+    try {
+      const bucket = champ === 'photo_url' ? 'badges-photos' : 'documents-inscription'
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+      const path = `${token}/${champ}-${crypto.randomUUID()}.${ext}`
+      const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true })
+      if (upErr) throw upErr
+      const url = supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
+      const { data: ok, error: rpcErr } = await supabase.rpc('badge_upload_url', { p_token: token, p_field: champ, p_url: url })
+      if (rpcErr || !ok) throw rpcErr || new Error('Badge introuvable')
+      setUploadEtat(s => ({ ...s, [champ]: 'done' }))
+    } catch {
+      setUploadEtat(s => ({ ...s, [champ]: 'error' }))
+    }
+  }
 
   const load = async () => {
     setError('')
@@ -215,7 +237,36 @@ export default function BadgeToken() {
           <div style={{ fontSize: 22, fontWeight: 900, marginTop: 10 }}>{data.prenom} {data.nom}</div>
           {data.poste && <div style={{ fontSize: 14, opacity: 0.9, marginTop: 4 }}>{data.poste}</div>}
           {data.organisation && <div style={{ fontSize: 13, opacity: 0.7, marginTop: 2 }}>{data.organisation}</div>}
-          <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.2)', fontSize: 11, opacity: 0.6 }}>
+
+          <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.2)' }}>
+            <div style={{ fontSize: 11, opacity: 0.75, fontWeight: 700, marginBottom: 10 }}>Compléter mon dossier</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                { champ: 'photo_url', label: 'Photo (badge)' },
+                { champ: 'passeport_url', label: 'Copie du passeport' },
+              ].map(({ champ, label }) => {
+                const etat = uploadEtat[champ]
+                return (
+                  <label key={champ} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+                    padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,.12)',
+                    border: '1px solid rgba(255,255,255,.25)', cursor: 'pointer',
+                  }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 700 }}>{label}</span>
+                    <span style={{ fontSize: 11.5, fontWeight: 700, opacity: 0.9 }}>
+                      {etat === 'loading' ? 'Envoi...' : etat === 'done' ? '✓ Reçu' : etat === 'error' ? 'Erreur, réessayer' : 'Choisir un fichier'}
+                    </span>
+                    <input
+                      type="file" accept="image/*,.pdf" style={{ display: 'none' }}
+                      onChange={e => uploaderDocument(champ, e.target.files?.[0])}
+                    />
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.2)', fontSize: 11, opacity: 0.6 }}>
             Conférence des Ports Africains · 19–21 Oct. 2026, Casablanca
           </div>
         </div>
