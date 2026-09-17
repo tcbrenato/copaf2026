@@ -390,7 +390,7 @@ export default function AdminProforma() {
     setLoading(true); setError(''); setData(null); setPasseportRevealed(false)
     const { data: rows, error: err } = await supabase
       .from('inscriptions')
-      .select('dossier, participants, montant, paiement_status, note_interne, numero_facture, numero_passeport, delegation_nom, participants_liste, tarif_type, code_promo, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
+      .select('id, dossier, participants, montant, paiement_status, note_interne, numero_facture, numero_passeport, delegation_nom, participants_liste, tarif_type, code_promo, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
       .eq('dossier', dossier.trim())
       .limit(1)
 
@@ -432,16 +432,22 @@ export default function AdminProforma() {
 
     const { data: membresLies } = await supabase
       .from('inscription_participants')
-      .select('id, prenom, nom, poste')
-      .eq('dossier', row.dossier)
+      .select('id, prenom, nom, poste, dossier')
+      .eq('inscription_id', row.id)
       .order('ordre')
 
     if (membresLies && membresLies.length > 0 && listeManuelle.length === 0) {
       const unitaire = row.participants > 0 ? Math.round((row.montant || 0) / row.participants) : 3500
-      liste = [
-        { prenom: row.contacts?.prenom || '', nom: row.contacts?.nom || '', fonction: row.contacts?.poste || '', tarif: unitaire },
-        ...membresLies.map(m => ({ prenom: m.prenom || '', nom: m.nom || '', fonction: m.poste || '', tarif: unitaire, participantId: m.id })),
-      ]
+      const membresMappes = membresLies.map(m => ({ prenom: m.prenom || '', nom: m.nom || '', fonction: m.poste || '', tarif: unitaire, dossier: m.dossier || '', participantId: m.id }))
+      // Le contact principal du dossier n'est ajoute comme participant que
+      // s'il manque a l'appel dans inscription_participants (cas du
+      // formulaire public "Inscription Delegation", ou le signataire compte
+      // pour un participant sans avoir sa propre fiche dediee). Si tous les
+      // participants declares ont deja leur fiche individuelle (ex. NPA,
+      // saisie manuelle admin), l'ajouter en plus le compterait deux fois.
+      liste = membresMappes.length >= row.participants
+        ? membresMappes
+        : [{ prenom: row.contacts?.prenom || '', nom: row.contacts?.nom || '', fonction: row.contacts?.poste || '', tarif: unitaire, dossier: row.dossier }, ...membresMappes]
     }
 
     setDelegationName(row.delegation_nom || '')
