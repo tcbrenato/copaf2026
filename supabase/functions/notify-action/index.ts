@@ -43,6 +43,11 @@ const PARTICIPANT_SUBJECT: Record<string, string> = {
   preuve_paiement: 'Preuve de paiement bien reçue',
 }
 
+// Sens inverse de 'document' : c'est l'admin (CRF Perfection) qui depose un
+// document POUR la personne (badge, lettre d'invitation, TDR...) — seule la
+// personne est notifiee ici (l'admin sait deja ce qu'il vient de faire).
+const DOCUMENT_ADMIN_SUBJECT = 'Un document vous attend dans votre espace COPAF 2026'
+
 function escapeHtml(value: unknown): string {
   const str = value === null || value === undefined || value === '' ? '—' : String(value)
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -55,6 +60,10 @@ interface Personne {
   poste: string | null
   organisation: string | null
   email: string | null
+  // 'intervenant' se connecte par nom + code d'accres (/intervenant), tous
+  // les autres par dossier + email (/verifier) — le lien et les identifiants
+  // mentionnes dans l'email dependent de ce type.
+  espace: 'participant' | 'intervenant'
 }
 
 // Meme cascade que badge_lookup_by_dossier cote base, mais en direct ici
@@ -68,7 +77,7 @@ async function trouverPersonne(supabase: ReturnType<typeof createClient>, dossie
     .maybeSingle()
   if (insc?.contacts) {
     const c = insc.contacts as { nom: string; prenom: string; poste: string; organisation: string; email: string }
-    return { dossier, nom: c.nom, prenom: c.prenom, poste: c.poste, organisation: c.organisation, email: c.email }
+    return { dossier, nom: c.nom, prenom: c.prenom, poste: c.poste, organisation: c.organisation, email: c.email, espace: 'participant' }
   }
 
   const { data: participant } = await supabase
@@ -78,7 +87,7 @@ async function trouverPersonne(supabase: ReturnType<typeof createClient>, dossie
     .maybeSingle()
   if (participant) {
     const org = (participant.inscriptions as { contacts?: { organisation?: string } } | null)?.contacts?.organisation ?? null
-    return { dossier, nom: participant.nom, prenom: participant.prenom, poste: participant.poste, organisation: org, email: participant.email }
+    return { dossier, nom: participant.nom, prenom: participant.prenom, poste: participant.poste, organisation: org, email: participant.email, espace: 'participant' }
   }
 
   const { data: intervenant } = await supabase
@@ -87,7 +96,7 @@ async function trouverPersonne(supabase: ReturnType<typeof createClient>, dossie
     .eq('dossier', dossier)
     .maybeSingle()
   if (intervenant) {
-    return { dossier, nom: intervenant.nom, prenom: intervenant.prenom, poste: intervenant.fonction, organisation: intervenant.organisation, email: intervenant.email }
+    return { dossier, nom: intervenant.nom, prenom: intervenant.prenom, poste: intervenant.fonction, organisation: intervenant.organisation, email: intervenant.email, espace: 'intervenant' }
   }
 
   return null
@@ -146,13 +155,51 @@ COPAF 2026 — Conférence des Ports Africains · 19–21 octobre 2026, Casablan
 </body></html>`
 }
 
+function emailDocumentAdminHtml(personne: Personne, typeDocument: string) {
+  const lien = personne.espace === 'intervenant' ? 'https://copaf-ports.com/intervenant' : 'https://copaf-ports.com/verifier'
+  const identifiants = personne.espace === 'intervenant'
+    ? 'nom + code d\'accès'
+    : 'numéro de dossier + email enregistré'
+  return `<!DOCTYPE html>
+<html><body style="margin:0;padding:0;background:#eef2ff;font-family:Arial,Helvetica,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:#eef2ff;padding:36px 16px;">
+<tr><td align="center">
+<table width="480" cellpadding="0" cellspacing="0" role="presentation" style="max-width:480px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid rgba(0,14,145,0.08);">
+<tr><td style="background:linear-gradient(135deg,#000E91,#0073F4);padding:24px 28px;">
+<div style="color:#fff;font-size:17px;font-weight:800;">📄 ${escapeHtml(DOCUMENT_ADMIN_SUBJECT)}</div>
+</td></tr>
+<tr><td style="padding:24px 28px;">
+<div style="font-size:15px;color:#0f172a;line-height:1.6;">
+Bonjour ${escapeHtml(personne.prenom)} ${escapeHtml(personne.nom)},<br/><br/>
+Un nouveau document a été déposé dans votre espace personnel COPAF 2026 (dossier <strong>${escapeHtml(personne.dossier)}</strong>).
+</div>
+<table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #f1f5f9;margin-top:16px;">
+<tr><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Type de document</td><td style="padding:8px 0;color:#0f172a;font-size:13px;font-weight:700;text-align:right;">${escapeHtml(typeDocument)}</td></tr>
+</table>
+<a href="${lien}" style="display:block;margin-top:24px;padding:12px;border-radius:10px;background:#000E91;color:#fff;text-decoration:none;text-align:center;font-size:13px;font-weight:700;">
+Voir dans mon espace
+</a>
+<div style="margin-top:16px;font-size:12px;color:#94a3b8;">
+Identifiants de connexion : ${identifiants}.
+</div>
+<div style="margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;font-size:12px;color:#94a3b8;">
+COPAF 2026 — Conférence des Ports Africains · 19–21 octobre 2026, Casablanca
+</div>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body></html>`
+}
+
 Deno.serve(async req => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { dossier, type } = await req.json().catch(() => ({}))
+    const { dossier, type, label } = await req.json().catch(() => ({}))
+    const estDepotAdmin = type === 'document_admin'
 
-    if (!dossier || !type || !ACTION_LABELS[type]) {
+    if (!dossier || !type || (!estDepotAdmin && !ACTION_LABELS[type])) {
       return new Response(JSON.stringify({ error: 'dossier et type (valide) requis' }), { status: 400, headers: corsHeaders })
     }
 
@@ -177,30 +224,48 @@ Deno.serve(async req => {
     const envois: Promise<Response>[] = []
     const nomComplet = `${personne.prenom || ''} ${personne.nom || ''}`.trim()
 
-    if (adminEmail) {
-      envois.push(fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: [adminEmail],
-          subject: `📄 ${nomComplet} — ${ACTION_LABELS[type]}`,
-          html: emailAdminHtml(personne, ACTION_LABELS[type]),
-        }),
-      }))
-    }
+    if (estDepotAdmin) {
+      // Sens inverse : c'est l'admin qui vient de deposer un document POUR
+      // la personne (badge, lettre d'invitation, TDR...) — seule la
+      // personne est notifiee, l'admin sait deja ce qu'il vient de faire.
+      if (personne.email) {
+        envois.push(fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [personne.email],
+            subject: `COPAF 2026 — ${DOCUMENT_ADMIN_SUBJECT}`,
+            html: emailDocumentAdminHtml(personne, String(label || 'Document')),
+          }),
+        }))
+      }
+    } else {
+      if (adminEmail) {
+        envois.push(fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [adminEmail],
+            subject: `📄 ${nomComplet} — ${ACTION_LABELS[type]}`,
+            html: emailAdminHtml(personne, ACTION_LABELS[type]),
+          }),
+        }))
+      }
 
-    if (personne.email) {
-      envois.push(fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: fromEmail,
-          to: [personne.email],
-          subject: `COPAF 2026 — ${PARTICIPANT_SUBJECT[type]}`,
-          html: emailParticipantHtml(personne, PARTICIPANT_SUBJECT[type]),
-        }),
-      }))
+      if (personne.email) {
+        envois.push(fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: fromEmail,
+            to: [personne.email],
+            subject: `COPAF 2026 — ${PARTICIPANT_SUBJECT[type]}`,
+            html: emailParticipantHtml(personne, PARTICIPANT_SUBJECT[type]),
+          }),
+        }))
+      }
     }
 
     const resultats = await Promise.allSettled(envois)

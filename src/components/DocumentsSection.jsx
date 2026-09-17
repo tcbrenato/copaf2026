@@ -57,11 +57,11 @@ function sanitizeFileName(name) {
 // pas de participant_id et n'exige pas de session Supabase Auth — d'ou
 // `ajoutePar` en override, l'appelant public n'ayant pas de session admin
 // dont on pourrait lire l'email via supabase.auth.getUser().
-// `notifier` : envoie une notification email (admin + personne, voir
-// supabase/functions/notify-action) a chaque depot reussi — active
-// uniquement pour les depots faits par la personne elle-meme depuis son
-// propre espace public (ex. EspaceIntervenant.jsx), jamais cote admin ou
-// l'admin se notifierait lui-meme sans interet.
+// `notifier` : quand la personne depose elle-meme (ex. EspaceIntervenant.jsx),
+// notifie admin + confirmation a la personne (type 'document'). Cote admin
+// (notifier=false, valeur par defaut), on notifie plutot la personne qu'un
+// document l'attend dans son espace (type 'document_admin') — voir
+// supabase/functions/notify-action.
 export default function DocumentsSection({ dossier, participantId = null, titre, table = 'documents_participants', bucket = 'documents-participants', ajoutePar, onDocsChange, notifier = false }) {
   const [docs, setDocs] = useState([])
   const [loading, setLoading] = useState(true)
@@ -115,6 +115,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
         setErreur(`Fichier envoyé mais non enregistré : ${insErr.message}`)
       } else {
         if (notifier) supabase.functions.invoke('notify-action', { body: { dossier, type: 'document' } }).catch(() => {})
+        else supabase.functions.invoke('notify-action', { body: { dossier, type: 'document_admin', label: file.name } }).catch(() => {})
         await load()
       }
     }
@@ -148,6 +149,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
         const ancienPath = storagePathFromUrl(doc.url, bucket)
         if (ancienPath) await supabase.storage.from(bucket).remove([ancienPath])
         if (notifier) supabase.functions.invoke('notify-action', { body: { dossier, type: 'document' } }).catch(() => {})
+        else supabase.functions.invoke('notify-action', { body: { dossier, type: 'document_admin', label: doc.label === doc.url ? file.name : doc.label } }).catch(() => {})
         await load()
       }
     }
