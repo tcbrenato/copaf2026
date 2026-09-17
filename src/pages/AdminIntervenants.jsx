@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from 'react'
 import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import DocumentsSection from '../components/DocumentsSection'
+import ValidationDocuments from '../components/ValidationDocuments'
 import { generateQrCard } from '../utils/generateQrCard'
 
 const CARD = { background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }
@@ -287,6 +288,7 @@ export default function AdminIntervenants() {
           {ouvert === iv.id && (
             <div style={{ padding: '0 20px 20px', borderTop: '1px solid #f1f5f9' }}>
               <IntervenantQr iv={iv} />
+              <ValidationDocuments dossier={iv.dossier} />
               <DocumentsSection
                 dossier={iv.dossier} table="documents_intervenants" bucket="documents-intervenants"
                 titre={`Documents — ${iv.prenom} ${iv.nom}`}

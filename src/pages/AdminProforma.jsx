@@ -7,6 +7,7 @@ import { generateBadge } from '../utils/generateBadge'
 import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitivePDF'
 import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmationInscriptionPDF'
 import DocumentsSection from '../components/DocumentsSection'
+import ValidationDocuments from '../components/ValidationDocuments'
 
 const NAVY = '#000E91'
 const MAROON = '#96182A'
@@ -689,10 +690,18 @@ export default function AdminProforma() {
 
   const handleSaveStatut = async () => {
     setStatutSaving(true)
+    // Charge le statut actuel en base (et non data.statut, deja modifie par
+    // le select local) pour ne notifier "confirme" que sur un vrai changement.
+    const { data: avant } = await supabase.from('inscriptions').select('paiement_status').eq('dossier', data.dossier).maybeSingle()
     const { error: err } = await supabase.from('inscriptions').update({ paiement_status: data.statut }).eq('dossier', data.dossier)
     setStatutSaving(false)
     if (err) showToast('Erreur : ' + err.message)
-    else { showToast('Statut mis à jour'); loadRecents() }
+    else {
+      if (data.statut === 'confirme' && avant?.paiement_status !== 'confirme') {
+        supabase.functions.invoke('notify-action', { body: { dossier: data.dossier, type: 'statut_confirme' } }).catch(() => {})
+      }
+      showToast('Statut mis à jour'); loadRecents()
+    }
   }
 
   const handleSaveNote = async () => {
@@ -1188,9 +1197,11 @@ export default function AdminProforma() {
               deposer/voir un document, ni pour le contact ni pour les
               membres. */}
           <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
+            <ValidationDocuments dossier={data.dossier} />
             <DocumentsSection dossier={data.dossier} titre={`Documents — ${data.prenom} ${data.nom} (contact principal)`} />
             {isGroup && participantsListe.filter(p => p.participantId).map(p => (
               <div key={p._id} style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #f1f5f9' }}>
+                <ValidationDocuments dossier={p.dossier} />
                 <DocumentsSection dossier={data.dossier} participantId={p.participantId} titre={`Documents — ${p.prenom} ${p.nom}`} />
               </div>
             ))}

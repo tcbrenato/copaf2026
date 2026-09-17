@@ -9,6 +9,7 @@ import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmatio
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { useAdminAuth } from '../adminAuth'
 import DocumentsSection from './DocumentsSection'
+import ValidationDocuments from './ValidationDocuments'
 import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
 import AdminDiagnostics from '../pages/AdminDiagnostics'
@@ -571,6 +572,7 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
         </div>
       )}
 
+      <ValidationDocuments dossier={dossier} />
       <DocumentsSection dossier={dossier} />
 
       {/* Agenda personnalise (libre-service cote participant, lecture seule ici) */}
@@ -653,6 +655,9 @@ function ModalParticipant({ row, onClose, onUpdate }) {
     const { error } = await supabase.from('inscriptions').update({ paiement_status: status }).eq('id', row.id)
     setSaving(false)
     if (!error) {
+      if (status === 'confirme' && row.paiement_status !== 'confirme') {
+        supabase.functions.invoke('notify-action', { body: { dossier: row.dossier, type: 'statut_confirme' } }).catch(() => {})
+      }
       const updated = { ...row, paiement_status: status }
       onUpdate(updated)
       t('Statut mis a jour avec succes')
@@ -910,6 +915,7 @@ function ModalMembre({ membre, onClose, onUpdate }) {
         </div>
 
         <div style={{ padding: '0 28px 28px' }}>
+          <ValidationDocuments dossier={membre.dossier} />
           <DocumentsSection dossier={membre.dossier} participantId={membre._memberId} />
           <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 8, lineHeight: 1.5 }}>
             Ces documents sont visibles uniquement dans l'espace personnel de {membre.contacts?.prenom} — pour un document partagé par tout le groupe, déposez-le plutôt depuis la fiche du contact principal.
