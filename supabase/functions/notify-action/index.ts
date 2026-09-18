@@ -6,6 +6,12 @@
 // envoyee, validation/rejet de document par l'admin, statut d'inscription
 // confirme, rappel de dossier incomplet.
 //
+// Bilingue (fr/en) : chaque email participant est traduit selon
+// personne.langue (colonne `langue` sur inscriptions / inscription_participants
+// / intervenants, la meme qui pilote deja la langue de /badge). L'email
+// interne a l'admin (emailAdminHtml) reste toujours en francais — c'est
+// l'equipe CRF Perfection qui le lit, pas le participant.
+//
 // Appelee directement depuis le client juste apres une action reussie
 // (pas de trigger DB — les actions couvertes touchent plusieurs tables
 // avec des conditions differentes, un appel direct est plus simple et
@@ -28,6 +34,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+type Langue = 'fr' | 'en'
+
+// Admin-facing (francais uniquement, cf. plus bas).
 const ACTION_LABELS: Record<string, string> = {
   photo: 'a envoyé sa photo de badge',
   passeport: 'a envoyé une copie de son passeport',
@@ -37,18 +46,30 @@ const ACTION_LABELS: Record<string, string> = {
   preuve_paiement: 'a envoyé une preuve de paiement',
 }
 
-const PARTICIPANT_SUBJECT: Record<string, string> = {
-  photo: 'Vos documents ont bien été reçus',
-  passeport: 'Vos documents ont bien été reçus',
-  email: 'Email enregistré',
-  telephone: 'Numéro de téléphone enregistré',
-  document: 'Document bien reçu',
-  preuve_paiement: 'Preuve de paiement bien reçue',
+// Participant-facing (bilingue).
+const PARTICIPANT_SUBJECT: Record<Langue, Record<string, string>> = {
+  fr: {
+    photo: 'Vos documents ont bien été reçus',
+    passeport: 'Vos documents ont bien été reçus',
+    email: 'Email enregistré',
+    telephone: 'Numéro de téléphone enregistré',
+    document: 'Document bien reçu',
+    preuve_paiement: 'Preuve de paiement bien reçue',
+  },
+  en: {
+    photo: 'Your documents have been received',
+    passeport: 'Your documents have been received',
+    email: 'Email saved',
+    telephone: 'Phone number saved',
+    document: 'Document received',
+    preuve_paiement: 'Proof of payment received',
+  },
 }
 
-const DOCUMENT_ADMIN_SUBJECT = 'Un document vous attend dans votre espace COPAF 2026'
-
-const CHAMP_LABEL: Record<string, string> = { photo: 'photo', passeport: 'passeport' }
+const CHAMP_LABEL: Record<Langue, Record<string, string>> = {
+  fr: { photo: 'photo', passeport: 'passeport' },
+  en: { photo: 'photo', passeport: 'passport' },
+}
 
 // Types qui ne notifient QUE la personne (jamais l'admin) : l'admin est soit
 // l'auteur de l'action (document_admin, document_valide/rejete, statut_confirme),
@@ -60,11 +81,11 @@ function escapeHtml(value: unknown): string {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-// "photo" + "passeport" -> "photo et passeport" ; ["photo"] -> "photo"
-function nommerChamps(champs: string[]): string {
-  const noms = champs.map(c => CHAMP_LABEL[c] || c)
-  if (noms.length <= 1) return noms[0] || 'document'
-  return noms.join(' et ')
+// "photo" + "passeport" -> "photo et passeport" / "photo and passport"
+function nommerChamps(champs: string[], langue: Langue): string {
+  const noms = champs.map(c => CHAMP_LABEL[langue][c] || c)
+  if (noms.length <= 1) return noms[0] || (langue === 'en' ? 'document' : 'document')
+  return noms.join(langue === 'en' ? ' and ' : ' et ')
 }
 
 interface Personne {
@@ -76,10 +97,15 @@ interface Personne {
   email: string | null
   photoUrl: string | null
   passeportUrl: string | null
+  langue: Langue
   // 'intervenant' se connecte par nom + code d'accres (/intervenant), tous
   // les autres par dossier + email (/verifier) — le lien et les identifiants
   // mentionnes dans l'email dependent de ce type.
   espace: 'participant' | 'intervenant'
+}
+
+function normaliserLangue(v: unknown): Langue {
+  return v === 'en' ? 'en' : 'fr'
 }
 
 // Meme cascade que badge_lookup_by_dossier cote base, mais en direct ici
@@ -88,48 +114,109 @@ interface Personne {
 async function trouverPersonne(supabase: ReturnType<typeof createClient>, dossier: string): Promise<Personne | null> {
   const { data: insc } = await supabase
     .from('inscriptions')
-    .select('dossier, photo_url, passeport_url, contacts(nom, prenom, poste, organisation, email)')
+    .select('dossier, photo_url, passeport_url, langue, contacts(nom, prenom, poste, organisation, email)')
     .eq('dossier', dossier)
     .maybeSingle()
   if (insc?.contacts) {
     const c = insc.contacts as { nom: string; prenom: string; poste: string; organisation: string; email: string }
-    return { dossier, nom: c.nom, prenom: c.prenom, poste: c.poste, organisation: c.organisation, email: c.email, photoUrl: insc.photo_url as string | null, passeportUrl: insc.passeport_url as string | null, espace: 'participant' }
+    return { dossier, nom: c.nom, prenom: c.prenom, poste: c.poste, organisation: c.organisation, email: c.email, photoUrl: insc.photo_url as string | null, passeportUrl: insc.passeport_url as string | null, langue: normaliserLangue(insc.langue), espace: 'participant' }
   }
 
   const { data: participant } = await supabase
     .from('inscription_participants')
-    .select('dossier, poste, email, photo_url, passeport_url, nom, prenom, inscriptions(contacts(organisation))')
+    .select('dossier, poste, email, photo_url, passeport_url, nom, prenom, langue, inscriptions(langue, contacts(organisation))')
     .eq('dossier', dossier)
     .maybeSingle()
   if (participant) {
-    const org = (participant.inscriptions as { contacts?: { organisation?: string } } | null)?.contacts?.organisation ?? null
-    return { dossier, nom: participant.nom, prenom: participant.prenom, poste: participant.poste, organisation: org, email: participant.email, photoUrl: participant.photo_url as string | null, passeportUrl: participant.passeport_url as string | null, espace: 'participant' }
+    const inscriptionLiee = participant.inscriptions as { langue?: string; contacts?: { organisation?: string } } | null
+    const org = inscriptionLiee?.contacts?.organisation ?? null
+    // Langue propre au membre si definie, sinon celle du dossier parent (les
+    // membres ajoutes cote admin n'ont souvent pas leur propre langue remplie).
+    const langue = normaliserLangue(participant.langue ?? inscriptionLiee?.langue)
+    return { dossier, nom: participant.nom, prenom: participant.prenom, poste: participant.poste, organisation: org, email: participant.email, photoUrl: participant.photo_url as string | null, passeportUrl: participant.passeport_url as string | null, langue, espace: 'participant' }
   }
 
   const { data: intervenant } = await supabase
     .from('intervenants')
-    .select('dossier, nom, prenom, fonction, organisation, email, photo_url, passeport_url')
+    .select('dossier, nom, prenom, fonction, organisation, email, photo_url, passeport_url, langue')
     .eq('dossier', dossier)
     .maybeSingle()
   if (intervenant) {
-    return { dossier, nom: intervenant.nom, prenom: intervenant.prenom, poste: intervenant.fonction, organisation: intervenant.organisation, email: intervenant.email, photoUrl: intervenant.photo_url as string | null, passeportUrl: intervenant.passeport_url as string | null, espace: 'intervenant' }
+    return { dossier, nom: intervenant.nom, prenom: intervenant.prenom, poste: intervenant.fonction, organisation: intervenant.organisation, email: intervenant.email, photoUrl: intervenant.photo_url as string | null, passeportUrl: intervenant.passeport_url as string | null, langue: normaliserLangue(intervenant.langue), espace: 'intervenant' }
   }
 
   return null
 }
 
 function espaceLienEtIdentifiants(personne: Personne) {
+  const t = TXT[personne.langue]
   return personne.espace === 'intervenant'
-    ? { lien: 'https://copaf-ports.com/intervenant', identifiants: "nom + code d'accès" }
-    : { lien: 'https://copaf-ports.com/verifier', identifiants: 'numéro de dossier + email enregistré' }
+    ? { lien: 'https://copaf-ports.com/intervenant', identifiants: t.identifiantsIntervenant }
+    : { lien: 'https://copaf-ports.com/verifier', identifiants: t.identifiantsParticipant }
+}
+
+// ─── Traductions des elements fixes du gabarit ─────────────────────────────
+
+const TXT: Record<Langue, {
+  conference: string
+  lieuDate: string
+  dossierLabel: string
+  identifiantsIntervenant: string
+  identifiantsParticipant: string
+  identifiantsPrefix: string
+  typeDocumentLabel: string
+  motifLabel: string
+  recuNote: string
+  footerCopy: string
+  footerInterne: string
+  ctaDefault: string
+  statutRecu: string
+  statutValide: string
+  statutRejete: string
+  statutConfirme: string
+  statutIncomplet: string
+}> = {
+  fr: {
+    conference: 'Conférence des Ports Africains',
+    lieuDate: 'Casablanca, Maroc — 19–21 octobre 2026',
+    dossierLabel: 'Numéro de dossier',
+    identifiantsIntervenant: "nom + code d'accès",
+    identifiantsParticipant: 'numéro de dossier + email enregistré',
+    identifiantsPrefix: 'Identifiants de connexion',
+    typeDocumentLabel: 'Type de document',
+    motifLabel: 'Motif',
+    recuNote: 'Vous recevez cet email car vous êtes inscrit à COPAF 2026.',
+    footerCopy: '© 2026 CRF Perfection — Tous droits réservés.',
+    footerInterne: 'Notification interne — équipe COPAF 2026.',
+    ctaDefault: 'Voir mon espace',
+    statutRecu: 'Reçu',
+    statutValide: 'Validé',
+    statutRejete: 'À corriger',
+    statutConfirme: 'Confirmé',
+    statutIncomplet: 'Incomplet',
+  },
+  en: {
+    conference: 'African Ports Conference',
+    lieuDate: 'Casablanca, Morocco — October 19–21, 2026',
+    dossierLabel: 'File number',
+    identifiantsIntervenant: 'name + access code',
+    identifiantsParticipant: 'file number + registered email',
+    identifiantsPrefix: 'Login',
+    typeDocumentLabel: 'Document type',
+    motifLabel: 'Reason',
+    recuNote: 'You are receiving this email because you are registered for COPAF 2026.',
+    footerCopy: '© 2026 CRF Perfection — All rights reserved.',
+    footerInterne: 'Internal notification — COPAF 2026 team.',
+    ctaDefault: 'View my space',
+    statutRecu: 'Received',
+    statutValide: 'Approved',
+    statutRejete: 'Needs correction',
+    statutConfirme: 'Confirmed',
+    statutIncomplet: 'Incomplete',
+  },
 }
 
 // ─── Gabarit visuel partage par toutes les notifications ──────────────────
-//
-// Cover COPAF en tete, bandeau colore (icone rond + titre + sous-titre),
-// corps de message, encart optionnel (dossier + pastille de statut, ou
-// tableau d'infos libre), bouton d'action optionnel, pied de page CRF
-// Perfection (liens + reseaux sociaux).
 
 const COVER_URL = 'https://copaf-ports.com/coverscopaf.png'
 const SITE_URL = 'https://copaf-ports.com'
@@ -152,13 +239,14 @@ function pastilleStatut(label: string, tone: keyof typeof STATUT_TONES) {
   return `<span style="display:inline-block;font-size:11px;font-weight:700;padding:5px 12px;border-radius:100px;color:${c.fg};background:${c.bg};white-space:nowrap;">${escapeHtml(label)}</span>`
 }
 
-function encartDossier(dossier: string, statut?: { label: string; tone: keyof typeof STATUT_TONES }) {
+function encartDossier(langue: Langue, dossier: string, statut?: { label: string; tone: keyof typeof STATUT_TONES }) {
+  const t = TXT[langue]
   return `
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;border-radius:12px;border-left:4px solid ${BRAND_FROM};margin:24px 0;">
 <tr><td style="padding:16px 20px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
 <td valign="middle">
-<span style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:4px;">Numéro de dossier</span>
+<span style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:4px;">${escapeHtml(t.dossierLabel)}</span>
 <strong style="font-size:19px;color:${BRAND_FROM};font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;">${escapeHtml(dossier)}</strong>
 </td>
 ${statut ? `<td valign="middle" align="right">${pastilleStatut(statut.label, statut.tone)}</td>` : ''}
@@ -167,18 +255,19 @@ ${statut ? `<td valign="middle" align="right">${pastilleStatut(statut.label, sta
 </table>`
 }
 
-function encartMotif(motif: string) {
+function encartMotif(langue: Langue, motif: string) {
   return `
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fef2f2;border:1.5px solid #fecaca;border-radius:12px;margin:0 0 24px;">
 <tr><td style="padding:16px 20px;">
-<span style="font-size:10px;color:#991b1b;text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:4px;">Motif</span>
+<span style="font-size:10px;color:#991b1b;text-transform:uppercase;letter-spacing:1px;font-weight:700;display:block;margin-bottom:4px;">${escapeHtml(TXT[langue].motifLabel)}</span>
 <span style="font-size:14px;color:#7f1d1d;font-weight:600;">${escapeHtml(motif)}</span>
 </td></tr>
 </table>`
 }
 
 function emailShell(opts: {
-  pillLabel?: string
+  langue: Langue
+  pillLabel: string
   icon: string
   accentFrom?: string
   accentTo?: string
@@ -191,26 +280,27 @@ function emailShell(opts: {
   noteFooter?: string
 }) {
   const {
-    pillLabel = 'Notification', icon, accentFrom = BRAND_FROM, accentTo = BRAND_TO,
+    langue, pillLabel, icon, accentFrom = BRAND_FROM, accentTo = BRAND_TO,
     titre, sousTitre, corpsHtml, extraHtml = '', ctaLabel, ctaUrl, noteFooter,
   } = opts
+  const t = TXT[langue]
 
   return `<!DOCTYPE html>
-<html lang="fr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<html lang="${langue}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:0;background-color:#f4f7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#334155;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f7fa;padding:40px 0;">
 <tr><td align="center" style="padding:20px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 12px 30px -8px rgba(0,14,145,0.15);">
 
 <tr><td style="padding:0;line-height:0;">
-<img src="${COVER_URL}" alt="COPAF 2026 — Conférence des Ports Africains — Casablanca, Maroc — 19-21 Octobre 2026" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0;" />
+<img src="${COVER_URL}" alt="COPAF 2026 — ${escapeHtml(t.conference)} — ${escapeHtml(t.lieuDate)}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0;" />
 </td></tr>
 
 <tr><td style="background:linear-gradient(135deg,${accentFrom},${accentTo});padding:26px 32px 28px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
 <td valign="top">
 <div style="color:#ffffff;font-size:15px;font-weight:800;">COPAF 2026</div>
-<div style="color:rgba(255,255,255,.75);font-size:11.5px;margin-top:2px;">Conférence des Ports Africains</div>
+<div style="color:rgba(255,255,255,.75);font-size:11.5px;margin-top:2px;">${escapeHtml(t.conference)}</div>
 </td>
 <td valign="top" align="right">
 <span style="display:inline-block;font-size:10.5px;font-weight:700;color:#ffffff;background:rgba(255,255,255,.18);padding:5px 12px;border-radius:100px;letter-spacing:.3px;">${escapeHtml(pillLabel)}</span>
@@ -236,11 +326,11 @@ ${ctaUrl ? `
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0 4px;"><tr><td align="center">
 <table border="0" cellspacing="0" cellpadding="0"><tr>
 <td align="center" bgcolor="${BRAND_FROM}" style="border-radius:10px;">
-<a href="${ctaUrl}" target="_blank" style="font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;padding:14px 30px;border-radius:10px;display:inline-block;">${escapeHtml(ctaLabel || 'Voir mon espace')} →</a>
+<a href="${ctaUrl}" target="_blank" style="font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;padding:14px 30px;border-radius:10px;display:inline-block;">${escapeHtml(ctaLabel || t.ctaDefault)} →</a>
 </td>
 </tr></table>
 </td></tr></table>` : ''}
-<p style="text-align:center;font-size:12px;color:#94a3b8;margin:24px 0 0;">Casablanca, Maroc — 19–21 octobre 2026</p>
+<p style="text-align:center;font-size:12px;color:#94a3b8;margin:24px 0 0;">${escapeHtml(t.lieuDate)}</p>
 </td></tr>
 
 <tr><td style="background-color:#0f172a;padding:32px;text-align:center;">
@@ -258,8 +348,8 @@ ${ctaUrl ? `
 <td><a href="https://www.instagram.com/crf_perfection" target="_blank" style="display:inline-block;margin:0 6px;"><img src="https://img.icons8.com/ios-filled/50/94a3b8/instagram-new.png" width="20" height="20" alt="Instagram" style="display:block;border:0;" /></a></td>
 </tr></table>
 <div style="font-size:11px;color:#64748b;line-height:1.6;border-top:1px solid #1e293b;padding-top:16px;">
-${escapeHtml(noteFooter || 'Vous recevez cet email car vous êtes inscrit à COPAF 2026.')}<br/>
-© 2026 CRF Perfection — Tous droits réservés.
+${escapeHtml(noteFooter || t.recuNote)}<br/>
+${escapeHtml(t.footerCopy)}
 </div>
 </td></tr>
 
@@ -270,6 +360,9 @@ ${escapeHtml(noteFooter || 'Vous recevez cet email car vous êtes inscrit à COP
 }
 
 // ─── Gabarits specifiques ──────────────────────────────────────────────────
+//
+// emailAdminHtml reste toujours en francais (lu par l'equipe CRF Perfection),
+// tous les autres suivent personne.langue.
 
 function emailAdminHtml(personne: Personne, actionLabel: string) {
   const nomComplet = `${escapeHtml(personne.prenom)} ${escapeHtml(personne.nom)}`.trim()
@@ -280,6 +373,7 @@ function emailAdminHtml(personne: Personne, actionLabel: string) {
 <tr><td style="padding:8px 0;color:#64748b;font-size:13px;font-weight:600;">Organisation</td><td style="padding:8px 0;color:#0f172a;font-size:13px;font-weight:700;text-align:right;">${escapeHtml(personne.organisation)}</td></tr>
 </table>`
   return emailShell({
+    langue: 'fr',
     pillLabel: 'Activité',
     icon: '📋',
     titre: 'Nouvelle activité',
@@ -293,90 +387,133 @@ function emailAdminHtml(personne: Personne, actionLabel: string) {
 }
 
 function emailParticipantHtml(personne: Personne, subject: string) {
+  const langue = personne.langue
+  const t = TXT[langue]
   const { lien, identifiants } = espaceLienEtIdentifiants(personne)
+  const corps = langue === 'en'
+    ? `Hello ${escapeHtml(personne.prenom)},<br/><br/>We confirm we have received your submission for your COPAF 2026 file.`
+    : `Bonjour ${escapeHtml(personne.prenom)},<br/><br/>Nous confirmons la bonne réception de votre envoi pour votre dossier COPAF 2026.`
   return emailShell({
+    langue,
+    pillLabel: langue === 'en' ? 'Notification' : 'Notification',
     icon: '✓',
     titre: subject,
-    sousTitre: 'Confirmation de réception',
-    corpsHtml: `Bonjour ${escapeHtml(personne.prenom)},<br/><br/>Nous confirmons la bonne réception de votre envoi pour votre dossier COPAF 2026.`,
-    extraHtml: encartDossier(personne.dossier, { label: 'Reçu', tone: 'recu' }) + `<p style="font-size:12px;color:#94a3b8;margin:0;">Identifiants de connexion : ${identifiants}.</p>`,
-    ctaLabel: 'Consulter mon dossier',
+    sousTitre: langue === 'en' ? 'Receipt confirmation' : 'Confirmation de réception',
+    corpsHtml: corps,
+    extraHtml: encartDossier(langue, personne.dossier, { label: t.statutRecu, tone: 'recu' }) + `<p style="font-size:12px;color:#94a3b8;margin:0;">${escapeHtml(t.identifiantsPrefix)} : ${identifiants}.</p>`,
+    ctaLabel: langue === 'en' ? 'View my file' : 'Consulter mon dossier',
     ctaUrl: lien,
   })
 }
 
 function emailDocumentAdminHtml(personne: Personne, typeDocument: string) {
+  const langue = personne.langue
+  const t = TXT[langue]
   const { lien, identifiants } = espaceLienEtIdentifiants(personne)
+  const titre = langue === 'en' ? 'A document is waiting in your COPAF 2026 space' : 'Un document vous attend dans votre espace COPAF 2026'
+  const corps = langue === 'en'
+    ? `Hello ${escapeHtml(personne.prenom)} ${escapeHtml(personne.nom)},<br/><br/>A new document has been added to your COPAF 2026 personal space.`
+    : `Bonjour ${escapeHtml(personne.prenom)} ${escapeHtml(personne.nom)},<br/><br/>Un nouveau document a été déposé dans votre espace personnel COPAF 2026.`
   return emailShell({
+    langue,
+    pillLabel: 'Notification',
     icon: '📄',
-    titre: DOCUMENT_ADMIN_SUBJECT,
-    sousTitre: 'Nouveau document disponible',
-    corpsHtml: `Bonjour ${escapeHtml(personne.prenom)} ${escapeHtml(personne.nom)},<br/><br/>Un nouveau document a été déposé dans votre espace personnel COPAF 2026.`,
-    extraHtml: encartDossier(personne.dossier) + `<p style="font-size:12px;color:#94a3b8;margin:8px 0 0;">Type de document : <strong style="color:#334155;">${escapeHtml(typeDocument)}</strong> · Identifiants de connexion : ${identifiants}.</p>`,
-    ctaLabel: 'Voir dans mon espace',
+    titre,
+    sousTitre: langue === 'en' ? 'New document available' : 'Nouveau document disponible',
+    corpsHtml: corps,
+    extraHtml: encartDossier(langue, personne.dossier) + `<p style="font-size:12px;color:#94a3b8;margin:8px 0 0;">${escapeHtml(t.typeDocumentLabel)} : <strong style="color:#334155;">${escapeHtml(typeDocument)}</strong> · ${escapeHtml(t.identifiantsPrefix)} : ${identifiants}.</p>`,
+    ctaLabel: langue === 'en' ? 'View my space' : 'Voir dans mon espace',
     ctaUrl: lien,
   })
 }
 
 function emailDocumentValideHtml(personne: Personne, champs: string[]) {
+  const langue = personne.langue
+  const t = TXT[langue]
   const { lien } = espaceLienEtIdentifiants(personne)
-  const nomChamps = nommerChamps(champs)
+  const nomChamps = nommerChamps(champs, langue)
   const pluriel = champs.length > 1
+  const corps = langue === 'en'
+    ? `Hello ${escapeHtml(personne.prenom)},<br/><br/>Your ${pluriel ? 'documents' : 'document'} — <strong>${escapeHtml(nomChamps)}</strong> — for your COPAF 2026 file ${pluriel ? 'have been checked and approved' : 'has been checked and approved'}. No action is required on your part.`
+    : `Bonjour ${escapeHtml(personne.prenom)},<br/><br/>${pluriel ? 'Vos documents' : 'Votre document'} — <strong>${escapeHtml(nomChamps)}</strong> — pour votre dossier COPAF 2026 ${pluriel ? 'ont été vérifiés et validés' : 'a été vérifié et validé'}. Aucune action de votre part n'est nécessaire.`
   return emailShell({
+    langue,
+    pillLabel: 'Notification',
     icon: '✓',
-    titre: pluriel ? 'Documents validés' : 'Document validé',
-    sousTitre: pluriel ? 'Vos pièces ont passé la vérification' : 'Votre pièce a passé la vérification',
-    corpsHtml: `Bonjour ${escapeHtml(personne.prenom)},<br/><br/>${pluriel ? 'Vos documents' : 'Votre document'} — <strong>${escapeHtml(nomChamps)}</strong> — pour votre dossier COPAF 2026 ${pluriel ? 'ont été vérifiés et validés' : 'a été vérifié et validé'}. Aucune action de votre part n'est nécessaire.`,
-    extraHtml: encartDossier(personne.dossier, { label: 'Validé', tone: 'valide' }),
-    ctaLabel: 'Consulter mon dossier',
+    titre: langue === 'en' ? (pluriel ? 'Documents approved' : 'Document approved') : (pluriel ? 'Documents validés' : 'Document validé'),
+    sousTitre: langue === 'en' ? (pluriel ? 'Your documents passed verification' : 'Your document passed verification') : (pluriel ? 'Vos pièces ont passé la vérification' : 'Votre pièce a passé la vérification'),
+    corpsHtml: corps,
+    extraHtml: encartDossier(langue, personne.dossier, { label: t.statutValide, tone: 'valide' }),
+    ctaLabel: langue === 'en' ? 'View my file' : 'Consulter mon dossier',
     ctaUrl: lien,
   })
 }
 
 function emailDocumentRejeteHtml(personne: Personne, champs: string[], motif: string) {
+  const langue = personne.langue
+  const t = TXT[langue]
   const { lien } = espaceLienEtIdentifiants(personne)
-  const nomChamps = nommerChamps(champs)
+  const nomChamps = nommerChamps(champs, langue)
   const pluriel = champs.length > 1
+  const corps = langue === 'en'
+    ? `Hello ${escapeHtml(personne.prenom)},<br/><br/>Your ${pluriel ? 'documents' : 'document'} — <strong>${escapeHtml(nomChamps)}</strong> — for your COPAF 2026 file could not be approved.`
+    : `Bonjour ${escapeHtml(personne.prenom)},<br/><br/>${pluriel ? 'Vos documents' : 'Votre document'} — <strong>${escapeHtml(nomChamps)}</strong> — pour votre dossier COPAF 2026 ${pluriel ? "n'ont pas pu être validés" : "n'a pas pu être validé"}.`
   return emailShell({
-    pillLabel: 'Action requise',
+    langue,
+    pillLabel: langue === 'en' ? 'Action required' : 'Action requise',
     icon: '⚠',
     accentFrom: ALERT_FROM,
     accentTo: ALERT_TO,
-    titre: pluriel ? 'Documents à corriger' : 'Document à corriger',
-    sousTitre: "N'a pas pu être validé",
-    corpsHtml: `Bonjour ${escapeHtml(personne.prenom)},<br/><br/>${pluriel ? 'Vos documents' : 'Votre document'} — <strong>${escapeHtml(nomChamps)}</strong> — pour votre dossier COPAF 2026 ${pluriel ? "n'ont pas pu être validés" : "n'a pas pu être validé"}.`,
-    extraHtml: encartDossier(personne.dossier, { label: 'À corriger', tone: 'rejete' }) + encartMotif(motif),
-    ctaLabel: 'Déposer une nouvelle version',
+    titre: langue === 'en' ? (pluriel ? 'Documents need correction' : 'Document needs correction') : (pluriel ? 'Documents à corriger' : 'Document à corriger'),
+    sousTitre: langue === 'en' ? 'Could not be approved' : "N'a pas pu être validé",
+    corpsHtml: corps,
+    extraHtml: encartDossier(langue, personne.dossier, { label: t.statutRejete, tone: 'rejete' }) + encartMotif(langue, motif),
+    ctaLabel: langue === 'en' ? 'Upload a new version' : 'Déposer une nouvelle version',
     ctaUrl: lien,
   })
 }
 
 function emailStatutConfirmeHtml(personne: Personne) {
+  const langue = personne.langue
+  const t = TXT[langue]
   const { lien } = espaceLienEtIdentifiants(personne)
+  const corps = langue === 'en'
+    ? `Hello ${escapeHtml(personne.prenom)},<br/><br/>Your registration for COPAF 2026 is now <strong>confirmed</strong>. We look forward to welcoming you!`
+    : `Bonjour ${escapeHtml(personne.prenom)},<br/><br/>Votre inscription à la COPAF 2026 est désormais <strong>confirmée</strong>. Nous avons hâte de vous accueillir !`
   return emailShell({
+    langue,
+    pillLabel: 'Notification',
     icon: '✓',
-    titre: 'Inscription confirmée',
-    sousTitre: 'Votre paiement a été validé',
-    corpsHtml: `Bonjour ${escapeHtml(personne.prenom)},<br/><br/>Votre inscription à la COPAF 2026 est désormais <strong>confirmée</strong>. Nous avons hâte de vous accueillir !`,
-    extraHtml: encartDossier(personne.dossier, { label: 'Confirmé', tone: 'confirme' }),
-    ctaLabel: 'Consulter mon dossier',
+    titre: langue === 'en' ? 'Registration confirmed' : 'Inscription confirmée',
+    sousTitre: langue === 'en' ? 'Your payment has been approved' : 'Votre paiement a été validé',
+    corpsHtml: corps,
+    extraHtml: encartDossier(langue, personne.dossier, { label: t.statutConfirme, tone: 'confirme' }),
+    ctaLabel: langue === 'en' ? 'View my file' : 'Consulter mon dossier',
     ctaUrl: lien,
   })
 }
 
 function emailRelanceDossierHtml(personne: Personne, joursRestants: number) {
+  const langue = personne.langue
+  const t = TXT[langue]
   const { lien } = espaceLienEtIdentifiants(personne)
-  const manquants = [!personne.photoUrl && 'photo', !personne.passeportUrl && 'passeport'].filter(Boolean).join(' et ')
+  const manquants = langue === 'en'
+    ? [!personne.photoUrl && 'photo', !personne.passeportUrl && 'passport'].filter(Boolean).join(' and ')
+    : [!personne.photoUrl && 'photo', !personne.passeportUrl && 'passeport'].filter(Boolean).join(' et ')
+  const corps = langue === 'en'
+    ? `Hello ${escapeHtml(personne.prenom)},<br/><br/>There are <strong>${joursRestants} days</strong> left before COPAF 2026 and your file is still incomplete: your <strong>${escapeHtml(manquants)}</strong> is missing.`
+    : `Bonjour ${escapeHtml(personne.prenom)},<br/><br/>Il reste <strong>${joursRestants} jours</strong> avant la COPAF 2026 et votre dossier est encore incomplet : il manque votre <strong>${escapeHtml(manquants)}</strong>.`
   return emailShell({
-    pillLabel: 'Rappel',
+    langue,
+    pillLabel: langue === 'en' ? 'Reminder' : 'Rappel',
     icon: '⏰',
     accentFrom: ALERT_FROM,
     accentTo: ALERT_TO,
-    titre: `Dossier incomplet — J-${joursRestants}`,
-    sousTitre: 'Documents manquants',
-    corpsHtml: `Bonjour ${escapeHtml(personne.prenom)},<br/><br/>Il reste <strong>${joursRestants} jours</strong> avant la COPAF 2026 et votre dossier est encore incomplet : il manque votre <strong>${escapeHtml(manquants)}</strong>.`,
-    extraHtml: encartDossier(personne.dossier, { label: 'Incomplet', tone: 'incomplet' }),
-    ctaLabel: 'Compléter mon dossier',
+    titre: langue === 'en' ? `Incomplete file — ${joursRestants} days left` : `Dossier incomplet — J-${joursRestants}`,
+    sousTitre: langue === 'en' ? 'Missing documents' : 'Documents manquants',
+    corpsHtml: corps,
+    extraHtml: encartDossier(langue, personne.dossier, { label: t.statutIncomplet, tone: 'incomplet' }),
+    ctaLabel: langue === 'en' ? 'Complete my file' : 'Compléter mon dossier',
     ctaUrl: lien,
   })
 }
@@ -416,6 +553,7 @@ Deno.serve(async req => {
     // permet de valider/rejeter photo + passeport en un seul email), soit
     // l'ancien `label` singulier pour compatibilite.
     const champsList: string[] = Array.isArray(champs) && champs.length ? champs : label ? [String(label)] : ['photo']
+    const langue = personne.langue
 
     const envois: Promise<Response>[] = []
     const nomComplet = `${personne.prenom || ''} ${personne.nom || ''}`.trim()
@@ -426,11 +564,23 @@ Deno.serve(async req => {
       if (personne.email) {
         let subject = ''
         let html = ''
-        if (type === 'document_admin') { subject = DOCUMENT_ADMIN_SUBJECT; html = emailDocumentAdminHtml(personne, String(label || 'Document')) }
-        else if (type === 'document_valide') { subject = champsList.length > 1 ? 'Documents validés' : 'Document validé'; html = emailDocumentValideHtml(personne, champsList) }
-        else if (type === 'document_rejete') { subject = champsList.length > 1 ? 'Documents à corriger' : 'Document à corriger'; html = emailDocumentRejeteHtml(personne, champsList, String(motif || 'Non précisé')) }
-        else if (type === 'statut_confirme') { subject = 'Inscription confirmée'; html = emailStatutConfirmeHtml(personne) }
-        else if (type === 'relance_dossier') { subject = `Dossier incomplet — J-${Number(jours) || 0}`; html = emailRelanceDossierHtml(personne, Number(jours) || 0) }
+        if (type === 'document_admin') {
+          subject = langue === 'en' ? 'A document is waiting in your COPAF 2026 space' : 'Un document vous attend dans votre espace COPAF 2026'
+          html = emailDocumentAdminHtml(personne, String(label || 'Document'))
+        } else if (type === 'document_valide') {
+          subject = langue === 'en' ? (champsList.length > 1 ? 'Documents approved' : 'Document approved') : (champsList.length > 1 ? 'Documents validés' : 'Document validé')
+          html = emailDocumentValideHtml(personne, champsList)
+        } else if (type === 'document_rejete') {
+          subject = langue === 'en' ? (champsList.length > 1 ? 'Documents need correction' : 'Document needs correction') : (champsList.length > 1 ? 'Documents à corriger' : 'Document à corriger')
+          html = emailDocumentRejeteHtml(personne, champsList, String(motif || (langue === 'en' ? 'Not specified' : 'Non précisé')))
+        } else if (type === 'statut_confirme') {
+          subject = langue === 'en' ? 'Registration confirmed' : 'Inscription confirmée'
+          html = emailStatutConfirmeHtml(personne)
+        } else if (type === 'relance_dossier') {
+          const j = Number(jours) || 0
+          subject = langue === 'en' ? `Incomplete file — ${j} days left` : `Dossier incomplet — J-${j}`
+          html = emailRelanceDossierHtml(personne, j)
+        }
 
         if (html) {
           envois.push(fetch('https://api.resend.com/emails', {
@@ -461,8 +611,8 @@ Deno.serve(async req => {
           body: JSON.stringify({
             from: fromEmail,
             to: [personne.email],
-            subject: `COPAF 2026 — ${PARTICIPANT_SUBJECT[type]}`,
-            html: emailParticipantHtml(personne, PARTICIPANT_SUBJECT[type]),
+            subject: `COPAF 2026 — ${PARTICIPANT_SUBJECT[langue][type]}`,
+            html: emailParticipantHtml(personne, PARTICIPANT_SUBJECT[langue][type]),
           }),
         }))
 
@@ -472,14 +622,15 @@ Deno.serve(async req => {
         // que l'email arrive, si les deux documents sont deja presents, on
         // l'envoie maintenant.
         if (type === 'email' && personne.photoUrl && personne.passeportUrl) {
+          const subjectRattrapage = PARTICIPANT_SUBJECT[langue].photo
           envois.push(fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
               from: fromEmail,
               to: [personne.email],
-              subject: 'COPAF 2026 — Vos documents ont bien été reçus',
-              html: emailParticipantHtml(personne, 'Vos documents ont bien été reçus'),
+              subject: `COPAF 2026 — ${subjectRattrapage}`,
+              html: emailParticipantHtml(personne, subjectRattrapage),
             }),
           }))
         }
