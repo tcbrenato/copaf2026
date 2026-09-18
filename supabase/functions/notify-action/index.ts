@@ -536,8 +536,17 @@ Deno.serve(async req => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
+    // Journal de chaque appel (table notifications_log) : permet de verifier
+    // apres coup si un email est vraiment parti, sans dependre des logs Supabase.
+    const journaliser = async (rows: Record<string, unknown>[]) => {
+      if (!rows.length) return
+      const { error } = await supabase.from('notifications_log').insert(rows)
+      if (error) console.error('Echec journal notifications_log:', error.message)
+    }
+
     const personne = await trouverPersonne(supabase, String(dossier).trim())
     if (!personne) {
+      await journaliser([{ dossier: String(dossier), type, ok: false, detail: 'Dossier introuvable' }])
       return new Response(JSON.stringify({ success: true, warning: 'Dossier introuvable' }), { headers: corsHeaders })
     }
 
@@ -555,13 +564,26 @@ Deno.serve(async req => {
     const champsList: string[] = Array.isArray(champs) && champs.length ? champs : label ? [String(label)] : ['photo']
     const langue = personne.langue
 
-    const envois: Promise<Response>[] = []
+    const envois: { to: string; promise: Promise<Response> }[] = []
+    const programmer = (to: string, subject: string, html: string) => {
+      envois.push({
+        to,
+        promise: fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ from: fromEmail, to: [to], subject, html }),
+        }),
+      })
+    }
+    const sansEmail: Record<string, unknown>[] = []
     const nomComplet = `${personne.prenom || ''} ${personne.nom || ''}`.trim()
 
     if (estParticipantOnly) {
       // Ces types ne notifient QUE la personne elle-meme (jamais l'admin,
       // qui est soit l'auteur de l'action, soit hors-sujet).
-      if (personne.email) {
+      if (!personne.email) {
+        sansEmail.push({ dossier: personne.dossier, type, langue: personne.langue, ok: false, detail: 'Aucun email enregistré pour ce dossier' })
+      } else {
         let subject = ''
         let html = ''
         if (type === 'document_admin') {
@@ -582,39 +604,17 @@ Deno.serve(async req => {
           html = emailRelanceDossierHtml(personne, j)
         }
 
-        if (html) {
-          envois.push(fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ from: fromEmail, to: [personne.email], subject: `COPAF 2026 — ${subject}`, html }),
-          }))
-        }
+        if (html) programmer(personne.email, `COPAF 2026 — ${subject}`, html)
       }
     } else {
       if (adminEmail) {
-        envois.push(fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            from: fromEmail,
-            to: [adminEmail],
-            subject: `📄 ${nomComplet} — ${ACTION_LABELS[type]}`,
-            html: emailAdminHtml(personne, ACTION_LABELS[type]),
-          }),
-        }))
+        programmer(adminEmail, `📄 ${nomComplet} — ${ACTION_LABELS[type]}`, emailAdminHtml(personne, ACTION_LABELS[type]))
       }
 
-      if (personne.email) {
-        envois.push(fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            from: fromEmail,
-            to: [personne.email],
-            subject: `COPAF 2026 — ${PARTICIPANT_SUBJECT[langue][type]}`,
-            html: emailParticipantHtml(personne, PARTICIPANT_SUBJECT[langue][type]),
-          }),
-        }))
+      if (!personne.email) {
+        sansEmail.push({ dossier: personne.dossier, type, langue: personne.langue, ok: false, detail: 'Aucun email enregistré pour ce dossier (confirmation participant non envoyée)' })
+      } else {
+        programmer(personne.email, `COPAF 2026 — ${PARTICIPANT_SUBJECT[langue][type]}`, emailParticipantHtml(personne, PARTICIPANT_SUBJECT[langue][type]))
 
         // Rattrapage : sur le parcours dossier-only, les documents sont
         // deposes AVANT que l'email ne soit connu — la confirmation
@@ -623,27 +623,32 @@ Deno.serve(async req => {
         // l'envoie maintenant.
         if (type === 'email' && personne.photoUrl && personne.passeportUrl) {
           const subjectRattrapage = PARTICIPANT_SUBJECT[langue].photo
-          envois.push(fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              from: fromEmail,
-              to: [personne.email],
-              subject: `COPAF 2026 — ${subjectRattrapage}`,
-              html: emailParticipantHtml(personne, subjectRattrapage),
-            }),
-          }))
+          programmer(personne.email, `COPAF 2026 — ${subjectRattrapage}`, emailParticipantHtml(personne, subjectRattrapage))
         }
       }
     }
 
-    const resultats = await Promise.allSettled(envois)
-    for (const r of resultats) {
-      if (r.status === 'rejected') console.error('Echec envoi Resend:', r.reason)
-      else if (!r.value.ok) console.error('Erreur Resend:', r.value.status, await r.value.text())
+    const resultats = await Promise.allSettled(envois.map(e => e.promise))
+    const envoisRapport: { to: string; ok: boolean; status?: number; detail?: string }[] = []
+    for (let i = 0; i < resultats.length; i++) {
+      const r = resultats[i]
+      const to = envois[i].to
+      if (r.status === 'rejected') {
+        console.error('Echec envoi Resend:', r.reason)
+        envoisRapport.push({ to, ok: false, detail: String(r.reason) })
+      } else {
+        const detail = await r.value.text()
+        if (!r.value.ok) console.error('Erreur Resend:', r.value.status, detail)
+        envoisRapport.push({ to, ok: r.value.ok, status: r.value.status, detail })
+      }
     }
 
-    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    await journaliser([
+      ...sansEmail,
+      ...envoisRapport.map(e => ({ dossier: personne.dossier, type, destinataire: e.to, langue: personne.langue, ok: e.ok, status: e.status ?? null, detail: e.detail ?? null })),
+    ])
+
+    return new Response(JSON.stringify({ success: true, envois: envoisRapport, destinataireTrouve: !!personne.email }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (err) {
     console.error('Erreur interne notify-action:', err)
     return new Response(JSON.stringify({ success: true, warning: 'Erreur interne' }), { headers: corsHeaders })
