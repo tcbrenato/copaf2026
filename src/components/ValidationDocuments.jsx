@@ -11,15 +11,17 @@
 // badge_lookup_by_dossier() retrouve photo/passeport/email pour n'importe
 // quel dossier individuel, sans avoir a savoir dans quelle table il vit.
 //
-// Notifie la personne par email a chaque decision (notify-action, types
-// document_valide / document_rejete).
+// Les documents se cochent (photo et/ou passeport) puis se valident/
+// rejettent ensemble : un seul email recapitulatif part pour toute la
+// selection plutot qu'un email par document (notify-action, types
+// document_valide / document_rejete, champ `champs` = tableau).
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 
 const LABEL = { fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: 0.5, marginBottom: 10 }
-const ROW = { display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }
-const BTN = { padding: '5px 10px', borderRadius: 8, border: 'none', fontSize: 11.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }
+const ROW = { display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }
+const BTN = { padding: '7px 14px', borderRadius: 8, border: 'none', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }
 
 const CHAMPS = [
   { key: 'photo', label: 'Photo' },
@@ -30,9 +32,10 @@ export default function ValidationDocuments({ dossier }) {
   const [record, setRecord] = useState(null)
   const [etats, setEtats] = useState({})
   const [loading, setLoading] = useState(true)
-  const [motifChamp, setMotifChamp] = useState(null)
+  const [selection, setSelection] = useState({})
+  const [motifOuvert, setMotifOuvert] = useState(false)
   const [motif, setMotif] = useState('')
-  const [saving, setSaving] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => {
     if (!dossier) { setLoading(false); return }
@@ -44,92 +47,93 @@ export default function ValidationDocuments({ dossier }) {
     const map = {}
     ;(validations || []).forEach(r => { map[r.champ] = r })
     setEtats(map)
+    // Pre-coche par defaut les documents pas encore valides (le cas le plus
+    // courant : cocher/decocher sert surtout a exclure un document deja bon).
+    setSelection(sel => {
+      const next = { ...sel }
+      CHAMPS.forEach(c => { if (!(c.key in next)) next[c.key] = map[c.key]?.statut !== 'valide' })
+      return next
+    })
     setLoading(false)
   }, [dossier])
 
   useEffect(() => { load() }, [load])
 
-  const valider = async champ => {
-    setSaving(champ)
+  const champsPresents = record ? CHAMPS.filter(c => record[c.key === 'photo' ? 'photo_url' : 'passeport_url']) : []
+  const champsCoches = champsPresents.filter(c => selection[c.key]).map(c => c.key)
+
+  const toggle = key => setSelection(sel => ({ ...sel, [key]: !sel[key] }))
+
+  const enregistrerValidations = async (champs, statut, motifTexte) => {
+    setSaving(true)
     const { data: userData } = await supabase.auth.getUser()
-    await supabase.from('document_validations').upsert(
-      { dossier, champ, statut: 'valide', motif: null, valide_par: userData?.user?.email || null, valide_le: new Date().toISOString() },
-      { onConflict: 'dossier,champ' },
-    )
-    supabase.functions.invoke('notify-action', { body: { dossier, type: 'document_valide', label: champ } }).catch(() => {})
+    const lignes = champs.map(champ => ({
+      dossier, champ, statut, motif: statut === 'rejete' ? motifTexte : null,
+      valide_par: userData?.user?.email || null, valide_le: new Date().toISOString(),
+    }))
+    await supabase.from('document_validations').upsert(lignes, { onConflict: 'dossier,champ' })
+    supabase.functions.invoke('notify-action', {
+      body: { dossier, type: statut === 'valide' ? 'document_valide' : 'document_rejete', champs, motif: motifTexte },
+    }).catch(() => {})
     await load()
-    setSaving(null)
+    setSaving(false)
   }
 
-  const rejeter = async champ => {
-    if (!motif.trim()) return
-    setSaving(champ)
-    const { data: userData } = await supabase.auth.getUser()
-    await supabase.from('document_validations').upsert(
-      { dossier, champ, statut: 'rejete', motif: motif.trim(), valide_par: userData?.user?.email || null, valide_le: new Date().toISOString() },
-      { onConflict: 'dossier,champ' },
-    )
-    supabase.functions.invoke('notify-action', { body: { dossier, type: 'document_rejete', label: champ, motif: motif.trim() } }).catch(() => {})
-    setMotifChamp(null); setMotif('')
-    await load()
-    setSaving(null)
-  }
+  const validerSelection = () => { if (champsCoches.length) enregistrerValidations(champsCoches, 'valide') }
+  const ouvrirRejet = () => { if (champsCoches.length) { setMotifOuvert(true); setMotif('') } }
+  const envoyerRejet = () => { if (motif.trim() && champsCoches.length) { enregistrerValidations(champsCoches, 'rejete', motif.trim()); setMotifOuvert(false) } }
 
-  if (loading || !record) return null
-
-  const urls = { photo: record.photo_url, passeport: record.passeport_url }
-  const champsPresents = CHAMPS.filter(c => urls[c.key])
-  if (champsPresents.length === 0) return null
+  if (loading || !record || champsPresents.length === 0) return null
 
   return (
     <div style={{ marginTop: 20 }}>
       <div style={LABEL}>Validation photo / passeport</div>
       {champsPresents.map(c => {
         const etat = etats[c.key]
+        const url = record[c.key === 'photo' ? 'photo_url' : 'passeport_url']
         return (
-          <div key={c.key}>
-            <div style={ROW}>
-              <a href={urls[c.key]} target="_blank" rel="noreferrer" style={{ fontSize: 12.5, fontWeight: 600, color: '#0f172a', textDecoration: 'none', flex: 1, minWidth: 100 }}>
-                {c.label}
-              </a>
-              {etat?.statut === 'valide' && (
-                <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100, color: '#065f46', background: '#d1fae5' }}>Validé</span>
-              )}
-              {etat?.statut === 'rejete' && (
-                <span title={etat.motif} style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100, color: '#991b1b', background: '#fee2e2' }}>
-                  Rejeté : {etat.motif}
-                </span>
-              )}
-              {etat?.statut !== 'valide' && (
-                <button type="button" onClick={() => valider(c.key)} disabled={saving === c.key} style={{ ...BTN, color: '#065f46', background: '#d1fae5', opacity: saving === c.key ? 0.6 : 1 }}>
-                  Valider
-                </button>
-              )}
-              {motifChamp !== c.key && (
-                <button type="button" onClick={() => { setMotifChamp(c.key); setMotif('') }} disabled={saving === c.key} style={{ ...BTN, color: '#991b1b', background: '#fee2e2', opacity: saving === c.key ? 0.6 : 1 }}>
-                  Rejeter
-                </button>
-              )}
-            </div>
-            {motifChamp === c.key && (
-              <div style={{ display: 'flex', gap: 8, paddingBottom: 10 }}>
-                <input
-                  autoFocus value={motif} onChange={e => setMotif(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') rejeter(c.key); if (e.key === 'Escape') setMotifChamp(null) }}
-                  placeholder="Motif du rejet (ex. photo floue)"
-                  style={{ flex: 1, minWidth: 120, padding: '6px 10px', fontSize: 12, fontFamily: 'inherit', border: '1.5px solid #fecaca', borderRadius: 8, outline: 'none' }}
-                />
-                <button type="button" onClick={() => rejeter(c.key)} disabled={!motif.trim() || saving === c.key} style={{ ...BTN, color: '#fff', background: '#dc2626', opacity: !motif.trim() || saving === c.key ? 0.5 : 1 }}>
-                  Envoyer
-                </button>
-                <button type="button" onClick={() => setMotifChamp(null)} style={{ ...BTN, color: '#64748b', background: '#f1f5f9' }}>
-                  Annuler
-                </button>
-              </div>
+          <div key={c.key} style={ROW}>
+            <input type="checkbox" checked={!!selection[c.key]} onChange={() => toggle(c.key)} style={{ width: 15, height: 15, cursor: 'pointer', flexShrink: 0 }} />
+            <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: 12.5, fontWeight: 600, color: '#0f172a', textDecoration: 'none', flex: 1, minWidth: 100 }}>
+              {c.label}
+            </a>
+            {etat?.statut === 'valide' && (
+              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100, color: '#065f46', background: '#d1fae5' }}>Validé</span>
+            )}
+            {etat?.statut === 'rejete' && (
+              <span title={etat.motif} style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100, color: '#991b1b', background: '#fee2e2' }}>
+                Rejeté : {etat.motif}
+              </span>
             )}
           </div>
         )
       })}
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
+        <button type="button" onClick={validerSelection} disabled={!champsCoches.length || saving} style={{ ...BTN, color: '#065f46', background: '#d1fae5', opacity: !champsCoches.length || saving ? 0.5 : 1 }}>
+          Valider la sélection{champsCoches.length > 1 ? ` (${champsCoches.length})` : ''}
+        </button>
+        <button type="button" onClick={ouvrirRejet} disabled={!champsCoches.length || saving} style={{ ...BTN, color: '#991b1b', background: '#fee2e2', opacity: !champsCoches.length || saving ? 0.5 : 1 }}>
+          Rejeter la sélection{champsCoches.length > 1 ? ` (${champsCoches.length})` : ''}
+        </button>
+      </div>
+
+      {motifOuvert && (
+        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+          <input
+            autoFocus value={motif} onChange={e => setMotif(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') envoyerRejet(); if (e.key === 'Escape') setMotifOuvert(false) }}
+            placeholder="Motif du rejet (ex. photo floue)"
+            style={{ flex: 1, minWidth: 120, padding: '7px 10px', fontSize: 12, fontFamily: 'inherit', border: '1.5px solid #fecaca', borderRadius: 8, outline: 'none' }}
+          />
+          <button type="button" onClick={envoyerRejet} disabled={!motif.trim() || saving} style={{ ...BTN, color: '#fff', background: '#dc2626', opacity: !motif.trim() || saving ? 0.5 : 1 }}>
+            Envoyer
+          </button>
+          <button type="button" onClick={() => setMotifOuvert(false)} style={{ ...BTN, color: '#64748b', background: '#f1f5f9' }}>
+            Annuler
+          </button>
+        </div>
+      )}
     </div>
   )
 }
