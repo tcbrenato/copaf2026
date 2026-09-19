@@ -7,6 +7,9 @@ import { generateQrCard } from '../utils/generateQrCard'
 
 const BLUE = '#0284C7'
 
+// Dossier Google Drive partage a tous les intervenants (meme lien pour tous).
+const DOCUMENTATION_DRIVE_URL = 'https://drive.google.com/drive/folders/1wkLerVKdj-mJ4QGTqMZiM90uSe2iyCHS?usp=sharing'
+
 const JOUR_LABEL = {
   1: { date: '19 Octobre', sub: 'Jour 1' },
   2: { date: '20 Octobre', sub: 'Jour 2' },
@@ -336,6 +339,24 @@ export default function EspaceIntervenant() {
                   Aucune intervention enregistrée pour le moment.
                 </div>
               )}
+            </div>
+
+            {/* Documentation de reference (lien Drive commun a tous les intervenants) */}
+            <div className="bento-card-light col-span-full" style={{ padding: 28, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: '#E0F2FE', border: '1px solid #BAE6FD', display: 'grid', placeItems: 'center', color: BLUE, flexShrink: 0 }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0F172A', margin: '0 0 4px' }}>COPAF 2026 - Documentation de référence</h3>
+                <span style={{ fontSize: 13, color: '#64748B', lineHeight: 1.5 }}>Dossier partagé contenant les documents de référence de la conférence.</span>
+              </div>
+              <a
+                href={DOCUMENTATION_DRIVE_URL} target="_blank" rel="noreferrer"
+                className="btn-blue"
+                style={{ display: 'inline-block', padding: '12px 22px', borderRadius: 12, fontSize: 13.5, textDecoration: 'none', textAlign: 'center' }}
+              >
+                Ouvrir le dossier
+              </a>
             </div>
 
             {/* Bento Card 3 : Espace Documents (Plein Largeur) */}
