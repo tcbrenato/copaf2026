@@ -32,7 +32,8 @@ const EMAIL_TYPES = {
   photo: 'photo reçue', passeport: 'passeport reçu', email: 'email enregistré', telephone: 'téléphone enregistré',
   document: 'document reçu', preuve_paiement: 'preuve de paiement reçue', document_admin: 'document déposé par l\'équipe',
   document_valide: 'document validé', document_rejete: 'document à corriger', statut_confirme: 'inscription confirmée',
-  relance_dossier: 'rappel dossier incomplet',
+  relance_dossier: 'rappel dossier incomplet', documentation_intervenant: 'documentation de référence',
+  manuel: 'message manuel',
 }
 
 const TYPE_PERSONNE = { inscriptions: 'Participant', inscription_participants: 'Membre de délégation', intervenants: 'Intervenant' }
@@ -57,9 +58,10 @@ function decrire(r) {
 
   if (r.source === 'email') {
     const type = EMAIL_TYPES[r.cible] || r.cible
+    const objet = r.cible === 'manuel' && d.sujet ? ` : ${d.sujet}` : ''
     return {
       tone: r.ok ? 'email' : 'delete',
-      texte: `Email « ${type} » ${r.ok ? 'envoyé' : 'NON envoyé'}`,
+      texte: `Email « ${type}${objet} » ${r.ok ? 'envoyé' : 'NON envoyé'}`,
       sous: d.destinataire ? `à ${d.destinataire}` : (d.detail || null),
     }
   }
@@ -293,7 +295,7 @@ export default function AdminActivityLog() {
                   const tone = TONES[ev.tone] || TONES.update
                   const p = r.dossier ? personnes[r.dossier] : null
                   const acteur = r.source === 'email'
-                    ? 'Système'
+                    ? (r.acteur ? `Équipe · ${r.acteur}` : 'Système')
                     : r.action === 'connexion' ? 'La personne'
                     : r.acteur ? `Équipe · ${r.acteur}` : 'Participant / public'
                   return (

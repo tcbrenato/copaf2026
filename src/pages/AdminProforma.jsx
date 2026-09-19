@@ -8,6 +8,7 @@ import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitive
 import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmationInscriptionPDF'
 import DocumentsSection from '../components/DocumentsSection'
 import ValidationDocuments from '../components/ValidationDocuments'
+import EcrireBouton from '../components/EcrireBouton'
 
 const NAVY = '#000E91'
 const MAROON = '#96182A'
@@ -1197,10 +1198,12 @@ export default function AdminProforma() {
               deposer/voir un document, ni pour le contact ni pour les
               membres. */}
           <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
+            <EcrireBouton dossier={data.dossier} />
             <ValidationDocuments dossier={data.dossier} />
             <DocumentsSection dossier={data.dossier} titre={`Documents — ${data.prenom} ${data.nom} (contact principal)`} />
             {isGroup && participantsListe.filter(p => p.participantId).map(p => (
               <div key={p._id} style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #f1f5f9' }}>
+                <EcrireBouton dossier={p.dossier} />
                 <ValidationDocuments dossier={p.dossier} />
                 <DocumentsSection dossier={data.dossier} participantId={p.participantId} titre={`Documents — ${p.prenom} ${p.nom}`} />
               </div>

@@ -10,6 +10,8 @@ import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { useAdminAuth } from '../adminAuth'
 import DocumentsSection from './DocumentsSection'
 import ValidationDocuments from './ValidationDocuments'
+import EcrireBouton from './EcrireBouton'
+import AdminEmails from '../pages/AdminEmails'
 import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
 import AdminDiagnostics from '../pages/AdminDiagnostics'
@@ -87,6 +89,7 @@ const MODULES = [
   { id: 'login-log',   label: 'Connexions',       icon: 'clock',    table: null,            scope: 'all', adminOnly: true },
   { id: 'activity-log',label: 'Journal d\'activité', icon: 'search', table: null,            scope: 'all', adminOnly: true },
   { id: 'newsletter',  label: 'Newsletter',       icon: 'mail',     table: null,            scope: 'all', adminOnly: true },
+  { id: 'emails',      label: 'Envoyer un email', icon: 'mail',     table: null,            scope: 'all', adminOnly: true },
 ]
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -572,6 +575,7 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
         </div>
       )}
 
+      <EcrireBouton dossier={dossier} />
       <ValidationDocuments dossier={dossier} />
       <DocumentsSection dossier={dossier} />
 
@@ -915,6 +919,7 @@ function ModalMembre({ membre, onClose, onUpdate }) {
         </div>
 
         <div style={{ padding: '0 28px 28px' }}>
+          <EcrireBouton dossier={membre.dossier} />
           <ValidationDocuments dossier={membre.dossier} />
           <DocumentsSection dossier={membre.dossier} participantId={membre._memberId} />
           <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 8, lineHeight: 1.5 }}>
@@ -2912,6 +2917,8 @@ export default function AdminPage() {
             <AdminActivityLog />
           ) : activeModule === 'newsletter' ? (
             <AdminNewsletter />
+          ) : activeModule === 'emails' ? (
+            <AdminEmails />
           ) : activeModule === 'intervenants' ? (
             <AdminIntervenants />
           ) : activeModule === 'analytics' ? (
