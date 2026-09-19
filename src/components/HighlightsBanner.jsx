@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Calendar, Plane, Hotel, Bus, Wallet, CloudSun, PhoneCall, Quote, Eye, X } from 'lucide-react'
+import { Calendar, Plane, Hotel, Bus, Wallet, CloudSun, PhoneCall, Quote, Eye, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCountdown } from '../hooks/useCountdown'
@@ -28,6 +28,7 @@ const PRACTICAL_INFO_ICONS = {
 // defilement automatique et le glisser/scroll manuel de l'utilisateur
 // partagent ainsi le meme scrollLeft natif, sans jamais se contredire.
 const InfosPratiquesCarousel = ({ cards }) => {
+  const { t } = useTranslation()
   const trackRef = useRef(null)
   const pausedRef = useRef(false)
   const resumeTimeoutRef = useRef(null)
@@ -68,33 +69,57 @@ const InfosPratiquesCarousel = ({ cards }) => {
 
   useEffect(() => () => clearTimeout(resumeTimeoutRef.current), [])
 
+  // Fleches precedent/suivant : decale d'une carte (largeur + espace). La
+  // boucle etant faite de deux jeux identiques, on saute d'un jeu (invisible)
+  // avant de defiler si l'on approche d'un bord, pour ne jamais buter.
+  const scrollByCard = (direction) => {
+    const track = trackRef.current
+    if (!track) return
+    const card = track.querySelector('.infos-carousel-card')
+    const step = card ? card.getBoundingClientRect().width + 16 : 216
+    const setWidth = track.scrollWidth / 2
+    if (direction < 0 && track.scrollLeft - step < 0) track.scrollLeft += setWidth
+    if (direction > 0 && track.scrollLeft + step >= setWidth) track.scrollLeft -= setWidth
+    pause()
+    track.scrollBy({ left: direction * step, behavior: 'smooth' })
+    scheduleResume()
+  }
+
   // Deux exemplaires de la liste, bout a bout, pour une boucle invisible :
   // au passage de scrollLeft >= largeur d'un jeu, on retranche cette
   // largeur exactement au meme instant, le contenu visible ne bouge pas.
   const items = [...cards, ...cards]
 
   return (
-    <div
-      ref={trackRef}
-      className="infos-carousel"
-      onMouseEnter={pause}
-      onMouseLeave={scheduleResume}
-      onPointerDown={pause}
-      onPointerUp={scheduleResume}
-      onTouchStart={pause}
-      onTouchEnd={scheduleResume}
-      onWheel={() => { pause(); scheduleResume() }}
-    >
-      {items.map((card, i) => {
-        const Icon = PRACTICAL_INFO_ICONS[card.id] || Plane
-        return (
-          <div className="infos-carousel-card" key={`${card.id}-${i}`}>
-            <div className="infos-carousel-icon"><Icon size={24} strokeWidth={1.8} /></div>
-            <h4 className="infos-carousel-title">{card.title}</h4>
-            <p className="infos-carousel-text">{card.text}</p>
-          </div>
-        )
-      })}
+    <div className="infos-carousel-wrap">
+      <button type="button" className="infos-carousel-arrow infos-carousel-arrow-left" onClick={() => scrollByCard(-1)} aria-label={t('highlights.practicalInfo.prev')}>
+        <ChevronLeft size={20} strokeWidth={2.4} />
+      </button>
+      <button type="button" className="infos-carousel-arrow infos-carousel-arrow-right" onClick={() => scrollByCard(1)} aria-label={t('highlights.practicalInfo.next')}>
+        <ChevronRight size={20} strokeWidth={2.4} />
+      </button>
+      <div
+        ref={trackRef}
+        className="infos-carousel"
+        onMouseEnter={pause}
+        onMouseLeave={scheduleResume}
+        onPointerDown={pause}
+        onPointerUp={scheduleResume}
+        onTouchStart={pause}
+        onTouchEnd={scheduleResume}
+        onWheel={() => { pause(); scheduleResume() }}
+      >
+        {items.map((card, i) => {
+          const Icon = PRACTICAL_INFO_ICONS[card.id] || Plane
+          return (
+            <div className="infos-carousel-card" key={`${card.id}-${i}`}>
+              <div className="infos-carousel-icon"><Icon size={24} strokeWidth={1.8} /></div>
+              <h4 className="infos-carousel-title">{card.title}</h4>
+              <p className="infos-carousel-text">{card.text}</p>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -332,6 +357,26 @@ const HighlightsBanner = () => {
           .highlight-banner-peek { inset: 10px -8px -10px 16px; }
         }
 
+        .infos-carousel-wrap { position: relative; }
+        .infos-carousel-arrow {
+          position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+          width: 38px; height: 38px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          background: #fff; color: ${CAROUSEL_NAVY};
+          border: 1px solid rgba(0,54,127,0.15);
+          box-shadow: 0 6px 16px rgba(0,54,127,0.18);
+          cursor: pointer; padding: 0;
+          transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+        .infos-carousel-arrow:hover { background: ${CAROUSEL_NAVY}; color: #fff; }
+        .infos-carousel-arrow:focus-visible { outline: 2px solid ${CAROUSEL_SKY}; outline-offset: 2px; }
+        .infos-carousel-arrow-left { left: -14px; }
+        .infos-carousel-arrow-right { right: -14px; }
+        @media (max-width: 480px) {
+          .infos-carousel-arrow { width: 34px; height: 34px; }
+          .infos-carousel-arrow-left { left: -8px; }
+          .infos-carousel-arrow-right { right: -8px; }
+        }
         .infos-carousel {
           display: flex;
           gap: 16px;

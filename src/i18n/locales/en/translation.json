@@ -216,6 +216,8 @@
       "title": "Everything you need to know to travel to Casablanca",
       "subtitle": "Accommodation, transport, practical info.",
       "cta": "See practical information",
+      "prev": "Previous cards",
+      "next": "Next cards",
       "comingSoon": "Content coming soon",
       "comingSoonDetail": "Detailed information on visas, accommodation and transport to reach Casablanca will be published on this page shortly.",
       "cards": [
