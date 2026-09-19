@@ -156,7 +156,9 @@ export default function BadgeToken() {
       const bucket = champ === 'photo_url' ? 'badges-photos' : 'documents-inscription'
       const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
       const path = `${activeToken}/${champ}-${crypto.randomUUID()}.${ext}`
-      const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true })
+      // Chemin unique (uuid) : pas besoin d'upsert, qui exigerait un droit de
+      // lecture publique sur le bucket (donc son listing).
+      const { error: upErr } = await supabase.storage.from(bucket).upload(path, file)
       if (upErr) throw upErr
       const url = supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
       const { data: ok, error: rpcErr } = await supabase.rpc('badge_upload_url', { p_token: activeToken, p_field: champ, p_url: url })

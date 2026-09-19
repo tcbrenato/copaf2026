@@ -755,8 +755,10 @@ export default function Inscription() {
         const attestationDoc = await generateRecapPDF({ form, dossier, nb, total: totalReel, participants: participantsPourPdf, delegationName: isDelegation ? form.organisation : '', paiementMode, lang, download: false })
         attestationDoc.save(`COPAF2026-Attestation-${dossier}.pdf`)
         const attestationBlob = attestationDoc.output('blob')
-        const attestationPath = `${dossier}-attestation-${lang}.pdf`
-        const { error: attestationUploadErr } = await supabase.storage.from('documents-inscription').upload(attestationPath, attestationBlob, { upsert: true, contentType: 'application/pdf' })
+        // Suffixe aleatoire : le nom du fichier ne doit pas etre devinable a
+        // partir du numero de dossier (le bucket est public en lecture directe).
+        const attestationPath = `${dossier}-attestation-${lang}-${crypto.randomUUID()}.pdf`
+        const { error: attestationUploadErr } = await supabase.storage.from('documents-inscription').upload(attestationPath, attestationBlob, { contentType: 'application/pdf' })
         if (attestationUploadErr) throw attestationUploadErr
         attestationUrl = supabase.storage.from('documents-inscription').getPublicUrl(attestationPath).data.publicUrl
       } catch (attestationErr) {
@@ -773,8 +775,8 @@ export default function Inscription() {
       try {
         const proformaDoc = await generateProformaPDF({ form, dossier, nb, total: totalReel, participants: participantsPourPdf, delegationName: isDelegation ? form.organisation : '', lang, download: false })
         const proformaBlob = proformaDoc.output('blob')
-        const proformaPath = `${dossier}-proforma-${lang}.pdf`
-        const { error: proformaUploadErr } = await supabase.storage.from('documents-inscription').upload(proformaPath, proformaBlob, { upsert: true, contentType: 'application/pdf' })
+        const proformaPath = `${dossier}-proforma-${lang}-${crypto.randomUUID()}.pdf`
+        const { error: proformaUploadErr } = await supabase.storage.from('documents-inscription').upload(proformaPath, proformaBlob, { contentType: 'application/pdf' })
         if (proformaUploadErr) throw proformaUploadErr
         proformaUrl = supabase.storage.from('documents-inscription').getPublicUrl(proformaPath).data.publicUrl
       } catch (proformaErr) {
