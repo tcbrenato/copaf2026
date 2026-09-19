@@ -74,7 +74,7 @@ const CHAMP_LABEL: Record<Langue, Record<string, string>> = {
 // Types qui ne notifient QUE la personne (jamais l'admin) : l'admin est soit
 // l'auteur de l'action (document_admin, document_valide/rejete, statut_confirme),
 // soit hors-sujet (relance_dossier, automatique).
-const PARTICIPANT_ONLY_TYPES = new Set(['document_admin', 'document_valide', 'document_rejete', 'statut_confirme', 'relance_dossier'])
+const PARTICIPANT_ONLY_TYPES = new Set(['document_admin', 'document_valide', 'document_rejete', 'statut_confirme', 'relance_dossier', 'documentation_intervenant'])
 
 function escapeHtml(value: unknown): string {
   const str = value === null || value === undefined || value === '' ? '—' : String(value)
@@ -98,6 +98,7 @@ interface Personne {
   photoUrl: string | null
   passeportUrl: string | null
   langue: Langue
+  civilite: string | null
   // 'intervenant' se connecte par nom + code d'accres (/intervenant), tous
   // les autres par dossier + email (/verifier) — le lien et les identifiants
   // mentionnes dans l'email dependent de ce type.
@@ -119,7 +120,7 @@ async function trouverPersonne(supabase: ReturnType<typeof createClient>, dossie
     .maybeSingle()
   if (insc?.contacts) {
     const c = insc.contacts as { nom: string; prenom: string; poste: string; organisation: string; email: string }
-    return { dossier, nom: c.nom, prenom: c.prenom, poste: c.poste, organisation: c.organisation, email: c.email, photoUrl: insc.photo_url as string | null, passeportUrl: insc.passeport_url as string | null, langue: normaliserLangue(insc.langue), espace: 'participant' }
+    return { dossier, nom: c.nom, prenom: c.prenom, poste: c.poste, organisation: c.organisation, email: c.email, photoUrl: insc.photo_url as string | null, passeportUrl: insc.passeport_url as string | null, langue: normaliserLangue(insc.langue), civilite: null, espace: 'participant' }
   }
 
   const { data: participant } = await supabase
@@ -133,16 +134,16 @@ async function trouverPersonne(supabase: ReturnType<typeof createClient>, dossie
     // Langue propre au membre si definie, sinon celle du dossier parent (les
     // membres ajoutes cote admin n'ont souvent pas leur propre langue remplie).
     const langue = normaliserLangue(participant.langue ?? inscriptionLiee?.langue)
-    return { dossier, nom: participant.nom, prenom: participant.prenom, poste: participant.poste, organisation: org, email: participant.email, photoUrl: participant.photo_url as string | null, passeportUrl: participant.passeport_url as string | null, langue, espace: 'participant' }
+    return { dossier, nom: participant.nom, prenom: participant.prenom, poste: participant.poste, organisation: org, email: participant.email, photoUrl: participant.photo_url as string | null, passeportUrl: participant.passeport_url as string | null, langue, civilite: null, espace: 'participant' }
   }
 
   const { data: intervenant } = await supabase
     .from('intervenants')
-    .select('dossier, nom, prenom, fonction, organisation, email, photo_url, passeport_url, langue')
+    .select('dossier, nom, prenom, fonction, organisation, email, photo_url, passeport_url, langue, civilite')
     .eq('dossier', dossier)
     .maybeSingle()
   if (intervenant) {
-    return { dossier, nom: intervenant.nom, prenom: intervenant.prenom, poste: intervenant.fonction, organisation: intervenant.organisation, email: intervenant.email, photoUrl: intervenant.photo_url as string | null, passeportUrl: intervenant.passeport_url as string | null, langue: normaliserLangue(intervenant.langue), espace: 'intervenant' }
+    return { dossier, nom: intervenant.nom, prenom: intervenant.prenom, poste: intervenant.fonction, organisation: intervenant.organisation, email: intervenant.email, photoUrl: intervenant.photo_url as string | null, passeportUrl: intervenant.passeport_url as string | null, langue: normaliserLangue(intervenant.langue), civilite: (intervenant.civilite as string | null) ?? null, espace: 'intervenant' }
   }
 
   return null
@@ -277,11 +278,12 @@ function emailShell(opts: {
   extraHtml?: string
   ctaLabel?: string
   ctaUrl?: string
+  apresCtaHtml?: string
   noteFooter?: string
 }) {
   const {
     langue, pillLabel, icon, accentFrom = BRAND_FROM, accentTo = BRAND_TO,
-    titre, sousTitre, corpsHtml, extraHtml = '', ctaLabel, ctaUrl, noteFooter,
+    titre, sousTitre, corpsHtml, extraHtml = '', ctaLabel, ctaUrl, apresCtaHtml = '', noteFooter,
   } = opts
   const t = TXT[langue]
 
@@ -330,6 +332,7 @@ ${ctaUrl ? `
 </td>
 </tr></table>
 </td></tr></table>` : ''}
+${apresCtaHtml}
 <p style="text-align:center;font-size:12px;color:#94a3b8;margin:24px 0 0;">${escapeHtml(t.lieuDate)}</p>
 </td></tr>
 
@@ -518,6 +521,63 @@ function emailRelanceDossierHtml(personne: Personne, joursRestants: number) {
   })
 }
 
+// Information envoyee a tous les intervenants : le dossier Drive de
+// documentation de reference est disponible dans leur espace. Redige en
+// francais (langue de travail des intervenants), civilite M / Mme selon la
+// colonne intervenants.civilite.
+const WHATSAPP_URL = 'https://wa.me/2290169303019'
+const CONTACT_REPONSE = 'contact@copaf-ports.com'
+
+function blocDocumentation(titre: string, contenuHtml: string) {
+  return `
+<div style="margin:0 0 22px;">
+<div style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${BRAND_FROM};margin-bottom:6px;">${escapeHtml(titre)}</div>
+<div style="font-size:14.5px;color:#475569;line-height:1.7;">${contenuHtml}</div>
+</div>`
+}
+
+function emailDocumentationIntervenantHtml(personne: Personne) {
+  const civilite = personne.civilite === 'Mme' ? 'Mme' : 'M.'
+  const nomComplet = `${escapeHtml(personne.prenom)} ${escapeHtml(personne.nom)}`.replace(/\s+/g, ' ').trim()
+  const sections =
+    blocDocumentation('Où le trouver', 'Dans votre espace intervenant, sur la carte «&nbsp;COPAF 2026 – Documentation de référence&nbsp;», cliquez sur «&nbsp;Ouvrir le dossier&nbsp;».') +
+    blocDocumentation('Ce que contient le dossier', 'Les 8 modules du cours «&nbsp;Gestion moderne des ports&nbsp;» de la CNUCED (programme TrainForTrade). Ils offrent un cadre et un vocabulaire communs à l\'ensemble des intervenants, afin que nos interventions restent cohérentes entre elles.') +
+    blocDocumentation('Comment les utiliser', 'Ces documents constituent un socle de référence commun. Ils sont là pour nourrir votre réflexion et vous servir de repère&nbsp;; votre expertise, notamment sur l\'IA, la cybersécurité et les Smart Ports, reste au cœur de vos interventions. Le Module&nbsp;4 («&nbsp;Les principaux enjeux du futur&nbsp;») est un bon point d\'entrée&nbsp;; les autres modules complètent selon votre thématique.') +
+    `<div style="background:#f8fafc;border-left:4px solid ${BRAND_FROM};border-radius:12px;padding:16px 20px;font-size:14px;color:#475569;line-height:1.7;">
+Vos supports de session (cahier des charges, template de présentation) restent disponibles au même endroit, dans la rubrique «&nbsp;Supports &amp; documents&nbsp;».<br/>
+<strong style="color:#0f172a;">Et aussi, nous attendons vos différentes présentations.</strong>
+</div>`
+
+  const apres = `
+<div style="margin-top:28px;font-size:14px;color:#475569;line-height:1.7;">
+En cas de difficulté d'accès au dossier, n'hésitez pas à nous répondre directement à cet email ou à nous joindre par WhatsApp.
+</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0 4px;"><tr><td align="center">
+<table border="0" cellspacing="0" cellpadding="0"><tr>
+<td align="center" bgcolor="#16a34a" style="border-radius:10px;">
+<a href="${WHATSAPP_URL}" target="_blank" style="font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;padding:13px 26px;border-radius:10px;display:inline-block;">WhatsApp · +229 01 69 30 30 19</a>
+</td>
+</tr></table>
+</td></tr></table>
+<div style="margin-top:26px;font-size:14px;color:#475569;line-height:1.7;">
+Cordialement,<br/>
+<strong style="color:#0f172a;">Comité d'organisation de la COPAF 2026</strong>
+</div>`
+
+  return emailShell({
+    langue: 'fr',
+    pillLabel: 'Notification',
+    icon: '📚',
+    titre: 'Documentation de référence disponible',
+    sousTitre: 'Dans votre espace intervenant',
+    corpsHtml: `Bonjour ${civilite} ${nomComplet},<br/><br/>Dans le cadre de la préparation de COPAF 2026 (19-21 octobre, Casablanca), nous avons mis à votre disposition un dossier de documentation de référence.`,
+    extraHtml: `<div style="margin-top:26px;">${sections}</div>`,
+    ctaLabel: 'Accéder à mon espace intervenant',
+    ctaUrl: 'https://copaf-ports.com/intervenant',
+    apresCtaHtml: apres,
+  })
+}
+
 // ─── Handler ────────────────────────────────────────────────────────────
 
 Deno.serve(async req => {
@@ -565,13 +625,13 @@ Deno.serve(async req => {
     const langue = personne.langue
 
     const envois: { to: string; promise: Promise<Response> }[] = []
-    const programmer = (to: string, subject: string, html: string) => {
+    const programmer = (to: string, subject: string, html: string, replyTo?: string) => {
       envois.push({
         to,
         promise: fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: fromEmail, to: [to], subject, html }),
+          body: JSON.stringify({ from: fromEmail, to: [to], subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
         }),
       })
     }
@@ -583,6 +643,16 @@ Deno.serve(async req => {
       // qui est soit l'auteur de l'action, soit hors-sujet).
       if (!personne.email) {
         sansEmail.push({ dossier: personne.dossier, type, langue: personne.langue, ok: false, detail: 'Aucun email enregistré pour ce dossier' })
+      } else if (type === 'documentation_intervenant' && personne.espace !== 'intervenant') {
+        // Garde-fou : cette information ne concerne que l'espace intervenant.
+        sansEmail.push({ dossier: personne.dossier, type, destinataire: personne.email, langue: personne.langue, ok: false, detail: 'Ignoré : ce dossier n\'est pas un intervenant' })
+      } else if (type === 'documentation_intervenant') {
+        programmer(
+          personne.email,
+          'COPAF 2026 – Documentation de référence disponible dans votre espace',
+          emailDocumentationIntervenantHtml(personne),
+          CONTACT_REPONSE,
+        )
       } else {
         let subject = ''
         let html = ''
