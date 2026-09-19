@@ -625,13 +625,15 @@ Deno.serve(async req => {
     const langue = personne.langue
 
     const envois: { to: string; promise: Promise<Response> }[] = []
-    const programmer = (to: string, subject: string, html: string, replyTo?: string) => {
+    // Toutes les reponses arrivent sur contact@ (l'expediteur newsletter@ n'a
+    // pas forcement de boite de reception).
+    const programmer =(to: string, subject: string, html: string, replyTo?: string) => {
       envois.push({
         to,
         promise: fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ from: fromEmail, to: [to], subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
+          body: JSON.stringify({ from: fromEmail, to: [to], subject, html, reply_to: replyTo ?? CONTACT_REPONSE }),
         }),
       })
     }
