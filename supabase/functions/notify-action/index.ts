@@ -39,7 +39,7 @@ type Langue = 'fr' | 'en'
 // Admin-facing (francais uniquement, cf. plus bas).
 const ACTION_LABELS: Record<string, string> = {
   photo: 'a envoyé sa photo de badge',
-  passeport: 'a envoyé une copie de son passeport',
+  passeport: 'a renseigné son numéro de passeport',
   email: 'a renseigné son email',
   telephone: 'a renseigné son numéro de téléphone',
   document: 'a déposé un document',
@@ -49,16 +49,16 @@ const ACTION_LABELS: Record<string, string> = {
 // Participant-facing (bilingue).
 const PARTICIPANT_SUBJECT: Record<Langue, Record<string, string>> = {
   fr: {
-    photo: 'Vos documents ont bien été reçus',
-    passeport: 'Vos documents ont bien été reçus',
+    photo: 'Votre photo a bien été reçue',
+    passeport: 'Vos informations de passeport ont bien été reçues',
     email: 'Email enregistré',
     telephone: 'Numéro de téléphone enregistré',
     document: 'Document bien reçu',
     preuve_paiement: 'Preuve de paiement bien reçue',
   },
   en: {
-    photo: 'Your documents have been received',
-    passeport: 'Your documents have been received',
+    photo: 'Your photo has been received',
+    passeport: 'Your passport details have been received',
     email: 'Email saved',
     telephone: 'Phone number saved',
     document: 'Document received',
@@ -67,8 +67,8 @@ const PARTICIPANT_SUBJECT: Record<Langue, Record<string, string>> = {
 }
 
 const CHAMP_LABEL: Record<Langue, Record<string, string>> = {
-  fr: { photo: 'photo', passeport: 'passeport' },
-  en: { photo: 'photo', passeport: 'passport' },
+  fr: { photo: 'photo', passeport: 'informations de passeport' },
+  en: { photo: 'photo', passeport: 'passport details' },
 }
 
 // Types qui ne notifient QUE la personne (jamais l'admin) : l'admin est soit
@@ -96,7 +96,8 @@ interface Personne {
   organisation: string | null
   email: string | null
   photoUrl: string | null
-  passeportUrl: string | null
+  numeroPasseport: string | null
+  telephone: string | null
   langue: Langue
   civilite: string | null
   // 'intervenant' se connecte par nom + code d'accres (/intervenant), tous
@@ -115,17 +116,17 @@ function normaliserLangue(v: unknown): Langue {
 async function trouverPersonne(supabase: ReturnType<typeof createClient>, dossier: string): Promise<Personne | null> {
   const { data: insc } = await supabase
     .from('inscriptions')
-    .select('dossier, photo_url, passeport_url, langue, contacts(nom, prenom, poste, organisation, email)')
+    .select('dossier, photo_url, numero_passeport, langue, contacts(nom, prenom, poste, organisation, email, telephone)')
     .eq('dossier', dossier)
     .maybeSingle()
   if (insc?.contacts) {
-    const c = insc.contacts as { nom: string; prenom: string; poste: string; organisation: string; email: string }
-    return { dossier, nom: c.nom, prenom: c.prenom, poste: c.poste, organisation: c.organisation, email: c.email, photoUrl: insc.photo_url as string | null, passeportUrl: insc.passeport_url as string | null, langue: normaliserLangue(insc.langue), civilite: null, espace: 'participant' }
+    const c = insc.contacts as { nom: string; prenom: string; poste: string; organisation: string; email: string; telephone: string | null }
+    return { dossier, nom: c.nom, prenom: c.prenom, poste: c.poste, organisation: c.organisation, email: c.email, photoUrl: insc.photo_url as string | null, numeroPasseport: (insc.numero_passeport as string | null) || null, telephone: c.telephone || null, langue: normaliserLangue(insc.langue), civilite: null, espace: 'participant' }
   }
 
   const { data: participant } = await supabase
     .from('inscription_participants')
-    .select('dossier, poste, email, photo_url, passeport_url, nom, prenom, langue, inscriptions(langue, contacts(organisation))')
+    .select('dossier, poste, email, telephone, photo_url, numero_passeport, nom, prenom, langue, inscriptions(langue, contacts(organisation))')
     .eq('dossier', dossier)
     .maybeSingle()
   if (participant) {
@@ -134,16 +135,16 @@ async function trouverPersonne(supabase: ReturnType<typeof createClient>, dossie
     // Langue propre au membre si definie, sinon celle du dossier parent (les
     // membres ajoutes cote admin n'ont souvent pas leur propre langue remplie).
     const langue = normaliserLangue(participant.langue ?? inscriptionLiee?.langue)
-    return { dossier, nom: participant.nom, prenom: participant.prenom, poste: participant.poste, organisation: org, email: participant.email, photoUrl: participant.photo_url as string | null, passeportUrl: participant.passeport_url as string | null, langue, civilite: null, espace: 'participant' }
+    return { dossier, nom: participant.nom, prenom: participant.prenom, poste: participant.poste, organisation: org, email: participant.email, photoUrl: participant.photo_url as string | null, numeroPasseport: (participant.numero_passeport as string | null) || null, telephone: (participant.telephone as string | null) || null, langue, civilite: null, espace: 'participant' }
   }
 
   const { data: intervenant } = await supabase
     .from('intervenants')
-    .select('dossier, nom, prenom, fonction, organisation, email, photo_url, passeport_url, langue, civilite')
+    .select('dossier, nom, prenom, fonction, organisation, email, telephone, photo_url, numero_passeport, langue, civilite')
     .eq('dossier', dossier)
     .maybeSingle()
   if (intervenant) {
-    return { dossier, nom: intervenant.nom, prenom: intervenant.prenom, poste: intervenant.fonction, organisation: intervenant.organisation, email: intervenant.email, photoUrl: intervenant.photo_url as string | null, passeportUrl: intervenant.passeport_url as string | null, langue: normaliserLangue(intervenant.langue), civilite: (intervenant.civilite as string | null) ?? null, espace: 'intervenant' }
+    return { dossier, nom: intervenant.nom, prenom: intervenant.prenom, poste: intervenant.fonction, organisation: intervenant.organisation, email: intervenant.email, photoUrl: intervenant.photo_url as string | null, numeroPasseport: (intervenant.numero_passeport as string | null) || null, telephone: (intervenant.telephone as string | null) || null, langue: normaliserLangue(intervenant.langue), civilite: (intervenant.civilite as string | null) ?? null, espace: 'intervenant' }
   }
 
   return null
@@ -501,8 +502,8 @@ function emailRelanceDossierHtml(personne: Personne, joursRestants: number) {
   const t = TXT[langue]
   const { lien } = espaceLienEtIdentifiants(personne)
   const manquants = langue === 'en'
-    ? [!personne.photoUrl && 'photo', !personne.passeportUrl && 'passport'].filter(Boolean).join(' and ')
-    : [!personne.photoUrl && 'photo', !personne.passeportUrl && 'passeport'].filter(Boolean).join(' et ')
+    ? [!personne.photoUrl && 'photo', !personne.numeroPasseport && 'passport number'].filter(Boolean).join(' and ')
+    : [!personne.photoUrl && 'photo', !personne.numeroPasseport && 'numéro de passeport'].filter(Boolean).join(' et ')
   const corps = langue === 'en'
     ? `Hello ${escapeHtml(personne.prenom)},<br/><br/>There are <strong>${joursRestants} days</strong> left before COPAF 2026 and your file is still incomplete: your <strong>${escapeHtml(manquants)}</strong> is missing.`
     : `Bonjour ${escapeHtml(personne.prenom)},<br/><br/>Il reste <strong>${joursRestants} jours</strong> avant la COPAF 2026 et votre dossier est encore incomplet : il manque votre <strong>${escapeHtml(manquants)}</strong>.`
@@ -596,6 +597,33 @@ Deno.serve(async req => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
 
+    // Qui appelle ? Trois cas :
+    //  - service role (cron de relance) : autorise pour tous les types ;
+    //  - administrateur connecte (JWT verifie + ligne dans "admins") : idem ;
+    //  - tout le monde d'autre (cle anon du site public) : uniquement les
+    //    types "self-service" (photo, passeport, email, telephone, document,
+    //    preuve_paiement), verifies et limites plus bas. Les types qui
+    //    envoient un message que la personne n'a pas declenche elle-meme
+    //    (validation, rejet, relance, confirmation, documentation...) sont
+    //    reserves au personnel : sinon n'importe qui pourrait faire envoyer
+    //    des emails officiels COPAF a n'importe quel participant.
+    const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
+    let estPersonnel = false
+    if (jwt) {
+      if (jwt === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
+        estPersonnel = true
+      } else {
+        const { data: userData } = await supabase.auth.getUser(jwt)
+        if (userData?.user) {
+          const { data: adminRow } = await supabase.from('admins').select('user_id').eq('user_id', userData.user.id).maybeSingle()
+          estPersonnel = !!adminRow
+        }
+      }
+    }
+    if (estParticipantOnly && !estPersonnel) {
+      return new Response(JSON.stringify({ error: 'Non autorisé' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
     // Journal de chaque appel (table notifications_log) : permet de verifier
     // apres coup si un email est vraiment parti, sans dependre des logs Supabase.
     const journaliser = async (rows: Record<string, unknown>[]) => {
@@ -607,7 +635,41 @@ Deno.serve(async req => {
     const personne = await trouverPersonne(supabase, String(dossier).trim())
     if (!personne) {
       await journaliser([{ dossier: String(dossier), type, ok: false, detail: 'Dossier introuvable' }])
-      return new Response(JSON.stringify({ success: true, warning: 'Dossier introuvable' }), { headers: corsHeaders })
+      // Reponse volontairement identique a un succes : ne pas permettre de
+      // tester quels numeros de dossier existent.
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
+    // Types self-service (appel public) : on ne notifie que si l'action
+    // annoncee est reellement constatee en base, au plus une fois par
+    // dossier et par type toutes les 10 minutes, avec un plafond global
+    // horaire (protection contre l'envoi en masse depuis l'exterieur).
+    if (!estPersonnel) {
+      const ilYa = (min: number) => new Date(Date.now() - min * 60_000).toISOString()
+      const constate: Record<string, boolean> = {
+        photo: !!personne.photoUrl,
+        passeport: !!personne.numeroPasseport,
+        email: !!personne.email,
+        telephone: !!personne.telephone,
+      }
+      let ok = constate[type]
+      if (ok === undefined) {
+        const tables = type === 'preuve_paiement' ? ['preuves_paiement'] : ['documents_participants', 'documents_intervenants']
+        ok = false
+        for (const t of tables) {
+          const { data: recents } = await supabase.from(t).select('dossier').eq('dossier', personne.dossier).gt('created_at', ilYa(15)).limit(1)
+          if (recents && recents.length) { ok = true; break }
+        }
+      }
+      if (!ok) {
+        await journaliser([{ dossier: personne.dossier, type, ok: false, detail: 'Ignoré : action non constatée en base' }])
+        return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+      const { data: dejaFait } = await supabase.from('notifications_log').select('dossier').eq('dossier', personne.dossier).eq('type', type).eq('ok', true).gt('created_at', ilYa(10)).limit(1)
+      const { count: envoyesHeure } = await supabase.from('notifications_log').select('dossier', { count: 'exact', head: true }).in('type', Object.keys(ACTION_LABELS)).eq('ok', true).gt('created_at', ilYa(60))
+      if ((dejaFait && dejaFait.length) || (envoyesHeure ?? 0) >= 150) {
+        return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
     }
 
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
@@ -615,11 +677,11 @@ Deno.serve(async req => {
     const adminEmail = Deno.env.get('NOTIFY_EMAIL_TO')
 
     if (!resendApiKey) {
-      return new Response(JSON.stringify({ success: true, warning: 'RESEND_API_KEY manquant' }), { headers: corsHeaders })
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
     // Types document_valide/document_rejete : accepte soit `champs` (tableau,
-    // permet de valider/rejeter photo + passeport en un seul email), soit
+    // permet de valider/rejeter photo en un seul email), soit
     // l'ancien `label` singulier pour compatibilite.
     const champsList: string[] = Array.isArray(champs) && champs.length ? champs : label ? [String(label)] : ['photo']
     const langue = personne.langue
@@ -693,7 +755,7 @@ Deno.serve(async req => {
         // "documents reçus" n'a alors jamais pu partir a ce moment-la. Des
         // que l'email arrive, si les deux documents sont deja presents, on
         // l'envoie maintenant.
-        if (type === 'email' && personne.photoUrl && personne.passeportUrl) {
+        if (type === 'email' && personne.photoUrl && personne.numeroPasseport) {
           const subjectRattrapage = PARTICIPANT_SUBJECT[langue].photo
           programmer(personne.email, `COPAF 2026 — ${subjectRattrapage}`, emailParticipantHtml(personne, subjectRattrapage))
         }
@@ -720,9 +782,10 @@ Deno.serve(async req => {
       ...envoisRapport.map(e => ({ dossier: personne.dossier, type, destinataire: e.to, langue: personne.langue, ok: e.ok, status: e.status ?? null, detail: e.detail ?? null })),
     ])
 
-    return new Response(JSON.stringify({ success: true, envois: envoisRapport, destinataireTrouve: !!personne.email }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    // Aucune adresse email dans la reponse (detail disponible dans notifications_log, admin).
+    return new Response(JSON.stringify({ success: true, envoyes: envoisRapport.filter(e => e.ok).length }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (err) {
     console.error('Erreur interne notify-action:', err)
-    return new Response(JSON.stringify({ success: true, warning: 'Erreur interne' }), { headers: corsHeaders })
+    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })

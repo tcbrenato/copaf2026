@@ -35,25 +35,25 @@ Deno.serve(async () => {
       return new Response(JSON.stringify({ success: true, info: `J-${joursRestants}, aucun palier atteint` }), { headers: { 'Content-Type': 'application/json' } })
     }
 
-    // Cascade des 3 tables portant photo_url/passeport_url/email, comme
+    // Cascade des 3 tables portant photo_url/numero_passeport/email, comme
     // badge_lookup_by_dossier — seuls les dossiers avec un email connu
     // peuvent recevoir une relance. Volumes faibles (dizaines de lignes) :
     // filtrage cote JS plus simple et plus sur qu'un filtre PostgREST
     // imbrique sur une ressource jointe.
     const [insc, participants, intervenants] = await Promise.all([
-      supabase.from('inscriptions').select('dossier, photo_url, passeport_url, contacts(email)'),
-      supabase.from('inscription_participants').select('dossier, email, photo_url, passeport_url'),
-      supabase.from('intervenants').select('dossier, email, photo_url, passeport_url'),
+      supabase.from('inscriptions').select('dossier, photo_url, numero_passeport, contacts(email)'),
+      supabase.from('inscription_participants').select('dossier, email, photo_url, numero_passeport'),
+      supabase.from('intervenants').select('dossier, email, photo_url, numero_passeport'),
     ])
 
-    const incomplet = (r: { photo_url: string | null; passeport_url: string | null }) => !r.photo_url || !r.passeport_url
+    const incomplet = (r: { photo_url: string | null; numero_passeport: string | null }) => !r.photo_url || !r.numero_passeport
 
     const candidats = [
-      ...((insc.data || []) as { dossier: string; photo_url: string | null; passeport_url: string | null; contacts: { email: string | null } | null }[])
+      ...((insc.data || []) as { dossier: string; photo_url: string | null; numero_passeport: string | null; contacts: { email: string | null } | null }[])
         .filter(r => r.contacts?.email && incomplet(r)).map(r => r.dossier),
-      ...((participants.data || []) as { dossier: string; email: string | null; photo_url: string | null; passeport_url: string | null }[])
+      ...((participants.data || []) as { dossier: string; email: string | null; photo_url: string | null; numero_passeport: string | null }[])
         .filter(r => r.email && incomplet(r)).map(r => r.dossier),
-      ...((intervenants.data || []) as { dossier: string; email: string | null; photo_url: string | null; passeport_url: string | null }[])
+      ...((intervenants.data || []) as { dossier: string; email: string | null; photo_url: string | null; numero_passeport: string | null }[])
         .filter(r => r.email && incomplet(r)).map(r => r.dossier),
     ].filter(Boolean)
 
@@ -70,7 +70,7 @@ Deno.serve(async () => {
       try {
         await fetch(notifyUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')}` },
           body: JSON.stringify({ dossier, type: 'relance_dossier', jours: joursRestants }),
         })
         await supabase.from('relances_dossier_envoyees').insert({ dossier, palier: palierActif })
@@ -86,6 +86,6 @@ Deno.serve(async () => {
     )
   } catch (err) {
     console.error('Erreur interne relance-dossiers-incomplets:', err)
-    return new Response(JSON.stringify({ success: false, error: String(err) }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ success: false, error: 'Erreur interne' }), { status: 500, headers: { 'Content-Type': 'application/json' } })
   }
 })
