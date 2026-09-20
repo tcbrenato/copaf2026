@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabase'
-import SgGate from '../components/SgGate'
+import SgGate, { SG_SESSION_KEY } from '../components/SgGate'
 import SeoHead from '../components/SeoHead'
 import SgInscriptionsMap from '../components/SgInscriptionsMap'
 import { AGPAOC_UAPNA_COUNTRIES, GROUP_COLORS } from '../data/agpaocUapnaCountries'
@@ -16,13 +16,16 @@ function SuiviInscriptionsContent() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    // Selection explicite des colonnes (jamais select('*')) : la vue elle-meme
-    // ne contient que ces 4 champs, mais on le rend aussi explicite ici.
+    // Donnees servies par une fonction serveur qui reverifie le mot de passe
+    // (la vue v_sg_inscriptions n'est plus lisible directement).
     supabase
-      .from('v_sg_inscriptions')
-      .select('pays, nom, prenom, poste')
+      .rpc('sg_inscriptions', { p_password: sessionStorage.getItem(SG_SESSION_KEY) || '' })
       .then(({ data, error: err }) => {
-        if (err) { setError("Impossible de charger les données pour le moment."); return }
+        if (err) {
+          // Mot de passe change ou session obsolete : retour a l'ecran de connexion.
+          if (/incorrect/i.test(err.message)) { sessionStorage.removeItem(SG_SESSION_KEY); window.location.reload(); return }
+          setError("Impossible de charger les données pour le moment."); return
+        }
         setRows(data || [])
       })
   }, [])

@@ -1,30 +1,32 @@
 import { useState } from 'react'
 import { supabase } from '../supabase'
 
-const SG_PASSWORD = 'SGAGPAOC2026'
-const SESSION_KEY = 'sg_suivi_authorized'
+export const SG_SESSION_KEY = 'sg_suivi_pw'
 
-// Protection legere, independante de AuthGate (vraie authentification
-// Supabase reservee a l'admin) : un simple mot de passe partage, different
-// de tout compte admin, pour que la diffusion de ce lien au SG de l'AGPAOC
-// n'expose jamais l'acces au back-office complet. La vraie protection des
-// donnees sensibles se fait cote base (vue v_sg_inscriptions, qui n'expose
-// que pays/nom/prenom/poste) — ce mot de passe n'est qu'un filtre de
-// diffusion du lien, pas une barriere de securite forte.
+// Acces au suivi reserve au SG de l'AGPAOC : un mot de passe partage,
+// different de tout compte admin, VERIFIE COTE SERVEUR (fonctions
+// sg_connexion / sg_inscriptions, mot de passe hache en base, verrouillage
+// apres essais rates). Les donnees (pays/nom/prenom/poste) ne sont plus
+// lisibles sans ce mot de passe ; il n'est plus present dans le code du site.
 export default function SgGate({ children }) {
-  const [authorized, setAuthorized] = useState(() => sessionStorage.getItem(SESSION_KEY) === '1')
+  const [authorized, setAuthorized] = useState(() => !!sessionStorage.getItem(SG_SESSION_KEY))
+  const [checking, setChecking] = useState(false)
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (password === SG_PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, '1')
+    if (!password || checking) return
+    setChecking(true)
+    // La verification (et la journalisation de l'acces, visible dans
+    // "Connexions" cote admin) se fait cote serveur.
+    const { data, error: err } = await supabase.rpc('sg_connexion', { p_password: password })
+    setChecking(false)
+    if (err) {
+      setError(/tentatives/i.test(err.message) ? 'Trop de tentatives. Réessayez dans quelques minutes.' : 'Vérification impossible pour le moment.')
+    } else if (data === true) {
+      sessionStorage.setItem(SG_SESSION_KEY, password)
       setAuthorized(true)
-      // Journalise l'acces (visible dans "Connexions" cote admin) — sans
-      // session Supabase Auth ici, donc via une fonction dediee plutot
-      // qu'un insert direct.
-      supabase.rpc('public_log_sg_access')
     } else {
       setError('Mot de passe incorrect.')
     }
@@ -71,7 +73,7 @@ export default function SgGate({ children }) {
         />
         {error && <div style={{ fontSize: 12.5, color: '#dc2626', marginBottom: 12, textAlign: 'left' }}>{error}</div>}
 
-        <button type="submit" style={{
+        <button type="submit" disabled={checking} style={{
           width: '100%', padding: '13px', marginTop: 12,
           background: 'linear-gradient(135deg,#1798F4,#00367F)', border: 'none', borderRadius: 12,
           color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit',

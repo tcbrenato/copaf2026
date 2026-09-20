@@ -44,14 +44,6 @@ async function getOrCreateSession() {
   return data.id
 }
 
-async function pingSession(sessionId) {
-  if (!sessionId) return
-  await supabase
-    .from('sessions')
-    .update({ ended_at: new Date().toISOString() })
-    .eq('id', sessionId)
-}
-
 // Envoie la duree passee sur une page au moment ou le visiteur la quitte
 // (changement de route SPA ou fermeture/rafraichissement d'onglet).
 // sendBeacon (au lieu d'un fetch classique) garantit l'envoi meme quand la
@@ -107,17 +99,21 @@ export function useAnalytics() {
       const sessionId = sessionRef.current || await getOrCreateSession()
       if (!sessionId) return
       const contactId = localStorage.getItem(CONTACT_KEY) || null
-      const { data } = await supabase.from('page_views').insert([{
-        session_id:  sessionId,
-        contact_id:  contactId,
-        path:        location.pathname,
-        referrer:    document.referrer || null,
-        time_on_page: 0,
-        ...getUtmParams(),
-      }]).select('id').single()
-      pageViewIdRef.current = data?.id || null
+      // Fonction serveur dediee (les tables de statistiques ne sont plus
+      // accessibles directement en ecriture/lecture depuis le navigateur) ;
+      // elle met aussi a jour la fin de session.
+      const utm = getUtmParams()
+      const { data } = await supabase.rpc('analytics_track_view', {
+        p_session: sessionId,
+        p_contact: contactId,
+        p_path: location.pathname,
+        p_referrer: document.referrer || null,
+        p_utm_source: utm.utm_source,
+        p_utm_medium: utm.utm_medium,
+        p_utm_campaign: utm.utm_campaign,
+      })
+      pageViewIdRef.current = data || null
       pageStartRef.current = Date.now()
-      await pingSession(sessionId)
     }
     trackView()
 
@@ -160,10 +156,7 @@ export function useAnalytics() {
     localStorage.setItem(CONTACT_KEY, contactId)
     const sessionId = sessionRef.current
     if (sessionId) {
-      await supabase
-        .from('sessions')
-        .update({ contact_id: contactId })
-        .eq('id', sessionId)
+      await supabase.rpc('analytics_identify', { p_session: sessionId, p_contact: contactId })
     }
   }, [])
 
