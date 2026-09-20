@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router-dom'
 import { supabase } from '../supabase'
 import Navbar from '../components/Navbar'
@@ -505,7 +506,9 @@ export default function Partenariats() {
   const isMobile = useIsMobile()
   const { trackFormStart, trackConversion } = useAnalytics()
 
-  const [lang, setLang] = useState('fr')
+  // Langue partagee avec le reste du site (selecteur du header) via i18next
+  const { i18n } = useTranslation()
+  const lang = i18n.language?.startsWith('en') ? 'en' : 'fr'
   const t = TR[lang]
 
   const getInitialSection = () => new URLSearchParams(location.search).get('type') === 'strategique' ? 'strategique' : 'sponsor'
@@ -646,7 +649,7 @@ export default function Partenariats() {
 
           <div className="fade-up" style={{ position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
-              <button className="lang-switch" type="button" onClick={() => setLang(l => l === 'fr' ? 'en' : 'fr')} style={{ background: 'rgba(255,255,255,.9)' }}>
+              <button className="lang-switch" type="button" onClick={() => i18n.changeLanguage(lang === 'fr' ? 'en' : 'fr')} style={{ background: 'rgba(255,255,255,.9)' }}>
                 <Ico name="globe" size={14} color="#0073F4" />
                 {t.langSwitch}
               </button>

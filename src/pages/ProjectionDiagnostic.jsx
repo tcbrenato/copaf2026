@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createPortal } from 'react-dom'
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer } from 'recharts'
 import QRCode from 'qrcode'
@@ -213,7 +214,9 @@ function DetailVue({ agg, lang, t, benchmark }) {
 }
 
 export default function ProjectionDiagnostic() {
-  const [lang, setLang] = useState('fr')
+  // Langue partagee avec le reste du site (selecteur du header) via i18next
+  const { i18n } = useTranslation()
+  const lang = i18n.language?.startsWith('en') ? 'en' : 'fr'
   const t = TR[lang]
 
   const [aggregates, setAggregates] = useState({})
@@ -445,7 +448,7 @@ export default function ProjectionDiagnostic() {
 
       <RetourMenu />
 
-      <button onClick={() => setLang(l => l === 'fr' ? 'en' : 'fr')} type="button" style={{
+      <button onClick={() => i18n.changeLanguage(lang === 'fr' ? 'en' : 'fr')} type="button" style={{
         position: 'fixed', top: 16, right: 16, zIndex: 50, display: 'inline-flex', alignItems: 'center', gap: 6,
         padding: '9px 16px', borderRadius: 100, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(10px)',
         border: '1px solid rgba(255,255,255,0.15)', color: '#fff', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',

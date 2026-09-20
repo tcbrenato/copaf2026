@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import RetourMenu from '../components/RetourMenu'
@@ -160,7 +161,9 @@ function ChronoBadge({ deadline }) {
 export default function DiagnosticSmartPort() {
   const navigate = useNavigate()
 
-  const [lang, setLang] = useState('fr')
+  // Langue partagee avec le reste du site (selecteur du header) via i18next
+  const { i18n } = useTranslation()
+  const lang = i18n.language?.startsWith('en') ? 'en' : 'fr'
   const t = TR[lang]
 
   const [etape, setEtape] = useState(-1)
@@ -410,7 +413,7 @@ export default function DiagnosticSmartPort() {
   const bgOverlay = { position: 'fixed', inset: 0, zIndex: -1, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.55) 0%, rgba(9,13,22,0.78) 70%)' }
   const Fond = () => <><div style={bgImage} /><div style={bgOverlay} /></>
   const BoutonLang = () => (
-    <button onClick={() => setLang(l => l === 'fr' ? 'en' : 'fr')} type="button" style={{
+    <button onClick={() => i18n.changeLanguage(lang === 'fr' ? 'en' : 'fr')} type="button" style={{
       position: 'fixed', top: 18, right: 18, zIndex: 10, display: 'inline-flex', alignItems: 'center', gap: 6,
       padding: '9px 16px', borderRadius: 20, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)',
       border: '1px solid rgba(255,255,255,0.12)', color: '#cbd5e1', fontSize: 12.5, fontWeight: 700,
@@ -751,7 +754,7 @@ export default function DiagnosticSmartPort() {
           <div style={bgImage} />
           <div style={bgOverlay} />
           <RetourMenu />
-          <button onClick={() => setLang(l => l === 'fr' ? 'en' : 'fr')} type="button" style={{
+          <button onClick={() => i18n.changeLanguage(lang === 'fr' ? 'en' : 'fr')} type="button" style={{
             position: 'fixed', top: 18, right: 18, zIndex: 10, display: 'inline-flex', alignItems: 'center', gap: 6,
             padding: '9px 16px', borderRadius: 20, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)',
             border: '1px solid rgba(255,255,255,0.12)', color: '#cbd5e1', fontSize: 12.5, fontWeight: 700,
