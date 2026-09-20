@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SeoHead from '../components/SeoHead'
+import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -15,14 +16,38 @@ const Ico = ({ name, size = 22, color = 'currentColor' }) => {
   return icons[name] || null
 }
 
-const DOCUMENTS = [
-  { titre: 'Programme officiel', langue: 'Français', desc: 'Le déroulé complet des 3 jours de conférence, session par session.', href: '/programmecopaf2026FRmaj.pdf' },
-  { titre: 'Official Programme', langue: 'English', desc: 'The full 3-day conference schedule, session by session.', href: '/programmecopaf2026ENGmaj.pdf' },
-  { titre: 'Brochure de présentation', langue: 'Français', desc: "Présentation générale de la conférence, ses thématiques et ses partenaires.", href: '/BrochureCOPAF2026FRmaj.pdf' },
-  { titre: 'Presentation Brochure', langue: 'English', desc: 'General overview of the conference, its themes and partners.', href: '/BrochureCOPAF2026ENGmaj.pdf' },
-]
+const TR = {
+  fr: {
+    seoTitle: 'Documentation — COPAF 2026',
+    seoDesc: 'Téléchargez le programme, la brochure et les documents logistiques de la COPAF 2026, Conférence des Ports Africains.',
+    intro: 'Tous les documents officiels de la conférence, en français et en anglais.',
+    download: 'Télécharger',
+    soon: 'À venir',
+    logistics: { titre: 'Guide logistique', langue: 'FR / EN', desc: 'Informations pratiques : lieu, hébergement, transport, visa.' },
+    docs: [
+      { titre: 'Programme officiel', langue: 'Français', desc: 'Le déroulé complet des 3 jours de conférence, session par session.', href: '/programmecopaf2026FRmaj.pdf' },
+      { titre: 'Official Programme', langue: 'English', desc: 'The full 3-day conference schedule, session by session.', href: '/programmecopaf2026ENGmaj.pdf' },
+      { titre: 'Brochure de présentation', langue: 'Français', desc: 'Présentation générale de la conférence, ses thématiques et ses partenaires.', href: '/BrochureCOPAF2026FRmaj.pdf' },
+      { titre: 'Presentation Brochure', langue: 'English', desc: 'General overview of the conference, its themes and partners.', href: '/BrochureCOPAF2026ENGmaj.pdf' },
+    ],
+  },
+  en: {
+    seoTitle: 'Documentation — COPAF 2026',
+    seoDesc: 'Download the programme, the brochure and the logistics documents of COPAF 2026, the African Ports Conference.',
+    intro: 'All the official conference documents, in French and English.',
+    download: 'Download',
+    soon: 'Coming soon',
+    logistics: { titre: 'Logistics guide', langue: 'FR / EN', desc: 'Practical information: venue, accommodation, transport, visa.' },
+    docs: [
+      { titre: 'Official Programme', langue: 'French', desc: 'The full 3-day conference schedule, session by session.', href: '/programmecopaf2026FRmaj.pdf' },
+      { titre: 'Official Programme', langue: 'English', desc: 'The full 3-day conference schedule, session by session.', href: '/programmecopaf2026ENGmaj.pdf' },
+      { titre: 'Presentation Brochure', langue: 'French', desc: 'General overview of the conference, its themes and partners.', href: '/BrochureCOPAF2026FRmaj.pdf' },
+      { titre: 'Presentation Brochure', langue: 'English', desc: 'General overview of the conference, its themes and partners.', href: '/BrochureCOPAF2026ENGmaj.pdf' },
+    ],
+  },
+}
 
-function DocCard({ doc }) {
+function DocCard({ doc, t }) {
   const disponible = !!doc.href
   return (
     <div style={{
@@ -49,21 +74,23 @@ function DocCard({ doc }) {
           background: '#EBF3FF', color: NAVY, fontWeight: 700, fontSize: 13, textDecoration: 'none',
         }}>
           <Ico name="download" size={15} color={NAVY} />
-          Télécharger
+          {t.download}
         </a>
       ) : (
-        <span style={{ flexShrink: 0, fontSize: 12.5, fontWeight: 700, color: '#94a3b8' }}>À venir</span>
+        <span style={{ flexShrink: 0, fontSize: 12.5, fontWeight: 700, color: '#94a3b8' }}>{t.soon}</span>
       )}
     </div>
   )
 }
 
 export default function Documentation() {
+  const lang = useLang()
+  const t = TR[lang]
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#0f172a', background: '#f8faff' }}>
       <SeoHead
-        title="Documentation — COPAF 2026"
-        description="Téléchargez le programme, la brochure et les documents logistiques de la COPAF 2026, Conférence des Ports Africains."
+        title={t.seoTitle}
+        description={t.seoDesc}
         canonical="https://copaf-ports.com/documentation"
         type="website"
       />
@@ -82,13 +109,13 @@ export default function Documentation() {
             Documentation
           </h1>
           <p style={{ fontSize: 16, color: '#475569', maxWidth: 560, margin: '0 auto', lineHeight: 1.6 }}>
-            Tous les documents officiels de la conférence, en français et en anglais.
+            {t.intro}
           </p>
         </div>
 
         <div style={{ display: 'grid', gap: 16 }}>
-          {DOCUMENTS.map(doc => <DocCard key={doc.titre} doc={doc} />)}
-          <DocCard doc={{ titre: 'Guide logistique', langue: 'FR / EN', desc: 'Informations pratiques : lieu, hébergement, transport, visa.', href: null }} />
+          {t.docs.map(doc => <DocCard key={doc.href} doc={doc} t={t} />)}
+          <DocCard doc={{ ...t.logistics, href: null }} t={t} />
         </div>
       </div>
 

@@ -23,6 +23,8 @@
 // publier uniquement le CR de la visite de Casablanca dans l'immediat, et
 // les 3 autres articles deux semaines plus tard.
 
+import { ARTICLES_EN } from './articlesEn'
+
 export const ARTICLES = [
   {
     slug: 'cybersecurite-maritime-afrique',
@@ -129,6 +131,14 @@ function isReleased(article) {
 
 export function getPublishedArticles() {
   return ARTICLES.filter(isReleased)
+}
+
+// Version de l'article dans la langue demandee ('fr' | 'en') : titre, resume,
+// meta-description et contenu anglais s'ils existent, sinon le francais.
+export function localizeArticle(article, lang) {
+  if (!article || lang !== 'en') return article
+  const en = ARTICLES_EN[article.slug]
+  return en ? { ...article, ...en } : article
 }
 
 export function getArticleBySlug(slug) {

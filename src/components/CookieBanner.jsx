@@ -1,9 +1,26 @@
 import { useState, useEffect } from 'react'
+import { useLang } from '../i18n/useLang'
 
 const STORAGE_KEY = 'copaf_cookies_ack'
-const NAVY = '#000E91'
+const TR = {
+  fr: {
+    before: 'En poursuivant votre navigation sur ce site, vous reconnaissez avoir pris connaissance et accepté nos',
+    legal: 'mentions légales',
+    middle: 'ainsi que notre',
+    privacy: 'politique de confidentialité et de consentement',
+    ok: "J'ai compris",
+  },
+  en: {
+    before: 'By continuing to browse this site, you acknowledge that you have read and accepted our',
+    legal: 'legal notice',
+    middle: 'as well as our',
+    privacy: 'privacy and consent policy',
+    ok: 'I understand',
+  },
+}
 
 export default function CookieBanner() {
+  const t = TR[useLang()]
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -25,9 +42,9 @@ export default function CookieBanner() {
       boxShadow: '0 -8px 24px rgba(0,0,0,0.25)', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif",
     }}>
       <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, maxWidth: 760, textAlign: 'center', color: '#cbd5e1' }}>
-        En poursuivant votre navigation sur ce site, vous reconnaissez avoir pris connaissance et accepté nos{' '}
-        <a href="/mentions-legales" style={{ color: '#60a5fa', fontWeight: 700 }}>mentions légales</a> ainsi que notre{' '}
-        <a href="/politique-confidentialite" style={{ color: '#60a5fa', fontWeight: 700 }}>politique de confidentialité et de consentement</a>.
+        {t.before}{' '}
+        <a href="/mentions-legales" style={{ color: '#60a5fa', fontWeight: 700 }}>{t.legal}</a> {t.middle}{' '}
+        <a href="/politique-confidentialite" style={{ color: '#60a5fa', fontWeight: 700 }}>{t.privacy}</a>.
       </p>
       <button
         onClick={accepter}
@@ -37,7 +54,7 @@ export default function CookieBanner() {
           fontFamily: 'inherit', boxShadow: '0 6px 18px rgba(0,115,244,0.4)',
         }}
       >
-        J'ai compris
+        {t.ok}
       </button>
     </div>
   )

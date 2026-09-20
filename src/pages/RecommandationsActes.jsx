@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import HeaderStack from '../components/HeaderStack'
 import Footer from '../components/Footer'
 import SeoHead from '../components/SeoHead'
+import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
 const NAVY_DEEP = '#0A1128'
@@ -28,34 +29,83 @@ const Ico = ({ name, size = 20, color = 'currentColor' }) => {
 // sont les decisions issues des tables rondes EN direct pendant la COPAF
 // (19-21 oct 2026). Chaque jour reste donc en etat "a venir" (tableau vide)
 // jusqu'a ce que l'equipe COPAF fournisse le contenu reel a integrer ici.
-const JOURS = [
-  {
-    id: 'jour1', badge: 'JOUR 1', titre: 'Vision Smart Port Africain', date: '19 Octobre 2026',
-    tags: ['IA', 'Diagnostic digital', 'Automatisation', 'Gouvernance de la donnée'],
-    recommandations: [],
-    pdfHref: null,
+const TR = {
+  fr: {
+    seoTitle: 'Recommandations Officielles & Actes — COPAF 2026',
+    seoDesc: 'Consultez et téléchargez les feuilles de route stratégiques et les décisions consensuelles issues des travaux de la COPAF 2026 à Casablanca.',
+    live: "Mis à jour en direct pendant l'événement",
+    h1: 'Recommandations Officielles & Actes — COPAF 2026',
+    intro: 'Consultez et téléchargez les feuilles de route stratégiques et les décisions consensuelles issues des travaux de Casablanca.',
+    keyPoints: 'Points clés & thématiques',
+    officialReco: 'Recommandations officielles',
+    pending: 'Les recommandations de cette journée seront publiées ici pendant la conférence (19–21 octobre 2026 à Casablanca).',
+    downloadSummary: 'Télécharger la Synthèse',
+    summarySoon: 'Synthèse PDF à venir',
+    shareLinkedin: 'Partager sur LinkedIn',
+    shareX: 'Partager sur X',
+    shareSuffix: 'Recommandations officielles COPAF 2026',
+    reportTitle: 'Actes Complets de la COPAF 2026',
+    reportText: "Le livre blanc consolidant l'ensemble des recommandations, décisions et travaux des 3 journées sera disponible en téléchargement à l'issue de l'événement.",
+    reportSoon: "Disponible à l'issue de la conférence",
+    jours: [
+      { id: 'jour1', badge: 'JOUR 1', short: 'J1', titre: 'Vision Smart Port Africain', date: '19 Octobre 2026',
+        tags: ['IA', 'Diagnostic digital', 'Automatisation', 'Gouvernance de la donnée'] },
+      { id: 'jour2', badge: 'JOUR 2', short: 'J2', titre: 'Excellence Opérationnelle, Sécurité & Cybersécurité', date: '20 Octobre 2026',
+        tags: ['Cybersécurité', 'Sûreté portuaire', 'Opérations nautiques', 'Pilotage temps réel'] },
+      { id: 'jour3', badge: 'JOUR 3', short: 'J3', titre: 'Immersion Terrain — Port de Casablanca', date: '21 Octobre 2026',
+        tags: ['Visite technique', 'Infrastructures IA', 'Réseautage'] },
+    ],
+    tabs: [
+      { id: 'tous',    label: 'Tous' },
+      { id: 'jour1',   label: 'Jour 1 · Smart Port & IA' },
+      { id: 'jour2',   label: 'Jour 2 · Cybersécurité & Opérations' },
+      { id: 'jour3',   label: 'Jour 3 · Immersion & Clôture' },
+      { id: 'rapport', label: 'Rapport Général' },
+    ],
   },
-  {
-    id: 'jour2', badge: 'JOUR 2', titre: 'Excellence Opérationnelle, Sécurité & Cybersécurité', date: '20 Octobre 2026',
-    tags: ['Cybersécurité', 'Sûreté portuaire', 'Opérations nautiques', 'Pilotage temps réel'],
-    recommandations: [],
-    pdfHref: null,
+  en: {
+    seoTitle: 'Official Recommendations & Proceedings — COPAF 2026',
+    seoDesc: 'Read and download the strategic roadmaps and consensus decisions resulting from the work of COPAF 2026 in Casablanca.',
+    live: 'Updated live during the event',
+    h1: 'Official Recommendations & Proceedings — COPAF 2026',
+    intro: 'Read and download the strategic roadmaps and consensus decisions resulting from the work in Casablanca.',
+    keyPoints: 'Key points & themes',
+    officialReco: 'Official recommendations',
+    pending: "This day's recommendations will be published here during the conference (19–21 October 2026 in Casablanca).",
+    downloadSummary: 'Download the Summary',
+    summarySoon: 'PDF summary coming soon',
+    shareLinkedin: 'Share on LinkedIn',
+    shareX: 'Share on X',
+    shareSuffix: 'COPAF 2026 official recommendations',
+    reportTitle: 'COPAF 2026 Full Proceedings',
+    reportText: 'The white paper consolidating all the recommendations, decisions and work of the 3 days will be available for download after the event.',
+    reportSoon: 'Available after the conference',
+    jours: [
+      { id: 'jour1', badge: 'DAY 1', short: 'D1', titre: 'African Smart Port Vision', date: '19 October 2026',
+        tags: ['AI', 'Digital diagnostic', 'Automation', 'Data governance'] },
+      { id: 'jour2', badge: 'DAY 2', short: 'D2', titre: 'Operational Excellence, Security & Cybersecurity', date: '20 October 2026',
+        tags: ['Cybersecurity', 'Port security', 'Nautical operations', 'Real-time monitoring'] },
+      { id: 'jour3', badge: 'DAY 3', short: 'D3', titre: 'Field Immersion — Port of Casablanca', date: '21 October 2026',
+        tags: ['Technical visit', 'AI infrastructure', 'Networking'] },
+    ],
+    tabs: [
+      { id: 'tous',    label: 'All' },
+      { id: 'jour1',   label: 'Day 1 · Smart Port & AI' },
+      { id: 'jour2',   label: 'Day 2 · Cybersecurity & Operations' },
+      { id: 'jour3',   label: 'Day 3 · Immersion & Closing' },
+      { id: 'rapport', label: 'General Report' },
+    ],
   },
-  {
-    id: 'jour3', badge: 'JOUR 3', titre: 'Immersion Terrain — Port de Casablanca', date: '21 Octobre 2026',
-    tags: ['Visite technique', 'Infrastructures IA', 'Réseautage'],
-    recommandations: [],
-    pdfHref: null,
-  },
-]
+}
 
-const TABS = [
-  { id: 'tous',    label: 'Tous' },
-  { id: 'jour1',   label: 'Jour 1 · Smart Port & IA' },
-  { id: 'jour2',   label: 'Jour 2 · Cybersécurité & Opérations' },
-  { id: 'jour3',   label: 'Jour 3 · Immersion & Clôture' },
-  { id: 'rapport', label: 'Rapport Général' },
-]
+// Les recommandations elles-memes (par jour) et les PDF de synthese seront
+// renseignes ici une fois fournis par l'equipe COPAF (identiques dans les
+// deux langues tant qu'ils n'existent pas).
+const DONNEES_JOURS = {
+  jour1: { recommandations: [], pdfHref: null },
+  jour2: { recommandations: [], pdfHref: null },
+  jour3: { recommandations: [], pdfHref: null },
+}
 
 const shareUrl = 'https://copaf-ports.com/recommandations'
 
@@ -70,9 +120,10 @@ function TagPill({ children }) {
   )
 }
 
-function JourCard({ jour, register }) {
+function JourCard({ jour: jourTxt, register, t }) {
+  const jour = { ...jourTxt, ...DONNEES_JOURS[jourTxt.id] }
   const dispo = jour.recommandations.length > 0
-  const shareText = encodeURIComponent(`${jour.badge} — ${jour.titre} — Recommandations officielles COPAF 2026`)
+  const shareText = encodeURIComponent(`${jour.badge} — ${jour.titre} — ${t.shareSuffix}`)
 
   return (
     <div id={jour.id} ref={el => register(jour.id, el)} style={{
@@ -98,7 +149,7 @@ function JourCard({ jour, register }) {
       <div style={{ padding: '24px 28px 28px' }}>
         {/* Points cles & thematiques */}
         <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10 }}>
-          Points clés & thématiques
+          {t.keyPoints}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
           {jour.tags.map(t => <TagPill key={t}>{t}</TagPill>)}
@@ -106,7 +157,7 @@ function JourCard({ jour, register }) {
 
         {/* Recommandations officielles */}
         <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10 }}>
-          Recommandations officielles
+          {t.officialReco}
         </div>
         {dispo ? (
           <ul style={{ listStyle: 'none', margin: '0 0 24px', padding: 0, display: 'grid', gap: 10 }}>
@@ -126,7 +177,7 @@ function JourCard({ jour, register }) {
           }}>
             <Ico name="clock" size={18} color="#94a3b8" />
             <p style={{ margin: 0, fontSize: 13, color: '#64748b', lineHeight: 1.6 }}>
-              Les recommandations de cette journée seront publiées ici pendant la conférence (19–21 octobre 2026 à Casablanca).
+              {t.pending}
             </p>
           </div>
         )}
@@ -139,25 +190,25 @@ function JourCard({ jour, register }) {
               padding: '13px 18px', borderRadius: 12, background: `linear-gradient(135deg,${BLUE},${NAVY})`,
               color: '#fff', fontWeight: 800, fontSize: 13, textDecoration: 'none',
             }}>
-              <Ico name="file" size={15} color="#fff" /> Télécharger la Synthèse {jour.badge.replace('JOUR ', 'J')} (PDF)
+              <Ico name="file" size={15} color="#fff" /> {t.downloadSummary} {jour.short} (PDF)
             </a>
           ) : (
             <div style={{
               flex: '1 1 220px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               padding: '13px 18px', borderRadius: 12, background: '#f1f5f9', color: '#94a3b8', fontWeight: 700, fontSize: 13,
             }}>
-              <Ico name="clock" size={15} color="#94a3b8" /> Synthèse PDF à venir
+              <Ico name="clock" size={15} color="#94a3b8" /> {t.summarySoon}
             </div>
           )}
           <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer"
-            aria-label="Partager sur LinkedIn" style={{
+            aria-label={t.shareLinkedin} style={{
               width: 46, height: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
               borderRadius: 12, background: '#f8fafc', border: '1.5px solid #e2e8f0', color: NAVY,
             }}>
             <Ico name="linkedin" size={17} color={NAVY} />
           </a>
           <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${shareText}`} target="_blank" rel="noopener noreferrer"
-            aria-label="Partager sur X" style={{
+            aria-label={t.shareX} style={{
               width: 46, height: 46, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
               borderRadius: 12, background: '#f8fafc', border: '1.5px solid #e2e8f0', color: NAVY,
             }}>
@@ -170,6 +221,7 @@ function JourCard({ jour, register }) {
 }
 
 export default function RecommandationsActes() {
+  const t = TR[useLang()]
   const [activeTab, setActiveTab] = useState('tous')
   const sectionsRef = useRef({})
 
@@ -201,8 +253,8 @@ export default function RecommandationsActes() {
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#0f172a', background: '#f8faff' }}>
       <SeoHead
-        title="Recommandations Officielles & Actes — COPAF 2026"
-        description="Consultez et téléchargez les feuilles de route stratégiques et les décisions consensuelles issues des travaux de la COPAF 2026 à Casablanca."
+        title={t.seoTitle}
+        description={t.seoDesc}
         canonical="https://copaf-ports.com/recommandations"
         type="website"
       />
@@ -222,14 +274,14 @@ export default function RecommandationsActes() {
           }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ade80', animation: 'copaf-reco-pulse 1.8s ease-in-out infinite' }} />
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase', color: '#fff' }}>
-              Mis à jour en direct pendant l'événement
+              {t.live}
             </span>
           </div>
           <h1 style={{ fontSize: 'clamp(26px,4vw,40px)', fontWeight: 900, color: '#fff', margin: '0 0 12px', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-            Recommandations Officielles &amp; Actes — COPAF 2026
+            {t.h1}
           </h1>
           <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.75)', lineHeight: 1.65, margin: 0 }}>
-            Consultez et téléchargez les feuilles de route stratégiques et les décisions consensuelles issues des travaux de Casablanca.
+            {t.intro}
           </p>
         </div>
       </div>
@@ -244,7 +296,7 @@ export default function RecommandationsActes() {
           maxWidth: 1080, margin: '0 auto', padding: '10px clamp(16px,4vw,32px)',
           display: 'flex', gap: 8, overflowX: 'auto', WebkitOverflowScrolling: 'touch',
         }} className="copaf-reco-tabs">
-          {TABS.map(tab => (
+          {t.tabs.map(tab => (
             <button key={tab.id} onClick={() => goTo(tab.id)} style={{
               flexShrink: 0, padding: '9px 16px', borderRadius: 50, cursor: 'pointer',
               fontFamily: 'inherit', fontSize: 12.5, fontWeight: 700, whiteSpace: 'nowrap', transition: 'all .18s',
@@ -261,7 +313,7 @@ export default function RecommandationsActes() {
 
       {/* Cartes par journee */}
       <div style={{ maxWidth: 880, margin: '0 auto', padding: '48px clamp(16px,4vw,32px) 24px', display: 'grid', gap: 28 }}>
-        {JOURS.map(j => <JourCard key={j.id} jour={j} register={register} />)}
+        {t.jours.map(j => <JourCard key={j.id} jour={j} register={register} t={t} />)}
       </div>
 
       {/* Rapport general & livre blanc */}
@@ -276,17 +328,17 @@ export default function RecommandationsActes() {
               <Ico name="doc" size={26} color="#fff" />
             </div>
             <h2 style={{ fontSize: 'clamp(22px,3.5vw,30px)', fontWeight: 900, color: '#fff', margin: '0 0 12px' }}>
-              Actes Complets de la COPAF 2026
+              {t.reportTitle}
             </h2>
             <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.75)', maxWidth: 520, margin: '0 auto 26px', lineHeight: 1.7 }}>
-              Le livre blanc consolidant l'ensemble des recommandations, décisions et travaux des 3 journées sera disponible en téléchargement à l'issue de l'événement.
+              {t.reportText}
             </p>
             <div style={{
               display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 26px', borderRadius: 50,
               background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.85)',
               fontWeight: 700, fontSize: 13,
             }}>
-              <Ico name="clock" size={15} color="rgba(255,255,255,0.85)" /> Disponible à l'issue de la conférence
+              <Ico name="clock" size={15} color="rgba(255,255,255,0.85)" /> {t.reportSoon}
             </div>
           </div>
         </div>

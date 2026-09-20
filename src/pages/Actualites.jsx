@@ -1,25 +1,54 @@
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SeoHead from '../components/SeoHead'
-import { getPublishedArticles } from '../utils/articlesData'
+import { getPublishedArticles, localizeArticle } from '../utils/articlesData'
+import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
 
-function fmtDate(d) {
-  return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+const TR = {
+  fr: {
+    locale: 'fr-FR',
+    seoTitle: 'Actualités — COPAF 2026, Conférence des Ports Africains',
+    seoDesc: 'Analyses et communiqués sur la transformation digitale des ports africains : cybersécurité maritime, intelligence artificielle portuaire, actualité de la COPAF 2026.',
+    badge: 'COPAF 2026 • Le Mag',
+    title: 'Bienvenue à la COPAF 2026',
+    intro: 'Décryptages, innovations technologiques et communiqués officiels sur la transformation digitale et durable des ports africains.',
+    featured: 'À la une',
+    readingFull: 'min de lecture',
+    readingShort: 'min',
+    readAnalysis: "Lire l'analyse →",
+    discover: 'Découvrir →',
+  },
+  en: {
+    locale: 'en-GB',
+    seoTitle: 'News — COPAF 2026, African Ports Conference',
+    seoDesc: 'Analysis and press releases on the digital transformation of African ports: maritime cybersecurity, port artificial intelligence, COPAF 2026 news.',
+    badge: 'COPAF 2026 • The Mag',
+    title: 'Welcome to COPAF 2026',
+    intro: 'Insights, technological innovations and official press releases on the digital and sustainable transformation of African ports.',
+    featured: 'Featured',
+    readingFull: 'min read',
+    readingShort: 'min',
+    readAnalysis: 'Read the analysis →',
+    discover: 'Discover →',
+  },
 }
 
 export default function Actualites() {
-  const sortedArticles = getPublishedArticles().reverse()
+  const lang = useLang()
+  const t = TR[lang]
+  const fmtDate = d => new Date(d).toLocaleDateString(t.locale, { day: 'numeric', month: 'long', year: 'numeric' })
+  const sortedArticles = getPublishedArticles().reverse().map(a => localizeArticle(a, lang))
   const featuredArticle = sortedArticles[0]
   const otherArticles = sortedArticles.slice(1)
 
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#0f172a', background: '#f8faff' }}>
       <SeoHead
-        title="Actualités — COPAF 2026, Conférence des Ports Africains"
-        description="Analyses et communiqués sur la transformation digitale des ports africains : cybersécurité maritime, intelligence artificielle portuaire, actualité de la COPAF 2026."
+        title={t.seoTitle}
+        description={t.seoDesc}
         canonical="https://copaf-ports.com/actualites"
         type="website"
       />
@@ -39,13 +68,13 @@ export default function Actualites() {
             textTransform: 'uppercase', color: '#fff', marginBottom: 18,
             border: '1px solid rgba(255,255,255,0.25)',
           }}>
-            COPAF 2026 • Le Mag
+            {t.badge}
           </span>
           <h1 style={{ fontSize: 'clamp(30px, 5vw, 50px)', fontWeight: 900, color: '#fff', margin: '0 0 16px', letterSpacing: '-0.03em' }}>
-            Bienvenue à la COPAF 2026
+            {t.title}
           </h1>
           <p style={{ fontSize: 17, color: 'rgba(255,255,255,0.8)', maxWidth: 640, margin: '0 auto', lineHeight: 1.6 }}>
-            Décryptages, innovations technologiques et communiqués officiels sur la transformation digitale et durable des ports africains.
+            {t.intro}
           </p>
         </div>
       </div>
@@ -83,10 +112,10 @@ export default function Actualites() {
                     background: NAVY, color: '#fff', fontSize: 11, fontWeight: 700,
                     padding: '4px 10px', borderRadius: 6, textTransform: 'uppercase', letterSpacing: 1
                   }}>
-                    À la une
+                    {t.featured}
                   </span>
                   <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>
-                    {fmtDate(featuredArticle.publishedDate)} · {featuredArticle.readingTime} min de lecture
+                    {fmtDate(featuredArticle.publishedDate)} · {featuredArticle.readingTime} {t.readingFull}
                   </span>
                 </div>
                 <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#0a1128', margin: '0 0 14px', lineHeight: 1.25 }}>
@@ -100,7 +129,7 @@ export default function Actualites() {
                     fontSize: 14, fontWeight: 700, color: BLUE, display: 'inline-flex', alignItems: 'center', gap: 8,
                     background: 'rgba(0, 115, 244, 0.08)', padding: '10px 20px', borderRadius: 50, transition: 'background 0.2s'
                   }}>
-                    Lire l'analyse →
+                    {t.readAnalysis}
                   </span>
                 </div>
               </div>
@@ -136,7 +165,7 @@ export default function Actualites() {
               <div style={{ padding: '28px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
                 <div style={{ fontSize: 12.5, color: '#64748b', fontWeight: 600, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: BLUE }}></span>
-                  {fmtDate(a.publishedDate)} · {a.readingTime} min
+                  {fmtDate(a.publishedDate)} · {a.readingTime} {t.readingShort}
                 </div>
                 <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0a1128', margin: '0 0 10px', lineHeight: 1.35, flexGrow: 1 }}>
                   {a.title}
@@ -146,7 +175,7 @@ export default function Actualites() {
                 </p>
                 <div>
                   <span style={{ fontSize: 13.5, fontWeight: 700, color: NAVY, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    Découvrir →
+                    {t.discover}
                   </span>
                 </div>
               </div>

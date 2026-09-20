@@ -109,7 +109,7 @@ const Navbar = () => {
   const ressourcesLinks = [
     { label: 'Live Streaming', href: '/live' },
     { label: 'Documentation',  href: '/documentation' },
-    { label: 'Recommandations Officielles & Actes', href: '/recommandations' },
+    { label: t('navbar.recommendations'), href: '/recommandations' },
   ]
 
   const isDropdownActive   = dropdownLinks.some(l => window.location.pathname === l.href)
@@ -198,7 +198,7 @@ const Navbar = () => {
             <li><a href="/" style={{ ...btnBase, textDecoration: 'none' }}
               onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
               onMouseLeave={e => { e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
-              Accueil
+              {t('navbar.home')}
             </a></li>
           )}
 
@@ -283,7 +283,7 @@ const Navbar = () => {
             <button style={{ ...btnBase, display: 'flex', alignItems: 'center', gap: 5, color: isRessourcesActive ? '#0073f4' : '#FFFFFF' }}
               onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
               onMouseLeave={e => { e.currentTarget.style.color = isRessourcesActive ? '#0073f4' : '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
-              Ressources
+              {t('navbar.resources')}
               <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
                 style={{ transition: 'transform 0.25s', transform: ressourcesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                 <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -418,7 +418,7 @@ const Navbar = () => {
               background: 'none', border: 'none', padding: 0,
               borderBottom: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontFamily: 'inherit',
             }}>
-              <span>Ressources</span>
+              <span>{t('navbar.resources')}</span>
               <svg width="12" height="12" viewBox="0 0 10 10" fill="none"
                 style={{ transition: 'transform 0.25s', transform: mobileRessourcesOpen ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}>
                 <path d="M2 3.5L5 6.5L8 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

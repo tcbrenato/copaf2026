@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { supabase } from '../supabase'
+import { useLang } from '../i18n/useLang'
 
 // ============================================================
 // EXPOSITION DIGITALE — COPAF 2026
@@ -19,14 +20,14 @@ const EXHIBITORS = [
   {
     id: 'copaf',
     nom: 'COPAF 2026',
-    tagline: 'Conférence des Ports Africains',
+    tagline: { fr: 'Conférence des Ports Africains', en: 'African Ports Conference' },
     logo: '/logocopaf.png',
     verifie: true,
     videoUrl: '/inscriptioncopaf.mp4',
-    videoLabel: "Comment s'inscrire à la COPAF 2026",
+    videoLabel: { fr: "Comment s'inscrire à la COPAF 2026", en: 'How to register for COPAF 2026' },
     videoPoster: '/lieucopaf.jpg',
-    brochureUrl: '/BrochureCOPAF2026FRmaj.pdf',
-    catalogueUrl: '/BrochureCOPAF2026FRmaj.pdf', // à remplacer par un vrai fichier catalogue quand disponible
+    brochureUrl: { fr: '/BrochureCOPAF2026FRmaj.pdf', en: '/BrochureCOPAF2026ENGmaj.pdf' },
+    catalogueUrl: { fr: '/BrochureCOPAF2026FRmaj.pdf', en: '/BrochureCOPAF2026ENGmaj.pdf' }, // à remplacer par un vrai fichier catalogue quand disponible
     galerie: ['/hero1.png', '/hero2.png', '/hero3.png', '/lieucopaf.jpg'],
     email: 'contactcrfperfection@gmail.com',
     telephone: '+229 0169 30 30 19',
@@ -36,7 +37,7 @@ const EXHIBITORS = [
   {
     id: 'crf-perfection',
     nom: 'CRF PERFECTION',
-    tagline: 'Cabinet de Recherche et de Formation Perfection',
+    tagline: { fr: 'Cabinet de Recherche et de Formation Perfection', en: 'Perfection Research and Training Firm' },
     logo: '/logocrf.png',
     verifie: true,
     email: 'contactcrfperfection@gmail.com',
@@ -65,6 +66,86 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
     calendar: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>,
   }
   return icons[name] || null
+}
+
+// ─── TEXTES (fr / en) ─────────────────────────────────────────────────────────
+const TR = {
+  fr: {
+    verified: 'Vérifié',
+    documents: 'Documents', brochure: 'Brochure', catalogue: 'Catalogue',
+    gallery: 'Galerie', contact: 'Coordonnées',
+    book: 'Prendre rendez-vous', chat: 'Discuter',
+    waText: (nom) => `Bonjour ${nom}, je vous contacte depuis l'exposition digitale COPAF 2026.`,
+    mailSubject: (nom) => `Contact depuis l'exposition digitale - ${nom}`,
+    jours: [
+      { value: '19 octobre 2026', label: '19 octobre 2026' },
+      { value: '20 octobre 2026', label: '20 octobre 2026' },
+      { value: '21 octobre 2026', label: '21 octobre 2026' },
+      { value: 'Peu importe le jour', label: 'Peu importe le jour' },
+    ],
+    errNameEmail: 'Merci de renseigner votre nom et votre email.',
+    errEmail: 'Adresse email invalide.',
+    errPrefix: 'Erreur : ',
+    sentTitle: 'Demande envoyée !',
+    sentText: (nom) => `${nom} vous contactera pour confirmer votre rendez-vous sur son stand pendant la COPAF 2026.`,
+    apptEyebrow: 'Prendre rendez-vous',
+    apptTitle: (nom) => `Rencontrer ${nom}`,
+    apptIntro: 'Planifiez une rencontre individuelle sur son stand, pendant les 3 jours de la COPAF 2026 à Casablanca (19–21 octobre 2026).',
+    fName: 'Nom & Prénom *', fNamePh: 'Prénom Nom',
+    fEmail: 'Email *', fEmailPh: 'vous@entreprise.com',
+    fPhone: 'Téléphone / WhatsApp',
+    fOrg: 'Organisation', fOrgPh: 'Votre entreprise / institution',
+    fDay: 'Jour préféré', fDayPh: '-- Sélectionnez --',
+    fMsg: 'Message (optionnel)', fMsgPh: 'Ce que vous aimeriez aborder...',
+    sending: 'Envoi en cours...', send: 'Envoyer ma demande',
+    home: 'Accueil', digitalExpo: 'Exposition Digitale',
+    heroBadge: 'Exposition 100% digitale',
+    heroTitle: "L'exposition qui vient à vous.",
+    heroText: "Découvrez les exposants COPAF 2026 en un coup d'œil : vidéo de présentation, documents, galerie et contact direct — où que vous soyez dans le monde.",
+    exhibitors: (n) => `${n} exposant${n !== 1 ? 's' : ''}`,
+    ctaTitle: 'Exposer votre organisation ?',
+    ctaText: 'Rejoignez les exposants de COPAF 2026 et présentez vos solutions sans contrainte géographique.',
+    ctaBook: 'Réserver mon stand',
+    ctaMore: 'En savoir plus',
+  },
+  en: {
+    verified: 'Verified',
+    documents: 'Documents', brochure: 'Brochure', catalogue: 'Catalogue',
+    gallery: 'Gallery', contact: 'Contact details',
+    book: 'Book a meeting', chat: 'Chat',
+    waText: (nom) => `Hello ${nom}, I am contacting you from the COPAF 2026 digital exhibition.`,
+    mailSubject: (nom) => `Contact from the digital exhibition - ${nom}`,
+    jours: [
+      { value: '19 octobre 2026', label: '19 October 2026' },
+      { value: '20 octobre 2026', label: '20 October 2026' },
+      { value: '21 octobre 2026', label: '21 October 2026' },
+      { value: 'Peu importe le jour', label: 'Any day' },
+    ],
+    errNameEmail: 'Please enter your name and email.',
+    errEmail: 'Invalid email address.',
+    errPrefix: 'Error: ',
+    sentTitle: 'Request sent!',
+    sentText: (nom) => `${nom} will contact you to confirm your meeting at their booth during COPAF 2026.`,
+    apptEyebrow: 'Book a meeting',
+    apptTitle: (nom) => `Meet ${nom}`,
+    apptIntro: 'Schedule a one-to-one meeting at their booth, during the 3 days of COPAF 2026 in Casablanca (19–21 October 2026).',
+    fName: 'Full name *', fNamePh: 'First name Last name',
+    fEmail: 'Email *', fEmailPh: 'you@company.com',
+    fPhone: 'Phone / WhatsApp',
+    fOrg: 'Organisation', fOrgPh: 'Your company / institution',
+    fDay: 'Preferred day', fDayPh: '-- Select --',
+    fMsg: 'Message (optional)', fMsgPh: 'What you would like to discuss...',
+    sending: 'Sending...', send: 'Send my request',
+    home: 'Home', digitalExpo: 'Digital Exhibition',
+    heroBadge: '100% digital exhibition',
+    heroTitle: 'The exhibition that comes to you.',
+    heroText: 'Discover the COPAF 2026 exhibitors at a glance: presentation video, documents, gallery and direct contact — wherever you are in the world.',
+    exhibitors: (n) => `${n} exhibitor${n !== 1 ? 's' : ''}`,
+    ctaTitle: 'Exhibit your organisation?',
+    ctaText: 'Join the COPAF 2026 exhibitors and present your solutions without geographical constraints.',
+    ctaBook: 'Book my booth',
+    ctaMore: 'Learn more',
+  },
 }
 
 // ─── MODALS (vidéo + galerie) ──────────────────────────────────────────────────
@@ -102,9 +183,7 @@ function GalleryLightbox({ images, index, onClose, onNav }) {
 // est enregistre via la meme RPC publique que les autres formulaires du site,
 // puis la demande est journalisee dans rendezvous_exposants pour suivi.
 
-const JOURS_COPAF = ['19 octobre 2026', '20 octobre 2026', '21 octobre 2026', 'Peu importe le jour']
-
-function AppointmentModal({ exposant, onClose }) {
+function AppointmentModal({ exposant, onClose, t }) {
   const [formData, setFormData] = useState({ nom: '', email: '', telephone: '', organisation: '', jour: '', message: '' })
   const [focused, setFocused] = useState('')
   const [error, setError] = useState('')
@@ -125,8 +204,8 @@ function AppointmentModal({ exposant, onClose }) {
 
   const submit = async e => {
     e.preventDefault(); setError('')
-    if (!formData.nom || !formData.email) { setError('Merci de renseigner votre nom et votre email.'); return }
-    if (!/\S+@\S+\.\S+/.test(formData.email)) { setError('Adresse email invalide.'); return }
+    if (!formData.nom || !formData.email) { setError(t.errNameEmail); return }
+    if (!/\S+@\S+\.\S+/.test(formData.email)) { setError(t.errEmail); return }
     setLoading(true)
     try {
       const { data: contactId, error: contactErr } = await supabase.rpc('public_upsert_contact', {
@@ -142,7 +221,7 @@ function AppointmentModal({ exposant, onClose }) {
       if (rdvErr) throw new Error(rdvErr.message)
 
       setSent(true)
-    } catch (err) { setError('Erreur : ' + err.message) }
+    } catch (err) { setError(t.errPrefix + err.message) }
     setLoading(false)
   }
 
@@ -158,9 +237,9 @@ function AppointmentModal({ exposant, onClose }) {
             <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'linear-gradient(135deg,#0073F4,#000E91)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', boxShadow: '0 12px 32px rgba(0,14,145,.3)' }}>
               <Ico name="check" size={28} color="#fff" />
             </div>
-            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 10 }}>Demande envoyée !</h3>
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 10 }}>{t.sentTitle}</h3>
             <p style={{ color: '#64748b', fontSize: 13.5, lineHeight: 1.7 }}>
-              {exposant.nom} vous contactera pour confirmer votre rendez-vous sur son stand pendant la COPAF 2026.
+              {t.sentText(exposant.nom)}
             </p>
           </div>
         ) : (
@@ -169,34 +248,34 @@ function AppointmentModal({ exposant, onClose }) {
               <div style={{ width: 40, height: 40, borderRadius: 12, background: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Ico name="calendar" size={19} color="#0073F4" />
               </div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#0073F4', letterSpacing: 1.5, textTransform: 'uppercase' }}>Prendre rendez-vous</div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#0073F4', letterSpacing: 1.5, textTransform: 'uppercase' }}>{t.apptEyebrow}</div>
             </div>
-            <h2 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>Rencontrer {exposant.nom}</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 8 }}>{t.apptTitle(exposant.nom)}</h2>
             <p style={{ color: '#64748b', fontSize: 13.5, lineHeight: 1.7, marginBottom: 22 }}>
-              Planifiez une rencontre individuelle sur son stand, pendant les 3 jours de la COPAF 2026 à Casablanca (19–21 octobre 2026).
+              {t.apptIntro}
             </p>
 
             <form onSubmit={submit} noValidate>
-              <div style={{ marginBottom: 12 }}><label style={lbl}>Nom & Prénom *</label><input name="nom" value={formData.nom} onChange={handleField} required placeholder="Prénom Nom" style={inp('nom')} {...foc('nom')} autoComplete="name" /></div>
-              <div style={{ marginBottom: 12 }}><label style={lbl}>Email *</label><input type="email" name="email" value={formData.email} onChange={handleField} required placeholder="vous@entreprise.com" style={inp('email')} {...foc('email')} autoComplete="email" /></div>
-              <div style={{ marginBottom: 12 }}><label style={lbl}>Téléphone / WhatsApp</label><input type="tel" name="telephone" value={formData.telephone} onChange={handleField} placeholder="+212 600 000 000" style={inp('telephone')} {...foc('telephone')} autoComplete="tel" /></div>
-              <div style={{ marginBottom: 12 }}><label style={lbl}>Organisation</label><input name="organisation" value={formData.organisation} onChange={handleField} placeholder="Votre entreprise / institution" style={inp('organisation')} {...foc('organisation')} autoComplete="organization" /></div>
+              <div style={{ marginBottom: 12 }}><label style={lbl}>{t.fName}</label><input name="nom" value={formData.nom} onChange={handleField} required placeholder={t.fNamePh} style={inp('nom')} {...foc('nom')} autoComplete="name" /></div>
+              <div style={{ marginBottom: 12 }}><label style={lbl}>{t.fEmail}</label><input type="email" name="email" value={formData.email} onChange={handleField} required placeholder={t.fEmailPh} style={inp('email')} {...foc('email')} autoComplete="email" /></div>
+              <div style={{ marginBottom: 12 }}><label style={lbl}>{t.fPhone}</label><input type="tel" name="telephone" value={formData.telephone} onChange={handleField} placeholder="+212 600 000 000" style={inp('telephone')} {...foc('telephone')} autoComplete="tel" /></div>
+              <div style={{ marginBottom: 12 }}><label style={lbl}>{t.fOrg}</label><input name="organisation" value={formData.organisation} onChange={handleField} placeholder={t.fOrgPh} style={inp('organisation')} {...foc('organisation')} autoComplete="organization" /></div>
               <div style={{ marginBottom: 12 }}>
-                <label style={lbl}>Jour préféré</label>
+                <label style={lbl}>{t.fDay}</label>
                 <select name="jour" value={formData.jour} onChange={handleField} style={{ ...inp('jour'), cursor: 'pointer', color: formData.jour ? '#0f172a' : '#94a3b8' }} {...foc('jour')}>
-                  <option value="">-- Sélectionnez --</option>
-                  {JOURS_COPAF.map(j => <option key={j} value={j}>{j}</option>)}
+                  <option value="">{t.fDayPh}</option>
+                  {t.jours.map(j => <option key={j.value} value={j.value}>{j.label}</option>)}
                 </select>
               </div>
               <div style={{ marginBottom: 18 }}>
-                <label style={lbl}>Message (optionnel)</label>
-                <textarea name="message" value={formData.message} onChange={handleField} rows={3} placeholder="Ce que vous aimeriez aborder..." style={{ ...inp('message'), resize: 'vertical', minHeight: 70 }} {...foc('message')} />
+                <label style={lbl}>{t.fMsg}</label>
+                <textarea name="message" value={formData.message} onChange={handleField} rows={3} placeholder={t.fMsgPh} style={{ ...inp('message'), resize: 'vertical', minHeight: 70 }} {...foc('message')} />
               </div>
               {error && (
                 <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 11, padding: '10px 14px', fontSize: 12.5, color: '#dc2626', marginBottom: 16 }}>{error}</div>
               )}
               <button type="submit" disabled={loading} style={{ width: '100%', padding: 14, border: 'none', borderRadius: 13, background: 'linear-gradient(135deg,#0073F4,#000E91)', color: '#fff', fontFamily: 'inherit', fontWeight: 800, fontSize: 14, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? .6 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 8px 24px rgba(0,115,244,.3)' }}>
-                {loading ? 'Envoi en cours...' : 'Envoyer ma demande'}
+                {loading ? t.sending : t.send}
               </button>
             </form>
           </>
@@ -208,7 +287,9 @@ function AppointmentModal({ exposant, onClose }) {
 
 // ─── CARTE KIOSQUE (design validé — utilisé tel quel pour chaque exposant) ─────
 
-function KioskCard({ d }) {
+function KioskCard({ d, t, lang }) {
+  // Champs { fr, en } des exposants -> valeur dans la langue courante
+  const loc = v => (v && typeof v === 'object' ? v[lang] : v)
   const [showVideo, setShowVideo] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [showRdv, setShowRdv] = useState(false)
@@ -216,14 +297,14 @@ function KioskCard({ d }) {
   const galerie = d.galerie || []
   const navLightbox = dir => setLightboxIndex(i => (i + dir + galerie.length) % galerie.length)
 
-  const waLink = `https://wa.me/${d.whatsappNumero}?text=${encodeURIComponent(`Bonjour ${d.nom}, je vous contacte depuis l'exposition digitale COPAF 2026.`)}`
-  const chatLink = `mailto:${d.email}?subject=${encodeURIComponent(`Contact depuis l'exposition digitale - ${d.nom}`)}`
+  const waLink = `https://wa.me/${d.whatsappNumero}?text=${encodeURIComponent(t.waText(d.nom))}`
+  const chatLink = `mailto:${d.email}?subject=${encodeURIComponent(t.mailSubject(d.nom))}`
 
   return (
     <div style={{ width: '100%', maxWidth: 480 }}>
-      {showVideo && <VideoModal url={d.videoUrl} label={d.videoLabel} onClose={() => setShowVideo(false)} />}
+      {showVideo && <VideoModal url={d.videoUrl} label={loc(d.videoLabel)} onClose={() => setShowVideo(false)} />}
       {lightboxIndex !== null && <GalleryLightbox images={galerie} index={lightboxIndex} onClose={() => setLightboxIndex(null)} onNav={navLightbox} />}
-      {showRdv && <AppointmentModal exposant={d} onClose={() => setShowRdv(false)} />}
+      {showRdv && <AppointmentModal exposant={d} onClose={() => setShowRdv(false)} t={t} />}
 
       <div style={{ background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,14,145,.12)', border: '1px solid #e2e8f0' }}>
 
@@ -239,11 +320,11 @@ function KioskCard({ d }) {
                 {d.verifie && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 3, background: 'rgba(255,255,255,.18)', borderRadius: 100, padding: '2px 8px 2px 6px' }}>
                     <Ico name="check" size={10} color="#4ade80" />
-                    <span style={{ fontSize: 9.5, fontWeight: 700, color: '#fff' }}>Vérifié</span>
+                    <span style={{ fontSize: 9.5, fontWeight: 700, color: '#fff' }}>{t.verified}</span>
                   </div>
                 )}
               </div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,.75)', marginTop: 2 }}>{d.tagline}</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,.75)', marginTop: 2 }}>{loc(d.tagline)}</div>
             </div>
           </div>
         </div>
@@ -256,7 +337,7 @@ function KioskCard({ d }) {
             <div style={{ position: 'relative', width: 62, height: 62, borderRadius: '50%', background: 'rgba(255,255,255,.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(0,0,0,.3)' }}>
               <Ico name="play" size={26} color="#000E91" />
             </div>
-            <div style={{ position: 'absolute', bottom: 12, left: 16, right: 16, color: '#fff', fontSize: 12.5, fontWeight: 600 }}>{d.videoLabel}</div>
+            <div style={{ position: 'absolute', bottom: 12, left: 16, right: 16, color: '#fff', fontSize: 12.5, fontWeight: 600 }}>{loc(d.videoLabel)}</div>
           </div>
         )}
 
@@ -265,16 +346,16 @@ function KioskCard({ d }) {
           {/* Documents */}
           {(d.brochureUrl || d.catalogueUrl) && (
             <>
-              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10 }}>Documents</div>
+              <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10 }}>{t.documents}</div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
                 {d.brochureUrl && (
-                  <a href={d.brochureUrl} download target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', background: '#EBF3FF', border: '1.5px solid #bfdbfe', borderRadius: 12, textDecoration: 'none', color: '#000E91', fontSize: 12.5, fontWeight: 700 }}>
-                    <Ico name="file" size={15} color="#000E91" /> Brochure
+                  <a href={loc(d.brochureUrl)} download target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', background: '#EBF3FF', border: '1.5px solid #bfdbfe', borderRadius: 12, textDecoration: 'none', color: '#000E91', fontSize: 12.5, fontWeight: 700 }}>
+                    <Ico name="file" size={15} color="#000E91" /> {t.brochure}
                   </a>
                 )}
                 {d.catalogueUrl && (
-                  <a href={d.catalogueUrl} download target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 12, textDecoration: 'none', color: '#334155', fontSize: 12.5, fontWeight: 700 }}>
-                    <Ico name="book" size={15} color="#334155" /> Catalogue
+                  <a href={loc(d.catalogueUrl)} download target="_blank" rel="noopener noreferrer" style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, padding: '11px 14px', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 12, textDecoration: 'none', color: '#334155', fontSize: 12.5, fontWeight: 700 }}>
+                    <Ico name="book" size={15} color="#334155" /> {t.catalogue}
                   </a>
                 )}
               </div>
@@ -285,7 +366,7 @@ function KioskCard({ d }) {
           {galerie.length > 0 && (
             <>
               <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Ico name="image" size={12} color="#94a3b8" /> Galerie
+                <Ico name="image" size={12} color="#94a3b8" /> {t.gallery}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 20 }}>
                 {galerie.map((img, i) => (
@@ -300,7 +381,7 @@ function KioskCard({ d }) {
           )}
 
           {/* Coordonnées */}
-          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10 }}>Coordonnées</div>
+          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase', color: '#94a3b8', marginBottom: 10 }}>{t.contact}</div>
           <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '12px 14px', marginBottom: 20 }}>
             {[
               { icon: 'mail', text: d.email },
@@ -316,7 +397,7 @@ function KioskCard({ d }) {
 
           {/* Bouton d'action principal — prise de rendez-vous directe */}
           <button onClick={() => setShowRdv(true)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '14px', marginBottom: 10, background: 'linear-gradient(135deg,#000E91,#0073F4)', border: 'none', borderRadius: 12, color: '#fff', fontFamily: 'inherit', fontSize: 13, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 20px rgba(0,14,145,.25)' }}>
-            <Ico name="calendar" size={16} color="#fff" /> Prendre rendez-vous
+            <Ico name="calendar" size={16} color="#fff" /> {t.book}
           </button>
 
           {/* Boutons d'action secondaires */}
@@ -325,7 +406,7 @@ function KioskCard({ d }) {
               <Ico name="whatsapp" size={16} color="#fff" /> WhatsApp
             </a>
             <a href={chatLink} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '13px', background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: 12, color: '#334155', fontSize: 12.5, fontWeight: 700, textDecoration: 'none' }}>
-              <Ico name="chat" size={15} color="#334155" /> Discuter
+              <Ico name="chat" size={15} color="#334155" /> {t.chat}
             </a>
           </div>
         </div>
@@ -338,6 +419,8 @@ function KioskCard({ d }) {
 
 export default function VisiterExposition() {
   const navigate = useNavigate()
+  const lang = useLang()
+  const t = TR[lang]
 
   return (
     <>
@@ -400,10 +483,10 @@ export default function VisiterExposition() {
               onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
               onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
               onClick={() => navigate('/')}>
-              Accueil
+              {t.home}
             </span>
             <span style={{ opacity: 0.3 }}>/</span>
-            <span style={{ color: 'rgba(255,255,255,0.6)' }}>Exposition Digitale</span>
+            <span style={{ color: 'rgba(255,255,255,0.6)' }}>{t.digitalExpo}</span>
           </div>
 
           <div style={{
@@ -413,7 +496,7 @@ export default function VisiterExposition() {
             animation: 'heroFade 0.45s 0.04s ease both',
           }}>
             <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.4, color: '#5FB1FF', textTransform: 'uppercase' }}>
-              Exposition 100% digitale
+              {t.heroBadge}
             </span>
           </div>
 
@@ -423,7 +506,7 @@ export default function VisiterExposition() {
             fontFamily: "'Space Grotesk', sans-serif", letterSpacing: -1,
             animation: 'heroFade 0.45s 0.08s ease both',
           }}>
-            L'exposition qui vient à vous.
+            {t.heroTitle}
           </h1>
 
           <p style={{
@@ -432,7 +515,7 @@ export default function VisiterExposition() {
             fontFamily: "'Inter', sans-serif",
             animation: 'heroFade 0.45s 0.12s ease both',
           }}>
-            Découvrez les exposants COPAF 2026 en un coup d'œil : vidéo de présentation, documents, galerie et contact direct — où que vous soyez dans le monde.
+            {t.heroText}
           </p>
         </div>
       </section>
@@ -445,7 +528,7 @@ export default function VisiterExposition() {
             letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 28,
             fontFamily: "'Space Grotesk', sans-serif",
           }}>
-            {EXHIBITORS.length} exposant{EXHIBITORS.length !== 1 ? 's' : ''}
+            {t.exhibitors(EXHIBITORS.length)}
           </p>
 
           <div className="exp-grid" style={{
@@ -456,7 +539,7 @@ export default function VisiterExposition() {
           }}>
             {EXHIBITORS.map((d, i) => (
               <div key={d.id} style={{ animation: `cardIn 0.4s ${i * 60}ms ease both` }}>
-                <KioskCard d={d} />
+                <KioskCard d={d} t={t} lang={lang} />
               </div>
             ))}
           </div>
@@ -481,13 +564,13 @@ export default function VisiterExposition() {
             color: '#fff', fontFamily: "'Space Grotesk', sans-serif",
             letterSpacing: -0.5, lineHeight: 1.2,
           }}>
-            Exposer votre organisation ?
+            {t.ctaTitle}
           </h2>
           <p style={{
             margin: '0 0 32px', fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.75,
             fontFamily: "'Inter', sans-serif",
           }}>
-            Rejoignez les exposants de COPAF 2026 et présentez vos solutions sans contrainte géographique.
+            {t.ctaText}
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => navigate('/exposition-digitale')} style={{
@@ -500,7 +583,7 @@ export default function VisiterExposition() {
               onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}
             >
-              Réserver mon stand
+              {t.ctaBook}
             </button>
             <button onClick={() => navigate('/')} style={{
               padding: '12px 26px', borderRadius: 9,
@@ -513,7 +596,7 @@ export default function VisiterExposition() {
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
             >
-              En savoir plus
+              {t.ctaMore}
             </button>
           </div>
         </div>

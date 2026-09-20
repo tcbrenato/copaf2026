@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SeoHead from '../components/SeoHead'
+import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -27,7 +28,32 @@ const Ico = ({ name, size = 22, color = 'currentColor' }) => {
   return icons[name] || null
 }
 
-function Compteur() {
+const TR = {
+  fr: {
+    seoTitle: 'Live Streaming — COPAF 2026',
+    seoDesc: 'Suivez la Conférence des Ports Africains (COPAF) 2026 en direct, du 19 au 21 octobre à Casablanca.',
+    liveNow: 'En direct maintenant',
+    intro: 'Suivez les sessions de la conférence en direct depuis Casablanca, où que vous soyez.',
+    startsOn: 'La diffusion en direct commencera le',
+    startDate: '19 octobre 2026',
+    days: 'jours', hours: 'heures', min: 'min',
+    subscribe: "S'abonner sur YouTube",
+    iframeTitle: 'COPAF 2026 — Live Streaming',
+  },
+  en: {
+    seoTitle: 'Live Streaming — COPAF 2026',
+    seoDesc: 'Follow the African Ports Conference (COPAF) 2026 live, from 19 to 21 October in Casablanca.',
+    liveNow: 'Live now',
+    intro: 'Follow the conference sessions live from Casablanca, wherever you are.',
+    startsOn: 'The live broadcast will start on',
+    startDate: 'October 19, 2026',
+    days: 'days', hours: 'hours', min: 'min',
+    subscribe: 'Subscribe on YouTube',
+    iframeTitle: 'COPAF 2026 — Live Streaming',
+  },
+}
+
+function Compteur({ t }) {
   const diff = Math.max(0, DEBUT_CONFERENCE.getTime() - Date.now())
   const jours = Math.floor(diff / 86400000)
   const heures = Math.floor((diff % 86400000) / 3600000)
@@ -35,7 +61,7 @@ function Compteur() {
 
   return (
     <div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 28 }}>
-      {[{ v: jours, l: 'jours' }, { v: heures, l: 'heures' }, { v: minutes, l: 'min' }].map(u => (
+      {[{ v: jours, l: t.days }, { v: heures, l: t.hours }, { v: minutes, l: t.min }].map(u => (
         <div key={u.l} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '16px 22px', minWidth: 84 }}>
           <div style={{ fontSize: 32, fontWeight: 900, color: '#fff' }}>{u.v}</div>
           <div style={{ fontSize: 11, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 }}>{u.l}</div>
@@ -46,6 +72,7 @@ function Compteur() {
 }
 
 export default function LiveStreaming() {
+  const t = TR[useLang()]
   const maintenant = Date.now()
   const enDirect = maintenant >= DEBUT_CONFERENCE.getTime() && maintenant < FIN_CONFERENCE.getTime()
   const avantConference = maintenant < DEBUT_CONFERENCE.getTime()
@@ -53,8 +80,8 @@ export default function LiveStreaming() {
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#f8fafc', background: '#0a1128' }}>
       <SeoHead
-        title="Live Streaming — COPAF 2026"
-        description="Suivez la Conférence des Ports Africains (COPAF) 2026 en direct, du 19 au 21 octobre à Casablanca."
+        title={t.seoTitle}
+        description={t.seoDesc}
         canonical="https://copaf-ports.com/live"
         type="website"
       />
@@ -67,13 +94,13 @@ export default function LiveStreaming() {
           textTransform: 'uppercase', color: '#60a5fa', marginBottom: 18,
         }}>
           {enDirect && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ef4444', animation: 'copaf-live-pulse 1.4s ease-in-out infinite' }} />}
-          {enDirect ? 'En direct maintenant' : 'COPAF 2026'}
+          {enDirect ? t.liveNow : 'COPAF 2026'}
         </span>
         <h1 style={{ fontSize: 'clamp(30px, 4vw, 44px)', fontWeight: 900, margin: '0 0 14px', letterSpacing: '-0.02em' }}>
           Live Streaming
         </h1>
         <p style={{ fontSize: 16, color: '#94a3b8', maxWidth: 560, margin: '0 auto 36px', lineHeight: 1.6 }}>
-          Suivez les sessions de la conférence en direct depuis Casablanca, où que vous soyez.
+          {t.intro}
         </p>
 
         {avantConference ? (
@@ -81,16 +108,16 @@ export default function LiveStreaming() {
             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 20, padding: '48px 24px' }}>
               <Ico name="clock" size={36} color="#60a5fa" />
               <p style={{ fontSize: 15, color: '#cbd5e1', marginTop: 16, marginBottom: 0 }}>
-                La diffusion en direct commencera le <strong style={{ color: '#fff' }}>19 octobre 2026</strong>
+                {t.startsOn} <strong style={{ color: '#fff' }}>{t.startDate}</strong>
               </p>
-              <Compteur />
+              <Compteur t={t} />
             </div>
           </div>
         ) : (
           <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', borderRadius: 20, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
             <iframe
               src={`https://www.youtube.com/embed/live_stream?channel=${YOUTUBE_CHANNEL_ID}`}
-              title="COPAF 2026 — Live Streaming"
+              title={t.iframeTitle}
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -109,7 +136,7 @@ export default function LiveStreaming() {
           }}
         >
           <Ico name="youtube" size={20} color="#fff" />
-          S'abonner sur YouTube
+          {t.subscribe}
         </a>
       </div>
 

@@ -10,7 +10,9 @@
     "intervenants": "Speakers",
     "partnerships": "Partnerships",
     "digitalExposition": "Digital Exhibition",
-    "visit": "Visit"
+    "visit": "Visit",
+    "resources": "Resources",
+    "recommendations": "Official Recommendations & Proceedings"
   },
   "languageSwitcher": { "fr": "FR", "en": "EN" },
   "hero": {

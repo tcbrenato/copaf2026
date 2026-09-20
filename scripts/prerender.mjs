@@ -124,7 +124,15 @@ async function main() {
         // erreur mais sans jamais activer de vrai Service Worker.
         await page.evaluateOnNewDocument(() => {
           Object.defineProperty(navigator, 'serviceWorker', {
-            value: { register: () => Promise.resolve({ unregister: () => Promise.resolve(true) }) },
+            // register() : script d'enregistrement du PWA ; addEventListener() :
+            // main.jsx ecoute "controllerchange" (sans lui, tout le rendu plantait et
+            // les pages pre-generees restaient figees sur d'anciennes versions).
+            value: {
+              register: () => Promise.resolve({ unregister: () => Promise.resolve(true) }),
+              addEventListener: () => {},
+              removeEventListener: () => {},
+              controller: null,
+            },
             configurable: true,
           })
         })

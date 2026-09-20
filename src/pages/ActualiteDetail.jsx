@@ -2,18 +2,43 @@ import { useParams } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SeoHead from '../components/SeoHead'
-import { getPublishedArticles, getArticleBySlug } from '../utils/articlesData'
+import { getPublishedArticles, getArticleBySlug, localizeArticle } from '../utils/articlesData'
+import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
 
-function fmtDate(d) {
-  return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+const TR = {
+  fr: {
+    locale: 'fr-FR',
+    notFound: 'Article introuvable',
+    backToNews: '← Retour aux actualités',
+    allNews: '← Toutes les actualités',
+    readingFull: 'min de lecture',
+    seoSuffix: 'COPAF 2026',
+    boxTitle: 'COPAF 2026 — Conférence des Ports Africains',
+    boxBefore: "Du 19 au 21 octobre 2026 à Casablanca. Plus d'informations et inscription sur",
+    alsoRead: 'À lire aussi',
+  },
+  en: {
+    locale: 'en-GB',
+    notFound: 'Article not found',
+    backToNews: '← Back to news',
+    allNews: '← All news',
+    readingFull: 'min read',
+    seoSuffix: 'COPAF 2026',
+    boxTitle: 'COPAF 2026 — African Ports Conference',
+    boxBefore: 'From 19 to 21 October 2026 in Casablanca. More information and registration at',
+    alsoRead: 'Also read',
+  },
 }
 
 export default function ActualiteDetail() {
   const { slug } = useParams()
-  const article = getArticleBySlug(slug)
+  const lang = useLang()
+  const t = TR[lang]
+  const fmtDate = d => new Date(d).toLocaleDateString(t.locale, { day: 'numeric', month: 'long', year: 'numeric' })
+  const article = localizeArticle(getArticleBySlug(slug), lang)
 
   const wrap = { minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#0f172a', background: '#f8faff' }
 
@@ -22,8 +47,8 @@ export default function ActualiteDetail() {
       <div style={wrap}>
         <Navbar />
         <div style={{ maxWidth: 700, margin: '0 auto', padding: '160px 20px 80px', textAlign: 'center' }}>
-          <h1 style={{ fontSize: 24, fontWeight: 800 }}>Article introuvable</h1>
-          <a href="/actualites" style={{ color: BLUE, fontWeight: 700 }}>← Retour aux actualités</a>
+          <h1 style={{ fontSize: 24, fontWeight: 800 }}>{t.notFound}</h1>
+          <a href="/actualites" style={{ color: BLUE, fontWeight: 700 }}>{t.backToNews}</a>
         </div>
         <Footer />
       </div>
@@ -42,12 +67,12 @@ export default function ActualiteDetail() {
     mainEntityOfPage: canonical,
   }
 
-  const autres = getPublishedArticles().filter(a => a.slug !== article.slug).slice(0, 2)
+  const autres = getPublishedArticles().filter(a => a.slug !== article.slug).slice(0, 2).map(a => localizeArticle(a, lang))
 
   return (
     <div style={wrap}>
       <SeoHead
-        title={`${article.title} — COPAF 2026`}
+        title={`${article.title} — ${t.seoSuffix}`}
         description={article.metaDescription}
         canonical={canonical}
         ogImage={article.imageUrl ? `https://copaf-ports.com${article.imageUrl}` : undefined}
@@ -58,11 +83,11 @@ export default function ActualiteDetail() {
 
       <article style={{ maxWidth: article.twoColumn ? 900 : 720, margin: '0 auto', padding: 'clamp(110px, 14vw, 150px) clamp(20px, 5vw, 40px) 40px' }}>
         <a href="/actualites" style={{ fontSize: 13, fontWeight: 700, color: BLUE, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 24 }}>
-          ← Toutes les actualités
+          {t.allNews}
         </a>
 
         <div style={{ fontSize: 12.5, color: '#94a3b8', fontWeight: 600, marginBottom: 14 }}>
-          {fmtDate(article.publishedDate)} · {article.readingTime} min de lecture
+          {fmtDate(article.publishedDate)} · {article.readingTime} {t.readingFull}
         </div>
 
         <h1 style={{ fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 900, color: '#0a1128', lineHeight: 1.25, margin: '0 0 28px', letterSpacing: '-0.01em' }}>
@@ -99,16 +124,16 @@ export default function ActualiteDetail() {
         )}
 
         <div style={{ marginTop: 40, padding: '20px 24px', borderRadius: 16, background: 'rgba(0,115,244,0.06)', border: '1px solid rgba(0,115,244,0.15)' }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: NAVY, marginBottom: 6 }}>COPAF 2026 — Conférence des Ports Africains</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: NAVY, marginBottom: 6 }}>{t.boxTitle}</div>
           <p style={{ fontSize: 13.5, color: '#475569', margin: 0, lineHeight: 1.6 }}>
-            Du 19 au 21 octobre 2026 à Casablanca. Plus d'informations et inscription sur <a href="/inscription" style={{ color: BLUE, fontWeight: 700 }}>copaf-ports.com/inscription</a>.
+            {t.boxBefore} <a href="/inscription" style={{ color: BLUE, fontWeight: 700 }}>copaf-ports.com/inscription</a>.
           </p>
         </div>
 
         {autres.length > 0 && (
           <div style={{ marginTop: 48 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 }}>
-              À lire aussi
+              {t.alsoRead}
             </div>
             <div style={{ display: 'grid', gap: 14 }}>
               {autres.map(a => (
