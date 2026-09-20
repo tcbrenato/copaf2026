@@ -16,3 +16,18 @@
 
 # Assure un encodage UTF-8 correct
 AddDefaultCharset UTF-8
+
+# En-tetes de securite
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # La camera reste autorisee pour la page de scan du personnel (QR code)
+  Header always set Permissions-Policy "camera=(self), microphone=(), geolocation=(), payment=(), usb=()"
+  Header always set Strict-Transport-Security "max-age=15552000"
+</IfModule>
+
+# Fichiers caches (.env, .git...) jamais servis
+<FilesMatch "^\.(env|git|htpasswd)">
+  Require all denied
+</FilesMatch>
