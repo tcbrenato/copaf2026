@@ -396,7 +396,10 @@ export default function BadgeToken() {
           {!session ? (
             // Scan du QR / lien public : lecture seule. Modifier un dossier
             // exige dossier + code d'acces (page /badge), jamais le lien seul.
-            <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.2)' }}>
+            // Le lien "Completer mon dossier" n'apparait que si des informations
+            // manquent (passeport, email ou telephone) : les badges des
+            // personnes au dossier complet restent une simple carte.
+            data.incomplet && <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.2)' }}>
               <a href="/badge" style={{
                 display: 'block', textAlign: 'center', padding: '12px 14px', borderRadius: 12,
                 background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.3)',
