@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '../supabase'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
 import { generateBadge } from '../utils/generateBadge'
@@ -132,7 +133,9 @@ const TR = {
 }
 
 export default function VerifierDossier() {
-  const [lang, setLang] = useState('fr')
+  // Langue partagee avec le reste du site (selecteur du header) via i18next
+  const { i18n } = useTranslation()
+  const lang = i18n.language?.startsWith('en') ? 'en' : 'fr'
   const t = TR[lang]
   const STATUTS = STATUT_LABEL[lang]
 
@@ -324,7 +327,7 @@ export default function VerifierDossier() {
 
         {/* SELECTEUR DE LANGUE */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-          <button className="lang-switch" type="button" onClick={() => setLang(l => l === 'fr' ? 'en' : 'fr')}>
+          <button className="lang-switch" type="button" onClick={() => i18n.changeLanguage(lang === 'fr' ? 'en' : 'fr')}>
             <Ico name="globe" size={14} color="#0073F4" />
             {t.langSwitch}
           </button>
