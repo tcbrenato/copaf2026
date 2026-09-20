@@ -62,7 +62,8 @@ function sanitizeFileName(name) {
 // (notifier=false, valeur par defaut), on notifie plutot la personne qu'un
 // document l'attend dans son espace (type 'document_admin') — voir
 // supabase/functions/notify-action.
-export default function DocumentsSection({ dossier, participantId = null, titre, table = 'documents_participants', bucket = 'documents-participants', ajoutePar, onDocsChange, notifier = false }) {
+export default function DocumentsSection({ dossier, participantId = null, titre, table = 'documents_participants', bucket = 'documents-participants', ajoutePar, onDocsChange, notifier = false, lang = 'fr' }) {
+  const en = lang === 'en'
   const [docs, setDocs] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -95,7 +96,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
     const path = `${dossier}/${Date.now()}_${sanitizeFileName(file.name)}`
     const { error: upErr } = await supabase.storage.from(bucket).upload(path, file)
     if (upErr) {
-      setErreur(`Échec de l'envoi du fichier : ${upErr.message}`)
+      setErreur(`${en ? 'File upload failed: ' : "Échec de l'envoi du fichier : "}${upErr.message}`)
     } else {
       const url = supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
       let auteur = ajoutePar || null
@@ -112,7 +113,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
         // message, le depot semblait avoir reussi alors que rien n'etait
         // visible ensuite (bug reel rencontre : cf. contrainte dossier retiree
         // en migration).
-        setErreur(`Fichier envoyé mais non enregistré : ${insErr.message}`)
+        setErreur(`${en ? 'File uploaded but not saved: ' : 'Fichier envoyé mais non enregistré : '}${insErr.message}`)
       } else {
         if (notifier) supabase.functions.invoke('notify-action', { body: { dossier, type: 'document' } }).catch(() => {})
         else supabase.functions.invoke('notify-action', { body: { dossier, type: 'document_admin', label: file.name } }).catch(() => {})
@@ -139,12 +140,12 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
     const path = `${dossier}/${Date.now()}_${sanitizeFileName(file.name)}`
     const { error: upErr } = await supabase.storage.from(bucket).upload(path, file)
     if (upErr) {
-      setErreur(`Échec de l'envoi du fichier : ${upErr.message}`)
+      setErreur(`${en ? 'File upload failed: ' : "Échec de l'envoi du fichier : "}${upErr.message}`)
     } else {
       const url = supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
       const { error: updErr } = await supabase.from(table).update({ url, label: doc.label === doc.url ? file.name : doc.label }).eq('id', doc.id)
       if (updErr) {
-        setErreur(`Fichier envoyé mais non enregistré : ${updErr.message}`)
+        setErreur(`${en ? 'File uploaded but not saved: ' : 'Fichier envoyé mais non enregistré : '}${updErr.message}`)
       } else {
         const ancienPath = storagePathFromUrl(doc.url, bucket)
         if (ancienPath) await supabase.storage.from(bucket).remove([ancienPath])
@@ -182,8 +183,8 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
   return (
     <div style={{ marginTop: 20 }}>
       <div style={LABEL}>
-        {titre || 'Documents déposés (visibles dans son espace personnel)'}
-        {participantId && ' — personnels à cette personne + partagés du dossier'}
+        {titre || (en ? 'Uploaded documents (visible in their personal space)' : 'Documents déposés (visibles dans son espace personnel)')}
+        {participantId && (en ? ' — personal to this person + shared with the file' : ' — personnels à cette personne + partagés du dossier')}
       </div>
       {docs.map(doc => (
         <div key={doc.id} style={{ ...ROW, flexWrap: 'wrap' }}>
@@ -194,7 +195,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
                 onKeyDown={e => { if (e.key === 'Enter') validerEdition(doc); if (e.key === 'Escape') setEditionId(null) }}
                 style={{ flex: 1, minWidth: 120, padding: '5px 8px', fontSize: 12.5, fontFamily: 'inherit', border: '1.5px solid #93c5fd', borderRadius: 8, outline: 'none' }}
               />
-              <button type="button" onClick={() => validerEdition(doc)} title="Valider" style={ICONBTN}><Icon name="check" color="#059669" /></button>
+              <button type="button" onClick={() => validerEdition(doc)} title={en ? 'Confirm' : 'Valider'} style={ICONBTN}><Icon name="check" color="#059669" /></button>
             </>
           ) : (
             <a href={doc.url} target="_blank" rel="noreferrer" style={{ fontSize: 12.5, color: '#0f172a', fontWeight: 600, textDecoration: 'none', flex: 1, minWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -206,20 +207,20 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
               fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100, flexShrink: 0,
               color: doc.participant_id ? '#7c3aed' : '#0369a1', background: doc.participant_id ? '#f3e8ff' : '#e0f2fe',
             }}>
-              {doc.participant_id ? 'Personnel' : 'Partagé'}
+              {doc.participant_id ? (en ? 'Personal' : 'Personnel') : (en ? 'Shared' : 'Partagé')}
             </span>
           )}
-          <button type="button" onClick={() => commencerEdition(doc)} title="Renommer" style={ICONBTN}>
+          <button type="button" onClick={() => commencerEdition(doc)} title={en ? 'Rename' : 'Renommer'} style={ICONBTN}>
             <Icon name="edit" />
           </button>
-          <label style={{ ...ICONBTN, cursor: remplacementId === doc.id ? 'wait' : 'pointer' }} title="Remplacer le fichier">
+          <label style={{ ...ICONBTN, cursor: remplacementId === doc.id ? 'wait' : 'pointer' }} title={en ? 'Replace the file' : 'Remplacer le fichier'}>
             <Icon name="swap" color={remplacementId === doc.id ? '#cbd5e1' : '#64748b'} />
             <input ref={replaceFileRef} type="file" onChange={e => remplacerFichier(doc, e)} disabled={remplacementId === doc.id} style={{ display: 'none' }} />
           </label>
-          <button type="button" onClick={() => toggleDocVisible(doc)} title={doc.visible ? 'Masquer' : 'Rendre visible'} style={ICONBTN}>
+          <button type="button" onClick={() => toggleDocVisible(doc)} title={doc.visible ? (en ? 'Hide' : 'Masquer') : (en ? 'Make visible' : 'Rendre visible')} style={ICONBTN}>
             <Icon name={doc.visible ? 'eye' : 'eyeOff'} color={doc.visible ? '#059669' : '#94a3b8'} />
           </button>
-          <button type="button" onClick={() => deleteDoc(doc)} title="Supprimer" style={ICONBTN}>
+          <button type="button" onClick={() => deleteDoc(doc)} title={en ? 'Delete' : 'Supprimer'} style={ICONBTN}>
             <Icon name="trash" color="#ef4444" />
           </button>
         </div>
@@ -242,7 +243,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
         }}
       >
         <Icon name="upload" color={dragOver ? '#0073F4' : '#64748b'} />
-        {uploading ? 'Envoi en cours...' : dragOver ? 'Déposez le fichier ici' : participantId ? 'Déposer un document pour cette personne (ou glisser-déposer)' : 'Déposer un document (badge, attestation...) — ou glisser-déposer'}
+        {uploading ? (en ? 'Uploading...' : 'Envoi en cours...') : dragOver ? (en ? 'Drop the file here' : 'Déposez le fichier ici') : participantId ? 'Déposer un document pour cette personne (ou glisser-déposer)' : (en ? 'Upload a document (badge, certificate...) — or drag and drop' : 'Déposer un document (badge, attestation...) — ou glisser-déposer')}
         <input ref={fileRef} type="file" onChange={uploadDoc} disabled={uploading} style={{ display: 'none' }} />
       </label>
     </div>

@@ -218,9 +218,9 @@ const AxesThematiques = () => {
         {/* CERTIFICATIONS */}
         <div style={{ display: "flex", justifyContent: "center", gap: 16, flexWrap: "wrap", marginTop: 32 }}>
           {[
-            { titre: "AGPAOC", desc: "Secrétariat Général", color: C.blue, reseau: 'agpaoc' },
-            { titre: "UAPNA", desc: "Union Portuaire Afrique du Nord", color: RESEAUX.uapna.color, reseau: 'uapna' },
-            { titre: "CRF Perfection", desc: "Expertise Panafricaine", color: C.navy },
+            { titre: "AGPAOC", desc: t('modules.agpaocDesc'), color: C.blue, reseau: 'agpaoc' },
+            { titre: "UAPNA", desc: t('modules.uapnaDesc'), color: RESEAUX.uapna.color, reseau: 'uapna' },
+            { titre: "CRF Perfection", desc: t('modules.crfDesc'), color: C.navy },
           ].map((c, i) => (
             <div key={i}
               onClick={c.reseau ? () => setActiveReseau(c.reseau) : undefined}

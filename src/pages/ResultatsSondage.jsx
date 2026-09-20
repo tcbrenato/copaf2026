@@ -1,12 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../supabase'
+import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
 const BAR_COLORS = ['#0073F4', '#00C8FF', '#4DA6FF', '#7BC4FF', '#A8E0FF']
 
+const TR = {
+  fr: { loading: 'Chargement...', responses: 'Réponses', liveResponses: 'Réponses en direct', voteAt: 'Votez sur', live: '● EN DIRECT', closed: 'CLÔTURÉ' },
+  en: { loading: 'Loading...', responses: 'Responses', liveResponses: 'Live responses', voteAt: 'Vote at', live: '● LIVE', closed: 'CLOSED' },
+}
+
 export default function ResultatsSondage() {
+  const t = TR[useLang()]
   const { id } = useParams()
   const [sondage, setSondage] = useState(null)
   const [counts, setCounts] = useState([])
@@ -55,7 +62,7 @@ export default function ResultatsSondage() {
   }
 
   if (!sondage) {
-    return <div style={wrap}><div style={{ margin: 'auto', fontSize: 20, opacity: 0.6 }}>Chargement...</div></div>
+    return <div style={wrap}><div style={{ margin: 'auto', fontSize: 20, opacity: 0.6 }}>{t.loading}</div></div>
   }
 
   const maxCount = Math.max(1, ...counts)
@@ -71,7 +78,7 @@ export default function ResultatsSondage() {
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <div key={total} style={{ fontSize: 42, fontWeight: 900, animation: 'copaf-res-pulse .4s ease' }}>{total}</div>
-          <div style={{ fontSize: 13, opacity: 0.6, textTransform: 'uppercase', letterSpacing: 1 }}>Réponses</div>
+          <div style={{ fontSize: 13, opacity: 0.6, textTransform: 'uppercase', letterSpacing: 1 }}>{t.responses}</div>
         </div>
       </div>
 
@@ -101,7 +108,7 @@ export default function ResultatsSondage() {
       {sondage.is_public && repondants.length > 0 && (
         <div style={{ marginTop: 36 }}>
           <div style={{ fontSize: 12, fontWeight: 800, opacity: 0.6, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 14 }}>
-            Réponses en direct
+            {t.liveResponses}
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, maxHeight: 160, overflow: 'hidden' }}>
             {repondants.slice(0, 24).map((r, i) => (
@@ -121,13 +128,13 @@ export default function ResultatsSondage() {
       )}
 
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, marginTop: 40, opacity: 0.85 }}>
-        <div style={{ fontSize: 15, fontWeight: 700 }}>Votez sur {voteUrl}</div>
+        <div style={{ fontSize: 15, fontWeight: 700 }}>{t.voteAt} {voteUrl}</div>
         <span style={{
           padding: '5px 14px', borderRadius: 20, fontSize: 12, fontWeight: 800, letterSpacing: 0.5,
           background: sondage.actif ? 'rgba(34,197,94,.2)' : 'rgba(148,163,184,.2)',
           color: sondage.actif ? '#4ade80' : '#94a3b8',
         }}>
-          {sondage.actif ? '● EN DIRECT' : 'CLÔTURÉ'}
+          {sondage.actif ? t.live : t.closed}
         </span>
       </div>
 

@@ -216,7 +216,7 @@ const Navbar = () => {
               <button style={{ ...btnBase, display: 'flex', alignItems: 'center', gap: 5 }}
                 onMouseEnter={e => { e.currentTarget.style.color = '#0073f4'; e.currentTarget.style.opacity = '1' }}
                 onMouseLeave={e => { e.currentTarget.style.color = '#FFFFFF'; e.currentTarget.style.opacity = '0.85' }}>
-                Conférence
+                {t('navbar.conference')}
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
                   style={{ transition: 'transform 0.25s', transform: conferenceOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                   <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

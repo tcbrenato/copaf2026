@@ -23,7 +23,8 @@
 // publier uniquement le CR de la visite de Casablanca dans l'immediat, et
 // les 3 autres articles deux semaines plus tard.
 
-import { ARTICLES_EN } from './articlesEn'
+// Extension explicite : ce fichier est aussi importe par scripts/prerender.mjs (Node ESM)
+import { ARTICLES_EN } from './articlesEn.js'
 
 export const ARTICLES = [
   {

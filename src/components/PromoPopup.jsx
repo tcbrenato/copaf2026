@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -10,6 +11,7 @@ const DELAY_MS = 4000
 // les visiteurs plutot que de convertir. Voir DELAY_MS pour le delai avant
 // premiere apparition.
 export default function PromoPopup() {
+  const lang = useLang()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -64,7 +66,7 @@ export default function PromoPopup() {
       >
         <button
           onClick={close}
-          aria-label="Fermer"
+          aria-label={lang === 'en' ? 'Close' : 'Fermer'}
           style={{
             position: 'absolute', top: 14, right: 14, zIndex: 1,
             width: 36, height: 36, borderRadius: '50%',
@@ -79,7 +81,7 @@ export default function PromoPopup() {
         <a href="/inscription" onClick={close} style={{ display: 'block', lineHeight: 0 }}>
           <img
             src="/popup-flyer.png"
-            alt="COPAF 2026 — 19, 20 & 21 Octobre, Port de Casablanca"
+            alt={lang === 'en' ? 'COPAF 2026 — October 19, 20 & 21, Port of Casablanca' : 'COPAF 2026 — 19, 20 & 21 Octobre, Port de Casablanca'}
             style={{ width: '100%', height: 'auto', display: 'block' }}
           />
         </a>

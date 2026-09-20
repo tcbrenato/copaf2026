@@ -146,6 +146,9 @@
     "socialTitle": "All the COPAF 2026 news in real time on our social media."
   },
   "footer": {
+    "newsLink": "News",
+    "legalNotice": "Legal notice",
+    "privacyPolicy": "Privacy policy",
     "title": "COPAF",
     "tagline": "The Performance of African Ports",
     "description": "Conference of African Ports. A strategic gathering to shape the future of African ports.",
@@ -257,6 +260,13 @@
     "subtitle": "Experts gathered to share their expertise on port challenges in Africa.",
     "readBio": "Read biography",
     "toConfirm": "To be confirmed",
+    "abialaTitre": "Director of Maritime Solutions",
+    "aglOrg": "AGL Benin (formerly Bolloré Group)",
+    "atelierMarocTitre": "Workshop: Business model for developing a port technology project",
+    "odahTitre": "Director General of CRF Perfection & Director of the COPAF 2026 Scientific Committee",
+    "balsomiTitre": "CEO & Expert in Offensive Cybersecurity and Digital Transformation",
+    "panelMarocTitre": "Panel: Safety & Security — automatic anomaly detection",
+    "biegniebeTitre": "Director General",
     "bioComingSoon": "Biography coming soon. This speaker will be announced shortly.",
     "odahTitre": "Expert in Strategic Governance and Port Development",
     "odahBio": "Chief Executive Officer of CRF Perfection, Dr. William ODAH is an international expert in strategic governance, active across the United States, Canada, Europe and Africa. For many years, he has supported institutions and companies in West Africa and beyond in their port development, training and organizational structuring projects. His expertise is built around three levers of performance to meet the challenges of digital transformation: strategic marketing, for competitive positioning and service value creation; process digitalization, for operational optimization and efficiency; and organizational compliance, for resilience, governance and regulatory conformity. Working with public and private stakeholders in the maritime and logistics sector across four continents, he is recognized for his pragmatic approach combining institutional change management, executive capacity building and strategic support for high-stakes port projects.",
@@ -267,6 +277,9 @@
     "abialaBio": "Mr. Modeste ABIALA is Director of Maritime Solutions at AGL Benin (formerly Bolloré Group), where he previously served for 15 years as Commercial and Marketing Director. With 28 years of experience in the maritime and port sector, he supports economic and institutional stakeholders in optimizing cargo flows and deploying innovative port solutions across West Africa. His expertise spans key account commercial strategy, market development and the digitalization of port services across Africa."
   },
   "modules": {
+    "agpaocDesc": "General Secretariat",
+    "uapnaDesc": "North Africa Port Union",
+    "crfDesc": "Pan-African Expertise",
     "eyebrow": "Thematic Tracks",
     "titlePart1": "3 Days, 3 Tracks at the heart of",
     "titlePart2": "COPAF 2026",

@@ -379,9 +379,9 @@ const Programme = () => {
         {/* ── INFOS LOGISTIQUES ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: 16, marginTop: 40 }}>
           {[
-            { icon: icons.pin, label: t('hero.card.location'), value: 'Bâtiment Communautaire Portuaire, Casablanca' },
+            { icon: icons.pin, label: t('hero.card.location'), value: i18n.language?.startsWith('en') ? 'Port Community Building, Casablanca' : 'Bâtiment Communautaire Portuaire, Casablanca' },
             { icon: icons.cal, label: t('hero.card.dates'), value: '19 – 21 Octobre 2026' },
-            { icon: icons.globe, label: 'Langues', value: 'Français & Anglais (traduction simultanée)' },
+            { icon: icons.globe, label: i18n.language?.startsWith('en') ? 'Languages' : 'Langues', value: i18n.language?.startsWith('en') ? 'French & English (simultaneous interpretation)' : 'Français & Anglais (traduction simultanée)' },
           ].map((info, i) => (
             <div key={i} className="prog-stat-card" style={{
               background: C.white, border: `1.5px solid ${C.navyAlpha10}`,
@@ -411,15 +411,15 @@ const Programme = () => {
                 {icons.map}
               </div>
               <div>
-                <div style={{ fontSize: 10, color: C.blue, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 2 }}>Carte interactive</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: C.navy }}>Bâtiment Communautaire Portuaire — Port de Casablanca</div>
+                <div style={{ fontSize: 10, color: C.blue, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 2 }}>{i18n.language?.startsWith('en') ? 'Interactive map' : 'Carte interactive'}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.navy }}>{i18n.language?.startsWith('en') ? 'Port Community Building — Port of Casablanca' : 'Bâtiment Communautaire Portuaire — Port de Casablanca'}</div>
               </div>
             </div>
             <a href="https://share.google/TuPWU0lXbXr8RWSvm" target="_blank" rel="noopener noreferrer" style={{
               flexShrink: 0, fontSize: 12.5, fontWeight: 700, color: C.blue, textDecoration: 'none',
               border: `1.5px solid ${C.navyAlpha10}`, borderRadius: 10, padding: '9px 16px', whiteSpace: 'nowrap',
             }}>
-              Ouvrir dans Google Maps →
+              {i18n.language?.startsWith('en') ? 'Open in Google Maps →' : 'Ouvrir dans Google Maps →'}
             </a>
           </div>
           <iframe

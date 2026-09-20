@@ -81,9 +81,9 @@ const TR = {
     reportText: 'The white paper consolidating all the recommendations, decisions and work of the 3 days will be available for download after the event.',
     reportSoon: 'Available after the conference',
     jours: [
-      { id: 'jour1', badge: 'DAY 1', short: 'D1', titre: 'African Smart Port Vision', date: '19 October 2026',
+      { id: 'jour1', badge: 'DAY 1', short: 'D1', titre: 'Vision of the African Smart Port', date: '19 October 2026',
         tags: ['AI', 'Digital diagnostic', 'Automation', 'Data governance'] },
-      { id: 'jour2', badge: 'DAY 2', short: 'D2', titre: 'Operational Excellence, Security & Cybersecurity', date: '20 October 2026',
+      { id: 'jour2', badge: 'DAY 2', short: 'D2', titre: 'Operational Excellence, Security and Cybersecurity', date: '20 October 2026',
         tags: ['Cybersecurity', 'Port security', 'Nautical operations', 'Real-time monitoring'] },
       { id: 'jour3', badge: 'DAY 3', short: 'D3', titre: 'Field Immersion — Port of Casablanca', date: '21 October 2026',
         tags: ['Technical visit', 'AI infrastructure', 'Networking'] },

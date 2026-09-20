@@ -295,7 +295,7 @@ const Footer = () => {
                   e.currentTarget.style.paddingLeft = '0px'
                 }}
               >
-                Actualités
+                {t('footer.newsLink')}
               </a>
             </li>
           </ul>
@@ -354,9 +354,9 @@ const Footer = () => {
         </div>
         
         <div style={{ display: 'flex', gap: 16, fontSize: 12 }}>
-          <a href="/mentions-legales" style={{ color: '#0073f4', textDecoration: 'none' }}>Mentions légales</a>
+          <a href="/mentions-legales" style={{ color: '#0073f4', textDecoration: 'none' }}>{t('footer.legalNotice')}</a>
           <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-          <a href="/politique-confidentialite" style={{ color: '#0073f4', textDecoration: 'none' }}>Politique de confidentialité</a>
+          <a href="/politique-confidentialite" style={{ color: '#0073f4', textDecoration: 'none' }}>{t('footer.privacyPolicy')}</a>
         </div>
       </div>
     </footer>

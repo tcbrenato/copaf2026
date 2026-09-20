@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -20,20 +21,37 @@ const Ico = ({ name, size = 22, color = '#fff' }) => {
   return icons[name] || null
 }
 
-const SHORTCUTS = [
+const TR = {
+  fr: {
+    waText: "Bonjour, j'ai une question à propos de COPAF 2026.",
+    phone: 'Téléphone', rdv: 'Rendez-vous', rdvSubject: 'Demande de rendez-vous COPAF 2026',
+    programme: 'Programme', programmeHref: '/programmecopaf2026FRmaj.pdf', inscription: 'Inscription',
+    close: 'Fermer le menu de contact', open: 'Ouvrir le menu de contact',
+  },
+  en: {
+    waText: 'Hello, I have a question about COPAF 2026.',
+    phone: 'Phone', rdv: 'Book a meeting', rdvSubject: 'COPAF 2026 meeting request',
+    programme: 'Programme', programmeHref: '/programmecopaf2026ENGmaj.pdf', inscription: 'Register',
+    close: 'Close the contact menu', open: 'Open the contact menu',
+  },
+}
+
+const getShortcuts = t => [
   { key: 'email', label: 'Email', icon: 'mail', href: 'mailto:contact@copaf-ports.com', color: '#0073F4' },
-  { key: 'whatsapp', label: 'WhatsApp', icon: 'whatsapp', href: `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent("Bonjour, j'ai une question à propos de COPAF 2026.")}`, color: '#25D366', external: true },
-  { key: 'phone', label: 'Téléphone', icon: 'phone', href: `tel:+${WHATSAPP_NUM}`, color: '#0073F4' },
+  { key: 'whatsapp', label: 'WhatsApp', icon: 'whatsapp', href: `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(t.waText)}`, color: '#25D366', external: true },
+  { key: 'phone', label: t.phone, icon: 'phone', href: `tel:+${WHATSAPP_NUM}`, color: '#0073F4' },
   { key: 'linkedin', label: 'LinkedIn', icon: 'linkedin', href: 'https://www.linkedin.com/company/crfperfection/', color: '#0A66C2', external: true },
   // Pas de vrai Calendly configure pour l'instant — lien de secours par email
   // avec objet pre-rempli, a remplacer par une vraie URL Calendly des qu'un
   // compte est cree (je ne peux pas creer ce compte a votre place).
-  { key: 'rdv', label: 'Rendez-vous', icon: 'calendar', href: 'mailto:contact@copaf-ports.com?subject=Demande%20de%20rendez-vous%20COPAF%202026', color: '#000E91' },
-  { key: 'programme', label: 'Programme', icon: 'file', href: '/programmecopaf2026FRmaj.pdf', color: '#0073F4', external: true },
-  { key: 'inscription', label: 'Inscription', icon: 'ticket', href: '/inscription', color: '#000E91' },
+  { key: 'rdv', label: t.rdv, icon: 'calendar', href: `mailto:contact@copaf-ports.com?subject=${encodeURIComponent(t.rdvSubject)}`, color: '#000E91' },
+  { key: 'programme', label: t.programme, icon: 'file', href: t.programmeHref, color: '#0073F4', external: true },
+  { key: 'inscription', label: t.inscription, icon: 'ticket', href: '/inscription', color: '#000E91' },
 ]
 
 export default function ContactHub() {
+  const t = TR[useLang()]
+  const SHORTCUTS = getShortcuts(t)
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
 
@@ -102,7 +120,7 @@ export default function ContactHub() {
       <button
         className="copaf-hub-btn"
         onClick={() => setOpen(o => !o)}
-        aria-label={open ? 'Fermer le menu de contact' : 'Ouvrir le menu de contact'}
+        aria-label={open ? t.close : t.open}
         aria-expanded={open}
         style={{
           borderRadius: '50%', border: '3px solid #fff', cursor: 'pointer',

@@ -1,14 +1,35 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import RetourMenu from '../components/RetourMenu'
+import LangToggle from '../components/LangToggle'
+import { useLang } from '../i18n/useLang'
 
-const NAVY = '#000E91'
 const BLUE = '#0073F4'
+
+const TR = {
+  fr: {
+    title: 'Sondages actifs — à projeter',
+    intro: 'Choisissez la question à afficher en direct sur le grand écran.',
+    loading: 'Chargement...',
+    none: 'Aucun sondage actif pour le moment.',
+    noneHint: "Activez-en un depuis l'admin, il apparaîtra ici automatiquement.",
+    publicBadge: 'PUBLIC',
+  },
+  en: {
+    title: 'Active polls — to display',
+    intro: 'Choose the question to show live on the big screen.',
+    loading: 'Loading...',
+    none: 'No active poll at the moment.',
+    noneHint: 'Activate one from the admin, it will appear here automatically.',
+    publicBadge: 'PUBLIC',
+  },
+}
 
 // Page d'entree rapide pour projeter un sondage en direct, sans passer par
 // l'admin. Utile en salle : on ouvre juste /sondage-live et on choisit la
 // question active a afficher au public.
 export default function SondagesLiveIndex() {
+  const t = TR[useLang()]
   const [sondages, setSondages] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -37,18 +58,19 @@ export default function SondagesLiveIndex() {
   return (
     <div style={wrap}>
       <RetourMenu />
+      <LangToggle />
       <div style={card}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 }}>COPAF 2026</div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>Sondages actifs — à projeter</div>
-          <p style={{ fontSize: 13.5, color: '#64748b', marginTop: 8 }}>Choisissez la question à afficher en direct sur le grand écran.</p>
+          <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>{t.title}</div>
+          <p style={{ fontSize: 13.5, color: '#64748b', marginTop: 8 }}>{t.intro}</p>
         </div>
 
-        {loading && <div style={{ textAlign: 'center', color: '#94a3b8' }}>Chargement...</div>}
+        {loading && <div style={{ textAlign: 'center', color: '#94a3b8' }}>{t.loading}</div>}
 
         {!loading && sondages.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8', fontSize: 15 }}>
-            Aucun sondage actif pour le moment.<br />Activez-en un depuis l'admin, il apparaîtra ici automatiquement.
+            {t.none}<br />{t.noneHint}
           </div>
         )}
 
@@ -68,7 +90,7 @@ export default function SondagesLiveIndex() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
               {s.is_public && (
-                <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 9px', borderRadius: 20, background: '#fef3c7', color: '#92400e' }}>PUBLIC</span>
+                <span style={{ fontSize: 10, fontWeight: 800, padding: '3px 9px', borderRadius: 20, background: '#fef3c7', color: '#92400e' }}>{t.publicBadge}</span>
               )}
               <span style={{ color: BLUE, fontWeight: 800, fontSize: 20 }}>→</span>
             </div>

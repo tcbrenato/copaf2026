@@ -19,14 +19,15 @@ const scrollToSection = (id) => {
 }
 
 const Hero = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const en = i18n.language?.startsWith('en')
   const navigate = useNavigate()
   const [currentImg, setCurrentImg] = useState(0)
   
   const stats = [
-    { value: "+50", label: "Autorités portuaires" },
-    { value: "150+", label: "Congressistes" },
-    { value: "2J + 1J", label: "Conférences & Immersion (Port de Casablanca)" }
+    { value: "+50", label: en ? "Port authorities" : "Autorités portuaires" },
+    { value: "150+", label: en ? "Attendees" : "Congressistes" },
+    { value: en ? "2D + 1D" : "2J + 1J", label: en ? "Conferences & Immersion (Port of Casablanca)" : "Conférences & Immersion (Port de Casablanca)" }
   ]
 
   const [fade, setFade] = useState(true)
@@ -130,7 +131,9 @@ const Hero = () => {
             lineHeight: 1.6,
             marginBottom: '26px',
           }}>
-            Trois jours de réflexion scientifique et d'échanges stratégiques réunissant experts, décideurs et institutions portuaires autour de « <strong style={{ color: '#fff', fontWeight: 800 }}>Smart Port Africain : IA et cybersécurité au service de la performance</strong> ».
+            {en
+              ? <>Three days of scientific reflection and strategic exchange bringing together experts, decision-makers and port institutions around “<strong style={{ color: '#fff', fontWeight: 800 }}>Smart African Port: AI and Cybersecurity for Performance</strong>”.</>
+              : <>Trois jours de réflexion scientifique et d'échanges stratégiques réunissant experts, décideurs et institutions portuaires autour de « <strong style={{ color: '#fff', fontWeight: 800 }}>Smart Port Africain : IA et cybersécurité au service de la performance</strong> ».</>}
           </p>
 
           {/* Stats */}
@@ -246,7 +249,7 @@ const Hero = () => {
               color: 'rgba(255,255,255,0.45)',
               textAlign: 'center',
             }}>
-              Organisé par <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 700 }}>CRF Perfection</span> · sous l'égide conjointe de l'AGPAOC et l'UAPNA et sous le haut patronage de l'ANP
+              {en ? 'Organised by' : 'Organisé par'} <span style={{ color: 'rgba(255,255,255,0.7)', fontWeight: 700 }}>CRF Perfection</span> · {en ? 'under the joint aegis of AGPAOC and UAPNA and under the high patronage of ANP' : "sous l'égide conjointe de l'AGPAOC et l'UAPNA et sous le haut patronage de l'ANP"}
             </p>
           </div>
         </div>

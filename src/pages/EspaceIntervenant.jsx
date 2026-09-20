@@ -4,19 +4,94 @@ import { supabase } from '../supabase'
 import SeoHead from '../components/SeoHead'
 import DocumentsSection from '../components/DocumentsSection'
 import { generateQrCard } from '../utils/generateQrCard'
+import LangToggle from '../components/LangToggle'
+import { useLang } from '../i18n/useLang'
 
 const BLUE = '#0284C7'
 
 // Dossier Google Drive partage a tous les intervenants (meme lien pour tous).
 const DOCUMENTATION_DRIVE_URL = 'https://drive.google.com/drive/folders/1wkLerVKdj-mJ4QGTqMZiM90uSe2iyCHS?usp=sharing'
 
-const JOUR_LABEL = {
-  1: { date: '19 Octobre', sub: 'Jour 1' },
-  2: { date: '20 Octobre', sub: 'Jour 2' },
-  3: { date: '21 Octobre', sub: 'Jour 3' },
+const TR = {
+  fr: {
+    jours: { 1: { date: '19 Octobre', sub: 'Jour 1' }, 2: { date: '20 Octobre', sub: 'Jour 2' }, 3: { date: '21 Octobre', sub: 'Jour 3' } },
+    day: 'Jour',
+    loginError: "Nom, email ou code d'accès non reconnus. Vérifiez ces informations ou contactez l'organisation.",
+    seoTitle: 'Espace Intervenant — COPAF 2026',
+    seoDesc: 'Espace personnel des intervenants COPAF 2026',
+    badge: 'Portail Conférencier',
+    h1: 'Espace Intervenant',
+    intro: "Consultez vos accréditations, gérez vos horaires d'intervention et déposez vos supports de présentation.",
+    idTitle: 'Identification',
+    idHint: "Entrez vos identifiants fournis par l'organisation",
+    fullName: 'Nom complet',
+    namePh: 'Ex. William Odah',
+    email: 'Email',
+    emailPh: "Votre email communiqué à l'organisation",
+    code: "Code d'accès",
+    codePh: "Code reçu par email/organisation",
+    connecting: 'Connexion en cours...',
+    connect: 'Accéder à mon espace',
+    logout: 'Déconnexion',
+    official: 'Intervenant Officiel',
+    passTitle: "Pass & Badge d'accès",
+    badgeAlt: 'Badge',
+    showPdf: 'Afficher le badge PDF',
+    presentAtChecks: "À présenter lors des contrôles d'accès",
+    qrAlt: 'QR Code Badge',
+    provisional: "Badge provisoire / QR d'émargement",
+    generating: 'Génération...',
+    downloadPass: 'Télécharger le Pass',
+    planTitle: "Planning d'intervention",
+    planSub: 'Vos apparitions prévues lors du programme',
+    noSessions: 'Aucune intervention enregistrée pour le moment.',
+    docTitle: 'COPAF 2026 - Documentation de référence',
+    docText: 'Dossier partagé contenant les documents de référence de la conférence.',
+    openFolder: 'Ouvrir le dossier',
+    supports: 'Supports & Documents',
+  },
+  en: {
+    jours: { 1: { date: 'October 19', sub: 'Day 1' }, 2: { date: 'October 20', sub: 'Day 2' }, 3: { date: 'October 21', sub: 'Day 3' } },
+    day: 'Day',
+    loginError: 'Name, email or access code not recognised. Please check this information or contact the organisers.',
+    seoTitle: 'Speaker Area — COPAF 2026',
+    seoDesc: 'Personal area for COPAF 2026 speakers',
+    badge: 'Speaker Portal',
+    h1: 'Speaker Area',
+    intro: 'View your accreditations, manage your speaking times and upload your presentation materials.',
+    idTitle: 'Sign in',
+    idHint: 'Enter the credentials provided by the organisers',
+    fullName: 'Full name',
+    namePh: 'E.g. William Odah',
+    email: 'Email',
+    emailPh: 'Your email given to the organisers',
+    code: 'Access code',
+    codePh: 'Code received by email/from the organisers',
+    connecting: 'Signing in...',
+    connect: 'Access my area',
+    logout: 'Log out',
+    official: 'Official Speaker',
+    passTitle: 'Access Pass & Badge',
+    badgeAlt: 'Badge',
+    showPdf: 'Show the PDF badge',
+    presentAtChecks: 'To be shown at access controls',
+    qrAlt: 'Badge QR Code',
+    provisional: 'Temporary badge / attendance QR',
+    generating: 'Generating...',
+    downloadPass: 'Download the Pass',
+    planTitle: 'Speaking schedule',
+    planSub: 'Your planned appearances in the programme',
+    noSessions: 'No session recorded yet.',
+    docTitle: 'COPAF 2026 - Reference documentation',
+    docText: 'Shared folder containing the reference documents of the conference.',
+    openFolder: 'Open the folder',
+    supports: 'Materials & Documents',
+  },
 }
 
 export default function EspaceIntervenant() {
+  const lang = useLang()
+  const t = TR[lang]
   const [nom, setNom] = useState('')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -72,7 +147,7 @@ export default function EspaceIntervenant() {
     const { data, error } = await supabase.rpc('intervenant_login', { p_nom: nom.trim(), p_code: code.trim(), p_email: email.trim() })
     setLoading(false)
     if (error || !data) {
-      setErreur("Nom, email ou code d'accès non reconnus. Vérifiez ces informations ou contactez l'organisation.")
+      setErreur(t.loginError)
       return
     }
     setIntervenant(data)
@@ -80,7 +155,8 @@ export default function EspaceIntervenant() {
 
   return (
     <div style={{ minHeight: '100vh', width: '100%', maxWidth: '100vw', overflowX: 'hidden', boxSizing: 'border-box', background: '#F8FAFC', color: '#1E293B', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", position: 'relative' }}>
-      <SeoHead title="Espace Intervenant — COPAF 2026" description="Espace personnel des intervenants COPAF 2026" type="website" />
+      <SeoHead title={t.seoTitle} description={t.seoDesc} type="website" />
+      <LangToggle />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
@@ -170,13 +246,13 @@ export default function EspaceIntervenant() {
         <div style={{ maxWidth: 1100, margin: '-50px auto 0', padding: '0 24px 24px', position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 20, background: '#E0F2FE', border: '1px solid #BAE6FD', marginBottom: 12 }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: BLUE }} />
-            <span style={{ fontSize: 11.5, fontWeight: 800, color: '#0369A1', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Portail Conférencier</span>
+            <span style={{ fontSize: 11.5, fontWeight: 800, color: '#0369A1', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{t.badge}</span>
           </div>
           <h1 style={{ fontSize: 'clamp(26px, 4vw, 36px)', fontWeight: 900, color: '#0F172A', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
-            Espace Intervenant
+            {t.h1}
           </h1>
           <p style={{ fontSize: 14.5, color: '#64748B', margin: 0, maxWidth: 600, lineHeight: 1.6 }}>
-            Consultez vos accréditations, gérez vos horaires d'intervention et déposez vos supports de présentation.
+            {t.intro}
           </p>
         </div>
       </header>
@@ -190,31 +266,31 @@ export default function EspaceIntervenant() {
               <div style={{ width: 52, height: 52, borderRadius: 16, background: '#E0F2FE', border: '1px solid #BAE6FD', display: 'grid', placeItems: 'center', margin: '0 auto 16px', color: BLUE }}>
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               </div>
-              <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', margin: '0 0 6px' }}>Identification</h2>
-              <p style={{ fontSize: 13, color: '#64748B', margin: 0 }}>Entrez vos identifiants fournis par l'organisation</p>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', margin: '0 0 6px' }}>{t.idTitle}</h2>
+              <p style={{ fontSize: 13, color: '#64748B', margin: 0 }}>{t.idHint}</p>
             </div>
 
             <form onSubmit={connexion} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Nom complet</label>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.fullName}</label>
                 <input
-                  value={nom} onChange={e => setNom(e.target.value)} placeholder="Ex. William Odah" autoFocus
+                  value={nom} onChange={e => setNom(e.target.value)} placeholder={t.namePh} autoFocus
                   className="light-input" style={{ width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, boxSizing: 'border-box' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</label>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.email}</label>
                 <input
-                  type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Votre email communiqué à l'organisation"
+                  type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t.emailPh}
                   className="light-input" style={{ width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, boxSizing: 'border-box' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Code d'accès</label>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.code}</label>
                 <input
-                  type="password" value={code} onChange={e => setCode(e.target.value)} placeholder="Code reçu par email/organisation"
+                  type="password" value={code} onChange={e => setCode(e.target.value)} placeholder={t.codePh}
                   className="light-input" style={{ width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, boxSizing: 'border-box' }}
                 />
               </div>
@@ -227,7 +303,7 @@ export default function EspaceIntervenant() {
               )}
 
               <button type="submit" disabled={loading} className="btn-blue" style={{ width: '100%', padding: '14px', borderRadius: 12, fontSize: 14, cursor: loading ? 'wait' : 'pointer', marginTop: 8 }}>
-                {loading ? 'Connexion en cours...' : 'Accéder à mon espace'}
+                {loading ? t.connecting : t.connect}
               </button>
             </form>
           </div>
@@ -246,11 +322,11 @@ export default function EspaceIntervenant() {
                     type="button" onClick={() => { setIntervenant(null); setNom(''); setEmail(''); setCode('') }}
                     style={{ background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: 10, padding: '7px 12px', color: '#475569', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
                   >
-                    Déconnexion
+                    {t.logout}
                   </button>
                 </div>
 
-                <div style={{ fontSize: 11, fontWeight: 800, color: BLUE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>Intervenant Officiel</div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: BLUE, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>{t.official}</div>
                 <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: '0 0 6px', letterSpacing: '-0.01em' }}>
                   {intervenant.prenom} {intervenant.nom}
                 </h2>
@@ -263,30 +339,30 @@ export default function EspaceIntervenant() {
               <div style={{ marginTop: 28, paddingTop: 20, borderTop: '1px solid #F1F5F9' }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={BLUE} strokeWidth="2.5"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/></svg>
-                  <span>Pass & Badge d'accès</span>
+                  <span>{t.passTitle}</span>
                 </div>
 
                 {badgeDoc ? (
                   <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 16, padding: 12, textAlign: 'center' }}>
                     {/\.(png|jpe?g|webp|gif)$/i.test(badgeDoc.url) ? (
                       <a href={badgeDoc.url} target="_blank" rel="noreferrer" style={{ display: 'block', overflow: 'hidden', borderRadius: 10 }}>
-                        <img src={badgeDoc.url} alt="Badge" style={{ width: '100%', display: 'block', borderRadius: 10 }} />
+                        <img src={badgeDoc.url} alt={t.badgeAlt} style={{ width: '100%', display: 'block', borderRadius: 10 }} />
                       </a>
                     ) : (
                       <a href={badgeDoc.url} target="_blank" rel="noreferrer" className="btn-blue" style={{ display: 'inline-block', padding: '10px 16px', borderRadius: 10, fontSize: 13, textDecoration: 'none' }}>
-                        Afficher le badge PDF
+                        {t.showPdf}
                       </a>
                     )}
-                    <span style={{ display: 'block', fontSize: 11, color: '#64748B', marginTop: 8 }}>À présenter lors des contrôles d'accès</span>
+                    <span style={{ display: 'block', fontSize: 11, color: '#64748B', marginTop: 8 }}>{t.presentAtChecks}</span>
                   </div>
                 ) : qr ? (
                   <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 16, padding: 16, textAlign: 'center' }}>
                     <div style={{ background: '#FFF', padding: 8, borderRadius: 12, display: 'inline-block', marginBottom: 12, border: '1px solid #E2E8F0' }}>
-                      <img src={qr} alt="QR Code Badge" style={{ width: 120, height: 120, display: 'block' }} />
+                      <img src={qr} alt={t.qrAlt} style={{ width: 120, height: 120, display: 'block' }} />
                     </div>
-                    <div style={{ fontSize: 11.5, color: '#64748B', marginBottom: 12 }}>Badge provisoire / QR d'émargement</div>
+                    <div style={{ fontSize: 11.5, color: '#64748B', marginBottom: 12 }}>{t.provisional}</div>
                     <button type="button" onClick={telechargerQr} disabled={telechargement} className="btn-blue" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, fontSize: 12.5, cursor: telechargement ? 'wait' : 'pointer' }}>
-                      {telechargement ? 'Génération...' : 'Télécharger le Pass'}
+                      {telechargement ? t.generating : t.downloadPass}
                     </button>
                   </div>
                 ) : null}
@@ -301,8 +377,8 @@ export default function EspaceIntervenant() {
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   </div>
                   <div>
-                    <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0F172A', margin: 0 }}>Planning d'intervention</h3>
-                    <span style={{ fontSize: 12, color: '#64748B' }}>Vos apparitions prévues lors du programme</span>
+                    <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0F172A', margin: 0 }}>{t.planTitle}</h3>
+                    <span style={{ fontSize: 12, color: '#64748B' }}>{t.planSub}</span>
                   </div>
                 </div>
               </div>
@@ -310,7 +386,7 @@ export default function EspaceIntervenant() {
               {Array.isArray(intervenant.interventions) && intervenant.interventions.length > 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20, position: 'relative' }}>
                   {intervenant.interventions.map((iv, i) => {
-                    const infoJour = JOUR_LABEL[iv.jour] || { date: `Jour ${iv.jour}`, sub: '' }
+                    const infoJour = t.jours[iv.jour] || { date: `${t.day} ${iv.jour}`, sub: '' }
                     return (
                       <div key={i} className="timeline-item" style={{ display: 'flex', gap: 16, position: 'relative' }}>
                         <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#F1F5F9', border: `2px solid ${BLUE}`, display: 'grid', placeItems: 'center', flexShrink: 0, zIndex: 1 }}>
@@ -336,7 +412,7 @@ export default function EspaceIntervenant() {
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748B', fontSize: 13.5 }}>
-                  Aucune intervention enregistrée pour le moment.
+                  {t.noSessions}
                 </div>
               )}
             </div>
@@ -347,15 +423,15 @@ export default function EspaceIntervenant() {
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
               </div>
               <div style={{ flex: 1, minWidth: 220 }}>
-                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0F172A', margin: '0 0 4px' }}>COPAF 2026 - Documentation de référence</h3>
-                <span style={{ fontSize: 13, color: '#64748B', lineHeight: 1.5 }}>Dossier partagé contenant les documents de référence de la conférence.</span>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0F172A', margin: '0 0 4px' }}>{t.docTitle}</h3>
+                <span style={{ fontSize: 13, color: '#64748B', lineHeight: 1.5 }}>{t.docText}</span>
               </div>
               <a
                 href={DOCUMENTATION_DRIVE_URL} target="_blank" rel="noreferrer"
                 className="btn-blue"
                 style={{ display: 'inline-block', padding: '12px 22px', borderRadius: 12, fontSize: 13.5, textDecoration: 'none', textAlign: 'center' }}
               >
-                Ouvrir le dossier
+                {t.openFolder}
               </a>
             </div>
 
@@ -365,7 +441,8 @@ export default function EspaceIntervenant() {
                 dossier={intervenant.dossier}
                 table="documents_intervenants"
                 bucket="documents-intervenants"
-                titre="Supports & Documents"
+                titre={t.supports}
+                lang={lang}
                 ajoutePar={`${intervenant.prenom} ${intervenant.nom}`.trim()}
                 onDocsChange={onDocsChange}
                 notifier

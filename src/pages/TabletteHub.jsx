@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import QRCode from 'qrcode'
+import LangToggle from '../components/LangToggle'
+import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -19,17 +21,41 @@ const Ico = ({ name, size = 26, color = 'currentColor' }) => {
   return icons[name] || null
 }
 
-const TUILES = [
-  { titre: 'Diagnostic Smart Port', sousTitre: 'Évaluez la maturité digitale de votre port', href: '/diagnostic', icone: 'radar', accent: true },
-  { titre: 'Sondage en direct', sousTitre: 'Votez en temps réel pendant les sessions', href: '/vote', icone: 'poll', accent: true },
-  { titre: 'Programme', sousTitre: 'Le déroulé complet des 3 jours', href: '/#programme', icone: 'calendar' },
-  { titre: 'Exposition digitale', sousTitre: 'Découvrez les solutions présentées', href: '/exposition-digitale', icone: 'monitor' },
-  { titre: 'Intervenants', sousTitre: 'Qui parle, et à quel moment', href: '/#intervenants', icone: 'users' },
-  { titre: 'Partenaires', sousTitre: 'Ils soutiennent la COPAF 2026', href: '/partenariats', icone: 'handshake' },
-  { titre: 'Contact', sousTitre: 'Une question ? Écrivez-nous', href: '/#contact', icone: 'mail' },
-]
+const TR = {
+  fr: {
+    welcome: 'Bienvenue à la Conférence des Ports Africains',
+    hint: "Touchez une tuile pour accéder à l'outil ou à la section souhaitée.",
+    qrAlt: 'QR code',
+    scan: 'Scannez pour ouvrir cette page sur votre propre téléphone.',
+    tuiles: [
+      { titre: 'Diagnostic Smart Port', sousTitre: 'Évaluez la maturité digitale de votre port', href: '/diagnostic', icone: 'radar', accent: true },
+      { titre: 'Sondage en direct', sousTitre: 'Votez en temps réel pendant les sessions', href: '/vote', icone: 'poll', accent: true },
+      { titre: 'Programme', sousTitre: 'Le déroulé complet des 3 jours', href: '/#programme', icone: 'calendar' },
+      { titre: 'Exposition digitale', sousTitre: 'Découvrez les solutions présentées', href: '/exposition-digitale', icone: 'monitor' },
+      { titre: 'Intervenants', sousTitre: 'Qui parle, et à quel moment', href: '/#intervenants', icone: 'users' },
+      { titre: 'Partenaires', sousTitre: 'Ils soutiennent la COPAF 2026', href: '/partenariats', icone: 'handshake' },
+      { titre: 'Contact', sousTitre: 'Une question ? Écrivez-nous', href: '/#contact', icone: 'mail' },
+    ],
+  },
+  en: {
+    welcome: 'Welcome to the African Ports Conference',
+    hint: 'Tap a tile to open the tool or section you want.',
+    qrAlt: 'QR code',
+    scan: 'Scan to open this page on your own phone.',
+    tuiles: [
+      { titre: 'Smart Port Diagnostic', sousTitre: "Assess your port's digital maturity", href: '/diagnostic', icone: 'radar', accent: true },
+      { titre: 'Live poll', sousTitre: 'Vote in real time during the sessions', href: '/vote', icone: 'poll', accent: true },
+      { titre: 'Programme', sousTitre: 'The full schedule of the 3 days', href: '/#programme', icone: 'calendar' },
+      { titre: 'Digital exhibition', sousTitre: 'Discover the solutions on show', href: '/exposition-digitale', icone: 'monitor' },
+      { titre: 'Speakers', sousTitre: 'Who is speaking, and when', href: '/#intervenants', icone: 'users' },
+      { titre: 'Partners', sousTitre: 'They support COPAF 2026', href: '/partenariats', icone: 'handshake' },
+      { titre: 'Contact', sousTitre: 'A question? Write to us', href: '/#contact', icone: 'mail' },
+    ],
+  },
+}
 
 export default function TabletteHub() {
+  const copy = TR[useLang()]
   const [qrDataUrl, setQrDataUrl] = useState('')
 
   useEffect(() => {
@@ -47,6 +73,7 @@ export default function TabletteHub() {
     <div style={wrap}>
       <div style={bgImage} />
       <div style={bgOverlay} />
+      <LangToggle />
 
       <div style={{ maxWidth: 920, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
@@ -54,10 +81,10 @@ export default function TabletteHub() {
             COPAF 2026
           </div>
           <div style={{ fontSize: 30, fontWeight: 900, color: '#fff', letterSpacing: '-0.5px', marginBottom: 8 }}>
-            Bienvenue à la Conférence des Ports Africains
+            {copy.welcome}
           </div>
           <p style={{ fontSize: 14.5, color: '#94a3b8' }}>
-            Touchez une tuile pour accéder à l'outil ou à la section souhaitée.
+            {copy.hint}
           </p>
         </div>
 
@@ -67,7 +94,7 @@ export default function TabletteHub() {
           gap: 16,
           marginBottom: 40,
         }}>
-          {TUILES.map(t => (
+          {copy.tuiles.map(t => (
             <a
               key={t.href}
               href={t.href}
@@ -104,7 +131,7 @@ export default function TabletteHub() {
           borderRadius: 20, padding: 20, maxWidth: 440, margin: '0 auto',
         }}>
           {qrDataUrl && (
-            <img src={qrDataUrl} alt="QR code" style={{ width: 84, height: 84, borderRadius: 8, flexShrink: 0 }} />
+            <img src={qrDataUrl} alt={copy.qrAlt} style={{ width: 84, height: 84, borderRadius: 8, flexShrink: 0 }} />
           )}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
@@ -112,7 +139,7 @@ export default function TabletteHub() {
               <span style={{ fontSize: 12, fontWeight: 700, color: '#cbd5e1' }}>copaf-ports.com/tablette</span>
             </div>
             <p style={{ fontSize: 11.5, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
-              Scannez pour ouvrir cette page sur votre propre téléphone.
+              {copy.scan}
             </p>
           </div>
         </div>

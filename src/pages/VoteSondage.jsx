@@ -1,9 +1,40 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
 import { PORTS, PORTS_AUTRE } from '../utils/portsData'
+import { useLang } from '../i18n/useLang'
+import LangToggle from '../components/LangToggle'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
+
+const TR = {
+  fr: {
+    loading: 'Chargement...',
+    title: 'Sondage en direct',
+    none: 'Aucun sondage actif pour le moment.',
+    noneHint: 'Restez sur cette page, elle se mettra à jour automatiquement.',
+    publicBadge: 'PUBLIC',
+    publicHint: 'Une question est publique — indiquez qui vous êtes',
+    yourName: 'Votre nom',
+    yourPort: 'Votre port',
+    otherPh: 'Précisez votre port / organisation',
+    needIdentity: 'Merci de renseigner votre nom et votre port ci-dessus avant de voter.',
+    thanks: '✓ Merci, votre réponse a été enregistrée',
+  },
+  en: {
+    loading: 'Loading...',
+    title: 'Live poll',
+    none: 'No active poll at the moment.',
+    noneHint: 'Stay on this page, it will update automatically.',
+    publicBadge: 'PUBLIC',
+    publicHint: 'One question is public — please tell us who you are',
+    yourName: 'Your name',
+    yourPort: 'Your port',
+    otherPh: 'Specify your port / organisation',
+    needIdentity: 'Please enter your name and port above before voting.',
+    thanks: '✓ Thank you, your answer has been recorded',
+  },
+}
 
 // Jeton anonyme par appareil, genere une seule fois et stocke localement.
 // Ce n'est pas un compte — juste de quoi empecher un meme appareil de
@@ -50,6 +81,8 @@ const BoutonMenu = () => (
 )
 
 export default function VoteSondage() {
+  const lang = useLang()
+  const t = TR[lang]
   const [sondages, setSondages] = useState([])
   const [mesVotes, setMesVotes] = useState({}) // { sondage_id: option_index }
   const [loading, setLoading] = useState(true)
@@ -128,54 +161,55 @@ export default function VoteSondage() {
   }
 
   if (loading) {
-    return <div style={wrap}><BoutonMenu /><div style={{ ...card, textAlign: 'center', paddingTop: 100, color: '#64748b' }}>Chargement...</div></div>
+    return <div style={wrap}><BoutonMenu /><LangToggle /><div style={{ ...card, textAlign: 'center', paddingTop: 100, color: '#64748b' }}>{t.loading}</div></div>
   }
 
   return (
     <div style={wrap}>
       <BoutonMenu />
+      <LangToggle />
       <div style={card}>
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 }}>COPAF 2026</div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>Sondage en direct</div>
+          <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>{t.title}</div>
         </div>
 
         {sondages.length === 0 && (
           <div style={{ textAlign: 'center', padding: '60px 20px', color: '#94a3b8' }}>
             <Ico name="clock" size={32} color="#cbd5e1" />
-            <p style={{ marginTop: 14, fontSize: 15 }}>Aucun sondage actif pour le moment.<br />Restez sur cette page, elle se mettra à jour automatiquement.</p>
+            <p style={{ marginTop: 14, fontSize: 15 }}>{t.none}<br />{t.noneHint}</p>
           </div>
         )}
 
         {sondages.some(s => s.is_public) && (
           <div style={{ background: '#fff', border: '1.5px solid #fde68a', borderRadius: 20, padding: 20, marginBottom: 18, boxShadow: '0 4px 20px rgba(0,14,145,.06)', animation: 'copaf-vote-in .35s ease' }}>
             <div style={{ fontSize: 12, fontWeight: 800, color: '#92400e', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: '#fef3c7' }}>PUBLIC</span>
-              Une question est publique — indiquez qui vous êtes
+              <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 20, background: '#fef3c7' }}>{t.publicBadge}</span>
+              {t.publicHint}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <input
-                style={inputIdentiteStyle} placeholder="Votre nom" value={identite.nom}
+                style={inputIdentiteStyle} placeholder={t.yourName} value={identite.nom}
                 onChange={e => setIdentite(v => ({ ...v, nom: e.target.value }))}
               />
               <select
                 style={inputIdentiteStyle} value={identite.port}
                 onChange={e => setIdentite(v => ({ ...v, port: e.target.value }))}
               >
-                <option value="">Votre port</option>
+                <option value="">{t.yourPort}</option>
                 {[...new Set(PORTS.map(p => p.country))].map(country => (
                   <optgroup key={country} label={country}>
                     {PORTS.filter(p => p.country === country).map(p => (
-                      <option key={p.value} value={p.value}>{p.label.fr}</option>
+                      <option key={p.value} value={p.value}>{p.label[lang] || p.label.fr}</option>
                     ))}
                   </optgroup>
                 ))}
-                <option value={PORTS_AUTRE.value}>{PORTS_AUTRE.label.fr}</option>
+                <option value={PORTS_AUTRE.value}>{PORTS_AUTRE.label[lang] || PORTS_AUTRE.label.fr}</option>
               </select>
             </div>
             {identite.port === PORTS_AUTRE.value && (
               <input
-                style={{ ...inputIdentiteStyle, marginTop: 10 }} placeholder="Précisez votre port / organisation"
+                style={{ ...inputIdentiteStyle, marginTop: 10 }} placeholder={t.otherPh}
                 value={identite.portAutre} onChange={e => setIdentite(v => ({ ...v, portAutre: e.target.value }))}
               />
             )}
@@ -191,7 +225,7 @@ export default function VoteSondage() {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 {s.session && <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5 }}>{s.session}</div>}
-                {s.is_public && <span style={{ fontSize: 9.5, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: '#fef3c7', color: '#92400e', letterSpacing: 0.4 }}>PUBLIC</span>}
+                {s.is_public && <span style={{ fontSize: 9.5, fontWeight: 800, padding: '2px 8px', borderRadius: 20, background: '#fef3c7', color: '#92400e', letterSpacing: 0.4 }}>{t.publicBadge}</span>}
               </div>
               <div style={{ fontSize: 17, fontWeight: 800, color: '#0f172a', marginBottom: 18, lineHeight: 1.4 }}>{s.question}</div>
 
@@ -225,13 +259,13 @@ export default function VoteSondage() {
 
               {erreurIdentite === s.id && (
                 <p style={{ fontSize: 12.5, color: '#dc2626', fontWeight: 700, marginTop: 14, marginBottom: 0, textAlign: 'center' }}>
-                  Merci de renseigner votre nom et votre port ci-dessus avant de voter.
+                  {t.needIdentity}
                 </p>
               )}
 
               {monVote !== undefined && (
                 <p style={{ fontSize: 12.5, color: '#059669', fontWeight: 700, marginTop: 14, marginBottom: 0, textAlign: 'center', animation: 'copaf-vote-in .3s ease' }}>
-                  ✓ Merci, votre réponse a été enregistrée
+                  {t.thanks}
                 </p>
               )}
             </div>

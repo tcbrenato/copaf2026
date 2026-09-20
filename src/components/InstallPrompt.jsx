@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLang } from '../i18n/useLang'
 
 // ─── Reglages de rappel ────────────────────────────────────────────────────
 // "Plus tard" (ou fermeture de la banniere iOS) repousse la prochaine
@@ -42,7 +43,23 @@ const Ico = ({ name, size = 20, color = '#fff' }) => {
   return icons[name] || null
 }
 
+const TR = {
+  fr: {
+    title: 'Installez COPAF 2026',
+    press: 'Appuyez sur', share: 'Partager', then: 'puis', addHome: "Sur l'écran d'accueil",
+    quick: 'Sur votre appareil pour un accès rapide',
+    install: 'Installer', understood: "J'ai compris", later: 'Plus tard',
+  },
+  en: {
+    title: 'Install COPAF 2026',
+    press: 'Tap', share: 'Share', then: 'then', addHome: 'Add to Home Screen',
+    quick: 'On your device for quick access',
+    install: 'Install', understood: 'Got it', later: 'Later',
+  },
+}
+
 export default function InstallPrompt() {
+  const t = TR[useLang()]
   const [visible, setVisible] = useState(false)
   const [mode, setMode] = useState('android') // 'android' | 'ios'
   const deferredPrompt = useRef(null)
@@ -107,15 +124,15 @@ export default function InstallPrompt() {
         <div style={{ flex: 1, minWidth: 0 }}>
           {mode === 'ios' ? (
             <>
-              <div style={{ color: '#fff', fontSize: 13.5, fontWeight: 800, marginBottom: 3 }}>Installez COPAF 2026</div>
+              <div style={{ color: '#fff', fontSize: 13.5, fontWeight: 800, marginBottom: 3 }}>{t.title}</div>
               <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, lineHeight: 1.5, display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-                Appuyez sur <Ico name="share" size={13} color="rgba(255,255,255,0.9)" /> <strong>Partager</strong> puis <strong>Sur l'écran d'accueil</strong>
+                {t.press} <Ico name="share" size={13} color="rgba(255,255,255,0.9)" /> <strong>{t.share}</strong> {t.then} <strong>{t.addHome}</strong>
               </div>
             </>
           ) : (
             <>
-              <div style={{ color: '#fff', fontSize: 13.5, fontWeight: 800, marginBottom: 3 }}>Installez COPAF 2026</div>
-              <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, lineHeight: 1.5 }}>Sur votre appareil pour un accès rapide</div>
+              <div style={{ color: '#fff', fontSize: 13.5, fontWeight: 800, marginBottom: 3 }}>{t.title}</div>
+              <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, lineHeight: 1.5 }}>{t.quick}</div>
             </>
           )}
         </div>
@@ -127,10 +144,10 @@ export default function InstallPrompt() {
               borderRadius: 11, background: '#fff', color: '#000E91', fontFamily: 'inherit',
               fontWeight: 800, fontSize: 12.5, cursor: 'pointer', whiteSpace: 'nowrap',
             }}>
-              <Ico name="download" size={14} color="#000E91" /> Installer
+              <Ico name="download" size={14} color="#000E91" /> {t.install}
             </button>
           )}
-          <button onClick={dismiss} aria-label={mode === 'ios' ? "J'ai compris" : 'Plus tard'} style={{
+          <button onClick={dismiss} aria-label={mode === 'ios' ? t.understood : t.later} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, flexShrink: 0,
             border: 'none', borderRadius: 10, background: 'rgba(255,255,255,0.12)', cursor: 'pointer',
           }}>
