@@ -393,7 +393,7 @@ export default function AdminProforma() {
     setLoading(true); setError(''); setData(null); setPasseportRevealed(false)
     const { data: rows, error: err } = await supabase
       .from('inscriptions')
-      .select('id, dossier, participants, montant, paiement_status, note_interne, numero_facture, numero_passeport, delegation_nom, participants_liste, tarif_type, code_promo, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
+      .select('id, dossier, participants, montant, paiement_status, note_interne, numero_facture, numero_passeport, nom_passeport, prenom_passeport, delegation_nom, participants_liste, tarif_type, code_promo, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
       .eq('dossier', dossier.trim())
       .limit(1)
 
@@ -409,6 +409,8 @@ export default function AdminProforma() {
       noteInterne: row.note_interne || '',
       numeroFacture: row.numero_facture || null,
       numeroPasseport: row.numero_passeport || '',
+      nomPasseport: row.nom_passeport || '',
+      prenomPasseport: row.prenom_passeport || '',
       tarifType: row.tarif_type || null,
       codePromo: row.code_promo || '',
       nom: row.contacts?.nom || '',
@@ -677,11 +679,18 @@ export default function AdminProforma() {
         if (err) throw new Error(err.message)
         setData(d => ({ ...d, _numeroPasseportSaved: numeroPasseport }))
       }
+      // Nom/prenom tels que saisis par la personne d'apres son passeport, s'ils
+      // existent (orthographe exacte pour le visa), sinon ceux de l'inscription.
+      const formConfirmation = {
+        ...formData(),
+        ...(data.nomPasseport ? { nom: data.nomPasseport } : {}),
+        ...(data.prenomPasseport ? { prenom: data.prenomPasseport } : {}),
+      }
       if (win) {
-        const doc = await generateConfirmationInscriptionPDF({ form: formData(), dossier: data.dossier, numeroPasseport, lang, download: false })
+        const doc = await generateConfirmationInscriptionPDF({ form: formConfirmation, dossier: data.dossier, numeroPasseport, lang, download: false })
         win.location.href = doc.output('bloburl')
       } else {
-        await generateConfirmationInscriptionPDF({ form: formData(), dossier: data.dossier, numeroPasseport, lang })
+        await generateConfirmationInscriptionPDF({ form: formConfirmation, dossier: data.dossier, numeroPasseport, lang })
       }
       await logDocument(data.dossier, 'confirmation_inscription')
     } catch (err) {
@@ -1142,6 +1151,11 @@ export default function AdminProforma() {
                 </button>
               )}
             </div>
+            {(data.nomPasseport || data.prenomPasseport) && (
+              <p style={{ fontSize: 12, color: '#64748b', margin: '-4px 0 12px' }}>
+                Nom sur le passeport (saisi par la personne) : <strong style={{ color: '#0f172a' }}>{[data.prenomPasseport, data.nomPasseport].filter(Boolean).join(' ')}</strong> — utilisé pour la confirmation d'inscription.
+              </p>
+            )}
 
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <button onClick={handleGenerateProforma} disabled={genLoading === 'proforma'} style={actionBtn('#fdf2f4', MAROON, '#f3c9d0')}>

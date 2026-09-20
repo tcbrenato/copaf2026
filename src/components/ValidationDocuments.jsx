@@ -1,23 +1,31 @@
 // src/components/ValidationDocuments.jsx
 //
-// Permet a l'admin de valider ou rejeter (avec motif) la photo et le
-// passeport deposes par un delegue depuis son espace personnel — distinct
-// de DocumentsSection (documents_participants/documents_intervenants) :
-// photo_url/passeport_url vivent directement sur inscriptions /
-// inscription_participants / intervenants (voir badge_upload_url).
+// Permet a l'admin de valider ou rejeter (avec motif) la photo deposee par
+// un delegue depuis son espace personnel — distinct de DocumentsSection
+// (documents_participants/documents_intervenants) : photo_url vit
+// directement sur inscriptions / inscription_participants / intervenants.
+// Le passeport n'est plus collecte sous forme de scan (numero + noms saisis
+// par la personne, visibles dans sa fiche).
 //
 // `dossier` est ici le dossier INDIVIDUEL de la personne (ex.
-// COPAF2026-97293 pour un membre de delegation), pas le dossier groupe —
-// badge_lookup_by_dossier() retrouve photo/passeport/email pour n'importe
-// quel dossier individuel, sans avoir a savoir dans quelle table il vit.
+// COPAF2026-97293 pour un membre de delegation), pas le dossier groupe.
+// L'admin lit les tables directement (ses droits RLS le permettent).
 //
-// Les documents se cochent (photo et/ou passeport) puis se valident/
-// rejettent ensemble : un seul email recapitulatif part pour toute la
-// selection plutot qu'un email par document (notify-action, types
-// document_valide / document_rejete, champ `champs` = tableau).
+// Un seul email part par decision (notify-action, types document_valide /
+// document_rejete, champ `champs` = tableau).
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../supabase'
+
+// Photo du dossier, cherchee dans les 3 tables (meme cascade que partout ailleurs).
+async function trouverPhoto(dossier) {
+  const { data: insc } = await supabase.from('inscriptions').select('photo_url').eq('dossier', dossier).maybeSingle()
+  if (insc) return { photo_url: insc.photo_url }
+  const { data: part } = await supabase.from('inscription_participants').select('photo_url').eq('dossier', dossier).maybeSingle()
+  if (part) return { photo_url: part.photo_url }
+  const { data: interv } = await supabase.from('intervenants').select('photo_url').eq('dossier', dossier).maybeSingle()
+  return interv ? { photo_url: interv.photo_url } : null
+}
 
 const LABEL = { fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: 0.5, marginBottom: 10 }
 const ROW = { display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }
@@ -25,7 +33,6 @@ const BTN = { padding: '7px 14px', borderRadius: 8, border: 'none', fontSize: 12
 
 const CHAMPS = [
   { key: 'photo', label: 'Photo' },
-  { key: 'passeport', label: 'Passeport' },
 ]
 
 export default function ValidationDocuments({ dossier }) {
@@ -39,8 +46,8 @@ export default function ValidationDocuments({ dossier }) {
 
   const load = useCallback(async () => {
     if (!dossier) { setLoading(false); return }
-    const [{ data: lookup }, { data: validations }] = await Promise.all([
-      supabase.rpc('badge_lookup_by_dossier', { p_dossier: dossier }).maybeSingle(),
+    const [lookup, { data: validations }] = await Promise.all([
+      trouverPhoto(dossier),
       supabase.from('document_validations').select('champ, statut, motif').eq('dossier', dossier),
     ])
     setRecord(lookup || null)
@@ -59,7 +66,7 @@ export default function ValidationDocuments({ dossier }) {
 
   useEffect(() => { load() }, [load])
 
-  const champsPresents = record ? CHAMPS.filter(c => record[c.key === 'photo' ? 'photo_url' : 'passeport_url']) : []
+  const champsPresents = record ? record.photo_url ? CHAMPS : [] : []
   const champsCoches = champsPresents.filter(c => selection[c.key]).map(c => c.key)
 
   const toggle = key => setSelection(sel => ({ ...sel, [key]: !sel[key] }))
@@ -87,10 +94,10 @@ export default function ValidationDocuments({ dossier }) {
 
   return (
     <div style={{ marginTop: 20 }}>
-      <div style={LABEL}>Validation photo / passeport</div>
+      <div style={LABEL}>Validation de la photo</div>
       {champsPresents.map(c => {
         const etat = etats[c.key]
-        const url = record[c.key === 'photo' ? 'photo_url' : 'passeport_url']
+        const url = record.photo_url
         return (
           <div key={c.key} style={ROW}>
             <input type="checkbox" checked={!!selection[c.key]} onChange={() => toggle(c.key)} style={{ width: 15, height: 15, cursor: 'pointer', flexShrink: 0 }} />

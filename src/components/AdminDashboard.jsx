@@ -397,7 +397,7 @@ function MembreBadgeRow({ membre: m, toggling, onToggleArrivee }) {
       {qr && <img src={qr} alt="QR code badge" style={{ width: 44, height: 44, borderRadius: 8, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />}
       <span style={{ fontSize: 12.5, color: '#0f172a', fontWeight: 700, flex: 1, minWidth: 130 }}>
         {m.prenom} {m.nom}
-        <span style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#94a3b8' }}>{m.poste} · {m.dossier}</span>
+        <span style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#94a3b8' }}>{m.poste} · {m.dossier}{m.code_acces ? ` · code : ${m.code_acces}` : ''}</span>
       </span>
       <button type="button" onClick={copyToken} title="Copier le token du badge" style={EXTRAS_ICONBTN}>
         <Icon name={copied ? 'check' : 'copy'} size={13} color={copied ? '#059669' : '#64748b'} />
@@ -765,7 +765,9 @@ function ModalMembre({ membre, onClose, onUpdate }) {
         await supabase.from('inscription_participants').update({ numero_passeport: numeroPasseport }).eq('id', membre._memberId)
         onUpdate({ numero_passeport: numeroPasseport })
       }
-      const form = { nom: membre.contacts?.nom, prenom: membre.contacts?.prenom, poste: membre.contacts?.poste, organisation: membre.contacts?.organisation }
+      // Nom/prenom tels que saisis par la personne d'apres son passeport,
+      // s'ils existent (orthographe exacte pour le visa), sinon ceux de l'inscription.
+      const form = { nom: membre.nom_passeport || membre.contacts?.nom, prenom: membre.prenom_passeport || membre.contacts?.prenom, poste: membre.contacts?.poste, organisation: membre.contacts?.organisation }
       if (win) {
         const doc = await generateConfirmationInscriptionPDF({ form, dossier: membre.dossier, numeroPasseport, lang, download: false })
         win.location.href = doc.output('bloburl')
@@ -830,6 +832,8 @@ function ModalMembre({ membre, onClose, onUpdate }) {
             { label: 'Statut',       value: STATUS_CONFIG[membre.paiement_status]?.label || membre.paiement_status },
             { label: 'Email',        value: membre.contacts?.email, full: true },
             { label: 'Téléphone',    value: membre.contacts?.telephone },
+            { label: "Code d'accès (page /badge)", value: membre.code_acces, full: true },
+            { label: 'Nom sur le passeport', value: [membre.prenom_passeport, membre.nom_passeport].filter(Boolean).join(' '), full: true },
           ].filter(f => f.value).map((f, i) => (
             <div key={i} style={{ gridColumn: f.full ? '1 / -1' : 'auto' }}>
               <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 5 }}>{f.label}</div>
@@ -1265,6 +1269,9 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
         arrived: m.arrived,
         arrived_at: m.arrived_at,
         numero_passeport: m.numero_passeport,
+        nom_passeport: m.nom_passeport,
+        prenom_passeport: m.prenom_passeport,
+        code_acces: m.code_acces,
         contacts: {
           prenom: m.prenom, nom: m.nom, poste: m.poste, email: m.email, telephone: m.telephone,
           organisation: parent?.contacts?.organisation, pays: parent?.contacts?.pays,

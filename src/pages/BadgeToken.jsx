@@ -31,20 +31,28 @@ const BLUE = '#0073F4'
 const TR_BADGE = {
   fr: {
     completerTitre: 'Compléter mon dossier',
-    photo: 'Photo (badge)', passeport: 'Copie du passeport',
+    photo: 'Photo (badge)',
+    passeportTitre: 'Passeport', passeportAide: 'Saisissez exactement ce qui figure sur votre passeport (orthographe, accents, ordre des prénoms).',
+    numeroPasseport: 'N° de passeport', nomPasseport: 'Nom (passeport)', prenomPasseport: 'Prénom(s) (passeport)',
+    numeroPlaceholder: 'Ex. A1234567', renseigne: '✓ Renseigné',
     email: 'Email', telephone: 'Téléphone',
     choisirFichier: 'Choisir un fichier', envoi: 'Envoi...', recu: '✓ Reçu', erreur: 'Erreur, réessayer',
     enregistrer: 'Enregistrer', enregistre: '✓ Enregistré',
     emailPlaceholder: 'votre@email.com', telephonePlaceholder: '+xxx xxx xxx xxx',
+    lienEspace: 'Compléter mon dossier', deconnexion: 'Se déconnecter',
     footer: 'Conférence des Ports Africains · 19–21 Oct. 2026, Casablanca',
   },
   en: {
     completerTitre: 'Complete my profile',
-    photo: 'Photo (badge)', passeport: 'Passport copy',
+    photo: 'Photo (badge)',
+    passeportTitre: 'Passport', passeportAide: 'Enter exactly what appears on your passport (spelling, accents, order of given names).',
+    numeroPasseport: 'Passport no.', nomPasseport: 'Surname (passport)', prenomPasseport: 'Given name(s) (passport)',
+    numeroPlaceholder: 'E.g. A1234567', renseigne: '✓ Provided',
     email: 'Email', telephone: 'Phone',
     choisirFichier: 'Choose a file', envoi: 'Uploading...', recu: '✓ Received', erreur: 'Error, try again',
     enregistrer: 'Save', enregistre: '✓ Saved',
     emailPlaceholder: 'your@email.com', telephonePlaceholder: '+xxx xxx xxx xxx',
+    lienEspace: 'Complete my profile', deconnexion: 'Log out',
     footer: 'Conference of African Ports · Oct 19–21, 2026, Casablanca',
   },
 }
@@ -118,6 +126,8 @@ function telechargerVCard(data) {
   URL.revokeObjectURL(url)
 }
 
+const CHAMPS_ETAT = ['photo_url', 'email', 'telephone', 'numero_passeport', 'nom_passeport', 'prenom_passeport']
+
 export default function BadgeToken() {
   const { token: tokenParam } = useParams()
   const navigate = useNavigate()
@@ -125,58 +135,79 @@ export default function BadgeToken() {
   const [error, setError] = useState('')
   const [checkinLoading, setCheckinLoading] = useState(false)
   const [checkinResult, setCheckinResult] = useState(null)
-  // Sans :token dans l'URL (/badge simple) : connexion par numero de
-  // dossier seul, pour les personnes qui n'ont que leur ID (pas de lien
-  // personnel transmis, ou lien perdu) — voir badge_lookup_by_dossier().
-  // activeToken devient alors le badge_token retrouve, utilise ensuite
-  // exactement comme si l'URL l'avait contenu depuis le debut.
-  const [activeToken, setActiveToken] = useState(tokenParam || null)
+  // Sans :token dans l'URL (/badge simple) : connexion "Mon espace" par
+  // numero de dossier + secret personnel (code d'acces, ou email s'il est
+  // deja renseigne) — voir badge_login(). Un numero de dossier seul ne
+  // suffit plus (il n'est pas secret). Le secret reste uniquement en memoire
+  // dans cet onglet : il est renvoye a chaque modification, la base le
+  // reverifie a chaque fois (badge_update).
+  const [session, setSession] = useState(null)
   const [dossierInput, setDossierInput] = useState('')
+  const [secretInput, setSecretInput] = useState('')
   const [dossierLoading, setDossierLoading] = useState(false)
   const [dossierError, setDossierError] = useState('')
-  // Completer/corriger son dossier depuis le lien personnel — aucune session
-  // requise, la possession du lien (token) ou la connaissance du dossier
-  // suffit, meme modele de confiance que le reste des pages /badge. Buckets
-  // deja ouverts en ecriture publique pour les fichiers ; badge_upload_url()
-  // gere aussi email/telephone (avec allowlist stricte cote serveur).
-  const [uploadEtat, setUploadEtat] = useState({ photo_url: 'idle', passeport_url: 'idle', email: 'idle', telephone: 'idle' })
-  const [champsTexte, setChampsTexte] = useState({ email: '', telephone: '' })
+  const [uploadEtat, setUploadEtat] = useState(Object.fromEntries(CHAMPS_ETAT.map(c => [c, 'idle'])))
+  const [champsTexte, setChampsTexte] = useState({ email: '', telephone: '', numero_passeport: '', nom_passeport: '', prenom_passeport: '' })
 
   // Notifie admin + personne par email a chaque action reussie (voir
   // supabase/functions/notify-action) — best effort, ne bloque jamais
-  // l'UI si l'appel echoue (pas de session requise, pas de cle a fournir).
+  // l'UI si l'appel echoue.
   const notifierAction = (dossier, type) => {
     supabase.functions.invoke('notify-action', { body: { dossier, type } }).catch(() => {})
   }
 
-  const uploaderDocument = async (champ, file) => {
-    if (!file || !activeToken) return
-    setUploadEtat(s => ({ ...s, [champ]: 'loading' }))
+  const appelerMiseAJour = async (champ, valeur) => {
+    const { data: ok, error: rpcErr } = await supabase.rpc('badge_update', {
+      p_dossier: session.dossier, p_secret: session.secret, p_field: champ, p_value: valeur,
+    })
+    if (rpcErr || !ok) throw rpcErr || new Error('Refusé')
+  }
+
+  const uploaderPhoto = async file => {
+    if (!file || !session) return
+    setUploadEtat(s => ({ ...s, photo_url: 'loading' }))
     try {
-      const bucket = champ === 'photo_url' ? 'badges-photos' : 'documents-inscription'
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-      const path = `${activeToken}/${champ}-${crypto.randomUUID()}.${ext}`
+      if (!file.type.startsWith('image/') || file.size > 8 * 1024 * 1024) throw new Error('Fichier non valide')
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'jpg'
       // Chemin unique (uuid) : pas besoin d'upsert, qui exigerait un droit de
       // lecture publique sur le bucket (donc son listing).
-      const { error: upErr } = await supabase.storage.from(bucket).upload(path, file)
+      const path = `${crypto.randomUUID()}/photo.${ext}`
+      const { error: upErr } = await supabase.storage.from('badges-photos').upload(path, file)
       if (upErr) throw upErr
-      const url = supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
-      const { data: ok, error: rpcErr } = await supabase.rpc('badge_upload_url', { p_token: activeToken, p_field: champ, p_url: url })
-      if (rpcErr || !ok) throw rpcErr || new Error('Badge introuvable')
+      const url = supabase.storage.from('badges-photos').getPublicUrl(path).data.publicUrl
+      await appelerMiseAJour('photo_url', url)
+      setData(d => ({ ...d, photo_url: url }))
+      setUploadEtat(s => ({ ...s, photo_url: 'done' }))
+      notifierAction(session.dossier, 'photo')
+    } catch {
+      setUploadEtat(s => ({ ...s, photo_url: 'error' }))
+    }
+  }
+
+  const enregistrerChampTexte = async champ => {
+    const valeur = (champsTexte[champ] || '').trim()
+    if (!valeur || !session) return
+    setUploadEtat(s => ({ ...s, [champ]: 'loading' }))
+    try {
+      await appelerMiseAJour(champ, valeur)
+      if (champ === 'numero_passeport') {
+        setData(d => ({ ...d, passeport_renseigne: true }))
+        setChampsTexte(s => ({ ...s, numero_passeport: '' }))
+      } else {
+        setData(d => ({ ...d, [champ]: valeur }))
+      }
       setUploadEtat(s => ({ ...s, [champ]: 'done' }))
-      notifierAction(data.dossier, champ === 'photo_url' ? 'photo' : 'passeport')
+      const typeNotif = { email: 'email', telephone: 'telephone', numero_passeport: 'passeport' }[champ]
+      if (typeNotif) notifierAction(session.dossier, typeNotif)
     } catch {
       setUploadEtat(s => ({ ...s, [champ]: 'error' }))
     }
   }
 
-  const enregistrerChampTexte = async champ => {
-    const valeur = champsTexte[champ].trim()
-    if (!valeur || !activeToken) return
-    setUploadEtat(s => ({ ...s, [champ]: 'loading' }))
-    const { data: ok, error: rpcErr } = await supabase.rpc('badge_upload_url', { p_token: activeToken, p_field: champ, p_url: valeur })
-    setUploadEtat(s => ({ ...s, [champ]: rpcErr || !ok ? 'error' : 'done' }))
-    if (!rpcErr && ok) notifierAction(data.dossier, champ)
+  const deconnecter = () => {
+    setSession(null); setData(null); setSecretInput(''); setDossierError('')
+    setChampsTexte({ email: '', telephone: '', numero_passeport: '', nom_passeport: '', prenom_passeport: '' })
+    setUploadEtat(Object.fromEntries(CHAMPS_ETAT.map(c => [c, 'idle'])))
   }
 
   const load = async () => {
@@ -196,14 +227,24 @@ export default function BadgeToken() {
 
   const handleDossierSubmit = async e => {
     e.preventDefault()
-    if (!dossierInput.trim()) return
+    if (!dossierInput.trim() || !secretInput.trim()) return
     setDossierLoading(true); setDossierError('')
     try {
-      const { data: rows, error: err } = await supabase.rpc('badge_lookup_by_dossier', { p_dossier: dossierInput.trim() })
-      if (err || !rows || rows.length === 0) { setDossierError('Dossier introuvable / Dossier not found'); return }
+      const { data: rows, error: err } = await supabase.rpc('badge_login', { p_dossier: dossierInput.trim(), p_secret: secretInput.trim() })
+      if (err) {
+        setDossierError(/tentatives|attempts/i.test(err.message || '')
+          ? 'Trop de tentatives, réessayez dans 15 minutes / Too many attempts, try again in 15 minutes'
+          : 'Erreur, réessayez / Error, please try again')
+        return
+      }
+      if (!rows || rows.length === 0) { setDossierError('Dossier ou code incorrect / Incorrect dossier or code'); return }
       const r = rows[0]
-      setActiveToken(r.badge_token)
+      setSession({ dossier: r.dossier, secret: secretInput.trim() })
       setData({ ...r, is_staff: false })
+      setChampsTexte({
+        email: r.email || '', telephone: r.telephone || '', numero_passeport: '',
+        nom_passeport: r.nom_passeport || r.nom || '', prenom_passeport: r.prenom_passeport || r.prenom || '',
+      })
     } finally {
       setDossierLoading(false)
     }
@@ -212,7 +253,7 @@ export default function BadgeToken() {
   const handleCheckin = async () => {
     setCheckinLoading(true)
     try {
-      const { data: rows, error: err } = await supabase.rpc('badge_checkin', { p_token: activeToken })
+      const { data: rows, error: err } = await supabase.rpc('badge_checkin', { p_token: tokenParam })
       if (err) { setError(err.message); return }
       setCheckinResult(rows?.[0] || null)
       await load()
@@ -225,10 +266,12 @@ export default function BadgeToken() {
     return <div style={wrapStyle}><FondNeige /><p style={{ color: '#64748b', position: 'relative', zIndex: 1 }}>Chargement...</p></div>
   }
 
-  // Pas de token dans l'URL (/badge simple) et aucun dossier resolu encore :
-  // formulaire de connexion par numero de dossier seul (bilingue, la langue
-  // de la personne n'est pas encore connue a ce stade).
-  if (!activeToken) {
+  // Pas de token dans l'URL (/badge simple) et pas encore connecte :
+  // formulaire dossier + code d'acces (bilingue, la langue de la personne
+  // n'est pas encore connue a ce stade).
+  if (!tokenParam && !session) {
+    const champLogin = { padding: '13px 14px', borderRadius: 12, border: '1.5px solid #e2e8f0', fontSize: 14, fontFamily: 'inherit', textAlign: 'center', outline: 'none' }
+    const pret = dossierInput.trim() && secretInput.trim()
     return (
       <div style={wrapStyle}>
         <FondNeige />
@@ -236,19 +279,25 @@ export default function BadgeToken() {
           <div style={{ fontSize: 10, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, textAlign: 'center' }}>COPAF 2026</div>
           <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', marginTop: 10, textAlign: 'center' }}>Mon espace / My space</div>
           <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 6, textAlign: 'center' }}>
-            Entrez votre numéro de dossier · Enter your dossier number
+            Entrez votre numéro de dossier et votre code d'accès (ou votre email)
+            <br />Enter your dossier number and your access code (or your email)
           </p>
           <form onSubmit={handleDossierSubmit} style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <input
               type="text" value={dossierInput} onChange={e => setDossierInput(e.target.value)}
-              placeholder="COPAF2026-XXXXX" autoCapitalize="characters"
-              style={{ padding: '13px 14px', borderRadius: 12, border: '1.5px solid #e2e8f0', fontSize: 14, fontFamily: 'inherit', textAlign: 'center', outline: 'none' }}
+              placeholder="COPAF2026-XXXXX" autoCapitalize="characters" autoComplete="username" aria-label="Dossier"
+              style={champLogin}
+            />
+            <input
+              type="text" value={secretInput} onChange={e => setSecretInput(e.target.value)}
+              placeholder="Code d'accès / Access code" autoCapitalize="characters" autoComplete="off" spellCheck={false} aria-label="Code d'accès"
+              style={champLogin}
             />
             {dossierError && <p style={{ fontSize: 12, color: '#dc2626', margin: 0, textAlign: 'center' }}>{dossierError}</p>}
-            <button type="submit" disabled={dossierLoading || !dossierInput.trim()} style={{
+            <button type="submit" disabled={dossierLoading || !pret} style={{
               padding: '13px', border: 'none', borderRadius: 12,
               background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`, color: '#fff', fontSize: 14, fontWeight: 700,
-              cursor: dossierLoading ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: dossierInput.trim() ? 1 : 0.6,
+              cursor: dossierLoading ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: pret ? 1 : 0.6,
             }}>
               {dossierLoading ? '…' : 'Accéder / Access'}
             </button>
@@ -275,7 +324,7 @@ export default function BadgeToken() {
     // Intervenants : fiche complete façon carte de visite numerique (photo,
     // coordonnees, boutons de contact) — le reste (participants, sponsors...)
     // garde la carte minimale ci-dessous, volontairement sobre.
-    if (data.categorie === 'Intervenant') {
+    if (data.categorie === 'Intervenant' && !session) {
       const contacts = [
         data.telephone && { name: 'phone', href: `tel:${data.telephone}`, label: 'Appeler' },
         data.telephone && { name: 'whatsapp', href: `https://wa.me/${data.telephone.replace(/[^0-9]/g, '')}`, label: 'WhatsApp' },
@@ -344,70 +393,99 @@ export default function BadgeToken() {
           {data.poste && <div style={{ fontSize: 14, opacity: 0.9, marginTop: 4 }}>{data.poste}</div>}
           {data.organisation && <div style={{ fontSize: 13, opacity: 0.7, marginTop: 2 }}>{data.organisation}</div>}
 
-          <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.2)' }}>
-            <div style={{ fontSize: 11, opacity: 0.75, fontWeight: 700, marginBottom: 10 }}>{tb.completerTitre}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {[
-                { champ: 'photo_url', label: tb.photo },
-                { champ: 'passeport_url', label: tb.passeport },
-              ].map(({ champ, label }) => {
-                const etat = uploadEtat[champ]
-                return (
-                  <label key={champ} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-                    padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,.12)',
-                    border: '1px solid rgba(255,255,255,.25)', cursor: 'pointer',
-                  }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 700 }}>{label}</span>
-                    <span style={{ fontSize: 11.5, fontWeight: 700, opacity: 0.9 }}>
-                      {etat === 'loading' ? tb.envoi : etat === 'done' ? tb.recu : etat === 'error' ? tb.erreur : tb.choisirFichier}
-                    </span>
-                    <input
-                      type="file" accept="image/*,.pdf" style={{ display: 'none' }}
-                      onChange={e => uploaderDocument(champ, e.target.files?.[0])}
-                    />
-                  </label>
-                )
-              })}
-              {[
-                { champ: 'email', label: tb.email, placeholder: tb.emailPlaceholder, type: 'email' },
-                { champ: 'telephone', label: tb.telephone, placeholder: tb.telephonePlaceholder, type: 'tel' },
-              ].map(({ champ, label, placeholder, type }) => {
-                const etat = uploadEtat[champ]
-                return (
-                  <div key={champ} style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '10px 14px', borderRadius: 12, background: 'rgba(255,255,255,.12)',
-                    border: '1px solid rgba(255,255,255,.25)',
-                  }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 700, flexShrink: 0 }}>
-                      {label}
-                      {!data[champ] && etat !== 'done' && <span style={{ color: '#fca5a5' }}> *</span>}
-                    </span>
-                    <input
-                      type={type} value={champsTexte[champ]} placeholder={placeholder} required
-                      onChange={e => setChampsTexte(s => ({ ...s, [champ]: e.target.value }))}
-                      style={{
-                        flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none',
-                        color: '#fff', fontSize: 12.5, fontFamily: 'inherit', textAlign: 'right',
-                      }}
-                    />
-                    <button
-                      type="button" onClick={() => enregistrerChampTexte(champ)} disabled={etat === 'loading' || !champsTexte[champ].trim()}
-                      style={{
-                        flexShrink: 0, fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 8,
-                        background: 'rgba(255,255,255,.2)', border: 'none', color: '#fff',
-                        cursor: champsTexte[champ].trim() ? 'pointer' : 'default', opacity: champsTexte[champ].trim() ? 1 : 0.5,
-                        fontFamily: 'inherit',
-                      }}
-                    >
-                      {etat === 'loading' ? '…' : etat === 'done' ? tb.enregistre : etat === 'error' ? tb.erreur : tb.enregistrer}
-                    </button>
-                  </div>
-                )
-              })}
+          {!session ? (
+            // Scan du QR / lien public : lecture seule. Modifier un dossier
+            // exige dossier + code d'acces (page /badge), jamais le lien seul.
+            <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.2)' }}>
+              <a href="/badge" style={{
+                display: 'block', textAlign: 'center', padding: '12px 14px', borderRadius: 12,
+                background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.3)',
+                color: '#fff', fontSize: 12.5, fontWeight: 700, textDecoration: 'none',
+              }}>
+                {tb.lienEspace} →
+              </a>
             </div>
-          </div>
+          ) : (
+            <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.2)' }}>
+              <div style={{ fontSize: 11, opacity: 0.75, fontWeight: 700, marginBottom: 10 }}>{tb.completerTitre}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <label style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+                  padding: '12px 14px', borderRadius: 12, background: 'rgba(255,255,255,.12)',
+                  border: '1px solid rgba(255,255,255,.25)', cursor: 'pointer',
+                }}>
+                  <span style={{ fontSize: 12.5, fontWeight: 700 }}>{tb.photo}</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, opacity: 0.9 }}>
+                    {uploadEtat.photo_url === 'loading' ? tb.envoi : uploadEtat.photo_url === 'done' ? tb.recu : uploadEtat.photo_url === 'error' ? tb.erreur : data.photo_url ? tb.recu : tb.choisirFichier}
+                  </span>
+                  <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => uploaderPhoto(e.target.files?.[0])} />
+                </label>
+
+                {[
+                  { champ: 'email', label: tb.email, placeholder: tb.emailPlaceholder, type: 'email', renseigne: !!data.email },
+                  { champ: 'telephone', label: tb.telephone, placeholder: tb.telephonePlaceholder, type: 'tel', renseigne: !!data.telephone },
+                ].map(({ champ, label, placeholder, type, renseigne }) => {
+                  const etat = uploadEtat[champ]
+                  return (
+                    <div key={champ} style={LIGNE_CHAMP}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, flexShrink: 0 }}>
+                        {label}
+                        {!renseigne && etat !== 'done' && <span style={{ color: '#fca5a5' }}> *</span>}
+                      </span>
+                      <input
+                        type={type} value={champsTexte[champ]} placeholder={placeholder}
+                        onChange={e => setChampsTexte(s => ({ ...s, [champ]: e.target.value }))}
+                        style={INPUT_CHAMP}
+                      />
+                      <button
+                        type="button" onClick={() => enregistrerChampTexte(champ)} disabled={etat === 'loading' || !champsTexte[champ].trim()}
+                        style={boutonEnregistrer(!!champsTexte[champ].trim())}
+                      >
+                        {etat === 'loading' ? '…' : etat === 'done' ? tb.enregistre : etat === 'error' ? tb.erreur : tb.enregistrer}
+                      </button>
+                    </div>
+                  )
+                })}
+
+                <div style={{ fontSize: 11, opacity: 0.75, fontWeight: 700, marginTop: 10 }}>{tb.passeportTitre}</div>
+                <div style={{ fontSize: 10.5, opacity: 0.65, lineHeight: 1.5, marginTop: -4 }}>{tb.passeportAide}</div>
+                {[
+                  { champ: 'numero_passeport', label: tb.numeroPasseport, placeholder: tb.numeroPlaceholder, renseigne: !!data.passeport_renseigne },
+                  { champ: 'nom_passeport', label: tb.nomPasseport, placeholder: '', renseigne: true },
+                  { champ: 'prenom_passeport', label: tb.prenomPasseport, placeholder: '', renseigne: true },
+                ].map(({ champ, label, placeholder, renseigne }) => {
+                  const etat = uploadEtat[champ]
+                  return (
+                    <div key={champ} style={LIGNE_CHAMP}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, flexShrink: 0 }}>
+                        {label}
+                        {champ === 'numero_passeport' && !renseigne && etat !== 'done' && <span style={{ color: '#fca5a5' }}> *</span>}
+                      </span>
+                      <input
+                        type="text" value={champsTexte[champ]} autoComplete="off" maxLength={champ === 'numero_passeport' ? 20 : 100}
+                        placeholder={champ === 'numero_passeport' && renseigne ? tb.renseigne : placeholder}
+                        onChange={e => setChampsTexte(s => ({ ...s, [champ]: e.target.value }))}
+                        style={INPUT_CHAMP}
+                      />
+                      <button
+                        type="button" onClick={() => enregistrerChampTexte(champ)} disabled={etat === 'loading' || !champsTexte[champ].trim()}
+                        style={boutonEnregistrer(!!champsTexte[champ].trim())}
+                      >
+                        {etat === 'loading' ? '…' : etat === 'done' ? tb.enregistre : etat === 'error' ? tb.erreur : tb.enregistrer}
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <button type="button" onClick={deconnecter} style={{
+                marginTop: 16, background: 'none', border: 'none', color: '#fff', opacity: 0.7, fontSize: 11.5,
+                textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit', padding: 0,
+              }}>
+                {tb.deconnexion}
+              </button>
+            </div>
+          )}
 
           <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,.2)', fontSize: 11, opacity: 0.6 }}>
             {tb.footer}
@@ -474,6 +552,21 @@ export default function BadgeToken() {
     </div>
   )
 }
+
+const LIGNE_CHAMP = {
+  display: 'flex', alignItems: 'center', gap: 8,
+  padding: '10px 14px', borderRadius: 12, background: 'rgba(255,255,255,.12)',
+  border: '1px solid rgba(255,255,255,.25)',
+}
+const INPUT_CHAMP = {
+  flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none',
+  color: '#fff', fontSize: 12.5, fontFamily: 'inherit', textAlign: 'right',
+}
+const boutonEnregistrer = actif => ({
+  flexShrink: 0, fontSize: 11, fontWeight: 700, padding: '5px 10px', borderRadius: 8,
+  background: 'rgba(255,255,255,.2)', border: 'none', color: '#fff',
+  cursor: actif ? 'pointer' : 'default', opacity: actif ? 1 : 0.5, fontFamily: 'inherit',
+})
 
 const wrapStyle = {
   minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
