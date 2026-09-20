@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next'
 
-// Les 4 seuls soutiens institutionnels reels de la conference
+// Soutiens institutionnels reels de la conference, + la Nigerian Ports Authority
+// (delegation participante), ajoutee a la demande de l'organisation (20/09/2026).
 const partners = [
   { url: 'https://i.ibb.co/7dNZJQN5/agpaoc-0.jpg', name: 'AGPAOC' },
   { url: 'https://i.ibb.co/5WvKCqt8/logo-CRF-PERFECTION-4x-1761998753526.png', name: 'CRF Perfection' },
   { url: '/ANP.png', name: 'ANP' },
   { url: '/uapna.png', name: 'UAPNA' },
+  { url: '/npalogo.png', name: 'Nigerian Ports Authority (NPA)' },
 ]
 
 const Partners = () => {
