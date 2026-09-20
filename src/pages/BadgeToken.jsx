@@ -39,7 +39,7 @@ const TR_BADGE = {
     choisirFichier: 'Choisir un fichier', envoi: 'Envoi...', recu: '✓ Reçu', erreur: 'Erreur, réessayer',
     enregistrer: 'Enregistrer', enregistre: '✓ Enregistré',
     emailPlaceholder: 'votre@email.com', telephonePlaceholder: '+xxx xxx xxx xxx',
-    lienEspace: 'Compléter mon dossier', deconnexion: 'Se déconnecter',
+    deconnexion: 'Se déconnecter',
     footer: 'Conférence des Ports Africains · 19–21 Oct. 2026, Casablanca',
   },
   en: {
@@ -52,7 +52,7 @@ const TR_BADGE = {
     choisirFichier: 'Choose a file', envoi: 'Uploading...', recu: '✓ Received', erreur: 'Error, try again',
     enregistrer: 'Save', enregistre: '✓ Saved',
     emailPlaceholder: 'your@email.com', telephonePlaceholder: '+xxx xxx xxx xxx',
-    lienEspace: 'Complete my profile', deconnexion: 'Log out',
+    deconnexion: 'Log out',
     footer: 'Conference of African Ports · Oct 19–21, 2026, Casablanca',
   },
 }
@@ -279,8 +279,8 @@ export default function BadgeToken() {
           <div style={{ fontSize: 10, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700, textAlign: 'center' }}>COPAF 2026</div>
           <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', marginTop: 10, textAlign: 'center' }}>Mon espace / My space</div>
           <p style={{ fontSize: 12.5, color: '#64748b', marginTop: 6, textAlign: 'center' }}>
-            Entrez votre numéro de dossier et votre code d'accès (ou votre email)
-            <br />Enter your dossier number and your access code (or your email)
+            Entrez votre numéro de dossier et votre email
+            <br />Enter your dossier number and your email
           </p>
           <form onSubmit={handleDossierSubmit} style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <input
@@ -289,8 +289,8 @@ export default function BadgeToken() {
               style={champLogin}
             />
             <input
-              type="text" value={secretInput} onChange={e => setSecretInput(e.target.value)}
-              placeholder="Code d'accès / Access code" autoCapitalize="characters" autoComplete="off" spellCheck={false} aria-label="Code d'accès"
+              value={secretInput} onChange={e => setSecretInput(e.target.value)}
+              placeholder="Email" type="email" autoCapitalize="none" autoComplete="email" spellCheck={false} aria-label="Email"
               style={champLogin}
             />
             {dossierError && <p style={{ fontSize: 12, color: '#dc2626', margin: 0, textAlign: 'center' }}>{dossierError}</p>}
@@ -393,22 +393,9 @@ export default function BadgeToken() {
           {data.poste && <div style={{ fontSize: 14, opacity: 0.9, marginTop: 4 }}>{data.poste}</div>}
           {data.organisation && <div style={{ fontSize: 13, opacity: 0.7, marginTop: 2 }}>{data.organisation}</div>}
 
-          {!session ? (
-            // Scan du QR / lien public : lecture seule. Modifier un dossier
-            // exige dossier + code d'acces (page /badge), jamais le lien seul.
-            // Le lien "Completer mon dossier" n'apparait que si des informations
-            // manquent (passeport, email ou telephone) : les badges des
-            // personnes au dossier complet restent une simple carte.
-            data.incomplet && <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.2)' }}>
-              <a href="/badge" style={{
-                display: 'block', textAlign: 'center', padding: '12px 14px', borderRadius: 12,
-                background: 'rgba(255,255,255,.15)', border: '1px solid rgba(255,255,255,.3)',
-                color: '#fff', fontSize: 12.5, fontWeight: 700, textDecoration: 'none',
-              }}>
-                {tb.lienEspace} →
-              </a>
-            </div>
-          ) : (
+          {/* Scan du QR / lien public : simple carte (nom, fonction, organisation), sans lien
+              ni formulaire. Le formulaire n'existe que dans "Mon espace" (/badge), apres connexion. */}
+          {session && (
             <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.2)' }}>
               <div style={{ fontSize: 11, opacity: 0.75, fontWeight: 700, marginBottom: 10 }}>{tb.completerTitre}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
