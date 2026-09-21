@@ -26,7 +26,7 @@ const TR = {
   },
 }
 
-function Bouton({ icone, titre, sous, actif, chargement, onClick }) {
+export function Bouton({ icone, titre, sous, actif, chargement, onClick, accent = '#000E91' }) {
   return (
     <button
       type="button" disabled={!actif || chargement} onClick={actif ? onClick : undefined} aria-disabled={!actif}
@@ -36,7 +36,7 @@ function Bouton({ icone, titre, sous, actif, chargement, onClick }) {
         background: actif ? '#EBF3FF' : '#f8fafc', cursor: actif ? 'pointer' : 'not-allowed', opacity: actif ? 1 : 0.85,
       }}
     >
-      <span style={{ width: 36, height: 36, borderRadius: 10, background: actif ? '#000E91' : '#cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <span style={{ width: 36, height: 36, borderRadius: 10, background: actif ? accent : '#cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
         {chargement ? <span className="spinner" style={{ width: 14, height: 14, borderTopColor: '#fff', borderColor: 'rgba(255,255,255,.35)' }} /> : <Ico name={icone} size={17} color="#fff" />}
       </span>
       <span style={{ minWidth: 0 }}>

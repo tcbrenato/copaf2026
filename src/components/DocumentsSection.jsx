@@ -184,6 +184,9 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
     load()
   }
 
+  // Types proposes cote admin : « Badge », « Attestation » (et, pour l'equipe, « Guide » et « Fiche de voyage ») alimentent les boutons dedies
+  const typesDoc = [['autre', 'Autre', 'Other'], ['badge', 'Badge', 'Badge'], ...(table === 'documents_intervenants' ? [['guide', 'Guide du participant', 'Participant guide'], ['fiche', 'Fiche de voyage', 'Travel sheet']] : []), ['attestation', 'Attestation', 'Certificate']]
+
   if (loading) return null
 
   return (
@@ -216,16 +219,14 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
               {doc.participant_id ? (en ? 'Personal' : 'Personnel') : (en ? 'Shared' : 'Partagé')}
             </span>
           )}
-          {table === 'documents_participants' && !notifier && (
+          {!notifier && (
             <select
               value={doc.type || 'autre'} onChange={e => changerType(doc, e.target.value)}
               title={en ? 'Type: Badge and Certificate feed the dedicated buttons in their personal space' : "Type : « Badge » et « Attestation » alimentent les boutons dédiés de son espace personnel"}
               style={{ fontSize: 11, fontWeight: 700, fontFamily: 'inherit', padding: '3px 6px', borderRadius: 8, border: '1.5px solid #cbd5e1', background: '#fff', color: doc.type === 'badge' || doc.type === 'attestation' ? '#059669' : '#64748b', cursor: 'pointer', flexShrink: 0 }}
             >
-              <option value="autre">{en ? 'Other' : 'Autre'}</option>
-              <option value="badge">Badge</option>
-              <option value="attestation">{en ? 'Certificate' : 'Attestation'}</option>
-              {!['autre', 'badge', 'attestation'].includes(doc.type) && <option value={doc.type}>{doc.type}</option>}
+              {typesDoc.map(([valeur, fr, anglais]) => <option key={valeur} value={valeur}>{en ? anglais : fr}</option>)}
+              {!typesDoc.some(([valeur]) => valeur === doc.type) && <option value={doc.type}>{doc.type}</option>}
             </select>
           )}
           <button type="button" onClick={() => commencerEdition(doc)} title={en ? 'Rename' : 'Renommer'} style={ICONBTN}>

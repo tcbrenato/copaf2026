@@ -37,6 +37,7 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
   const [email, setEmail] = useState(initial?.email || '')
   const [telephone, setTelephone] = useState(initial?.telephone || '')
   const [codeAcces, setCodeAcces] = useState(initial?.code_acces || 'COPAF2026-SPEAKER')
+  const [equipe, setEquipe] = useState(!!initial?.equipe)
   const [interventionsTxt, setInterventionsTxt] = useState(interventionsToTexte(initial?.interventions))
   const [photoUrl, setPhotoUrl] = useState(initial?.photo_url || '')
   const [photoUploading, setPhotoUploading] = useState(false)
@@ -64,7 +65,7 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
       nom: nom.trim(), prenom: prenom.trim(), organisation: organisation.trim() || null,
       fonction: fonction.trim() || null, pays: pays.trim() || null, email: email.trim() || null,
       telephone: telephone.trim() || null, photo_url: photoUrl || null,
-      code_acces: codeAcces.trim(), interventions: texteToInterventions(interventionsTxt),
+      code_acces: codeAcces.trim(), interventions: texteToInterventions(interventionsTxt), equipe,
     }
     const resultat = initial
       ? await supabase.from('intervenants').update(champs).eq('id', initial.id)
@@ -120,6 +121,10 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
           </label>
           <input value={codeAcces} onChange={e => setCodeAcces(e.target.value)} style={{ ...INPUT, maxWidth: 280 }} />
         </div>
+        <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#334155', fontWeight: 600 }}>
+          <input type="checkbox" checked={equipe} onChange={e => setEquipe(e.target.checked)} />
+          Membre de l'équipe COPAF (ajoute dans son espace les boutons Guide, Fiche de voyage, Programme et Attestation)
+        </label>
       </div>
       <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>
         Interventions — une par ligne : Jour | Horaire | Titre | Mention co-intervenant (optionnel, texte libre — ex. "Avec Mme X" ou "Assisté de M. Y")

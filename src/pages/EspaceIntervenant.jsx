@@ -3,6 +3,7 @@ import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import SeoHead from '../components/SeoHead'
 import DocumentsSection from '../components/DocumentsSection'
+import BoutonsEquipe from '../components/BoutonsEquipe'
 import { generateQrCard } from '../utils/generateQrCard'
 import LangToggle from '../components/LangToggle'
 import { useLang } from '../i18n/useLang'
@@ -101,9 +102,11 @@ export default function EspaceIntervenant() {
   const [qr, setQr] = useState('')
   const [telechargement, setTelechargement] = useState(false)
   const [badgeDoc, setBadgeDoc] = useState(null)
+  const [docs, setDocs] = useState([])
 
   const onDocsChange = docs => {
-    setBadgeDoc(docs.find(d => /badge/i.test(d.label)) || null)
+    setDocs(docs)
+    setBadgeDoc(docs.find(d => d.visible !== false && (d.type === 'badge' || /badge/i.test(d.label))) || null)
   }
 
   useEffect(() => {
@@ -434,6 +437,12 @@ export default function EspaceIntervenant() {
                 {t.openFolder}
               </a>
             </div>
+
+            {intervenant.equipe && (
+              <div className="col-span-full">
+                <BoutonsEquipe lang={lang} docs={docs} />
+              </div>
+            )}
 
             {/* Bento Card 3 : Espace Documents (Plein Largeur) */}
             <div className="bento-card-light col-span-full" style={{ padding: 28 }}>
