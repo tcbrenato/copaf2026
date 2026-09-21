@@ -4,7 +4,7 @@
 // liste des intervenants, code d'acces partage, et documents par intervenant
 // (reutilise DocumentsSection sur documents_intervenants / documents-intervenants).
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import DocumentsSection from '../components/DocumentsSection'
@@ -43,6 +43,10 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
   const [photoUploading, setPhotoUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [erreur, setErreur] = useState('')
+  const racine = useRef(null)
+
+  // A l'ouverture d'une modification, on amene le formulaire a l'ecran
+  useEffect(() => { if (initial) racine.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }) }, [initial])
 
   const uploaderPhoto = async e => {
     const file = e.target.files?.[0]
@@ -77,7 +81,7 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
   }
 
   return (
-    <div style={{ ...CARD, marginBottom: 16 }}>
+    <div ref={racine} style={{ ...CARD, marginBottom: 16 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
         <div>
           <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Nom *</label>
@@ -241,10 +245,6 @@ export default function AdminIntervenants() {
       </div>
 
       {ajout && <FormeIntervenant nextOrdre={intervenants.length + 1} onCancel={() => setAjout(false)} onSaved={() => { setAjout(false); load() }} />}
-      {edition && (
-        <FormeIntervenant initial={edition} onCancel={() => setEdition(null)} onSaved={() => { setEdition(null); load() }} />
-      )}
-
       {!ajout && !edition && (
         <button type="button" onClick={() => setAjout(true)} style={{ ...BTN_PRIMARY, marginBottom: 16 }}>
           + Ajouter un intervenant
@@ -291,6 +291,12 @@ export default function AdminIntervenants() {
               <button type="button" onClick={() => supprimer(iv)} style={{ ...BTN_GHOST, color: '#dc2626', borderColor: '#fecaca' }}>Supprimer</button>
             </div>
           </div>
+          {edition?.id === iv.id && (
+            // Le formulaire s'ouvre sous la ligne cliquee (et non en haut de la page, hors de vue quand la liste est longue)
+            <div style={{ padding: '0 20px 20px', borderTop: '1px solid #f1f5f9' }}>
+              <FormeIntervenant key={iv.id} initial={edition} onCancel={() => setEdition(null)} onSaved={() => { setEdition(null); load() }} />
+            </div>
+          )}
           {ouvert === iv.id && (
             <div style={{ padding: '0 20px 20px', borderTop: '1px solid #f1f5f9' }}>
               <IntervenantQr iv={iv} />
