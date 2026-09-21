@@ -14,6 +14,7 @@ const TR = {
     billet: 'Ou déposez votre billet (PDF ou photo)', choisir: 'Choisir un fichier', billetOk: '✓ Billet reçu',
     enregistrer: 'Enregistrer mes informations de vol', envoi: 'Envoi...', ok: '✓ Enregistré', erreur: 'Erreur, réessayer', fichierNonValide: 'Fichier non valide (PDF ou image, 8 Mo max)',
     statutAucun: 'Vols : pas encore renseignés', statutVols: 'Vols reçus — fiche de voyage en préparation', statutPrete: 'Votre fiche de voyage est prête', statutEnvoyee: 'Votre fiche de voyage est prête',
+    retourEspace: 'Revenir à mon espace',
     guide: 'Télécharger le guide du participant', fiche: 'Télécharger ma fiche de voyage', guideAVenir: 'Guide du participant : à venir',
   },
   en: {
@@ -23,6 +24,7 @@ const TR = {
     billet: 'Or upload your ticket (PDF or photo)', choisir: 'Choose a file', billetOk: '✓ Ticket received',
     enregistrer: 'Save my flight information', envoi: 'Uploading...', ok: '✓ Saved', erreur: 'Error, try again', fichierNonValide: 'Invalid file (PDF or image, 8 MB max)',
     statutAucun: 'Flights: not provided yet', statutVols: 'Flights received — travel sheet in preparation', statutPrete: 'Your travel sheet is ready', statutEnvoyee: 'Your travel sheet is ready',
+    retourEspace: 'Back to my area',
     guide: 'Download the participant guide', fiche: 'Download my travel sheet', guideAVenir: 'Participant guide: coming soon',
   },
 }
@@ -113,6 +115,8 @@ export default function VoyageBadge({ dossier, secret, lang }) {
   )
 
   const statut = voyage?.statut || 'aucun'
+  // Vols (ou billet) enregistres : on propose de revenir a l'espace personnel
+  const volsRenseignes = etat === 'done' || !!(voyage?.vol_aller || voyage?.vol_retour || voyage?.billet_depose)
   const libelleStatut = { aucun: t.statutAucun, vols_recus: t.statutVols, fiche_prete: t.statutPrete, fiche_envoyee: t.statutEnvoyee }[statut]
 
   return (
@@ -133,6 +137,11 @@ export default function VoyageBadge({ dossier, secret, lang }) {
       </button>
 
       <div style={{ fontSize: 11.5, fontWeight: 700, opacity: 0.9, textAlign: 'left' }}>{libelleStatut}</div>
+      {volsRenseignes && (
+        <a href={`/verifier?dossier=${encodeURIComponent(dossier)}`} style={{ ...BOUTON, display: 'block', boxSizing: 'border-box', textAlign: 'center', textDecoration: 'none', background: '#fff', color: '#000E91', border: '1px solid #fff' }}>
+          {t.retourEspace}
+        </a>
+      )}
       {voyage?.guide
         ? <button type="button" style={BOUTON} disabled={!!telechargement} onClick={() => telecharger('guide')}>{telechargement === 'guide' ? '…' : t.guide}</button>
         : <div style={{ fontSize: 11, opacity: 0.6, textAlign: 'left' }}>{t.guideAVenir}</div>}
