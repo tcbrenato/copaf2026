@@ -7,6 +7,7 @@ import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitivePDF'
 import { generateICS } from '../utils/generateICS'
 import { Ico } from '../utils/dossierUi'
+import { normaliserDossier } from '../utils/dossierConstants'
 import ParticipantDashboard from '../components/ParticipantDashboard'
 
 const CONTACT_PHONE = '+229 01 69 30 30 19'
@@ -167,7 +168,7 @@ export default function VerifierDossier() {
     }
 
     try {
-      const { data, error: err } = await supabase.rpc('verifier_dossier', { p_dossier: cleanedInput })
+      const { data, error: err } = await supabase.rpc('verifier_dossier', { p_dossier: normaliserDossier(cleanedInput) })
       if (err) throw new Error(err.message)
       if (data && data.length > 0) {
         setResult({ type: 'dossier', ...data[0] })
@@ -223,7 +224,7 @@ export default function VerifierDossier() {
     setAccessLoading(true); setAccessError('')
     try {
       const { data, error: err } = await supabase.functions.invoke('access-espace', {
-        body: { dossier: accessDossier.trim(), email: accessEmail.trim() },
+        body: { dossier: normaliserDossier(accessDossier), email: accessEmail.trim() },
       })
       if (err || !data?.action_link) throw new Error(err?.message || 'Connexion impossible')
       window.location.href = data.action_link

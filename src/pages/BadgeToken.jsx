@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { Ico } from '../utils/dossierUi'
+import { normaliserDossier } from '../utils/dossierConstants'
 import VoyageBadge from '../components/VoyageBadge'
 
 const NAVY = '#000E91'
@@ -231,7 +232,7 @@ export default function BadgeToken() {
     if (!dossierInput.trim() || !secretInput.trim()) return
     setDossierLoading(true); setDossierError('')
     try {
-      const { data: rows, error: err } = await supabase.rpc('badge_login', { p_dossier: dossierInput.trim(), p_secret: secretInput.trim() })
+      const { data: rows, error: err } = await supabase.rpc('badge_login', { p_dossier: normaliserDossier(dossierInput), p_secret: secretInput.trim() })
       if (err) {
         setDossierError(/tentatives|attempts/i.test(err.message || '')
           ? 'Trop de tentatives, réessayez dans 15 minutes / Too many attempts, try again in 15 minutes'

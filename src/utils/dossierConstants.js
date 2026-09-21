@@ -19,3 +19,11 @@ export const cardBtnStyle = {
   color: '#0f172a', fontSize: 12.5, fontWeight: 700, textDecoration: 'none',
   cursor: 'pointer', fontFamily: 'inherit',
 }
+
+// Tolere les saisies courantes du numero de dossier : « COPAF-45839 », « copaf2026-45839 » ou « 45839 »
+// donnent toutes « COPAF2026-45839 ». Les autres formes (ex. COPAF2026-NPA-04) restent inchangees.
+export function normaliserDossier(saisie) {
+  const s = String(saisie || '').trim().replace(/\s+/g, '')
+  const m = s.match(/^(?:COPAF(?:2026)?[-_]?)?(\d{4,6})$/i)
+  return m ? `COPAF2026-${m[1]}` : s
+}
