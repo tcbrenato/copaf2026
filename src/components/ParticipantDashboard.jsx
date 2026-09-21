@@ -4,6 +4,7 @@ import { supabase } from '../supabase'
 import i18n from '../i18n/i18n'
 import { Ico, Card, DocRow, ProgressTimeline } from '../utils/dossierUi'
 import { fmtEur, WHATSAPP_NUMBER, BANK_INFO, cardBtnStyle } from '../utils/dossierConstants'
+import BoutonsEvenement from './BoutonsEvenement'
 
 const TR = {
   fr: {
@@ -72,6 +73,14 @@ export default function ParticipantDashboard({
 }) {
   const tt = TR[lang]
   const [tab, setTab] = useState('apercu')
+  // Guide, fiche de voyage et vols : charges une fois, partages par l'apercu et l'onglet Voyage
+  const [voyage, setVoyage] = useState(undefined)
+
+  useEffect(() => {
+    let annule = false
+    supabase.rpc('mon_voyage').then(({ data }) => { if (!annule) setVoyage(data || null) })
+    return () => { annule = true }
+  }, [myDossier.dossier])
 
   const tabLabel = {
     apercu: tt.tabApercu, badge: tt.tabBadge, programme: tt.tabProgramme, documents: tt.tabDocuments, support: tt.tabSupport, voyage: tt.tabVoyage,
@@ -135,7 +144,7 @@ export default function ParticipantDashboard({
 
         <div style={{ flex: 1, minWidth: 0 }}>
           {tab === 'apercu' && (
-            <TabApercu myDossier={myDossier} t={t} tt={tt} lang={lang} />
+            <TabApercu myDossier={myDossier} t={t} tt={tt} lang={lang} voyage={voyage} onOpenProgramme={() => setTab('programme')} />
           )}
           {tab === 'badge' && (
             <TabBadge myDossier={myDossier} t={t} tt={tt} genLoading={genLoading} onDownloadBadge={onDownloadBadge} />
@@ -152,7 +161,7 @@ export default function ParticipantDashboard({
             />
           )}
           {tab === 'voyage' && (
-            <TabVoyage myDossier={myDossier} tt={tt} lang={lang} />
+            <TabVoyage voyage={voyage} tt={tt} lang={lang} />
           )}
           {tab === 'support' && (
             <TabSupport myDossier={myDossier} t={t} tt={tt} />
@@ -164,7 +173,7 @@ export default function ParticipantDashboard({
 }
 
 // ── Aperçu ──
-function TabApercu({ myDossier, t, tt }) {
+function TabApercu({ myDossier, t, tt, lang, voyage, onOpenProgramme }) {
   const paiementSub = myDossier.statut === 'confirme'
     ? t.paiementConfirme
     : myDossier.paiement_mode === 'plus_tard'
@@ -173,6 +182,10 @@ function TabApercu({ myDossier, t, tt }) {
 
   return (
     <div>
+      <div style={{ marginBottom: 18 }}>
+        <BoutonsEvenement lang={lang} myDossier={myDossier} voyage={voyage} onOpenProgramme={onOpenProgramme} />
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 14, marginBottom: 18 }}>
         <Card icon="bank" title={tt.apercuMontant}>
           <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a' }}>{fmtEur(myDossier.montant)}</div>
@@ -475,15 +488,8 @@ function TabSupport({ myDossier, t, tt }) {
 // ── Voyage : guide, fiche de voyage, vols ──
 // Les PDF sont generes dans le navigateur a partir des donnees de mon_voyage()
 // (le guide n'est renvoye que si l'admin l'a publie, la fiche que lorsqu'elle est prete).
-function TabVoyage({ myDossier, tt, lang }) {
-  const [voyage, setVoyage] = useState(undefined)
+function TabVoyage({ voyage, tt, lang }) {
   const [gen, setGen] = useState('')
-
-  useEffect(() => {
-    let annule = false
-    supabase.rpc('mon_voyage').then(({ data }) => { if (!annule) setVoyage(data || null) })
-    return () => { annule = true }
-  }, [myDossier.dossier])
 
   const telecharger = async genre => {
     setGen(genre)
