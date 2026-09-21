@@ -5,7 +5,7 @@
 // donnees saisies dans l'admin — aucun Word / LibreOffice requis.
 //
 // Design repris du kit fourni : bleu marine #00367F, bleu ciel #1798F4, cartes
-// #F4F8FC, police Poppins, couverture a cercles.
+// #F4F8FC, police Poppins, pastilles d'icones (public/guide-icons), couverture a cercles.
 //
 // Les champs "a completer" du guide (adresse de la salle, contacts, horaires...)
 // viennent de la table guide_config (saisie admin, FR + EN). Un champ vide est
@@ -20,29 +20,40 @@ import { detecterCasesPage } from './pdfCases'
 const NAVY = [0, 54, 127]       // #00367F
 const SKY = [23, 152, 244]      // #1798F4
 const CARD = [244, 248, 252]    // #F4F8FC
-const TEXT = [30, 41, 59]
+const INK = [10, 31, 61]
+const TEXT = [51, 65, 85]
 const MUTED = [100, 116, 139]
-const WARN = [217, 119, 6]
+const CLAIR = [206, 222, 244]   // texte clair sur fond marine
+const NOTE_BG = [232, 241, 251]
+const JAUNE = [255, 241, 166]   // surlignage d'un champ manquant (apercu)
 
 const PAGE = { w: 210, h: 297 }
-const M = 18
+const M = 18                    // couverture
 const CW = PAGE.w - 2 * M
+const X0 = 16                   // contenu
+const LW = PAGE.w - 2 * X0
+const HAUT = 20
+const BAS = PAGE.h - 20
 
 // ─── Champs du guide (saisis par l'admin) ──────────────────────────────────
+// `defaut` : valeur prerempliee dans l'admin (modifiable), commune aux deux langues (texte) ou par langue ({ fr, en }).
+// `type: 'choix'` : choix Oui / Non sans valeur par defaut.
 export const GUIDE_FIELDS = [
   { key: 'programme_url', fr: 'Lien du programme', en: 'Programme link', hint: 'https://copaf-ports.com/#programme', defaut: 'https://copaf-ports.com/#programme' },
   { key: 'salle_adresse', fr: 'Adresse de la salle', en: 'Venue address', hint: 'Port de Casablanca, Salle …' },
-  { key: 'tablette_precision', fr: 'Tablette : précision', en: 'Tablet: details', hint: "Vous la conservez à l'issue de l'événement" },
-  { key: 'contact_billet', fr: 'Contact pour envoyer le billet', en: 'Contact to send the ticket', hint: 'email / WhatsApp' },
-  { key: 'date_limite_vols', fr: 'Date limite pour les infos de vol', en: 'Deadline for flight information', hint: '9 octobre 2026' },
+  { key: 'tablette_conserver', fr: 'La tablette est à conserver par le participant', en: 'The tablet is kept by the participant', type: 'choix' },
+  { key: 'contact_billet', fr: 'Contact pour envoyer le billet', en: 'Contact to send the ticket', hint: 'email / WhatsApp',
+    defaut: { fr: 'WhatsApp +229 01 69 30 30 19 ou contact@copaf-ports.com', en: 'WhatsApp +229 01 69 30 30 19 or contact@copaf-ports.com' } },
+  { key: 'date_limite_vols', fr: 'Date limite pour les infos de vol', en: 'Deadline for flight information', hint: '14 octobre 2026',
+    defaut: { fr: '14 octobre 2026', en: '14 October 2026' } },
   { key: 'badge_lieu_horaires', fr: 'Retrait du badge : lieu et horaires', en: 'Badge pick-up: place and times', hint: "Hall d'accueil, dès 8h00" },
   { key: 'jour3_rdv', fr: 'Jour 3 : rendez-vous (lieu et heure)', en: 'Day 3: meeting point (place and time)', hint: "Hall de l'hôtel, 8h30" },
-  { key: 'attestation_mode', fr: 'Attestation : mode de remise', en: 'Certificate: how it is delivered', hint: 'et envoyée par email' },
-  { key: 'climat', fr: 'Climat en octobre', en: 'Weather in October', hint: '18-25 °C' },
-  { key: 'prises', fr: 'Prises électriques', en: 'Power sockets', hint: 'Type C / E' },
-  { key: 'wifi', fr: 'Connexion Wi-Fi', en: 'Wi-Fi', hint: "Wi-Fi gratuit à l'hôtel" },
+  { key: 'climat', fr: 'Climat en octobre', en: 'Weather in October', hint: '17–25 °C',
+    defaut: { fr: 'Environ 17–25 °C, quelques averses possibles', en: 'Around 17–25 °C, occasional showers possible' } },
+  { key: 'prises', fr: 'Prises électriques', en: 'Power sockets', hint: 'Type C / E, 220 V', defaut: 'Type C / E, 220 V' },
   { key: 'contact_comite', fr: "Contact : comité d'organisation", en: 'Contact: organising committee', hint: 'Nom · téléphone · email' },
-  { key: 'contact_technique', fr: 'Contact : espace participant, badge, technique', en: 'Contact: participant area, badge, technical', hint: 'Rénato TCHOBO · email / WhatsApp' },
+  { key: 'contact_technique', fr: 'Contact : espace participant, badge, technique', en: 'Contact: participant area, badge, technical', hint: 'Rénato TCHOBO · téléphone · email',
+    defaut: 'Rénato TCHOBO · +229 01 92 37 77 77 · contact@copaf-ports.com' },
   { key: 'contact_logistique', fr: 'Contact : transferts et logistique à Casablanca', en: 'Contact: transfers and logistics in Casablanca', hint: 'Nom · téléphone local' },
   { key: 'contact_urgence', fr: 'Numéro d’urgence 24h/24', en: '24/7 emergency number', hint: '+212 …' },
   { key: 'navette', fr: 'Navette hôtel → port (fiches de voyage)', en: 'Hotel → port shuttle (travel sheets)', hint: "Départ de l'hôtel à 8h00, du 19 au 21 octobre · rendez-vous dans le hall" },
@@ -54,11 +65,38 @@ export const GUIDE_FIELDS = [
 export const CHAMPS_COMMUNS_FICHE = ['navette', 'referent_nom', 'referent_tel']
 const CLES_GUIDE = GUIDE_FIELDS.filter(f => !CHAMPS_COMMUNS_FICHE.includes(f.key)).map(f => f.key)
 
+// Texte imprime pour la case « Tablette » selon le choix de l'admin
+const TABLETTE = {
+  oui: { fr: "Remise sur place, à conserver à l'issue de l'événement", en: 'Handed over on site, yours to keep after the event' },
+  non: { fr: "Remise sur place, à restituer à la fin de l'événement", en: 'Handed over on site, to be returned at the end of the event' },
+}
+export const texteTablette = (choix, lang) => TABLETTE[choix]?.[lang === 'en' ? 'en' : 'fr'] || ''
+
+const defautDe = (champ, lang) => (typeof champ.defaut === 'string' ? champ.defaut : champ.defaut?.[lang]) || ''
+
 function valeurChamp(config, lang, key) {
-  const def = GUIDE_FIELDS.find(f => f.key === key)?.defaut || ''
+  const champ = GUIDE_FIELDS.find(f => f.key === key)
   const propre = config?.[lang]?.[key]
   const autre = config?.[lang === 'fr' ? 'en' : 'fr']?.[key]
-  return String(propre || autre || def || '').replace(/(\*\*|__|<<|>>)/g, '').trim()
+  const v = String(propre || autre || (champ ? defautDe(champ, lang) : '') || '').replace(/(\*\*|__|<<|>>)/g, '').trim()
+  if (champ?.type === 'choix') return v === 'oui' || v === 'non' ? v : ''
+  return v
+}
+
+// Valeurs du guide avec les valeurs par defaut en plus (pour l'admin) — l'anglais ne prend pas son
+// defaut quand un texte francais personnalise existe deja (il reprend alors le francais).
+export function configAvecDefauts(valeurs) {
+  const sortie = { fr: { ...(valeurs?.fr || {}) }, en: { ...(valeurs?.en || {}) } }
+  GUIDE_FIELDS.forEach(champ => {
+    ['fr', 'en'].forEach(l => {
+      const d = defautDe(champ, l)
+      if (!d || String(sortie[l][champ.key] || '').trim()) return
+      const frPerso = String(valeurs?.fr?.[champ.key] || '').trim()
+      if (l === 'en' && frPerso && frPerso !== defautDe(champ, 'fr')) return
+      sortie[l][champ.key] = d
+    })
+  })
+  return sortie
 }
 
 // Champs du guide encore vides pour la langue demandee (avec repli sur l'autre langue)
@@ -117,10 +155,22 @@ async function logo(src) {
     const ctx = c.getContext('2d')
     ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height)
     ctx.drawImage(img, 0, 0)
-    return { data: c.toDataURL('image/jpeg', 0.9), ratio: img.naturalWidth / img.naturalHeight }
+    return { data: c.toDataURL('image/jpeg', 0.92), ratio: img.naturalWidth / img.naturalHeight }
   } catch {
     return null
   }
+}
+
+// Pastilles d'icones (public/guide-icons/*.png : carre marine arrondi + pictogramme blanc)
+const ICONES = ['calendar', 'pin', 'layers', 'langues', 'bed', 'route', 'plane', 'van', 'hotel', 'bus', 'utensils', 'conf', 'ship', 'tablet',
+  'award', 'money', 'shirt', 'cloud', 'plug', 'wifi', 'bell', 'users', 'laptop', 'phone']
+
+async function chargerIcones() {
+  const res = {}
+  await Promise.all(ICONES.map(async nom => {
+    try { res[nom] = `data:image/png;base64,${versBase64(await chargerBinaire(`/guide-icons/${nom}.png`))}` } catch { /* pastille vide */ }
+  }))
+  return res
 }
 
 export function pdfEnBase64(doc) {
@@ -129,137 +179,310 @@ export function pdfEnBase64(doc) {
 }
 
 // ─── Moteur de mise en page ───────────────────────────────────────────────
-function moteur(doc, font) {
-  let y = 22
+// Un « bloc » = { h, apres, dessiner(y) }. m.poser(...blocs) les place ensemble : si l'ensemble ne tient pas
+// dans la page, il passe entier a la page suivante (un titre n'est donc jamais separe de son contenu).
+const B = t => ({ t, b: true })
+const LIEN = (t, url) => ({ t, b: true, lien: url })
+const BR = { br: true }
+const norm = segs => (Array.isArray(segs) ? segs : [segs]).map(s => (typeof s === 'string' ? { t: s } : s))
+
+function moteur(doc, font, icones, config, lang) {
+  let y = HAUT
   const etat = { manquants: new Set() }
+  const MM = 0.3528
 
-  const police = (style = 'normal', size = 10, color = TEXT) => {
-    doc.setFont(font, style)
-    doc.setFontSize(size)
-    doc.setTextColor(...color)
-  }
-  const interligne = size => size * 0.3528 * 1.55
-  const assurer = h => { if (y + h > PAGE.h - 24) { doc.addPage(); y = 22 } }
+  const setF = (gras, taille) => { doc.setFont(font, gras ? 'bold' : 'normal'); doc.setFontSize(taille) }
+  const larg = (t, gras, taille) => { setF(gras, taille); return doc.getTextWidth(t) }
+  const hLigne = taille => taille * MM * 1.55
 
-  const paragraphe = (texte, { size = 10, style = 'normal', color = TEXT, x = M, w = CW, apres = 3 } = {}) => {
-    police(style, size, color)
-    const lignes = doc.splitTextToSize(texte, w)
-    const lh = interligne(size)
-    lignes.forEach(l => { assurer(lh); doc.text(l, x, y + lh * 0.7); y += lh })
-    y += apres
-  }
-
-  const titreSection = (etiquette, titre) => {
-    assurer(26)
-    police('bold', 8.5, SKY)
-    doc.text(etiquette.toUpperCase(), M, y + 3)
-    y += 7
-    police('bold', 18, NAVY)
-    const l = doc.splitTextToSize(titre, CW)
-    l.forEach(t => { doc.text(t, M, y + 6); y += 8.5 })
-    doc.setFillColor(...SKY); doc.rect(M, y + 1, 14, 0.9, 'F')
-    y += 7
-  }
-
-  const sousTitre = (etiquette, titre) => {
-    y += 3
-    assurer(22)
-    police('bold', 8, SKY)
-    doc.text(etiquette.toUpperCase(), M, y + 3)
-    y += 6
-    police('bold', 12.5, NAVY)
-    doc.text(titre, M, y + 4)
-    y += 9
-  }
-
-  // Grille de cartes (2 colonnes par defaut)
-  const cartes = (items, { colonnes = 2 } = {}) => {
-    const gap = 5
-    const w = (CW - gap * (colonnes - 1)) / colonnes
-    for (let i = 0; i < items.length; i += colonnes) {
-      const ligne = items.slice(i, i + colonnes)
-      const mesures = ligne.map(it => {
-        police('bold', 8, SKY)
-        const lv = (() => { police('bold', 10, NAVY); return doc.splitTextToSize(it.valeur || '', w - 12) })()
-        police('normal', 8.5, MUTED)
-        const ld = it.detail ? doc.splitTextToSize(it.detail, w - 12) : []
-        return { lv, ld, h: 7 + 5 + lv.length * 5 + ld.length * 4.4 + 6 }
+  // Decoupe en mots (un mot = suite de morceaux de styles differents, sans espace) ; ponctuation double
+  // (« : ; ! ? » ») collee au mot precedent pour ne jamais tomber seule en debut de ligne.
+  function tokeniser(segs) {
+    const toks = []
+    let cur = null
+    norm(segs).forEach(s => {
+      if (s.br) { toks.push({ br: true, pieces: [] }); cur = null; return }
+      s.t.split(/( +)/).forEach(p => {
+        if (p === '') return
+        if (/^ +$/.test(p)) { cur = null; return }
+        if (!cur) { cur = { pieces: [] }; toks.push(cur) }
+        cur.pieces.push({ ...s, t: p })
       })
-      const h = Math.max(...mesures.map(m => m.h))
-      assurer(h + gap)
-      ligne.forEach((it, j) => {
-        const x = M + j * (w + gap)
-        doc.setFillColor(...CARD); doc.roundedRect(x, y, w, h, 2.5, 2.5, 'F')
-        doc.setFillColor(...SKY); doc.rect(x, y + 4, 1.4, h - 8, 'F')
-        police('bold', 7.5, SKY)
-        doc.text(it.etiquette.toUpperCase(), x + 6, y + 6.5)
-        let yy = y + 12
-        police('bold', 10, NAVY)
-        mesures[j].lv.forEach(t => { doc.text(t, x + 6, yy); yy += 5 })
-        police('normal', 8.5, MUTED)
-        mesures[j].ld.forEach(t => { doc.text(t, x + 6, yy); yy += 4.4 })
+    })
+    const collee = []
+    toks.forEach(tk => {
+      const txt = tk.pieces.map(p => p.t).join('')
+      const prec = collee[collee.length - 1]
+      if (!tk.br && prec && !prec.br && /^[:;!?»]+$/.test(txt)) { prec.pieces.push({ t: ' ' }, ...tk.pieces); return }
+      if (prec && !prec.br && !tk.br && prec.pieces.length === 1 && prec.pieces[0].t === '«') { prec.pieces.push({ t: ' ' }, ...tk.pieces); return }
+      collee.push(tk)
+    })
+    return collee
+  }
+
+  function lignes(segs, w, taille) {
+    const sp = larg(' ', false, taille)
+    const res = []
+    let cur = { toks: [], w: 0 }
+    tokeniser(segs).forEach(tk => {
+      if (tk.br) { res.push(cur); cur = { toks: [], w: 0 }; return }
+      tk.w = tk.pieces.reduce((a, p) => a + larg(p.t, p.b, taille), 0)
+      const ajout = cur.toks.length ? sp + tk.w : tk.w
+      if (cur.toks.length && cur.w + ajout > w) { res.push(cur); cur = { toks: [tk], w: tk.w } } else { cur.toks.push(tk); cur.w += ajout }
+    })
+    if (cur.toks.length) res.push(cur)
+    return res
+  }
+
+  function ecrire(res, x, yHaut, taille, couleur, { align = 'left', w = 0 } = {}) {
+    const lh = hLigne(taille)
+    const sp = larg(' ', false, taille)
+    res.forEach((ln, i) => {
+      let cx = align === 'center' ? x + (w - ln.w) / 2 : x
+      const base = yHaut + i * lh + lh * 0.5 + taille * MM * 0.34
+      ln.toks.forEach((tk, ti) => {
+        if (ti > 0) cx += sp
+        tk.pieces.forEach(p => {
+          setF(p.b, taille)
+          const pw = doc.getTextWidth(p.t)
+          if (p.manque) {
+            doc.setFillColor(...JAUNE); doc.rect(cx - 0.3, base - taille * MM * 0.85, pw + 0.6, taille * MM * 1.2, 'F')
+            doc.setTextColor(...INK)
+          } else doc.setTextColor(...(p.lien ? SKY : (p.c || couleur)))
+          doc.text(p.t, cx, base)
+          if (p.lien) doc.link(cx, base - taille * MM, pw, taille * MM * 1.4, { url: p.lien })
+          cx += pw
+        })
       })
-      y += h + gap
+    })
+  }
+  const hauteur = (res, taille) => res.length * hLigne(taille)
+
+  // Fleche vectorielle (Poppins n'a pas le glyphe « → »)
+  function fleche(x, yc, l, couleur) {
+    doc.setDrawColor(...couleur); doc.setLineWidth(0.4); doc.setLineCap('round')
+    doc.line(x, yc, x + l, yc); doc.line(x + l - 1.1, yc - 1.1, x + l, yc); doc.line(x + l - 1.1, yc + 1.1, x + l, yc)
+  }
+
+  function bouton(x, yb, w, texte, url, h = 7.5) {
+    doc.setFillColor(...SKY); doc.rect(x, yb, w, h, 'F')
+    const taille = 6.8
+    const tw = larg(texte, true, taille)
+    const total = tw + 2.4 + 3.2
+    const dx = x + (w - total) / 2
+    doc.setTextColor(255, 255, 255); doc.text(texte, dx, yb + h / 2 + taille * MM * 0.34)
+    fleche(dx + tw + 2.4, yb + h / 2, 3.2, [255, 255, 255])
+    if (url) doc.link(x, yb, w, h, { url })
+  }
+
+  // Valeur de champ : texte saisi ou [libelle] surligne (compte comme manquant, visible dans l'apercu)
+  const champ = key => {
+    const v = valeurChamp(config, lang, key)
+    if (v) return { t: v }
+    etat.manquants.add(key)
+    const lab = GUIDE_FIELDS.find(f => f.key === key)?.[lang] || key
+    return { t: `[${lab}]`, manque: true }
+  }
+
+  const etiquette = (txt, x, yy, couleur = SKY, taille = 6.6) => {
+    setF(true, taille); doc.setTextColor(...couleur)
+    doc.text(txt.toUpperCase(), x, yy, { charSpace: 0.6 })
+  }
+
+  // ── Blocs ──
+  const bTitre = (etiq, titre) => ({
+    h: 17, apres: 0, avant: 9,
+    dessiner: yy => {
+      etiquette(etiq, X0, yy + 3)
+      setF(true, 21); doc.setTextColor(...INK)
+      doc.text(titre, X0, yy + 12.5)
+    },
+  })
+
+  const bTexte = (segs, { taille = 8.8, couleur = TEXT, apres = 3, align = 'left' } = {}) => {
+    const l = lignes(segs, LW, taille)
+    return { h: hauteur(l, taille), apres, dessiner: yy => ecrire(l, X0, yy, taille, couleur, { align, w: LW }) }
+  }
+
+  const bPanneau = (paras) => {
+    const pad = 7
+    const w = LW - 2 * pad
+    const mes = paras.map(p => {
+      const taille = p.taille || 9.4
+      return { ...p, taille, l: lignes(p.segs, w, taille), apres: p.apres ?? 3 }
+    })
+    const h = 2 * pad + mes.reduce((a, p) => a + hauteur(p.l, p.taille) + p.apres, 0) - (mes.at(-1)?.apres || 0)
+    return {
+      h, apres: 0,
+      dessiner: yy => {
+        doc.setFillColor(...NAVY); doc.rect(X0, yy, LW, h, 'F')
+        let cy = yy + pad
+        mes.forEach(p => {
+          ecrire(p.l, X0 + pad, cy, p.taille, p.couleur || CLAIR, { align: p.align, w })
+          cy += hauteur(p.l, p.taille) + p.apres
+        })
+      },
     }
   }
 
-  const puces = (items, { size = 10 } = {}) => {
-    items.forEach(t => {
-      police('normal', size, TEXT)
-      const lignes = doc.splitTextToSize(t, CW - 8)
-      const lh = interligne(size)
-      assurer(lh * lignes.length + 1)
-      doc.setFillColor(...SKY); doc.circle(M + 2, y + lh * 0.55, 0.9, 'F')
-      lignes.forEach(l => { doc.text(l, M + 7, y + lh * 0.7); y += lh })
-      y += 1
+  // Grille de cartes a pastille d'icone
+  const bGrille = (items, { cols = 3, minH = 34 } = {}) => {
+    const gap = 4.5
+    const cw = (LW - gap * (cols - 1)) / cols
+    const pad = 4.5
+    const iw = cw - 2 * pad
+    const mes = items.map(it => {
+      const lt = lignes([{ t: it.titre, b: true }], iw, 9.4)
+      const ld = it.segs ? lignes(it.segs, iw, 7.7) : []
+      const h = pad + 10 + 3.2 + hauteur(lt, 9.4) + 0.8 + hauteur(ld, 7.7) + (it.bouton ? 3.5 + 7.5 : 0) + pad
+      return { lt, ld, h }
     })
-    y += 2
+    const rangs = []
+    for (let i = 0; i < items.length; i += cols) {
+      const idx = items.slice(i, i + cols).map((_, j) => i + j)
+      rangs.push({ idx, h: Math.max(minH, ...idx.map(k => mes[k].h)) })
+    }
+    const h = rangs.reduce((a, r) => a + r.h, 0) + gap * (rangs.length - 1)
+    return {
+      h, apres: 5,
+      dessiner: yy => {
+        let cy = yy
+        rangs.forEach(r => {
+          r.idx.forEach((k, j) => {
+            const it = items[k]
+            const x = X0 + j * (cw + gap)
+            doc.setFillColor(...(it.sombre ? NAVY : CARD)); doc.rect(x, cy, cw, r.h, 'F')
+            if (icones[it.icone]) doc.addImage(icones[it.icone], 'PNG', x + pad, cy + pad, 10, 10, it.icone)
+            else { doc.setFillColor(...NAVY); doc.roundedRect(x + pad, cy + pad, 10, 10, 2, 2, 'F') }
+            let ty = cy + pad + 10 + 3.2
+            ecrire(mes[k].lt, x + pad, ty, 9.4, it.sombre ? [255, 255, 255] : INK)
+            ty += hauteur(mes[k].lt, 9.4) + 0.8
+            ecrire(mes[k].ld, x + pad, ty, 7.7, it.sombre ? CLAIR : MUTED)
+            if (it.bouton) bouton(x + pad, cy + r.h - pad - 7.5, iw, it.bouton.texte, it.bouton.url)
+          })
+          cy += r.h + gap
+        })
+      },
+    }
   }
 
-  // Bloc de note (fond bleu clair)
-  const note = (texte, { couleur = SKY } = {}) => {
-    police('normal', 9.5, TEXT)
-    const lignes = doc.splitTextToSize(texte, CW - 12)
-    const h = lignes.length * interligne(9.5) + 8
-    assurer(h + 4)
-    doc.setFillColor(...CARD); doc.roundedRect(M, y, CW, h, 2.5, 2.5, 'F')
-    doc.setFillColor(...couleur); doc.rect(M, y + 3, 1.4, h - 6, 'F')
-    police('normal', 9.5, TEXT)
-    let yy = y + 5.5
-    lignes.forEach(l => { doc.text(l, M + 6, yy); yy += interligne(9.5) })
-    y += h + 4
+  // Note pleine largeur (fond bleu clair, filet ciel)
+  const bNote = segs => {
+    const l = lignes(segs, LW - 11, 8.6)
+    const h = hauteur(l, 8.6) + 8
+    return {
+      h, apres: 6,
+      dessiner: yy => {
+        doc.setFillColor(...NOTE_BG); doc.rect(X0, yy, LW, h, 'F')
+        doc.setFillColor(...SKY); doc.rect(X0, yy, 1.2, h, 'F')
+        ecrire(l, X0 + 7, yy + 4, 8.6, NAVY)
+      },
+    }
   }
 
-  // Valeur de champ : texte saisi ou [libelle] en orange (compte comme manquant)
-  const champ = (config, lang, key) => {
-    const v = valeurChamp(config, lang, key)
-    if (v) return v
-    etat.manquants.add(key)
-    const lab = GUIDE_FIELDS.find(f => f.key === key)?.[lang] || key
-    return `[${lab}]`
+  // Bande d'etape : colonne marine (etiquette + titre) a gauche, contenu sur fond clair a droite
+  const bBande = ({ etiq, titre, contenu }) => {
+    const gw = 42
+    const pad = 5
+    const w = LW - gw - 2 * pad
+    const lt = lignes([{ t: titre, b: true }], gw - 9, 10.2)
+    const mes = contenu.map(c => {
+      if (c.type === 'puces') {
+        const items = c.items.map(s => lignes(s, w - 5, 8.6))
+        return { ...c, items, h: items.reduce((a, l) => a + hauteur(l, 8.6) + 1.6, 0) }
+      }
+      if (c.type === 'note') {
+        const l = lignes(c.segs, w - 4, 8.4)
+        return { ...c, l, h: hauteur(l, 8.4) + 1 }
+      }
+      const taille = c.taille || 8.8
+      const l = lignes(c.segs, w, taille)
+      return { ...c, taille, l, h: hauteur(l, taille) }
+    })
+    const hContenu = mes.reduce((a, c) => a + c.h + (c.apres ?? 2.2), 0) - (mes.at(-1)?.apres ?? 2.2)
+    const h = Math.max(hContenu + 2 * pad, 8 + hauteur(lt, 10.2) + 2 * pad, 24)
+    return {
+      h, apres: 4,
+      dessiner: yy => {
+        doc.setFillColor(...CARD); doc.rect(X0 + gw, yy, LW - gw, h, 'F')
+        doc.setFillColor(...NAVY); doc.rect(X0, yy, gw, h, 'F')
+        etiquette(etiq, X0 + 5, yy + pad + 2, SKY, 6.2)
+        ecrire(lt, X0 + 5, yy + pad + 4, 10.2, [255, 255, 255])
+        let cy = yy + pad
+        mes.forEach(c => {
+          const cx = X0 + gw + pad
+          if (c.type === 'puces') {
+            c.items.forEach(l => {
+              doc.setFillColor(...SKY); doc.circle(cx + 1.2, cy + hLigne(8.6) * 0.5, 0.8, 'F')
+              ecrire(l, cx + 5, cy, 8.6, TEXT)
+              cy += hauteur(l, 8.6) + 1.6
+            })
+            cy += (c.apres ?? 2.2) - 0
+          } else if (c.type === 'note') {
+            doc.setFillColor(...SKY); doc.rect(cx, cy + 0.5, 0.7, c.h - 1, 'F')
+            ecrire(c.l, cx + 4, cy + 0.5, 8.4, NAVY)
+            cy += c.h + (c.apres ?? 2.2)
+          } else {
+            ecrire(c.l, cx, cy, c.taille, c.couleur || TEXT)
+            cy += c.h + (c.apres ?? 2.2)
+          }
+        })
+      },
+    }
+  }
+
+  const bEspace = (etiq, titre, texte, boutonTexte, url) => {
+    const pad = 6
+    const w = LW - 2 * pad
+    const lt = lignes([{ t: titre, b: true }], w, 12.5)
+    const lp = lignes(texte, w, 8.6)
+    const h = pad + 4 + hauteur(lt, 12.5) + 2 + hauteur(lp, 8.6) + 4 + 8.5 + pad
+    return {
+      h, apres: 4,
+      dessiner: yy => {
+        doc.setFillColor(...NAVY); doc.rect(X0, yy, LW, h, 'F')
+        etiquette(etiq, X0 + pad, yy + pad + 2, SKY, 6.4)
+        let cy = yy + pad + 4
+        ecrire(lt, X0 + pad, cy, 12.5, [255, 255, 255]); cy += hauteur(lt, 12.5) + 2
+        ecrire(lp, X0 + pad, cy, 8.6, CLAIR); cy += hauteur(lp, 8.6) + 4
+        bouton(X0 + pad, cy, w, boutonTexte, url, 8.5)
+      },
+    }
+  }
+
+  const poser = (...blocs) => {
+    const avant = y > HAUT + 1 ? (blocs[0].avant || 0) : 0
+    const total = avant + blocs.reduce((a, b, i) => a + b.h + (i < blocs.length - 1 ? b.apres : 0), 0)
+    if (y + total > BAS && y > HAUT + 1) { doc.addPage(); y = HAUT } else y += avant
+    blocs.forEach(b => {
+      if (y + b.h > BAS + 0.5) { doc.addPage(); y = HAUT }
+      b.dessiner(y)
+      y += b.h + b.apres
+    })
   }
 
   return {
-    doc, etat, police, paragraphe, titreSection, sousTitre, cartes, puces, note, champ, assurer,
-    get y() { return y }, set y(v) { y = v },
-    saut: () => { doc.addPage(); y = 22 },
+    doc, etat, champ, poser, bTitre, bTexte, bPanneau, bGrille, bNote, bBande, bEspace,
+    saut: () => { doc.addPage(); y = HAUT },
   }
 }
 
-function pieds(doc, gauche, font) {
+function pieds(doc, gauche, font, mot) {
   const n = doc.getNumberOfPages()
   for (let p = 2; p <= n; p++) {
     doc.setPage(p)
-    doc.setDrawColor(226, 232, 240); doc.line(M, PAGE.h - 16, PAGE.w - M, PAGE.h - 16)
-    doc.setFont(font, 'normal'); doc.setFontSize(8); doc.setTextColor(...MUTED)
-    doc.text(gauche, M, PAGE.h - 10.5)
-    doc.text(`${p - 1}`, PAGE.w - M, PAGE.h - 10.5, { align: 'right' })
+    doc.setDrawColor(212, 226, 244); doc.setLineWidth(0.3); doc.line(X0, PAGE.h - 16, PAGE.w - X0, PAGE.h - 16)
+    doc.setFont(font, 'normal'); doc.setFontSize(7.5); doc.setTextColor(...MUTED)
+    doc.text(gauche, X0, PAGE.h - 10.5)
+    doc.text(`${mot} ${p}`, PAGE.w - X0, PAGE.h - 10.5, { align: 'right' })
   }
 }
 
-function pastilleManquante(doc, x, y, font) {
-  doc.setFont(font, 'bold'); doc.setFontSize(8); doc.setTextColor(...WARN)
-  doc.text('[ ] = champ à compléter', x, y)
+// Legende affichee UNIQUEMENT dans l'apercu, quand un champ est vide
+function legendeManquante(doc, font, lang) {
+  doc.setFillColor(...JAUNE); doc.rect(X0, 8, 4, 3.6, 'F')
+  doc.setFont(font, 'bold'); doc.setFontSize(7.5); doc.setTextColor(...INK)
+  doc.text(lang === 'en' ? '[ ] = field to complete (preview only)' : '[ ] = champ à compléter (aperçu uniquement)', X0 + 6, 10.9)
 }
 
 // ─── Textes du guide ───────────────────────────────────────────────────────
@@ -271,157 +494,183 @@ const TXT = {
     coverConf: 'Conférence des Ports Africains',
     coverTheme: 'Smart Port Africain : Intelligence Artificielle et Cybersécurité au service de la performance',
     coverDate: '19 – 21 octobre 2026  ·  Port de Casablanca, Maroc',
-    partenaires: [['CRF Perfection', 'Coordination technique'], ['AGPAOC', 'Haute Autorité de Tutelle'], ['ANP', 'Partenaire Hôte']],
-    pied: 'COPAF 2026  ·  Guide du participant  ·  copaf-ports.com',
+    partenaires: [['CRF Perfection', 'Coordination technique'], ['AGPAOC', 'Haute Autorité de Tutelle'], ['ANP', 'Partenaire Hôte'], ['UAPNA', 'Partenaire']],
+    pied: 'COPAF 2026  ·  Guide du participant',
+    page: 'Page',
   },
   en: {
     fichier: 'Participant_Guide_COPAF2026',
     coverTitre: 'PARTICIPANT GUIDE',
-    coverSous: 'Welcome, accommodation, travel\nand practical information',
+    coverSous: 'Reception, accommodation, transport\nand practical information',
     coverConf: 'African Ports Conference',
+    // Formulation deja utilisee sur le site (le brief de reference propose « African Smart Port … at the Service of Performance »)
     coverTheme: 'Smart African Port: Artificial Intelligence and Cybersecurity for Performance',
     coverDate: '19 – 21 October 2026  ·  Port of Casablanca, Morocco',
-    partenaires: [['CRF Perfection', 'Technical coordination'], ['AGPAOC', 'Supervisory Authority'], ['ANP', 'Host Partner']],
-    pied: 'COPAF 2026  ·  Participant guide  ·  copaf-ports.com',
+    partenaires: [['CRF Perfection', 'Technical Coordination'], ['AGPAOC', 'High Supervisory Authority'], ['ANP', 'Host Partner'], ['UAPNA', 'Partner']],
+    pied: 'COPAF 2026  ·  Participant Guide',
+    page: 'Page',
   },
 }
 
-function contenuGuide(m, config, lang) {
-  const f = key => m.champ(config, lang, key)
+function contenuGuide(m, lang) {
+  const f = key => m.champ(key)
   const fr = lang === 'fr'
+  const t = (a, b) => (fr ? a : b)
+  const URL_SITE = 'https://copaf-ports.com'
 
-  // ── Bienvenue ──
-  m.titreSection(fr ? 'Bienvenue' : 'Welcome', fr ? 'Introduction' : 'Introduction')
-  m.paragraphe(fr ? 'Mesdames et Messieurs, chers participants,' : 'Ladies and gentlemen, dear participants,', { style: 'bold', color: NAVY })
-  m.paragraphe(fr
-    ? "C'est avec un grand plaisir que l'Association de Gestion des Ports de l'Afrique de l'Ouest et du Centre (AGPAOC), le cabinet CRF Perfection et l'Agence Nationale des Ports du Royaume du Maroc vous accueillent à la Conférence des Ports Africains COPAF 2026, du 19 au 21 octobre 2026 au Port de Casablanca, sur le thème :"
-    : "It is with great pleasure that the Association of Ports Management for West and Central Africa (AGPAOC), the firm CRF Perfection and the National Ports Agency of the Kingdom of Morocco welcome you to the African Ports Conference COPAF 2026, from 19 to 21 October 2026 at the Port of Casablanca, on the theme:")
-  m.note(fr
-    ? '« Smart Port Africain : Intelligence Artificielle et Cybersécurité au service de la performance »'
-    : '“Smart African Port: Artificial Intelligence and Cybersecurity for Performance”')
-  m.paragraphe(fr
-    ? "Ce guide vous accompagne du moment où vous quittez votre pays jusqu'à votre retour : accueil, hébergement, déplacements, formalités et vie sur place. Ainsi, vous pourrez consacrer l'essentiel de votre attention aux échanges, aux rencontres et aux enseignements de ces trois journées."
-    : 'This guide accompanies you from the moment you leave your country until your return: welcome, accommodation, travel, formalities and life on site. This way you can devote most of your attention to the exchanges, meetings and lessons of these three days.')
-  m.paragraphe(fr ? "Nous vous souhaitons d'ores et déjà un excellent séjour." : 'We wish you an excellent stay.')
-  m.paragraphe('Dr William ODAH', { style: 'bold', color: NAVY, apres: 0 })
-  m.paragraphe(fr ? 'Directeur Général, CRF Perfection' : 'Director General, CRF Perfection', { size: 9, color: MUTED, apres: 8 })
+  // ── Page 2 : introduction + essentiel ──
+  m.poser(
+    m.bTitre(t('Bienvenue', 'Welcome'), 'Introduction'),
+    m.bPanneau([
+      { segs: t('Mesdames et Messieurs, chers participants,', 'Ladies and Gentlemen, dear participants,'), couleur: [255, 255, 255], taille: 9.8, apres: 3.5 },
+      { segs: fr
+        ? ["C'est avec un grand plaisir que l'Association de Gestion des Ports de l'Afrique de l'Ouest et du Centre (AGPAOC), le cabinet CRF Perfection et l'Agence Nationale des Ports du Royaume du Maroc vous accueillent à la Conférence des Ports Africains COPAF 2026, du ", { t: '19 au 21 octobre 2026', b: true, c: [255, 255, 255] }, ' au Port de Casablanca, sur le thème :']
+        : ['It is with great pleasure that the Port Management Association of West and Central Africa (PMAWCA – AGPAOC), the firm CRF Perfection and the National Ports Agency of the Kingdom of Morocco welcome you to the African Ports Conference COPAF 2026, from ', { t: '19 to 21 October 2026', b: true, c: [255, 255, 255] }, ' at the Port of Casablanca, on the theme:'] },
+      { segs: [{ t: fr ? '« Smart Port Africain : Intelligence Artificielle et Cybersécurité au service de la performance »' : '“Smart African Port: Artificial Intelligence and Cybersecurity for Performance”', b: true, c: [255, 255, 255] }], align: 'center', taille: 9.4, apres: 3.5 },
+      { segs: t("Ce guide vous accompagne du moment où vous quittez votre pays jusqu'à votre retour : accueil, hébergement, déplacements, formalités et vie sur place. Ainsi, vous pourrez consacrer l'essentiel de votre attention aux échanges, aux rencontres et aux enseignements de ces trois journées.",
+        'This guide accompanies you from the moment you leave your country until your return: reception, accommodation, transport, formalities and life on site. This way, you can devote your full attention to the exchanges, the meetings and the lessons of these three days.') },
+      { segs: t("Nous vous souhaitons d'ores et déjà un excellent séjour.", 'We wish you an excellent stay.'), apres: 3.5 },
+      { segs: [{ t: 'Dr William ODAH', b: true, c: [255, 255, 255] }], apres: 0.5 },
+      { segs: [{ t: t('Directeur Général, CRF Perfection', 'Director General, CRF Perfection'), b: true, c: SKY }], taille: 7.4, apres: 0 },
+    ]),
+  )
+  m.poser(
+    m.bTitre(t('La COPAF en bref', 'COPAF at a glance'), t("L'essentiel en un coup d'œil", 'The essentials at a glance')),
+    m.bGrille([
+      { icone: 'calendar', titre: t('Dates de la conférence', 'Conference dates'), segs: t('19, 20 et 21 octobre 2026', '19, 20 and 21 October 2026') },
+      { icone: 'pin', titre: t('Lieu', 'Venue'), segs: [t('Port de Casablanca, Maroc', 'Port of Casablanca, Morocco'), BR, f('salle_adresse')] },
+      { icone: 'layers', titre: 'Format', segs: t("2 jours de conférence + 1 jour d'immersion terrain (visite technique du port)", '2 conference days + 1 field immersion day (technical visit of the port)') },
+      { icone: 'langues', titre: t('Langues', 'Languages'), segs: t('Français et anglais, avec interprétation simultanée', 'French and English, with simultaneous interpretation') },
+      { icone: 'bed', titre: t('Séjour organisé', 'Organised stay'), segs: [t('Du 18 au 22 octobre 2026', '18 to 22 October 2026'), BR, t('4 nuitées', '4 nights')] },
+      { icone: 'route', sombre: true, titre: t('Programme complet', 'Full programme'), segs: t('Sessions, horaires et intervenants', 'Sessions, schedule and speakers'),
+        bouton: { texte: t('VOIR LE PROGRAMME', 'VIEW PROGRAMME'), url: valeurChamp(m.config, lang, 'programme_url') || `${URL_SITE}/#programme` } },
+    ], { minH: 46 }),
+  )
 
-  // ── En bref ──
-  m.titreSection(fr ? 'La COPAF en bref' : 'COPAF at a glance', fr ? "L'essentiel en un coup d'œil" : 'The essentials at a glance')
-  m.cartes([
-    { etiquette: fr ? 'Dates de la conférence' : 'Conference dates', valeur: fr ? '19, 20 et 21 octobre 2026' : '19, 20 and 21 October 2026' },
-    { etiquette: fr ? 'Lieu' : 'Venue', valeur: fr ? 'Port de Casablanca, Maroc' : 'Port of Casablanca, Morocco', detail: f('salle_adresse') },
-    { etiquette: 'Format', valeur: fr ? '2 jours de conférence + 1 jour d\'immersion terrain' : '2 conference days + 1 field immersion day', detail: fr ? 'Visite technique du port' : 'Technical visit of the port' },
-    { etiquette: fr ? 'Langues' : 'Languages', valeur: fr ? 'Français et anglais' : 'French and English', detail: fr ? 'Avec interprétation simultanée' : 'With simultaneous interpretation' },
-    { etiquette: fr ? 'Séjour organisé' : 'Organised stay', valeur: fr ? 'Du 18 au 22 octobre 2026' : '18 to 22 October 2026', detail: fr ? '4 nuitées' : '4 nights' },
-    { etiquette: fr ? 'Programme complet' : 'Full programme', valeur: fr ? 'Sessions, horaires et intervenants' : 'Sessions, times and speakers', detail: f('programme_url') },
-  ])
-
-  // ── Séjour ──
-  m.titreSection(fr ? 'Votre séjour' : 'Your stay', fr ? 'Ce que prend en charge CRF Perfection' : 'What CRF Perfection covers')
-  m.paragraphe(fr
-    ? "Dans le cadre de votre participation, CRF Perfection assure l'organisation complète de votre séjour :"
-    : 'As part of your participation, CRF Perfection organises your stay in full:')
-  m.cartes([
-    { etiquette: fr ? 'Accueil à l\'aéroport' : 'Airport welcome', valeur: fr ? 'Aéroport Mohammed V' : 'Mohammed V Airport', detail: fr ? 'À votre arrivée' : 'On your arrival' },
-    { etiquette: 'Transferts', valeur: fr ? "De l'aéroport à l'hôtel, aller et retour" : 'Airport to hotel, both ways' },
-    { etiquette: fr ? 'Hébergement' : 'Accommodation', valeur: fr ? 'Hôtel 4 étoiles · 4 nuitées' : '4-star hotel · 4 nights', detail: fr ? 'Du 18 au 22 octobre 2026' : '18 to 22 October 2026' },
-    { etiquette: fr ? 'Navette quotidienne' : 'Daily shuttle', valeur: fr ? 'Entre l\'hôtel et le Port de Casablanca' : 'Between the hotel and the Port of Casablanca', detail: fr ? 'Chaque jour de la conférence' : 'Every day of the conference' },
-    { etiquette: fr ? 'Repas' : 'Meals', valeur: fr ? 'Inclus dans votre participation' : 'Included in your participation' },
-    { etiquette: fr ? 'Conférences et ateliers' : 'Conferences and workshops', valeur: fr ? "Accès à l'ensemble du programme" : 'Access to the whole programme' },
-    { etiquette: fr ? 'Visite guidée' : 'Guided visit', valeur: fr ? 'Du Port de Casablanca (Jour 3)' : 'Of the Port of Casablanca (Day 3)' },
-    { etiquette: fr ? 'Tablette' : 'Tablet', valeur: fr ? 'Remise sur place' : 'Handed out on site', detail: f('tablette_precision') },
-    { etiquette: fr ? 'Attestation' : 'Certificate', valeur: fr ? 'Attestation de participation' : 'Certificate of participation' },
-  ])
-  m.note(fr
-    ? "Vous n'avez aucune réservation d'hôtel ni de transfert à effectuer vous-même : le comité d'organisation s'en charge."
-    : 'You do not have to book any hotel or transfer yourself: the organising committee takes care of it.')
-
-  // ── Pas à pas ──
+  // ── Page 3 : séjour + visa ──
   m.saut()
-  m.titreSection(fr ? 'Pas à pas' : 'Step by step', fr ? 'Comment cela se déroule concrètement' : 'How it works in practice')
+  m.poser(
+    m.bTitre(t('Votre séjour', 'Your stay'), t('Ce que prend en charge CRF Perfection', 'What CRF Perfection covers')),
+    m.bTexte(t("Dans le cadre de votre participation, CRF Perfection assure l'organisation complète de votre séjour :", 'As part of your participation, CRF Perfection organises your stay in full:'), { taille: 8.6, couleur: MUTED, apres: 4 }),
+    m.bGrille([
+      { icone: 'plane', titre: t("Accueil à l'aéroport", 'Airport welcome'), segs: t("À l'aéroport Mohammed V, à votre arrivée", 'At Mohammed V Airport, on your arrival') },
+      { icone: 'van', titre: t('Transferts', 'Transfers'), segs: t("De l'aéroport à l'hôtel, aller et retour", 'From the airport to the hotel, round trip') },
+      { icone: 'hotel', titre: t('Hébergement', 'Accommodation'), segs: [t('Hôtel 4 étoiles · 4 nuitées', '4-star hotel · 4 nights'), BR, t('Du 18 au 22 octobre 2026', '18 to 22 October 2026')] },
+      { icone: 'bus', titre: t('Navette quotidienne', 'Daily shuttle'), segs: t("Entre l'hôtel et le Port de Casablanca, chaque jour de la conférence", 'Between the hotel and the Port of Casablanca, every conference day') },
+      { icone: 'utensils', titre: t('Repas', 'Meals'), segs: t('Inclus dans votre participation', 'Included in your participation') },
+      { icone: 'conf', titre: t('Conférences et ateliers', 'Conferences and workshops'), segs: t("Accès à l'ensemble du programme", 'Access to the whole programme') },
+      { icone: 'ship', titre: t('Visite guidée', 'Guided visit'), segs: t('Du Port de Casablanca (Jour 3)', 'Port of Casablanca (Day 3)') },
+      { icone: 'tablet', titre: t('Tablette', 'Tablet'), segs: (() => {
+        const v = valeurChamp(m.config, lang, 'tablette_conserver')
+        return v ? texteTablette(v, lang) : f('tablette_conserver')
+      })() },
+      { icone: 'award', titre: t('Attestation', 'Certificate'), segs: t('Attestation de participation', 'Certificate of participation') },
+    ], { minH: 32 }),
+    m.bNote([B(t("Vous n'avez aucune réservation d'hôtel ni de transfert à effectuer vous-même : le comité d'organisation s'en charge.", 'You do not need to book any hotel or transfer yourself: the organising committee takes care of it.'))]),
+  )
+  m.poser(
+    m.bTitre(t('Pas à pas', 'Step by step'), t('Comment cela se déroule concrètement', 'How it works in practice')),
+    m.bBande({
+      etiq: t('Formalités', 'Formalities'), titre: t('Visa et formalités', 'Visa and formalities'),
+      contenu: [{ type: 'puces', items: fr
+        ? [
+          ["Les conditions d'entrée au Maroc dépendent de votre nationalité. Renseignez-vous suffisamment à l'avance auprès de l'ambassade ou du consulat du Maroc de votre pays, ou sur le portail officiel ", LIEN('acces-maroc.ma', 'https://www.acces-maroc.ma'), " (le e-Visa n'est pas ouvert à toutes les nationalités)."],
+          ["Les démarches sont à votre charge et COPAF ne délivre pas de lettre de soutien. Votre ", B("Confirmation d'inscription"), ', signée par le Dr ODAH, peut être présentée à l’appui de votre demande ; son acceptation reste à la décision des autorités.'],
+        ]
+        : [
+          ['Entry requirements for Morocco depend on your nationality. Please check well in advance with the Moroccan embassy or consulate in your country, or on the official portal ', LIEN('acces-maroc.ma', 'https://www.acces-maroc.ma'), ' (the e-Visa is not open to all nationalities).'],
+          ['Visa procedures are your responsibility, and COPAF does not issue support letters. Your ', B('Registration Confirmation'), ', signed by Dr ODAH, may be presented in support of your application; acceptance remains at the discretion of the authorities.'],
+        ] }],
+    }),
+  )
 
-  m.sousTitre(fr ? 'Formalités' : 'Formalities', fr ? 'Visa et formalités' : 'Visa and formalities')
-  m.paragraphe(fr
-    ? "Les conditions d'entrée au Maroc (visa ou non) varient selon votre nationalité. Nous vous invitons à vous renseigner suffisamment à l'avance auprès du consulat ou de l'ambassade du Royaume du Maroc dans votre pays de résidence."
-    : 'Entry conditions for Morocco (visa or not) vary according to your nationality. Please enquire well in advance with the consulate or embassy of the Kingdom of Morocco in your country of residence.')
-  m.paragraphe(fr
-    ? "Les démarches de visa sont à votre charge. COPAF ne délivre pas de lettre de soutien. Le document officiel remis est la Confirmation d'inscription, signée par le Dr ODAH."
-    : 'Visa procedures are your responsibility. COPAF does not issue support letters. The official document provided is the Registration Confirmation, signed by Dr ODAH.')
+  // ── Page 4 : préparation, arrivée, conférence ──
+  m.saut()
+  m.poser(m.bBande({
+    etiq: t('Préparation', 'Preparation'), titre: t('Avant votre départ', 'Before you leave'),
+    contenu: [
+      { segs: [{ t: t('Une seule étape, environ 3 minutes.', 'One single step, about 3 minutes.'), b: true, c: INK }], taille: 9.2, apres: 1.5 },
+      { segs: [t('Rendez-vous sur ', 'Go to '), LIEN('copaf-ports.com/badge', `${URL_SITE}/badge`), t(' et renseignez :', ' and provide:')], apres: 1.5 },
+      { type: 'puces', apres: 2.5, items: fr
+        ? [['votre photo ;'], ["votre numéro de passeport, avec votre nom et prénom tels qu'ils sont écrits sur le passeport ;"], ["vos informations de vol (aller et retour) : compagnie, numéro de vol, date et heure d'arrivée et de départ."]]
+        : [['your photo;'], ['your passport number, with your first and last name exactly as written on the passport;'], ['your flight details (outbound and return): airline, flight number, date and time of arrival and departure.']] },
+      { type: 'note', apres: 2.5, segs: [t("Vous préférez ne rien saisir ? Déposez simplement votre billet d'avion (PDF ou photo) au même endroit, ou envoyez-le à ", 'Prefer not to type anything? Simply upload your plane ticket (PDF or photo) in the same place, or send it to '), f('contact_billet'), t(', nous nous occupons du reste.', ', and we will take care of the rest.')] },
+      { segs: [t('Vous recevrez ensuite par email votre ', 'You will then receive your '), B(t('Fiche de Voyage individuelle', 'Individual Travel Sheet')), t(" : hôtel, adresse, numéro de confirmation et modalités de transfert. Elle sera aussi disponible sur ", ' by email: hotel, address, confirmation number and transfer details. It will also be available at '), LIEN('copaf-ports.com/verifier', `${URL_SITE}/verifier`), '.'], apres: 2.5 },
+      { segs: [t('Vos informations de vol nous sont indispensables pour organiser votre accueil et vos transferts. Merci de nous les transmettre avant le ', 'Your flight details are essential for us to organise your reception and transfers. Please send them to us before '), f('date_limite_vols'), '.'], taille: 7.6, couleur: MUTED },
+    ],
+  }))
+  m.poser(m.bBande({
+    etiq: t('18 octobre', '18 October'), titre: t('À votre arrivée à Casablanca', 'When you arrive in Casablanca'),
+    contenu: [{ segs: fr
+      ? ["À votre sortie de la zone de récupération des bagages et de la douane, dans le hall des arrivées du terminal où atterrit votre vol, un représentant de CRF Perfection ou de son partenaire logistique vous accueille avec un panneau COPAF 2026 et vous conduit à votre hôtel. L'heure et le point de rencontre exacts figurent dans votre ", B('Fiche de Voyage'), '. Si vous ne voyez pas notre représentant, appelez le référent sur place dont le numéro figure sur votre fiche.']
+      : ['When you leave the baggage reclaim and customs area, in the arrivals hall of the terminal where your flight lands, a representative of CRF Perfection or its logistics partner will welcome you with a COPAF 2026 sign and take you to your hotel. The exact time and meeting point are shown on your ', B('Individual Travel Sheet'), '. If you cannot see our representative, please call the on-site contact whose number appears on your sheet.'] }],
+  }))
+  m.poser(m.bBande({
+    etiq: t('19 – 21 octobre', '19 – 21 October'), titre: t('Pendant la conférence', 'During the conference'),
+    contenu: [{ type: 'puces', items: fr
+      ? [
+        [B('Navette quotidienne'), " : une navette assure chaque jour la liaison entre votre hôtel et le Port de Casablanca. L'horaire de départ figure dans votre Fiche de Voyage et vous est rappelé au point d'accueil de l'hôtel."],
+        [B('Retrait du badge et accueil'), ' : ', f('badge_lieu_horaires'), '. Le port du badge est obligatoire pendant tout l’événement.'],
+        [B("Accès au port"), " : le port est une zone à accès réglementé. Munissez-vous de votre pièce d'identité et suivez les consignes de sécurité communiquées par les organisateurs, en particulier lors de la visite du Jour 3."],
+        [B('Jour 3, immersion terrain'), ' : visite technique du Port de Casablanca (infrastructures IT et IA). Rendez-vous : ', f('jour3_rdv'), '.'],
+        [B('Photos et vidéos'), " : l'événement est retransmis en direct sur YouTube (@copafports). En participant, vous acceptez d'apparaître sur les captations."],
+      ]
+      : [
+        [B('Daily shuttle'), ': a shuttle runs every day between your hotel and the Port of Casablanca. The departure time is shown on your Individual Travel Sheet and is repeated at the hotel welcome desk.'],
+        [B('Badge collection and reception'), ': ', f('badge_lieu_horaires'), '. Wearing your badge is mandatory throughout the event.'],
+        [B('Access to the port'), ': the port is a restricted-access area. Bring your ID and follow the security instructions given by the organisers, especially during the Day 3 visit.'],
+        [B('Day 3, field immersion'), ': technical visit of the Port of Casablanca (IT and AI infrastructure). Meeting point: ', f('jour3_rdv'), '.'],
+        [B('Photos and videos'), ': the event is broadcast live on YouTube (@copafports). By participating, you agree to appear in the recordings.'],
+      ] }],
+  }))
 
-  m.sousTitre(fr ? 'Préparation' : 'Preparation', fr ? 'Avant votre départ' : 'Before you leave')
-  m.paragraphe(fr ? 'Une seule étape, environ 3 minutes. Rendez-vous sur copaf-ports.com/badge et renseignez :' : 'A single step, about 3 minutes. Go to copaf-ports.com/badge and fill in:')
-  m.puces(fr
-    ? ['votre photo ;', "votre numéro de passeport, avec votre nom et prénom tels qu'ils sont écrits sur le passeport ;", 'vos informations de vol (aller et retour) : compagnie, numéro de vol, date et heure d\'arrivée et de départ.']
-    : ['your photo;', 'your passport number, with your first and last name exactly as written on the passport;', 'your flight information (outbound and return): airline, flight number, date and time of arrival and departure.'])
-  m.paragraphe(fr
-    ? `Vous préférez ne rien saisir ? Déposez simplement votre billet d'avion (PDF ou photo) au même endroit, ou envoyez-le à ${f('contact_billet')}, nous nous occupons du reste.`
-    : `Prefer not to type anything? Simply upload your plane ticket (PDF or photo) in the same place, or send it to ${f('contact_billet')}, and we take care of the rest.`)
-  m.paragraphe(fr
-    ? "Vous recevrez ensuite par email votre Fiche de Voyage individuelle : hôtel, adresse, numéro de confirmation et modalités de transfert. Elle sera aussi disponible sur copaf-ports.com/verifier."
-    : 'You will then receive your individual Travel Sheet by email: hotel, address, confirmation number and transfer details. It will also be available at copaf-ports.com/verifier.')
-  m.note(fr
-    ? `Vos informations de vol nous sont indispensables pour organiser votre accueil et vos transferts. Merci de nous les transmettre avant le ${f('date_limite_vols')}.`
-    : `Your flight information is essential for us to organise your welcome and transfers. Please send it to us before ${f('date_limite_vols')}.`)
+  // ── Page 5 : départ, après, infos pratiques ──
+  m.saut()
+  m.poser(m.bBande({
+    etiq: t('22 octobre', '22 October'), titre: t('À votre départ', 'When you leave'),
+    contenu: [{ segs: t("Un transfert retour vers l'aéroport Mohammed V est organisé selon l'horaire de votre vol. Merci de vous assurer que vos informations de vol retour sont à jour dans votre dossier.",
+      'A return transfer to Mohammed V Airport is organised according to your flight time. Please make sure your return flight details are up to date in your file.') }],
+  }))
+  m.poser(m.bBande({
+    etiq: t('Ensuite', 'Afterwards'), titre: t("Après l'événement", 'After the event'),
+    contenu: [{ type: 'puces', items: fr
+      ? [
+        [B('Attestation de participation'), ' : remise à la fin de la deuxième journée, et également disponible dans votre espace participant.'],
+        [B('Replays et supports'), ' : disponibles sur copaf-ports.com et sur la chaîne YouTube @copafports.'],
+      ]
+      : [
+        [B('Certificate of participation'), ': handed out at the end of Day 2 and also available in your participant area.'],
+        [B('Replays and materials'), ': available on copaf-ports.com and on the YouTube channel @copafports.'],
+      ] }],
+  }))
+  m.poser(
+    m.bTitre(t('Bon à savoir', 'Good to know'), t('Informations pratiques', 'Practical information')),
+    m.bGrille([
+      { icone: 'money', titre: t('Monnaie', 'Currency'), segs: t('Dirham marocain (MAD)', 'Moroccan dirham (MAD)') },
+      { icone: 'shirt', titre: t('Tenue', 'Dress code'), segs: t('Business pour les Jours 1 et 2, tenue confortable pour la visite du Jour 3', 'Business attire for Days 1 and 2, comfortable clothing for the Day 3 visit') },
+      { icone: 'cloud', titre: t('Climat en octobre', 'October weather'), segs: f('climat') },
+      { icone: 'plug', titre: t('Prises électriques', 'Power sockets'), segs: f('prises') },
+      { icone: 'wifi', titre: t('Connexion', 'Internet'), segs: t("Wi-Fi gratuit à l'hôtel", 'Free Wi-Fi at the hotel') },
+      { icone: 'bell', titre: t("Point d'accueil", 'Welcome desk'), segs: t("Un point d'accueil du comité d'organisation est présent à l'hôtel pendant toute la durée du séjour.", 'An organising-committee welcome desk is present at the hotel throughout your stay.') },
+    ], { minH: 34 }),
+  )
 
-  m.sousTitre(fr ? '18 octobre' : '18 October', fr ? 'À votre arrivée à Casablanca' : 'When you arrive in Casablanca')
-  m.paragraphe(fr
-    ? "À votre sortie de l'aéroport Mohammed V, un représentant de CRF Perfection ou de son partenaire logistique vous accueille et vous conduit à votre hôtel. Le point de rencontre et le moyen de reconnaissance figurent dans votre Fiche de Voyage."
-    : 'As you leave Mohammed V Airport, a representative of CRF Perfection or its logistics partner welcomes you and takes you to your hotel. The meeting point and how to recognise them are shown in your Travel Sheet.')
-
-  m.sousTitre(fr ? '19 – 21 octobre' : '19 – 21 October', fr ? 'Pendant la conférence' : 'During the conference')
-  m.puces(fr
-    ? [
-      "Navette quotidienne : une navette assure chaque jour la liaison entre votre hôtel et le Port de Casablanca. Les horaires de départ sont communiqués sur place et affichés dans le hall de votre hôtel.",
-      `Retrait du badge et accueil : ${f('badge_lieu_horaires')}. Le port du badge est obligatoire pendant tout l'événement.`,
-      "Accès au port : le port est une zone à accès réglementé. Munissez-vous de votre pièce d'identité et suivez les consignes de sécurité communiquées par les organisateurs, en particulier lors de la visite du Jour 3.",
-      `Jour 3, immersion terrain : visite technique du Port de Casablanca (infrastructures IT et IA). Rendez-vous : ${f('jour3_rdv')}.`,
-      "Photos et vidéos : l'événement est retransmis en direct sur YouTube (@copafports). En participant, vous acceptez d'apparaître sur les captations.",
-    ]
-    : [
-      'Daily shuttle: a shuttle runs every day between your hotel and the Port of Casablanca. Departure times are announced on site and posted in your hotel lobby.',
-      `Badge pick-up and welcome: ${f('badge_lieu_horaires')}. Wearing the badge is mandatory throughout the event.`,
-      'Port access: the port is a restricted-access area. Bring your ID and follow the security instructions given by the organisers, especially during the Day 3 visit.',
-      `Day 3, field immersion: technical visit of the Port of Casablanca (IT and AI infrastructure). Meeting point: ${f('jour3_rdv')}.`,
-      'Photos and videos: the event is streamed live on YouTube (@copafports). By taking part, you agree to appear in the recordings.',
-    ])
-
-  m.sousTitre(fr ? '22 octobre' : '22 October', fr ? 'À votre départ' : 'When you leave')
-  m.paragraphe(fr
-    ? "Un transfert retour vers l'aéroport Mohammed V est organisé selon l'horaire de votre vol. Merci de vous assurer que vos informations de vol retour sont à jour dans votre dossier."
-    : 'A return transfer to Mohammed V Airport is organised according to your flight time. Please make sure your return flight information is up to date in your file.')
-
-  m.sousTitre(fr ? 'Ensuite' : 'Afterwards', fr ? "Après l'événement" : 'After the event')
-  m.puces(fr
-    ? [`Attestation de participation : remise à la clôture du Jour 2 ${f('attestation_mode')}.`, 'Replays et supports : disponibles sur copaf-ports.com et sur la chaîne YouTube @copafports.']
-    : [`Certificate of participation: handed out at the close of Day 2 ${f('attestation_mode')}.`, 'Replays and materials: available on copaf-ports.com and on the YouTube channel @copafports.'])
-
-  // ── Bon à savoir ──
-  m.titreSection(fr ? 'Bon à savoir' : 'Good to know', fr ? 'Informations pratiques' : 'Practical information')
-  m.cartes([
-    { etiquette: fr ? 'Monnaie' : 'Currency', valeur: fr ? 'Dirham marocain (MAD)' : 'Moroccan dirham (MAD)' },
-    { etiquette: fr ? 'Tenue' : 'Dress code', valeur: fr ? 'Business pour les Jours 1 et 2' : 'Business attire for Days 1 and 2', detail: fr ? 'Tenue confortable pour la visite du Jour 3' : 'Comfortable clothing for the Day 3 visit' },
-    { etiquette: fr ? 'Climat en octobre' : 'Weather in October', valeur: f('climat') },
-    { etiquette: fr ? 'Prises électriques' : 'Power sockets', valeur: f('prises') },
-    { etiquette: fr ? 'Connexion' : 'Connectivity', valeur: f('wifi') },
-    { etiquette: fr ? "Point d'accueil" : 'Welcome desk', valeur: fr ? "Présent à l'hôtel pendant toute la durée du séjour" : 'At the hotel throughout the stay', detail: fr ? "Comité d'organisation" : 'Organising committee' },
-  ])
-
-  // ── Contacts ──
-  m.titreSection(fr ? 'Contacts utiles' : 'Useful contacts', fr ? 'Une question ? Nous sommes là' : 'A question? We are here')
-  m.cartes([
-    { etiquette: fr ? "Comité d'organisation COPAF 2026" : 'COPAF 2026 organising committee', valeur: 'CRF Perfection', detail: f('contact_comite') },
-    { etiquette: fr ? 'Espace participant, badge, aspects techniques' : 'Participant area, badge, technical matters', valeur: 'Rénato TCHOBO', detail: f('contact_technique') },
-    { etiquette: fr ? 'Transferts et logistique à Casablanca' : 'Transfers and logistics in Casablanca', valeur: fr ? 'Référent sur place' : 'On-site contact', detail: f('contact_logistique') },
-    { etiquette: fr ? 'Urgence 24h/24 pendant la conférence' : '24/7 emergency during the conference', valeur: f('contact_urgence') },
-  ])
-
-  // ── Espace participant ──
-  m.titreSection(fr ? 'Votre espace participant' : 'Your participant area', fr ? 'Tout votre dossier, au même endroit' : 'Your whole file, in one place')
-  m.paragraphe(fr
-    ? "L'ensemble des documents liés à votre participation (confirmation d'inscription, programme, Fiche de Voyage individuelle, supports des sessions) est mis à votre disposition et actualisé au fil du temps sur votre espace participant, accessible avec votre numéro de dossier et votre adresse email d'inscription."
-    : 'All the documents related to your participation (registration confirmation, programme, individual Travel Sheet, session materials) are made available and updated over time in your participant area, accessible with your file number and registration email address.')
-  m.paragraphe('copaf-ports.com/verifier', { style: 'bold', color: SKY, size: 11 })
+  // ── Page 6 : contacts + espace participant ──
+  m.saut()
+  m.poser(
+    m.bTitre(t('Contacts utiles', 'Useful contacts'), t('Une question ? Nous sommes là', 'Any questions? We are here to help')),
+    m.bGrille([
+      { icone: 'users', titre: t("Comité d'organisation COPAF 2026", 'COPAF 2026 organising committee'), segs: ['CRF Perfection', BR, f('contact_comite')] },
+      { icone: 'laptop', titre: t('Espace participant, badge, aspects techniques', 'Participant area, badge, technical matters'), segs: f('contact_technique') },
+      { icone: 'van', titre: t('Transferts et logistique à Casablanca', 'Transfers and logistics in Casablanca'), segs: [t('Référent sur place', 'On-site contact'), BR, f('contact_logistique')] },
+      { icone: 'phone', sombre: true, titre: t('Urgence 24h/24 pendant la conférence', '24/7 emergency line during the conference'), segs: f('contact_urgence') },
+    ], { cols: 2, minH: 38 }),
+    m.bEspace(t('Votre espace participant', 'Your participant area'), t('Tout votre dossier, au même endroit', 'Your whole file, in one place'),
+      t("L'ensemble des documents liés à votre participation (confirmation d'inscription, programme, Fiche de Voyage individuelle, supports des sessions) est mis à votre disposition et actualisé au fil du temps sur votre espace participant, accessible avec votre numéro de dossier et votre adresse email d'inscription.",
+        'All the documents related to your participation (registration confirmation, programme, Individual Travel Sheet, session materials) are made available to you, and updated over time, in your participant area, accessible with your registration number and the email address you used to register.'),
+      t('ACCÉDER À MON ESPACE PARTICIPANT', 'ACCESS MY PARTICIPANT AREA'), `${URL_SITE}/verifier`),
+    m.bTexte([{ t: t('Site officiel : ', 'Official website: '), c: MUTED }, LIEN('copaf-ports.com', URL_SITE)], { taille: 8.4, apres: 0, align: 'center' }),
+  )
 }
 
 // ─── Guide ─────────────────────────────────────────────────────────────────
@@ -430,12 +679,17 @@ function contenuGuide(m, config, lang) {
  * @param {object} p.config   - guide_config.valeurs : { fr: {...}, en: {...} }
  * @param {'fr'|'en'} p.lang
  * @param {boolean} [p.download=false]
- * @returns {Promise<{ doc: jsPDF, manquants: string[], filename: string }>}
+ * @param {boolean} [p.apercu=false] - apercu admin : champs vides surlignes + legende (jamais dans un PDF envoye)
+ * @returns {Promise<{ doc: jsPDF, manquants: string[], filename: string, pages: number }>}
  */
-export async function generateGuidePDF({ config, lang = 'fr', download = false }) {
+export async function generateGuidePDF({ config, lang = 'fr', download = false, apercu = false }) {
   const L = TXT[lang] || TXT.fr
   const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true })
   const font = await embarquerPoppins(doc)
+  const [icones, logos] = await Promise.all([
+    chargerIcones(),
+    Promise.all([logo('/logocrf.png'), logo('/logoagpaoc.png'), logo('/ANP.png'), logo('/uapna.png')]),
+  ])
 
   // Couverture
   doc.setFillColor(...NAVY); doc.rect(0, 0, PAGE.w, PAGE.h, 'F')
@@ -460,36 +714,38 @@ export async function generateGuidePDF({ config, lang = 'fr', download = false }
   doc.setFont(font, 'normal'); doc.setFontSize(10.5); doc.setTextColor(...SKY)
   doc.text(L.coverDate, M, 198)
 
-  // Bandeau partenaires (logos sur carte blanche)
-  const logos = await Promise.all([logo('/logocrf.png'), logo('/logoagpaoc.png'), logo('/ANP.png')])
+  // Bandeau partenaires : 4 logos a la meme hauteur, centres dans des colonnes egales
   doc.setFillColor(255, 255, 255); doc.roundedRect(M, 222, CW, 42, 4, 4, 'F')
-  const colW = CW / 3
+  const colW = CW / L.partenaires.length
+  const HAUT_LOGO = 13
   L.partenaires.forEach(([nom, role], i) => {
     const cx = M + colW * i + colW / 2
     const lg = logos[i]
     if (lg) {
-      const h = 14; const w = Math.min(colW - 14, h * lg.ratio)
-      doc.addImage(lg.data, 'JPEG', cx - w / 2, 228, w, w / lg.ratio)
+      const w = Math.min(colW - 8, HAUT_LOGO * lg.ratio)
+      const h = w / lg.ratio
+      doc.addImage(lg.data, 'JPEG', cx - w / 2, 228 + (HAUT_LOGO - h) / 2, w, h)
     } else {
-      doc.setFont(font, 'bold'); doc.setFontSize(11); doc.setTextColor(...NAVY); doc.text(nom, cx, 238, { align: 'center' })
+      doc.setFont(font, 'bold'); doc.setFontSize(11); doc.setTextColor(...NAVY); doc.text(nom, cx, 236, { align: 'center' })
     }
-    doc.setFont(font, 'bold'); doc.setFontSize(7.5); doc.setTextColor(...NAVY); doc.text(role, cx, 255, { align: 'center' })
+    doc.setFont(font, 'bold'); doc.setFontSize(7); doc.setTextColor(...NAVY); doc.text(role, cx, 255, { align: 'center' })
   })
   doc.setFont(font, 'normal'); doc.setFontSize(9.5); doc.setTextColor(200, 220, 245)
   doc.text('copaf-ports.com', PAGE.w / 2, 280, { align: 'center' })
 
   // Contenu
   doc.addPage()
-  const m = moteur(doc, font)
-  contenuGuide(m, config, lang)
-  pieds(doc, L.pied, font)
-  if (m.etat.manquants.size) {
-    doc.setPage(2); pastilleManquante(doc, M, 12, font)
+  const m = moteur(doc, font, icones, config, lang)
+  m.config = config
+  contenuGuide(m, lang)
+  pieds(doc, L.pied, font, L.page)
+  if (apercu && m.etat.manquants.size) {
+    doc.setPage(2); legendeManquante(doc, font, lang)
   }
 
   const filename = `${L.fichier}.pdf`
   if (download) doc.save(filename)
-  return { doc, manquants: [...m.etat.manquants], filename }
+  return { doc, manquants: [...m.etat.manquants], filename, pages: doc.getNumberOfPages() }
 }
 
 // ─── Fiche de voyage individuelle (gabarit Canva rempli avec pdf-lib) ─────────

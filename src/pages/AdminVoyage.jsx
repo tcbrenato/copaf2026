@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabase'
 import {
-  GUIDE_FIELDS, FICHE_CHAMPS_REQUIS, guideChampsManquants, generateGuidePDF, generateFichePDF, pdfEnBase64,
+  GUIDE_FIELDS, FICHE_CHAMPS_REQUIS, guideChampsManquants, generateGuidePDF, configAvecDefauts, texteTablette, generateFichePDF, pdfEnBase64,
   octetsEnBase64, ouvrirOctets,
 } from '../utils/generateVoyagePDF'
 
@@ -45,7 +45,7 @@ export default function AdminVoyage() {
       supabase.from('voyages').select('*'),
     ])
     if (g.error || insc.error || parts.error || voy.error) { setErreur('Chargement impossible (droits administrateur requis).'); return }
-    setConfig({ fr: g.data?.valeurs?.fr || {}, en: g.data?.valeurs?.en || {} })
+    setConfig(configAvecDefauts(g.data?.valeurs))
     setPublie(!!g.data?.publie)
     const voyages = Object.fromEntries((voy.data || []).map(v => [v.dossier, v]))
     const liste = [
@@ -101,6 +101,8 @@ function OngletGuide({ config, setConfig, publie, setPublie, personnes, recharge
   const manqEn = guideChampsManquants(config, 'en')
 
   const modifier = (cle, valeur) => { setSauve(''); setConfig(c => ({ ...c, [lang]: { ...c[lang], [cle]: valeur } })) }
+  // Choix Oui / Non : identique dans les deux langues
+  const choisir = (cle, valeur) => { setSauve(''); setConfig(c => ({ fr: { ...c.fr, [cle]: valeur }, en: { ...c.en, [cle]: valeur } })) }
 
   const enregistrer = async () => {
     setOccupe(true)
@@ -118,7 +120,7 @@ function OngletGuide({ config, setConfig, publie, setPublie, personnes, recharge
   }
 
   const apercu = async l => {
-    const { doc } = await generateGuidePDF({ config, lang: l })
+    const { doc } = await generateGuidePDF({ config, lang: l, apercu: true })
     ouvrirBlob(doc)
   }
 
@@ -174,7 +176,28 @@ function OngletGuide({ config, setConfig, publie, setPublie, personnes, recharge
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 14 }}>
           {GUIDE_FIELDS.map(f => {
-            const vide = !(config[lang]?.[f.key] || '').trim() && !(f.defaut) && !(lang === 'en' && (config.fr?.[f.key] || '').trim())
+            const vide = !(config[lang]?.[f.key] || '').trim() && !(lang === 'en' && (config.fr?.[f.key] || '').trim())
+            if (f.type === 'choix') {
+              const choix = config[lang]?.[f.key] || config.fr?.[f.key] || ''
+              const option = (valeur, texte) => (
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#334155', cursor: 'pointer' }}>
+                  <input type="radio" name="tablette_conserver" checked={choix === valeur} onChange={() => choisir(f.key, valeur)} />
+                  {texte}
+                </label>
+              )
+              return (
+                <div key={f.key}>
+                  <label style={LABEL}>{f[lang]}{!choix && <span style={{ color: '#d97706' }}> · à choisir</span>}</label>
+                  <div style={{ display: 'flex', gap: 18, padding: '6px 0' }}>
+                    {option('oui', 'Oui, à conserver')}
+                    {option('non', 'Non, à restituer')}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: choix ? '#475569' : '#d97706' }}>
+                    {choix ? `Texte imprimé : « ${texteTablette(choix, lang)} »` : 'Aucun choix par défaut : l’envoi du guide reste bloqué tant que ce choix n’est pas fait.'}
+                  </div>
+                </div>
+              )
+            }
             return (
               <div key={f.key}>
                 <label style={LABEL}>{f[lang]}{vide && <span style={{ color: '#d97706' }}> · à compléter</span>}</label>
