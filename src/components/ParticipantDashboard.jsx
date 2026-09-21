@@ -15,7 +15,7 @@ const TR = {
     apercuStatut: 'Statut du dossier', apercuMontant: 'Montant', apercuDocuments: 'documents disponibles', apercuAgenda: 'sessions dans mon agenda',
     badgeConfirmeTip: 'Présentez ce QR code à l\'accueil pour un enregistrement rapide.',
     badgeLocked: 'Votre badge sera disponible ici dès que votre paiement sera confirmé par notre équipe.',
-    badgeDownload: 'Télécharger le badge (PNG)',
+    badgeDownload: 'Télécharger mon badge', badgeAVenir: 'Bientôt disponible',
     programmeIntro: 'Ajoutez les sessions qui vous intéressent pour construire votre agenda personnel.',
     programmeAdd: 'Ajouter', programmeRemove: 'Retirer', programmeInAgenda: 'Dans mon agenda',
     paiementSectionTitle: 'Paiement', ribCopy: 'Copier l\'IBAN', ribCopied: 'IBAN copié !',
@@ -36,7 +36,7 @@ const TR = {
     apercuStatut: 'File status', apercuMontant: 'Amount', apercuDocuments: 'documents available', apercuAgenda: 'sessions in my agenda',
     badgeConfirmeTip: 'Show this QR code at the front desk for quick check-in.',
     badgeLocked: 'Your badge will be available here as soon as your payment is confirmed by our team.',
-    badgeDownload: 'Download badge (PNG)',
+    badgeDownload: 'Download my badge', badgeAVenir: 'Coming soon',
     programmeIntro: 'Add the sessions you are interested in to build your personal agenda.',
     programmeAdd: 'Add', programmeRemove: 'Remove', programmeInAgenda: 'In my agenda',
     paiementSectionTitle: 'Payment', ribCopy: 'Copy IBAN', ribCopied: 'IBAN copied!',
@@ -68,7 +68,7 @@ const TABS = [
 
 export default function ParticipantDashboard({
   myDossier, lang, t, STATUTS, genLoading,
-  onDownloadRecap, onDownloadProforma, onDownloadFacture, onDownloadBadge, onAddToCalendar,
+  onDownloadRecap, onDownloadProforma, onDownloadFacture, onAddToCalendar,
   onSignOut, onRefresh,
 }) {
   const tt = TR[lang]
@@ -147,7 +147,7 @@ export default function ParticipantDashboard({
             <TabApercu myDossier={myDossier} t={t} tt={tt} lang={lang} voyage={voyage} onOpenProgramme={() => setTab('programme')} />
           )}
           {tab === 'badge' && (
-            <TabBadge myDossier={myDossier} t={t} tt={tt} genLoading={genLoading} onDownloadBadge={onDownloadBadge} />
+            <TabBadge myDossier={myDossier} t={t} tt={tt} />
           )}
           {tab === 'programme' && (
             <TabProgramme myDossier={myDossier} tt={tt} lang={lang} onRefresh={onRefresh} />
@@ -156,7 +156,7 @@ export default function ParticipantDashboard({
             <TabDocuments
               myDossier={myDossier} t={t} tt={tt} genLoading={genLoading}
               onDownloadRecap={onDownloadRecap} onDownloadProforma={onDownloadProforma}
-              onDownloadFacture={onDownloadFacture} onDownloadBadge={onDownloadBadge}
+              onDownloadFacture={onDownloadFacture}
               onAddToCalendar={onAddToCalendar} onRefresh={onRefresh}
             />
           )}
@@ -223,9 +223,11 @@ function TabApercu({ myDossier, t, tt, lang, voyage, onOpenProgramme }) {
 }
 
 // ── Badge + QR ──
-function TabBadge({ myDossier, t, tt, genLoading, onDownloadBadge }) {
+function TabBadge({ myDossier, t, tt }) {
   const [qrDataUrl, setQrDataUrl] = useState('')
   const confirme = myDossier.statut === 'confirme'
+  // Le badge est le fichier depose par l'equipe dans l'espace de la personne (il n'est pas genere par le site)
+  const badgeDepose = [...(myDossier.documents || [])].reverse().find(d => d.type === 'badge' && d.url)
 
   useEffect(() => {
     if (!confirme || !myDossier.badge_token) return
@@ -274,10 +276,14 @@ function TabBadge({ myDossier, t, tt, genLoading, onDownloadBadge }) {
         </div>
       </div>
       <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '12px 0', lineHeight: 1.6, textAlign: 'center' }}>{tt.badgeConfirmeTip}</p>
-      <button type="button" onClick={onDownloadBadge} disabled={genLoading === 'badge'} style={cardBtnStyle}>
-        {genLoading === 'badge' ? <div className="spinner" style={{ width: 13, height: 13, borderTopColor: '#0f172a', borderColor: 'rgba(15,23,42,.25)' }} /> : <Ico name="download" size={14} color="#0f172a" />}
-        {tt.badgeDownload}
-      </button>
+      {badgeDepose ? (
+        <a href={badgeDepose.url} target="_blank" rel="noreferrer" style={cardBtnStyle}>
+          <Ico name="download" size={14} color="#0f172a" />
+          {tt.badgeDownload}
+        </a>
+      ) : (
+        <div style={{ ...cardBtnStyle, cursor: 'not-allowed', color: '#94a3b8', background: '#f8fafc', borderColor: '#e2e8f0' }}>{tt.badgeAVenir}</div>
+      )}
     </Card>
   )
 }
@@ -346,7 +352,7 @@ function TabProgramme({ myDossier, tt, lang, onRefresh }) {
 }
 
 // ── Documents, paiement, preuve de virement ──
-function TabDocuments({ myDossier, t, tt, genLoading, onDownloadRecap, onDownloadProforma, onDownloadFacture, onDownloadBadge, onAddToCalendar, onRefresh }) {
+function TabDocuments({ myDossier, t, tt, genLoading, onDownloadRecap, onDownloadProforma, onDownloadFacture, onAddToCalendar, onRefresh }) {
   const [copied, setCopied] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [signedUrls, setSignedUrls] = useState({})
@@ -404,10 +410,6 @@ function TabDocuments({ myDossier, t, tt, genLoading, onDownloadRecap, onDownloa
         {(myDossier.documents || []).map(doc => (
           <DocRow key={doc.id} icon="receipt" label={doc.label} href={doc.url} />
         ))}
-        <DocRow
-          icon="badge" label={t.docBadge} disabled={myDossier.statut !== 'confirme'}
-          onClick={myDossier.statut === 'confirme' ? onDownloadBadge : undefined} loading={genLoading === 'badge'}
-        />
         <DocRow icon="calendar" label={t.docCalendar} onClick={onAddToCalendar} />
       </Card>
 

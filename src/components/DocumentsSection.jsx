@@ -171,9 +171,9 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
     load()
   }
 
-  // Cote admin : marque un document comme « Attestation de participation » (bouton dedie dans l'espace du participant)
-  const toggleAttestation = async doc => {
-    await supabase.from(table).update({ type: doc.type === 'attestation' ? 'autre' : 'attestation' }).eq('id', doc.id)
+  // Cote admin : type du document. « Badge » et « Attestation » alimentent les boutons dedies de l'espace du participant.
+  const changerType = async (doc, type) => {
+    await supabase.from(table).update({ type }).eq('id', doc.id)
     load()
   }
 
@@ -217,12 +217,16 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
             </span>
           )}
           {table === 'documents_participants' && !notifier && (
-            <button
-              type="button" onClick={() => toggleAttestation(doc)} style={{ ...ICONBTN, padding: '3px 9px', fontSize: 10.5, fontWeight: 700, fontFamily: 'inherit', borderRadius: 100, border: `1.5px solid ${doc.type === 'attestation' ? '#a7f3d0' : '#cbd5e1'}`, background: doc.type === 'attestation' ? '#ecfdf5' : '#fff', color: doc.type === 'attestation' ? '#059669' : '#64748b' }}
-              title={en ? 'Use this file as the certificate of participation (button in their personal space)' : "Utiliser ce fichier comme attestation de participation (bouton dans son espace personnel)"}
+            <select
+              value={doc.type || 'autre'} onChange={e => changerType(doc, e.target.value)}
+              title={en ? 'Type: Badge and Certificate feed the dedicated buttons in their personal space' : "Type : « Badge » et « Attestation » alimentent les boutons dédiés de son espace personnel"}
+              style={{ fontSize: 11, fontWeight: 700, fontFamily: 'inherit', padding: '3px 6px', borderRadius: 8, border: '1.5px solid #cbd5e1', background: '#fff', color: doc.type === 'badge' || doc.type === 'attestation' ? '#059669' : '#64748b', cursor: 'pointer', flexShrink: 0 }}
             >
-              {doc.type === 'attestation' ? (en ? '✓ Certificate' : '✓ Attestation') : (en ? 'Set as certificate' : 'Définir comme attestation')}
-            </button>
+              <option value="autre">{en ? 'Other' : 'Autre'}</option>
+              <option value="badge">Badge</option>
+              <option value="attestation">{en ? 'Certificate' : 'Attestation'}</option>
+              {!['autre', 'badge', 'attestation'].includes(doc.type) && <option value={doc.type}>{doc.type}</option>}
+            </select>
           )}
           <button type="button" onClick={() => commencerEdition(doc)} title={en ? 'Rename' : 'Renommer'} style={ICONBTN}>
             <Icon name="edit" />

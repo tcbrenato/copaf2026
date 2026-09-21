@@ -5,7 +5,7 @@ import { Ico, Card } from '../utils/dossierUi'
 // guide du participant, fiche de voyage individuelle, programme et attestation de participation.
 // Un bouton indisponible reste visible (grise) avec « en preparation » / « bientot disponible ».
 // L'attestation n'est pas generee par le site : l'equipe depose le fichier dans l'espace de la personne
-// (admin > documents du dossier > « Definir comme attestation »).
+// (admin > documents du dossier > type « Attestation »).
 
 const TR = {
   fr: {

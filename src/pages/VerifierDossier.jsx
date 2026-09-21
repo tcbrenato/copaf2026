@@ -2,7 +2,6 @@
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../supabase'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
-import { generateBadge } from '../utils/generateBadge'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitivePDF'
 import { generateICS } from '../utils/generateICS'
@@ -58,7 +57,7 @@ const TR = {
     timelineAnnule: 'Dossier annulé',
     badgeTip: 'Astuce : faites une capture d\'écran ou ajoutez cette page à votre écran d\'accueil pour un accès rapide le jour J.',
     mesDocuments: 'Mes documents',
-    docRecap: 'Récapitulatif', docProforma: 'Facture proforma', docFactureDef: 'Facture définitive', docBadge: 'Badge (après paiement)', docCalendar: 'Ajouter au calendrier',
+    docRecap: 'Récapitulatif', docProforma: 'Facture proforma', docFactureDef: 'Facture définitive', docBadge: 'Badge', docCalendar: 'Ajouter au calendrier',
     badgeWaiting: 'Le badge sera disponible ici dès que votre paiement sera confirmé par notre équipe.',
     programmeTitle: 'Mon programme',
     voirProgrammeComplet: 'Voir le programme complet',
@@ -109,7 +108,7 @@ const TR = {
     timelineAnnule: 'File cancelled',
     badgeTip: 'Tip: take a screenshot or add this page to your home screen for quick access on the day.',
     mesDocuments: 'My documents',
-    docRecap: 'Summary', docProforma: 'Proforma invoice', docFactureDef: 'Final invoice', docBadge: 'Badge (after payment)', docCalendar: 'Add to calendar',
+    docRecap: 'Summary', docProforma: 'Proforma invoice', docFactureDef: 'Final invoice', docBadge: 'Badge', docCalendar: 'Add to calendar',
     badgeWaiting: 'Your badge will be available here as soon as your payment is confirmed by our team.',
     programmeTitle: 'My programme',
     voirProgrammeComplet: 'View the full programme',
@@ -288,20 +287,6 @@ export default function VerifierDossier() {
         win.location.href = doc.output('bloburl')
       } else {
         await generateFactureDefinitivePDF({ form: formData(), dossier: myDossier.dossier, numeroFacture: myDossier.numero_facture, nb: myDossier.participants, total: myDossier.montant, lang })
-      }
-    } finally { setGenLoading('') }
-  }
-
-  const handleDownloadBadge = async () => {
-    const win = window.open('', '_blank')
-    setGenLoading('badge')
-    try {
-      if (win) {
-        const dataUrl = await generateBadge({ nomPrenom: `${myDossier.prenom} ${myDossier.nom}`, fonction: myDossier.poste || '', dossier: myDossier.dossier, photoSrc: myDossier.photo_url || null, download: false })
-        const blob = await (await fetch(dataUrl)).blob()
-        win.location.href = URL.createObjectURL(blob)
-      } else {
-        await generateBadge({ nomPrenom: `${myDossier.prenom} ${myDossier.nom}`, fonction: myDossier.poste || '', dossier: myDossier.dossier, photoSrc: myDossier.photo_url || null })
       }
     } finally { setGenLoading('') }
   }
@@ -512,7 +497,6 @@ export default function VerifierDossier() {
               onDownloadRecap={handleDownloadRecap}
               onDownloadProforma={handleDownloadProforma}
               onDownloadFacture={handleDownloadFacture}
-              onDownloadBadge={handleDownloadBadge}
               onAddToCalendar={handleAddToCalendar}
               onSignOut={handleSignOut}
               onRefresh={fetchMyDossier}
