@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabase'
 import {
-  GUIDE_FIELDS, FICHE_CHAMPS_REQUIS, guideChampsManquants, fichesChampsCommunsManquants, generateGuidePDF, generateFichePDF, pdfEnBase64,
+  GUIDE_FIELDS, FICHE_CHAMPS_REQUIS, guideChampsManquants, generateGuidePDF, generateFichePDF, pdfEnBase64,
   octetsEnBase64, ouvrirOctets,
 } from '../utils/generateVoyagePDF'
 
@@ -310,38 +310,107 @@ function OngletFiches({ config, personnes, recharger }) {
           </tbody>
         </table>
       </div>
-      {edition && <FenetreFiche personne={edition} config={config} onClose={() => setEdition(null)} onSaved={() => { recharger() }} />}
+      {edition && <FenetreFiche personne={edition} personnes={personnes} config={config} onClose={() => setEdition(null)} onSaved={() => { recharger() }} />}
     </>
   )
 }
 
-const CHAMPS_HOTEL = [
-  ['hotel', "Nom de l'hôtel"], ['hotel_categorie', 'Catégorie (ex. 4 étoiles)'], ['hotel_adresse', 'Adresse complète'],
-  ['hotel_confirmation', 'N° de confirmation'],
-  ['pickup', 'Aéroport → hôtel : heure, point de rencontre, reconnaissance'], ['chauffeur', 'Chauffeur / référent : nom et téléphone'],
-  ['retour_transfert', 'Hôtel → aéroport (retour) : heure indicative'],
-]
+// Intitules identiques a ceux de la fiche PDF (gabarit Canva), dans la langue de la fiche.
+const LB = {
+  fr: {
+    titre: 'FICHE DE VOYAGE INDIVIDUELLE', sous: 'Conférence des Ports Africains | Casablanca, Maroc',
+    identif: 'Identification du participant', vols: 'Vos informations de vol', heberg: 'Votre hébergement', transferts: 'Vos transferts', besoin: 'En cas de besoin sur place',
+    nom: 'Nom et prénom', dossier: 'N° de dossier', organisme: 'Organisme / Port',
+    aller: 'Vol aller', allerSub: 'Arrivée à Casablanca', retour: 'Vol retour', retourSub: 'Départ de Casablanca',
+    compagnie: 'Compagnie', numero: 'N° de vol', date: 'Date', heure: 'Heure',
+    hotel: 'Hôtel réservé', categorie: 'Catégorie', adresse: 'Adresse', dates: 'Dates du séjour', datesFixe: '18 au 22 octobre (imprimé dans la fiche)', confirmation: 'N° de confirmation',
+    aeroHotel: 'Aéroport → Hôtel', chauffeur: 'Chauffeur / Référent', hotelPort: 'Hôtel → Port de Casablanca', hotelAero: 'Hôtel → Aéroport (retour)',
+    refNom: 'Référent sur place', refTel: 'Joignable au',
+    h: { hotel: "Nom de l'hôtel", categorie: 'Ex. 4 étoiles', adresse: 'Adresse complète', confirmation: 'Référence de la réservation', pickup: 'Heure, point de rencontre, moyen de reconnaissance', chauffeur: 'Nom, téléphone', navette: "Ex. Départ de l'hôtel à 8h00, du 19 au 21 octobre · rendez-vous dans le hall", retour: 'Heure indicative', refNom: 'Nom du référent CRF Perfection à Casablanca', refTel: '+212 …' },
+  },
+  en: {
+    titre: 'INDIVIDUAL TRAVEL SHEET', sous: 'African Ports Conference | Casablanca, Morocco',
+    identif: 'Participant details', vols: 'Your flight information', heberg: 'Your accommodation', transferts: 'Your transfers', besoin: 'If you need assistance on site',
+    nom: 'Full name', dossier: 'Registration no.', organisme: 'Organisation / Port',
+    aller: 'Outbound flight', allerSub: 'Arrival in Casablanca', retour: 'Return flight', retourSub: 'Departure from Casablanca',
+    compagnie: 'Airline', numero: 'Flight no.', date: 'Date', heure: 'Time',
+    hotel: 'Hotel booked', categorie: 'Category', adresse: 'Address', dates: 'Dates of stay', datesFixe: '18 to 22 October 2026 (4 nights) (printed in the sheet)', confirmation: 'Confirmation no.',
+    aeroHotel: 'Airport → Hotel', chauffeur: 'Driver / Contact person', hotelPort: 'Hotel → Casablanca Port', hotelAero: 'Hotel → Airport (return)',
+    refNom: 'Contact person on site', refTel: 'Reachable at',
+    h: { hotel: 'Hotel name', categorie: 'E.g. 4 stars', adresse: 'Full address', confirmation: 'Booking reference', pickup: 'Time, meeting point, how to recognise the driver', chauffeur: 'Name, phone', navette: 'E.g. Departure from the hotel at 8:00 am, 19 to 21 October · meet in the lobby', retour: 'Approximate time', refNom: 'Name of the CRF Perfection contact in Casablanca', refTel: '+212 …' },
+  },
+}
 
-function FenetreFiche({ personne, config, onClose, onSaved }) {
+// Nombre de caracteres a partir duquel le texte est reduit puis tronque dans la case du PDF
+const CAPACITE = { hotel: 90, hotel_categorie: 60, hotel_adresse: 88, hotel_confirmation: 88, pickup: 80, chauffeur: 80, navette: 80, retour_transfert: 80, referent_nom: 85, referent_tel: 70 }
+const CHAMPS_FICHE = ['hotel', 'hotel_categorie', 'hotel_adresse', 'hotel_confirmation', 'pickup', 'chauffeur', 'navette', 'retour_transfert', 'referent_nom', 'referent_tel']
+const COMMUNS = ['navette', 'referent_nom', 'referent_tel']
+const BLEU_FICHE = '#0000AD'
+
+function Section({ titre, children }) {
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 2.2, textTransform: 'uppercase', color: BLEU_FICHE, marginBottom: 8 }}>{titre}</div>
+      <div style={{ background: '#e6e6e6', borderRadius: 8, padding: '12px 14px', display: 'grid', gap: 10 }}>{children}</div>
+    </div>
+  )
+}
+
+function Ligne({ etiquette, requis, compteur, children }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 190px) 1fr', gap: 12, alignItems: 'center' }}>
+      <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: 'uppercase', color: BLEU_FICHE }}>
+        {etiquette}{requis && <span style={{ color: '#dc2626' }}> *</span>}
+      </span>
+      <div style={{ minWidth: 0 }}>
+        {children}
+        {compteur}
+      </div>
+    </div>
+  )
+}
+
+function FenetreFiche({ personne, personnes, config, onClose, onSaved }) {
   const v0 = personne.voyage || {}
-  const [f, setF] = useState(() => Object.fromEntries(CHAMPS_HOTEL.map(([k]) => [k, v0[k] || ''])))
+  const commun = (l, k) => String(config?.[l]?.[k] || config?.[l === 'fr' ? 'en' : 'fr']?.[k] || '').trim()
+  const [langue, setLangue] = useState(personne.langue)
+  // Prerempli : les valeurs communes (navette, referent) sont reprises des reglages ; tout reste modifiable.
+  const [f, setF] = useState(() => Object.fromEntries(CHAMPS_FICHE.map(k => [k, v0[k] || (COMMUNS.includes(k) ? commun(personne.langue, k) : '')])))
   const [aller, setAller] = useState({ compagnie: '', numero: '', date: '', heure: '', ...(v0.vol_aller || {}) })
   const [retour, setRetour] = useState({ compagnie: '', numero: '', date: '', heure: '', ...(v0.vol_retour || {}) })
-  const [langue, setLangue] = useState(personne.langue)
   const [statut, setStatut] = useState(v0.statut || 'aucun')
   const [msg, setMsg] = useState('')
   const [occupe, setOccupe] = useState(false)
+  const L = LB[langue]
 
   const nettoie = o => { const r = Object.fromEntries(Object.entries(o).filter(([, x]) => String(x || '').trim())); return Object.keys(r).length ? r : null }
   const manquants = FICHE_CHAMPS_REQUIS.filter(k => !String(f[k] || '').trim())
   const manquantsVols = [!nettoie(aller) && 'vol aller', !nettoie(retour) && 'vol retour'].filter(Boolean)
-  const manquantsCommun = fichesChampsCommunsManquants(config, langue)
   const bloquant = () => {
-    if (manquants.length) return `Champs obligatoires manquants : ${manquants.length}`
+    if (manquants.length) return `Champs obligatoires manquants : ${manquants.length} (marqués *)`
     if (manquantsVols.length) return `Renseignez d'abord : ${manquantsVols.join(' et ')}`
-    if (manquantsCommun.length) return 'Complétez les réglages communs des fiches (navette, référent) dans l’onglet Guide'
     return ''
   }
+
+  const changerLangue = l => {
+    // Les valeurs communes encore "par defaut" suivent la langue de la fiche.
+    setF(x => {
+      const suivant = { ...x }
+      COMMUNS.forEach(k => { if (!x[k] || x[k] === commun(langue, k)) suivant[k] = commun(l, k) })
+      return suivant
+    })
+    setLangue(l)
+  }
+
+  // Hotels deja saisis pour d'autres fiches : reprise en un clic (hotel, categorie, adresse)
+  const hotelsConnus = useMemo(() => {
+    const vus = new Map()
+    personnes.forEach(p => {
+      const v = p.voyage
+      if (v?.hotel && p.dossier !== personne.dossier) vus.set(`${v.hotel}|${v.hotel_adresse || ''}`, { hotel: v.hotel, hotel_categorie: v.hotel_categorie || '', hotel_adresse: v.hotel_adresse || '' })
+    })
+    return [...vus.values()]
+  }, [personnes, personne.dossier])
 
   const donneesVoyage = () => ({
     dossier: personne.dossier, nom: personne.nom, prenom: personne.prenom, organisation: personne.organisation,
@@ -351,10 +420,8 @@ function FenetreFiche({ personne, config, onClose, onSaved }) {
   const enregistrer = async (nouveauStatut = statut) => {
     setOccupe(true); setMsg('')
     if (nouveauStatut === 'aucun' && (nettoie(aller) || nettoie(retour))) nouveauStatut = 'vols_recus'
-    const ligne = {
-      dossier: personne.dossier, ...f, vol_aller: nettoie(aller), vol_retour: nettoie(retour), statut: nouveauStatut, updated_at: new Date().toISOString(),
-    }
-    Object.keys(f).forEach(k => { ligne[k] = String(f[k] || '').trim() || null })
+    const ligne = { dossier: personne.dossier, vol_aller: nettoie(aller), vol_retour: nettoie(retour), statut: nouveauStatut, updated_at: new Date().toISOString() }
+    CHAMPS_FICHE.forEach(k => { ligne[k] = String(f[k] || '').trim() || null })
     const { error } = await supabase.from('voyages').upsert(ligne, { onConflict: 'dossier' })
     setOccupe(false)
     if (error) { setMsg("Échec de l'enregistrement."); return false }
@@ -402,60 +469,116 @@ function FenetreFiche({ personne, config, onClose, onSaved }) {
     window.open(data.signedUrl, '_blank', 'noopener')
   }
 
-  const volInputs = (titre, val, set) => (
-    <div>
-      <div style={{ ...LABEL, color: '#0a1128' }}>{titre}</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <input style={INPUT} placeholder="Compagnie" value={val.compagnie} onChange={e => set(x => ({ ...x, compagnie: e.target.value }))} />
-        <input style={INPUT} placeholder="N° de vol" value={val.numero} onChange={e => set(x => ({ ...x, numero: e.target.value }))} />
-        <input style={INPUT} type="date" value={val.date} onChange={e => set(x => ({ ...x, date: e.target.value }))} />
-        <input style={INPUT} type="time" value={val.heure} onChange={e => set(x => ({ ...x, heure: e.target.value }))} />
+  const champ = (cle, ph) => {
+    const n = String(f[cle] || '').length
+    const trop = n > (CAPACITE[cle] || 90)
+    return {
+      requis: FICHE_CHAMPS_REQUIS.includes(cle),
+      entree: <input style={{ ...INPUT, background: '#fff', borderColor: trop ? '#f59e0b' : '#e2e8f0' }} value={f[cle]} placeholder={ph} onChange={e => { setMsg(''); setF(x => ({ ...x, [cle]: e.target.value })) }} />,
+      compteur: trop ? <div style={{ fontSize: 11, color: '#b45309', marginTop: 3 }}>{n} caractères : le texte sera réduit puis tronqué dans la case (max conseillé {CAPACITE[cle]})</div> : null,
+    }
+  }
+  const ligneChamp = (cle, etiquette, ph) => { const c = champ(cle, ph); return <Ligne etiquette={etiquette} requis={c.requis} compteur={c.compteur}>{c.entree}</Ligne> }
+  const fixe = (etiquette, valeur) => (
+    <Ligne etiquette={etiquette}><div style={{ ...INPUT, background: '#f1f5f9', color: '#475569' }}>{valeur || '—'}</div></Ligne>
+  )
+  const vol = (titre, sous, val, set) => (
+    <Ligne etiquette={<>{titre}<div style={{ fontSize: 10.5, fontWeight: 600, letterSpacing: 0.3, textTransform: 'none', color: '#0369a1' }}>{sous}</div></>}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 6 }}>
+        <input style={{ ...INPUT, background: '#fff' }} placeholder={L.compagnie} value={val.compagnie} onChange={e => set(x => ({ ...x, compagnie: e.target.value }))} />
+        <input style={{ ...INPUT, background: '#fff' }} placeholder={L.numero} value={val.numero} onChange={e => set(x => ({ ...x, numero: e.target.value }))} />
+        <input style={{ ...INPUT, background: '#fff' }} type="date" aria-label={L.date} value={val.date} onChange={e => set(x => ({ ...x, date: e.target.value }))} />
+        <input style={{ ...INPUT, background: '#fff' }} type="time" aria-label={L.heure} value={val.heure} onChange={e => set(x => ({ ...x, heure: e.target.value }))} />
       </div>
-    </div>
+    </Ligne>
   )
 
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.55)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 18, width: '100%', maxWidth: 720, maxHeight: '92vh', overflow: 'auto', padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.55)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 860, maxHeight: '94vh', overflow: 'auto' }}>
+        <div style={{ background: BLEU_FICHE, color: '#fff', padding: '18px 24px', borderRadius: '16px 16px 0 0', display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <div>
-            <h3 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 800, color: '#0a1128' }}>{personne.prenom} {personne.nom}</h3>
-            <span style={{ fontSize: 12.5, color: '#64748b' }}>{personne.dossier} · {personne.organisation || '—'} · {personne.email || 'pas d’email'}</span>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: '#38bdf8' }}>COPAF 2026 · {langue === 'fr' ? '19 au 21 OCTOBRE 2026' : '19 – 21 OCTOBER 2026'}</div>
+            <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: 0.3, marginTop: 4 }}>{L.titre}</div>
+            <div style={{ fontSize: 12.5, color: '#38bdf8', marginTop: 4 }}>{L.sous}</div>
           </div>
-          <Pastille statut={statut} />
+          <div style={{ textAlign: 'right' }}>
+            <Pastille statut={statut} />
+            <div style={{ display: 'flex', gap: 6, marginTop: 10, justifyContent: 'flex-end' }}>
+              {['fr', 'en'].map(l => (
+                <button key={l} type="button" onClick={() => changerLangue(l)} style={{ ...BTN, padding: '5px 11px', background: langue === l ? '#fff' : 'rgba(255,255,255,.18)', color: langue === l ? BLEU_FICHE : '#fff' }}>{l.toUpperCase()}</button>
+              ))}
+            </div>
+          </div>
         </div>
 
-        <div style={{ display: 'grid', gap: 14 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
-            {volInputs('Vol aller (arrivée à Casablanca)', aller, setAller)}
-            {volInputs('Vol retour (départ de Casablanca)', retour, setRetour)}
+        <div style={{ padding: '4px 24px 22px' }}>
+          <div style={{ fontSize: 12, color: '#64748b', margin: '12px 0 0' }}>
+            {personne.email || 'Pas d’email enregistré'} · La langue choisie est celle de la fiche PDF et des libellés ci-dessous. Champs marqués * obligatoires.
           </div>
-          {v0.billet_path && <div><button type="button" style={BTN_SOFT} onClick={voirBillet}>Voir le billet déposé</button></div>}
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
-            {CHAMPS_HOTEL.map(([k, lib]) => (
-              <div key={k} style={{ gridColumn: ['hotel_adresse', 'pickup'].includes(k) ? '1 / -1' : undefined }}>
-                <label style={LABEL}>{lib}{FICHE_CHAMPS_REQUIS.includes(k) && <span style={{ color: '#dc2626' }}> *</span>}</label>
-                <input style={INPUT} value={f[k]} onChange={e => { setMsg(''); setF(x => ({ ...x, [k]: e.target.value })) }} />
+          <Section titre={L.identif}>
+            {fixe(L.nom, `${personne.prenom || ''} ${personne.nom || ''}`.trim())}
+            {fixe(L.dossier, personne.dossier)}
+            {fixe(L.organisme, personne.organisation)}
+          </Section>
+
+          <Section titre={L.vols}>
+            {vol(L.aller, L.allerSub, aller, setAller)}
+            {vol(L.retour, L.retourSub, retour, setRetour)}
+            {v0.billet_path && <div><button type="button" style={BTN_SOFT} onClick={voirBillet}>Voir le billet déposé par la personne</button></div>}
+          </Section>
+
+          <Section titre={L.heberg}>
+            {hotelsConnus.length > 0 && (
+              <Ligne etiquette="Reprendre un hôtel">
+                <select style={{ ...INPUT, background: '#fff' }} value="" onChange={e => {
+                  const h = hotelsConnus[Number(e.target.value)]
+                  if (h) setF(x => ({ ...x, hotel: h.hotel, hotel_categorie: h.hotel_categorie, hotel_adresse: h.hotel_adresse }))
+                }}>
+                  <option value="">— Copier l’hôtel d’une autre fiche —</option>
+                  {hotelsConnus.map((h, i) => <option key={i} value={i}>{h.hotel}{h.hotel_categorie ? ` (${h.hotel_categorie})` : ''}</option>)}
+                </select>
+              </Ligne>
+            )}
+            {ligneChamp('hotel', L.hotel, L.h.hotel)}
+            {ligneChamp('hotel_categorie', L.categorie, L.h.categorie)}
+            {ligneChamp('hotel_adresse', L.adresse, L.h.adresse)}
+            {fixe(L.dates, L.datesFixe)}
+            {ligneChamp('hotel_confirmation', L.confirmation, L.h.confirmation)}
+          </Section>
+
+          <Section titre={L.transferts}>
+            {ligneChamp('pickup', L.aeroHotel, L.h.pickup)}
+            {ligneChamp('chauffeur', L.chauffeur, L.h.chauffeur)}
+            {ligneChamp('navette', L.hotelPort, L.h.navette)}
+            {ligneChamp('retour_transfert', L.hotelAero, L.h.retour)}
+          </Section>
+
+          <div style={{ marginTop: 18 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: 2.2, textTransform: 'uppercase', color: BLEU_FICHE, marginBottom: 8 }}>{L.besoin}</div>
+            <div style={{ background: BLEU_FICHE, borderRadius: 8, padding: '12px 14px', display: 'grid', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 190px) 1fr', gap: 12, alignItems: 'center' }}>
+                <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.6, textTransform: 'uppercase', color: '#38bdf8' }}>{L.refNom} <span style={{ color: '#fca5a5' }}>*</span></span>
+                {champ('referent_nom', L.h.refNom).entree}
               </div>
-            ))}
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(120px, 190px) 1fr', gap: 12, alignItems: 'center' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#fff' }}>{L.refTel} <span style={{ color: '#fca5a5' }}>*</span></span>
+                {champ('referent_tel', L.h.refTel).entree}
+              </div>
+            </div>
+            <p style={{ fontSize: 11.5, color: '#64748b', margin: '6px 0 0' }}>Navette et référent sont préremplis depuis les réglages communs (onglet Guide) ; vous pouvez les modifier pour cette fiche seulement.</p>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 12.5, color: '#64748b', fontWeight: 700 }}>Langue de la fiche :</span>
-            {['fr', 'en'].map(l => <button key={l} type="button" onClick={() => setLangue(l)} style={{ ...BTN, padding: '6px 12px', background: langue === l ? NAVY : '#f1f5f9', color: langue === l ? '#fff' : '#334155' }}>{l.toUpperCase()}</button>)}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginTop: 20 }}>
+            <button type="button" style={BTN_PRIMARY} disabled={occupe} onClick={() => enregistrer()}>Enregistrer</button>
+            <button type="button" style={BTN_SOFT} onClick={apercu}>Aperçu PDF</button>
+            {statut !== 'fiche_prete' && statut !== 'fiche_envoyee' && <button type="button" style={BTN_SOFT} disabled={occupe} onClick={marquerPrete}>Marquer « prête »</button>}
+            <button type="button" style={{ ...BTN, background: '#16a34a', color: '#fff' }} disabled={occupe} onClick={envoyer}>{statut === 'fiche_envoyee' ? 'Renvoyer la fiche' : 'Envoyer la fiche'}</button>
+            <button type="button" style={{ ...BTN, background: '#f1f5f9', color: '#334155', marginLeft: 'auto' }} onClick={onClose}>Fermer</button>
           </div>
+          {msg && <p style={{ margin: '10px 0 0', fontSize: 13, fontWeight: 700, color: msg.includes('✓') ? '#16a34a' : '#b45309' }}>{msg}</p>}
         </div>
-
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginTop: 18 }}>
-          <button type="button" style={BTN_PRIMARY} disabled={occupe} onClick={() => enregistrer()}>Enregistrer</button>
-          <button type="button" style={BTN_SOFT} onClick={apercu}>Aperçu PDF</button>
-          {statut !== 'fiche_prete' && statut !== 'fiche_envoyee' && <button type="button" style={BTN_SOFT} disabled={occupe} onClick={marquerPrete}>Marquer « prête »</button>}
-          <button type="button" style={{ ...BTN, background: '#16a34a', color: '#fff' }} disabled={occupe} onClick={envoyer}>{statut === 'fiche_envoyee' ? 'Renvoyer la fiche' : 'Envoyer la fiche'}</button>
-          <button type="button" style={{ ...BTN, background: '#f1f5f9', color: '#334155', marginLeft: 'auto' }} onClick={onClose}>Fermer</button>
-        </div>
-        {msg && <p style={{ margin: '10px 0 0', fontSize: 13, fontWeight: 700, color: msg.includes('✓') ? '#16a34a' : '#b45309' }}>{msg}</p>}
-        <p style={{ fontSize: 12, color: '#94a3b8', margin: '10px 0 0' }}>Champs marqués * obligatoires avant de marquer la fiche « prête » ou de l'envoyer.</p>
       </div>
     </div>
   )

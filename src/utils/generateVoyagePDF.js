@@ -505,7 +505,7 @@ export const CASES_FICHE = [
 
 // Champs obligatoires avant de marquer la fiche "prete" / de l'envoyer (l'hotel n'a pas
 // de categorie par defaut : elle doit etre saisie).
-export const FICHE_CHAMPS_REQUIS = ['hotel', 'hotel_categorie', 'hotel_adresse', 'hotel_confirmation', 'pickup', 'chauffeur', 'retour_transfert']
+export const FICHE_CHAMPS_REQUIS = ['hotel', 'hotel_categorie', 'hotel_adresse', 'hotel_confirmation', 'pickup', 'chauffeur', 'navette', 'retour_transfert', 'referent_nom', 'referent_tel']
 
 const COULEUR_TEXTE = rgb(10 / 255, 31 / 255, 61 / 255)   // #0A1F3D
 const COULEUR_CATEGORIE = rgb(0, 0, 173 / 255)             // #0000AD
@@ -626,10 +626,10 @@ export async function generateFichePDF({ voyage, config, lang = 'fr', download =
     hotel_confirmation: fiche.hotel_confirmation,
     pickup: fiche.pickup,
     chauffeur: fiche.chauffeur,
-    navette: val('navette'),
+    navette: fiche.navette || val('navette'),
     retour_transfert: fiche.retour_transfert,
-    referent_nom: val('referent_nom'),
-    referent_tel: val('referent_tel'),
+    referent_nom: fiche.referent_nom || val('referent_nom'),
+    referent_tel: fiche.referent_tel || val('referent_tel'),
   }
 
   const tronques = []
