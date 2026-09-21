@@ -7,7 +7,10 @@ import { fmtEur, WHATSAPP_NUMBER, BANK_INFO, cardBtnStyle } from '../utils/dossi
 
 const TR = {
   fr: {
-    tabApercu: 'Aperçu', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & paiement', tabSupport: 'Support',
+    tabApercu: 'Aperçu', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & paiement', tabSupport: 'Support', tabVoyage: 'Voyage',
+    guideTitre: 'Guide du participant', guideBtn: 'Télécharger le guide (PDF)', guideAVenir: 'Le guide du participant sera disponible ici prochainement.',
+    ficheTitre: 'Ma fiche de voyage', ficheBtn: 'Télécharger ma fiche (PDF)', ficheEnPrep: 'Votre fiche de voyage est en préparation : elle apparaîtra ici dès que votre hébergement et vos transferts seront confirmés.',
+    volsTitre: 'Mes informations de vol', volsAller: 'Aller', volsRetour: 'Retour', volsAucun: 'Vous n’avez pas encore renseigné vos vols.', volsLien: 'Renseigner mes vols', volsBillet: 'Billet déposé',
     apercuStatut: 'Statut du dossier', apercuMontant: 'Montant', apercuDocuments: 'documents disponibles', apercuAgenda: 'sessions dans mon agenda',
     badgeConfirmeTip: 'Présentez ce QR code à l\'accueil pour un enregistrement rapide.',
     badgeLocked: 'Votre badge sera disponible ici dès que votre paiement sera confirmé par notre équipe.',
@@ -25,7 +28,10 @@ const TR = {
     supportVisaText: 'Les conditions d\'entrée au Maroc varient selon votre nationalité : renseignez-vous auprès du consulat ou de l\'ambassade du Maroc le plus proche avant de réserver votre voyage.',
   },
   en: {
-    tabApercu: 'Overview', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & payment', tabSupport: 'Support',
+    tabApercu: 'Overview', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & payment', tabSupport: 'Support', tabVoyage: 'Travel',
+    guideTitre: 'Participant guide', guideBtn: 'Download the guide (PDF)', guideAVenir: 'The participant guide will be available here soon.',
+    ficheTitre: 'My travel sheet', ficheBtn: 'Download my travel sheet (PDF)', ficheEnPrep: 'Your travel sheet is being prepared: it will appear here as soon as your accommodation and transfers are confirmed.',
+    volsTitre: 'My flight information', volsAller: 'Outbound', volsRetour: 'Return', volsAucun: 'You have not entered your flights yet.', volsLien: 'Enter my flights', volsBillet: 'Ticket uploaded',
     apercuStatut: 'File status', apercuMontant: 'Amount', apercuDocuments: 'documents available', apercuAgenda: 'sessions in my agenda',
     badgeConfirmeTip: 'Show this QR code at the front desk for quick check-in.',
     badgeLocked: 'Your badge will be available here as soon as your payment is confirmed by our team.',
@@ -55,6 +61,7 @@ const TABS = [
   { id: 'badge',      icon: 'badge' },
   { id: 'programme',  icon: 'calendar' },
   { id: 'documents',  icon: 'receipt' },
+  { id: 'voyage',     icon: 'hotel' },
   { id: 'support',    icon: 'headset' },
 ]
 
@@ -67,7 +74,7 @@ export default function ParticipantDashboard({
   const [tab, setTab] = useState('apercu')
 
   const tabLabel = {
-    apercu: tt.tabApercu, badge: tt.tabBadge, programme: tt.tabProgramme, documents: tt.tabDocuments, support: tt.tabSupport,
+    apercu: tt.tabApercu, badge: tt.tabBadge, programme: tt.tabProgramme, documents: tt.tabDocuments, support: tt.tabSupport, voyage: tt.tabVoyage,
   }
 
   return (
@@ -143,6 +150,9 @@ export default function ParticipantDashboard({
               onDownloadFacture={onDownloadFacture} onDownloadBadge={onDownloadBadge}
               onAddToCalendar={onAddToCalendar} onRefresh={onRefresh}
             />
+          )}
+          {tab === 'voyage' && (
+            <TabVoyage myDossier={myDossier} tt={tt} lang={lang} />
           )}
           {tab === 'support' && (
             <TabSupport myDossier={myDossier} t={t} tt={tt} />
@@ -457,6 +467,77 @@ function TabSupport({ myDossier, t, tt }) {
       <Card icon="hotel" title={tt.supportHotelTitle}>
         <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, marginBottom: 10 }}>{tt.supportHotelText}</p>
         <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6 }}>{tt.supportVisaText}</p>
+      </Card>
+    </div>
+  )
+}
+
+// ── Voyage : guide, fiche de voyage, vols ──
+// Les PDF sont generes dans le navigateur a partir des donnees de mon_voyage()
+// (le guide n'est renvoye que si l'admin l'a publie, la fiche que lorsqu'elle est prete).
+function TabVoyage({ myDossier, tt, lang }) {
+  const [voyage, setVoyage] = useState(undefined)
+  const [gen, setGen] = useState('')
+
+  useEffect(() => {
+    let annule = false
+    supabase.rpc('mon_voyage').then(({ data }) => { if (!annule) setVoyage(data || null) })
+    return () => { annule = true }
+  }, [myDossier.dossier])
+
+  const telecharger = async genre => {
+    setGen(genre)
+    try {
+      const m = await import('../utils/generateVoyagePDF')
+      if (genre === 'guide') await m.generateGuidePDF({ config: voyage.guide, lang, download: true })
+      else await m.generateFichePDF({ voyage, config: voyage.guide || { fr: {}, en: {} }, lang, download: true })
+    } finally {
+      setGen('')
+    }
+  }
+
+  const ligne = v => (v ? [v.compagnie, v.numero, v.date, v.heure].filter(Boolean).join(' · ') : '')
+
+  if (voyage === undefined) return <div style={{ color: '#64748b', fontSize: 13 }}>…</div>
+
+  return (
+    <div style={{ display: 'grid', gap: 14 }}>
+      <Card icon="download" title={tt.guideTitre}>
+        {voyage?.guide ? (
+          <button type="button" onClick={() => telecharger('guide')} disabled={gen === 'guide'} style={cardBtnStyle}>
+            <Ico name="download" size={14} color="#0f172a" />
+            {gen === 'guide' ? '…' : tt.guideBtn}
+          </button>
+        ) : (
+          <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, margin: 0 }}>{tt.guideAVenir}</p>
+        )}
+      </Card>
+
+      <Card icon="hotel" title={tt.ficheTitre}>
+        {voyage?.fiche ? (
+          <button type="button" onClick={() => telecharger('fiche')} disabled={gen === 'fiche'} style={cardBtnStyle}>
+            <Ico name="download" size={14} color="#0f172a" />
+            {gen === 'fiche' ? '…' : tt.ficheBtn}
+          </button>
+        ) : (
+          <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, margin: 0 }}>{tt.ficheEnPrep}</p>
+        )}
+      </Card>
+
+      <Card icon="calendar" title={tt.volsTitre}>
+        {ligne(voyage?.vol_aller) || ligne(voyage?.vol_retour) || voyage?.billet_depose ? (
+          <div style={{ fontSize: 12.5, color: '#334155', lineHeight: 1.7, marginBottom: 10 }}>
+            {ligne(voyage?.vol_aller) && <div><strong>{tt.volsAller} :</strong> {ligne(voyage.vol_aller)}</div>}
+            {ligne(voyage?.vol_retour) && <div><strong>{tt.volsRetour} :</strong> {ligne(voyage.vol_retour)}</div>}
+            {voyage?.billet_depose && <div style={{ color: '#0369a1' }}>✓ {tt.volsBillet}</div>}
+          </div>
+        ) : (
+          <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, margin: '0 0 10px' }}>{tt.volsAucun}</p>
+        )}
+        <a href="/badge" style={cardBtnStyle}>
+          <Ico name="calendar" size={14} color="#0f172a" />
+          {tt.volsLien}
+        </a>
       </Card>
     </div>
   )

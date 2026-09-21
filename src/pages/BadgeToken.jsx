@@ -20,6 +20,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { Ico } from '../utils/dossierUi'
+import VoyageBadge from '../components/VoyageBadge'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -290,7 +291,7 @@ export default function BadgeToken() {
             />
             <input
               value={secretInput} onChange={e => setSecretInput(e.target.value)}
-              placeholder="Email" type="email" autoCapitalize="none" autoComplete="email" spellCheck={false} aria-label="Email"
+              placeholder="Email" type="text" inputMode="email" autoCapitalize="none" autoComplete="email" spellCheck={false} aria-label="Email"
               style={champLogin}
             />
             {dossierError && <p style={{ fontSize: 12, color: '#dc2626', margin: 0, textAlign: 'center' }}>{dossierError}</p>}
@@ -466,6 +467,8 @@ export default function BadgeToken() {
                     </div>
                   )
                 })}
+
+                <VoyageBadge dossier={session.dossier} secret={session.secret} lang={data.langue} />
               </div>
 
               <button type="button" onClick={deconnecter} style={{

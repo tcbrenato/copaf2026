@@ -12,6 +12,7 @@ import DocumentsSection from './DocumentsSection'
 import ValidationDocuments from './ValidationDocuments'
 import EcrireBouton from './EcrireBouton'
 import AdminEmails from '../pages/AdminEmails'
+import AdminVoyage from '../pages/AdminVoyage'
 import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
 import AdminDiagnostics from '../pages/AdminDiagnostics'
@@ -90,6 +91,7 @@ const MODULES = [
   { id: 'activity-log',label: 'Journal d\'activité', icon: 'search', table: null,            scope: 'all', adminOnly: true },
   { id: 'newsletter',  label: 'Newsletter',       icon: 'mail',     table: null,            scope: 'all', adminOnly: true },
   { id: 'emails',      label: 'Envoyer un email', icon: 'mail',     table: null,            scope: 'all', adminOnly: true },
+  { id: 'voyage',      label: 'Voyages & Guide',  icon: 'globe',    table: null,            scope: 'all', adminOnly: true },
 ]
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -2926,6 +2928,8 @@ export default function AdminPage() {
             <AdminNewsletter />
           ) : activeModule === 'emails' ? (
             <AdminEmails />
+          ) : activeModule === 'voyage' ? (
+            <AdminVoyage />
           ) : activeModule === 'intervenants' ? (
             <AdminIntervenants />
           ) : activeModule === 'analytics' ? (
