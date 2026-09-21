@@ -93,6 +93,8 @@ export default function VoyageBadge({ dossier, secret, lang }) {
       const l = voyage.langue === 'en' ? 'en' : 'fr'
       if (genre === 'guide') await m.generateGuidePDF({ config: voyage.guide, lang: l, download: true })
       else await m.generateFichePDF({ voyage, config: voyage.guide || { fr: {}, en: {} }, lang: l, download: true })
+    } catch (e) {
+      console.error(e)
     } finally {
       setTelechargement('')
     }

@@ -1,0 +1,3 @@
+-- La fiche de voyage embarque les valeurs communes (navette hotel -> port, referent sur place)
+-- pour que le participant puisse la generer meme si le guide n'est pas publie.
+-- (Voir la definition complete de _voyage_json appliquee dans Supabase : cle fiche.commun.)

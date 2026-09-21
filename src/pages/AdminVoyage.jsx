@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabase'
 import {
-  GUIDE_FIELDS, FICHE_CHAMPS_REQUIS, guideChampsManquants, generateGuidePDF, generateFichePDF, pdfEnBase64,
+  GUIDE_FIELDS, FICHE_CHAMPS_REQUIS, guideChampsManquants, fichesChampsCommunsManquants, generateGuidePDF, generateFichePDF, pdfEnBase64,
+  octetsEnBase64, ouvrirOctets,
 } from '../utils/generateVoyagePDF'
 
 const NAVY = '#000E91'
@@ -315,8 +316,8 @@ function OngletFiches({ config, personnes, recharger }) {
 }
 
 const CHAMPS_HOTEL = [
-  ['hotel', "Nom de l'hôtel"], ['hotel_categorie', 'Catégorie (défaut : 4 étoiles)'], ['hotel_adresse', 'Adresse complète'],
-  ['hotel_confirmation', 'N° de confirmation'], ['sejour', 'Dates du séjour (défaut : 18-22 octobre, 4 nuitées)'],
+  ['hotel', "Nom de l'hôtel"], ['hotel_categorie', 'Catégorie (ex. 4 étoiles)'], ['hotel_adresse', 'Adresse complète'],
+  ['hotel_confirmation', 'N° de confirmation'],
   ['pickup', 'Aéroport → hôtel : heure, point de rencontre, reconnaissance'], ['chauffeur', 'Chauffeur / référent : nom et téléphone'],
   ['retour_transfert', 'Hôtel → aéroport (retour) : heure indicative'],
 ]
@@ -333,6 +334,14 @@ function FenetreFiche({ personne, config, onClose, onSaved }) {
 
   const nettoie = o => { const r = Object.fromEntries(Object.entries(o).filter(([, x]) => String(x || '').trim())); return Object.keys(r).length ? r : null }
   const manquants = FICHE_CHAMPS_REQUIS.filter(k => !String(f[k] || '').trim())
+  const manquantsVols = [!nettoie(aller) && 'vol aller', !nettoie(retour) && 'vol retour'].filter(Boolean)
+  const manquantsCommun = fichesChampsCommunsManquants(config, langue)
+  const bloquant = () => {
+    if (manquants.length) return `Champs obligatoires manquants : ${manquants.length}`
+    if (manquantsVols.length) return `Renseignez d'abord : ${manquantsVols.join(' et ')}`
+    if (manquantsCommun.length) return 'Complétez les réglages communs des fiches (navette, référent) dans l’onglet Guide'
+    return ''
+  }
 
   const donneesVoyage = () => ({
     dossier: personne.dossier, nom: personne.nom, prenom: personne.prenom, organisation: personne.organisation,
@@ -353,26 +362,37 @@ function FenetreFiche({ personne, config, onClose, onSaved }) {
     return true
   }
 
-  const apercu = async () => { const { doc } = await generateFichePDF({ voyage: donneesVoyage(), config, lang: langue }); ouvrirBlob(doc) }
+  const alertes = r => [
+    r.tronques?.length ? `Texte tronqué (trop long) : ${r.tronques.join(', ')}` : '',
+    r.remplaces?.length ? `Caractères non pris en charge remplacés par « ? » : ${r.remplaces.join(', ')}` : '',
+  ].filter(Boolean).join(' — ')
+
+  const apercu = async () => {
+    try {
+      const r = await generateFichePDF({ voyage: donneesVoyage(), config, lang: langue })
+      ouvrirOctets(r.octets)
+      setMsg(alertes(r))
+    } catch (e) { setMsg(e.message || 'Génération impossible.') }
+  }
 
   const marquerPrete = async () => {
-    if (manquants.length) { setMsg(`Champs obligatoires manquants : ${manquants.length}`); return }
+    if (bloquant()) { setMsg(bloquant()); return }
     await enregistrer('fiche_prete')
   }
 
   const envoyer = async () => {
-    if (manquants.length) { setMsg(`Champs obligatoires manquants : ${manquants.length}`); return }
+    if (bloquant()) { setMsg(bloquant()); return }
     if (!personne.email) { setMsg('Cette personne n’a pas d’email enregistré.'); return }
     if (!window.confirm(`Envoyer la fiche de voyage à ${personne.prenom || ''} ${personne.nom || ''} ?`)) return
     const ok = await enregistrer(statut === 'fiche_envoyee' ? 'fiche_envoyee' : 'fiche_prete')
     if (!ok) return
     setOccupe(true)
     try {
-      const { doc, filename } = await generateFichePDF({ voyage: donneesVoyage(), config, lang: langue })
-      const { data, error } = await supabase.functions.invoke('voyage-notify', { body: { action: 'envoyer', kind: 'fiche', dossier: personne.dossier, pdf: pdfEnBase64(doc), filename } })
+      const r = await generateFichePDF({ voyage: donneesVoyage(), config, lang: langue })
+      const { data, error } = await supabase.functions.invoke('voyage-notify', { body: { action: 'envoyer', kind: 'fiche', dossier: personne.dossier, pdf: octetsEnBase64(r.octets), filename: r.filename } })
       if (error || !data?.success) setMsg("Échec de l'envoi.")
-      else { setStatut('fiche_envoyee'); setMsg('Fiche envoyée ✓'); onSaved() }
-    } catch { setMsg("Échec de l'envoi.") }
+      else { setStatut('fiche_envoyee'); setMsg(`Fiche envoyée ✓ ${alertes(r)}`.trim()); onSaved() }
+    } catch (e) { setMsg(e.message || "Échec de l'envoi.") }
     setOccupe(false)
   }
 

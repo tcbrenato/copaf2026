@@ -13,6 +13,9 @@
 // manquants et l'envoi est bloque tant qu'il en reste.
 
 import jsPDF from 'jspdf'
+import { PDFDocument, rgb } from 'pdf-lib'
+import fontkit from '@pdf-lib/fontkit'
+import { detecterCasesPage } from './pdfCases'
 
 const NAVY = [0, 54, 127]       // #00367F
 const SKY = [23, 152, 244]      // #1798F4
@@ -42,11 +45,14 @@ export const GUIDE_FIELDS = [
   { key: 'contact_technique', fr: 'Contact : espace participant, badge, technique', en: 'Contact: participant area, badge, technical', hint: 'Rénato TCHOBO · email / WhatsApp' },
   { key: 'contact_logistique', fr: 'Contact : transferts et logistique à Casablanca', en: 'Contact: transfers and logistics in Casablanca', hint: 'Nom · téléphone local' },
   { key: 'contact_urgence', fr: 'Numéro d’urgence 24h/24', en: '24/7 emergency number', hint: '+212 …' },
+  { key: 'navette', fr: 'Navette hôtel → port (fiches de voyage)', en: 'Hotel → port shuttle (travel sheets)', hint: "Départ de l'hôtel à 8h00, du 19 au 21 octobre · rendez-vous dans le hall" },
   { key: 'referent_nom', fr: 'Référent sur place (nom) — fiches de voyage', en: 'On-site contact (name) — travel sheets', hint: 'M. …' },
   { key: 'referent_tel', fr: 'Référent sur place (téléphone) — fiches de voyage', en: 'On-site contact (phone) — travel sheets', hint: '+212 …' },
 ]
 
-const CLES_GUIDE = GUIDE_FIELDS.filter(f => !['referent_nom', 'referent_tel'].includes(f.key)).map(f => f.key)
+// Champs communs aux fiches de voyage (pas necessaires a l'envoi du guide)
+export const CHAMPS_COMMUNS_FICHE = ['navette', 'referent_nom', 'referent_tel']
+const CLES_GUIDE = GUIDE_FIELDS.filter(f => !CHAMPS_COMMUNS_FICHE.includes(f.key)).map(f => f.key)
 
 function valeurChamp(config, lang, key) {
   const def = GUIDE_FIELDS.find(f => f.key === key)?.defaut || ''
@@ -56,6 +62,10 @@ function valeurChamp(config, lang, key) {
 }
 
 // Champs du guide encore vides pour la langue demandee (avec repli sur l'autre langue)
+export function fichesChampsCommunsManquants(config, lang) {
+  return CHAMPS_COMMUNS_FICHE.filter(k => !valeurChamp(config, lang, k))
+}
+
 export function guideChampsManquants(config, lang, cles = CLES_GUIDE) {
   return cles.filter(k => !valeurChamp(config, lang, k))
 }
@@ -258,7 +268,7 @@ const TXT = {
     fichier: 'Guide_du_Participant_COPAF2026',
     coverTitre: 'GUIDE DU PARTICIPANT',
     coverSous: 'Accueil, hébergement, déplacements\net informations pratiques',
-    coverConf: 'Conférence panafricaine des ports',
+    coverConf: 'Conférence des Ports Africains',
     coverTheme: 'Smart Port Africain : Intelligence Artificielle et Cybersécurité au service de la performance',
     coverDate: '19 – 21 octobre 2026  ·  Port de Casablanca, Maroc',
     partenaires: [['CRF Perfection', 'Coordination technique'], ['AGPAOC', 'Haute Autorité de Tutelle'], ['ANP', 'Partenaire Hôte']],
@@ -268,7 +278,7 @@ const TXT = {
     fichier: 'Participant_Guide_COPAF2026',
     coverTitre: 'PARTICIPANT GUIDE',
     coverSous: 'Welcome, accommodation, travel\nand practical information',
-    coverConf: 'Pan-African Ports Conference',
+    coverConf: 'African Ports Conference',
     coverTheme: 'Smart African Port: Artificial Intelligence and Cybersecurity for Performance',
     coverDate: '19 – 21 October 2026  ·  Port of Casablanca, Morocco',
     partenaires: [['CRF Perfection', 'Technical coordination'], ['AGPAOC', 'Supervisory Authority'], ['ANP', 'Host Partner']],
@@ -284,8 +294,8 @@ function contenuGuide(m, config, lang) {
   m.titreSection(fr ? 'Bienvenue' : 'Welcome', fr ? 'Introduction' : 'Introduction')
   m.paragraphe(fr ? 'Mesdames et Messieurs, chers participants,' : 'Ladies and gentlemen, dear participants,', { style: 'bold', color: NAVY })
   m.paragraphe(fr
-    ? "C'est avec un grand plaisir que l'Association de Gestion des Ports de l'Afrique de l'Ouest et du Centre (AGPAOC), le cabinet CRF Perfection et l'Agence Nationale des Ports du Royaume du Maroc vous accueillent à la Conférence panafricaine des ports COPAF 2026, du 19 au 21 octobre 2026 au Port de Casablanca, sur le thème :"
-    : "It is with great pleasure that the Association of Ports Management for West and Central Africa (AGPAOC), the firm CRF Perfection and the National Ports Agency of the Kingdom of Morocco welcome you to the Pan-African Ports Conference COPAF 2026, from 19 to 21 October 2026 at the Port of Casablanca, on the theme:")
+    ? "C'est avec un grand plaisir que l'Association de Gestion des Ports de l'Afrique de l'Ouest et du Centre (AGPAOC), le cabinet CRF Perfection et l'Agence Nationale des Ports du Royaume du Maroc vous accueillent à la Conférence des Ports Africains COPAF 2026, du 19 au 21 octobre 2026 au Port de Casablanca, sur le thème :"
+    : "It is with great pleasure that the Association of Ports Management for West and Central Africa (AGPAOC), the firm CRF Perfection and the National Ports Agency of the Kingdom of Morocco welcome you to the African Ports Conference COPAF 2026, from 19 to 21 October 2026 at the Port of Casablanca, on the theme:")
   m.note(fr
     ? '« Smart Port Africain : Intelligence Artificielle et Cybersécurité au service de la performance »'
     : '“Smart African Port: Artificial Intelligence and Cybersecurity for Performance”')
@@ -482,195 +492,185 @@ export async function generateGuidePDF({ config, lang = 'fr', download = false }
   return { doc, manquants: [...m.etat.manquants], filename }
 }
 
-// ─── Fiche de voyage individuelle ──────────────────────────────────────────
-const FICHE = {
-  fr: {
-    entete: 'COPAF 2026  ·  19 – 21 OCTOBRE 2026',
-    titre: 'Fiche de voyage individuelle',
-    sous: 'Conférence panafricaine des ports  ·  Port de Casablanca, Maroc',
-    identif: 'Identification du participant',
-    nom: 'Nom et prénom', dossier: 'N° de dossier', organisme: 'Organisme / Port',
-    vols: 'Vos informations de vol',
-    aller: 'Vol aller', allerSub: 'Arrivée à Casablanca',
-    retour: 'Vol retour', retourSub: 'Départ de Casablanca',
-    hebergement: 'Votre hébergement',
-    hotel: 'Hôtel réservé', categorie: 'Catégorie', adresse: 'Adresse', dates: 'Dates du séjour', confirmation: 'N° de confirmation',
-    defCategorie: '4 étoiles', defSejour: 'Du 18 au 22 octobre 2026 (4 nuitées)',
-    transferts: 'Vos transferts',
-    aeroHotel: 'Aéroport > Hôtel', chauffeur: 'Chauffeur / Référent',
-    hotelPort: 'Hôtel > Port de Casablanca', hotelPortTxt: 'Navette quotidienne du 19 au 21 octobre. Horaires affichés à la réception de votre hôtel.',
-    hotelAero: 'Hôtel > Aéroport (retour)',
-    besoin: 'En cas de besoin sur place',
-    joignable: tel => `Joignable au ${tel}, pour toute question relative à votre hébergement ou à vos transferts.`,
-    completeGuide: 'Cette fiche complète le Guide du Participant, disponible sur votre espace participant.',
-    aCommuniquer: 'À communiquer',
-    fichier: d => `Fiche_Voyage_${d}`,
-    fmtDate: d => d.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1'),
-    heure: h => h,
-  },
-  en: {
-    entete: 'COPAF 2026  ·  19 – 21 OCTOBER 2026',
-    titre: 'Individual travel sheet',
-    sous: 'Pan-African Ports Conference  ·  Port of Casablanca, Morocco',
-    identif: 'Participant identification',
-    nom: 'Full name', dossier: 'File number', organisme: 'Organisation / Port',
-    vols: 'Your flight information',
-    aller: 'Outbound flight', allerSub: 'Arrival in Casablanca',
-    retour: 'Return flight', retourSub: 'Departure from Casablanca',
-    hebergement: 'Your accommodation',
-    hotel: 'Hotel booked', categorie: 'Category', adresse: 'Address', dates: 'Dates of stay', confirmation: 'Confirmation number',
-    defCategorie: '4 stars', defSejour: '18 to 22 October 2026 (4 nights)',
-    transferts: 'Your transfers',
-    aeroHotel: 'Airport > Hotel', chauffeur: 'Driver / Contact',
-    hotelPort: 'Hotel > Port of Casablanca', hotelPortTxt: 'Daily shuttle from 19 to 21 October. Times posted at your hotel reception.',
-    hotelAero: 'Hotel > Airport (return)',
-    besoin: 'If you need help on site',
-    joignable: tel => `Reachable at ${tel}, for any question about your accommodation or transfers.`,
-    completeGuide: 'This sheet complements the Participant Guide, available in your participant area.',
-    aCommuniquer: 'To be provided',
-    fichier: d => `Travel_Sheet_${d}`,
-    fmtDate: d => {
-      const mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      return d.replace(/^(\d{4})-(\d{2})-(\d{2})$/, (_, y, mth, day) => `${parseInt(day, 10)} ${mo[parseInt(mth, 10) - 1]} ${y}`)
-    },
-    heure: h => h,
-  },
+// ─── Fiche de voyage individuelle (gabarit Canva rempli avec pdf-lib) ─────────
+//
+// Le PDF Canva (public/templates/fiche-voyage-{fr,en}.pdf) sert de FOND ; on ecrit
+// le texte dans ses 14 cases blanches, detectees a chaque generation (le gabarit peut
+// bouger d'un ou deux points). Aucune mise en page a recalculer.
+
+export const CASES_FICHE = [
+  'nom', 'dossier', 'organisme', 'vol_aller', 'vol_retour', 'hotel', 'hotel_adresse', 'hotel_confirmation',
+  'pickup', 'chauffeur', 'navette', 'retour_transfert', 'referent_nom', 'referent_tel',
+]
+
+// Champs obligatoires avant de marquer la fiche "prete" / de l'envoyer (l'hotel n'a pas
+// de categorie par defaut : elle doit etre saisie).
+export const FICHE_CHAMPS_REQUIS = ['hotel', 'hotel_categorie', 'hotel_adresse', 'hotel_confirmation', 'pickup', 'chauffeur', 'retour_transfert']
+
+const COULEUR_TEXTE = rgb(10 / 255, 31 / 255, 61 / 255)   // #0A1F3D
+const COULEUR_CATEGORIE = rgb(0, 0, 173 / 255)             // #0000AD
+const MARGE_G = 4
+const TAILLE = 9.5
+const TAILLE_MIN = 7.5
+
+const FICHE_TXT = {
+  fr: { aCommuniquer: 'À communiquer', fichier: d => `Fiche_Voyage_${d}` },
+  en: { aCommuniquer: 'To be provided', fichier: d => `Travel_Sheet_${d}` },
 }
+
+const formatDateVol = d => (d || '').replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$3/$2/$1')
+const formatHeureVol = h => (h || '').replace(/^(\d{1,2})[:hH](\d{2})$/, '$1h$2')
 
 function ligneVol(vol, L) {
   if (!vol) return L.aCommuniquer
-  const p = [L1([vol.compagnie, vol.numero].filter(Boolean).join(' ')), vol.date ? L.fmtDate(vol.date) : '', vol.heure ? L.heure(vol.heure) : ''].filter(Boolean)
-  return p.length ? p.join('  ·  ') : L.aCommuniquer
+  const p = [L1([vol.compagnie, vol.numero].filter(Boolean).join(' ')), formatDateVol(vol.date), formatHeureVol(vol.heure)].filter(Boolean)
+  return p.length ? p.join(' · ') : L.aCommuniquer
 }
 
-// Champs obligatoires de la fiche avant de la marquer "prete"
-export const FICHE_CHAMPS_REQUIS = ['hotel', 'hotel_adresse', 'hotel_confirmation', 'pickup', 'retour_transfert']
+let cacheCrochets = null
+// Refuse un gabarit qui cacherait un texte entre crochets (placeholder oublie sous une case).
+async function gabaritSansCrochets(octets, url) {
+  if (cacheCrochets?.url === url) return cacheCrochets.ok
+  let ok = true
+  try {
+    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
+    const worker = (await import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url')).default
+    pdfjs.GlobalWorkerOptions.workerSrc = worker
+    const pdf = await pdfjs.getDocument({ data: octets.slice() }).promise
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const tc = await (await pdf.getPage(i)).getTextContent()
+      if (/[[\]]/.test(tc.items.map(t => t.str).join(' '))) { ok = false; break }
+    }
+  } catch (e) {
+    console.warn('Controle des crochets du gabarit indisponible :', e)
+  }
+  cacheCrochets = { url, ok }
+  return ok
+}
+
+function nettoyerTexte(texte, jeu) {
+  let remplace = false
+  let out = ''
+  for (const ch of String(texte || '').replace(/\s+/g, ' ').trim()) {
+    const cp = ch.codePointAt(0)
+    if (jeu.has(cp)) { out += ch; continue }
+    const base = ch.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    if (base && [...base].every(c => jeu.has(c.codePointAt(0)))) { out += base; remplace = true; continue }
+    out += '?'; remplace = true
+  }
+  return { texte: out, remplace }
+}
+
+// Ajuste la taille (TAILLE -> TAILLE_MIN) puis tronque avec "…" ; renvoie le texte et la taille
+function ajuster(font, texte, largeurMax, taille = TAILLE) {
+  let size = taille
+  while (font.widthOfTextAtSize(texte, size) > largeurMax && size > TAILLE_MIN) size -= 0.25
+  let t = texte
+  let tronque = false
+  if (font.widthOfTextAtSize(t, size) > largeurMax) {
+    tronque = true
+    while (t.length > 1 && font.widthOfTextAtSize(t + '…', size) > largeurMax) t = t.slice(0, -1)
+    t = t.trimEnd() + '…'
+  }
+  return { texte: t, size, tronque }
+}
 
 /**
  * @param {object} p
- * @param {object} p.voyage - { dossier, nom, prenom, organisation, vol_aller, vol_retour, fiche: {hotel, ...} }
- * @param {object} [p.config] - guide_config.valeurs (referent_nom / referent_tel)
+ * @param {object} p.voyage - { dossier, nom, prenom, organisation, vol_aller, vol_retour, fiche: {hotel, hotel_categorie, hotel_adresse,
+ *                              hotel_confirmation, pickup, chauffeur, retour_transfert, commun?} }
+ * @param {object} [p.config] - guide_config.valeurs { fr:{navette, referent_nom, referent_tel...}, en:{...} }
  * @param {'fr'|'en'} p.lang
+ * @param {boolean} [p.download=false]
+ * @returns {Promise<{ octets: Uint8Array, filename: string, tronques: string[], remplaces: string[] }>}
  */
 export async function generateFichePDF({ voyage, config, lang = 'fr', download = false }) {
-  const L = FICHE[lang] || FICHE.fr
-  const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true })
-  const font = await embarquerPoppins(doc)
+  const L = FICHE_TXT[lang] || FICHE_TXT.fr
+  const url = `/templates/fiche-voyage-${lang === 'en' ? 'en' : 'fr'}.pdf`
   const fiche = voyage.fiche || {}
-  const nomComplet = L1(`${voyage.prenom || ''} ${voyage.nom || ''}`)
-  const ref = valeurChamp(config, lang, 'referent_nom')
-  const refTel = valeurChamp(config, lang, 'referent_tel')
+  const commun = fiche.commun || {}
+  const cfg = { fr: { ...(commun.fr || {}), ...(config?.fr || {}) }, en: { ...(commun.en || {}), ...(config?.en || {}) } }
 
-  // Bandeau
-  doc.setFillColor(...NAVY); doc.rect(0, 0, PAGE.w, 42, 'F')
-  try {
-    doc.setGState(new doc.GState({ opacity: 0.12 })); doc.setFillColor(...SKY); doc.circle(195, 6, 36, 'F'); doc.setGState(new doc.GState({ opacity: 1 }))
-  } catch { /* couverture unie */ }
-  doc.setFont(font, 'bold'); doc.setFontSize(8.5); doc.setTextColor(...SKY); doc.text(L.entete, M, 13)
-  doc.setFontSize(21); doc.setTextColor(255, 255, 255); doc.text(L.titre, M, 25)
-  doc.setFont(font, 'normal'); doc.setFontSize(9.5); doc.setTextColor(200, 220, 245); doc.text(L.sous, M, 33)
+  const gabarit = new Uint8Array(await chargerBinaire(url))
+  const pdf = await PDFDocument.load(gabarit)
+  const page = pdf.getPages()[0]
 
-  let y = 51
-  const section = titre => {
-    doc.setFont(font, 'bold'); doc.setFontSize(9); doc.setTextColor(...SKY)
-    doc.text(titre.toUpperCase(), M, y); y += 2
-    doc.setDrawColor(...SKY); doc.setLineWidth(0.4); doc.line(M, y, M + 14, y); y += 5
+  // ── Controles du gabarit ──
+  const { cases, formes, hautPage, hauteurPage } = detecterCasesPage(page)
+  if (cases.length !== CASES_FICHE.length) {
+    throw new Error(`Gabarit de fiche invalide : ${CASES_FICHE.length} cases blanches attendues, ${cases.length} trouvées. Vérifiez le fichier ${url}.`)
   }
-  // Etiquette + valeur ; retourne la hauteur consommee
-  const ligne = (etiquette, valeur, x, w) => {
-    doc.setFont(font, 'bold'); doc.setFontSize(7.5); doc.setTextColor(...MUTED)
-    doc.text(etiquette.toUpperCase(), x, y)
-    doc.setFont(font, 'bold'); doc.setFontSize(10); doc.setTextColor(...NAVY)
-    const lg = doc.splitTextToSize(valeur || '—', w)
-    lg.forEach((t, i) => doc.text(t, x, y + 5 + i * 4.8))
-    return 5 + lg.length * 4.8 + 3
+  if (formes.some(f => f.y1 > hauteurPage + 0.5 || f.y0 < -0.5)) {
+    throw new Error(`Gabarit de fiche invalide : une forme dépasse de la page (${url}).`)
   }
-  const carte = (h, fn) => {
-    doc.setFillColor(...CARD); doc.roundedRect(M, y - 4, CW, h, 2.5, 2.5, 'F')
-    doc.setFillColor(...SKY); doc.rect(M, y - 1, 1.4, h - 6, 'F')
-    fn()
-    y += h - 2
+  if (!(await gabaritSansCrochets(gabarit, url))) {
+    throw new Error(`Gabarit de fiche invalide : texte entre crochets détecté (placeholder oublié ?) dans ${url}.`)
   }
 
-  // Identification
-  section(L.identif)
-  carte(28, () => {
-    const y0 = y
-    ligne(L.nom, nomComplet, M + 6, 84)
-    y = y0; ligne(L.dossier, voyage.dossier, M + 100, 68)
-    y = y0 + 13
-    ligne(L.organisme, voyage.organisation || '—', M + 6, CW - 12)
-    y = y0
-  })
-  y += 6
+  pdf.registerFontkit(fontkit)
+  const [medium, bold] = await Promise.all([chargerBinaire('/fonts/Poppins-Medium.ttf'), chargerBinaire('/fonts/Poppins-Bold.ttf')])
+  const fMedium = await pdf.embedFont(medium, { subset: true })
+  const fBold = await pdf.embedFont(bold, { subset: true })
+  const jeuMedium = new Set(fMedium.getCharacterSet())
+  const jeuBold = new Set(fBold.getCharacterSet())
 
-  // Vols
-  section(L.vols)
-  const bloc = (titre, sous, valeur) => {
-    const lgs = doc.splitTextToSize(valeur, CW - 62)
-    const h = Math.max(17, 9 + lgs.length * 5)
-    carte(h, () => {
-      doc.setFont(font, 'bold'); doc.setFontSize(10.5); doc.setTextColor(...NAVY); doc.text(titre, M + 6, y + 3)
-      doc.setFont(font, 'normal'); doc.setFontSize(8.5); doc.setTextColor(...MUTED); doc.text(sous, M + 6, y + 9)
-      doc.setFont(font, 'bold'); doc.setFontSize(10); doc.setTextColor(...TEXT)
-      lgs.forEach((t, i) => doc.text(t, M + 56, y + 4 + i * 5))
-    })
-    y += 3
+  const val = (cle) => valeurChamp(cfg, lang, cle)
+  const valeurs = {
+    nom: L1(`${voyage.prenom || ''} ${voyage.nom || ''}`),
+    dossier: voyage.dossier,
+    organisme: voyage.organisation,
+    vol_aller: ligneVol(voyage.vol_aller, L),
+    vol_retour: ligneVol(voyage.vol_retour, L),
+    hotel: fiche.hotel,
+    hotel_adresse: fiche.hotel_adresse,
+    hotel_confirmation: fiche.hotel_confirmation,
+    pickup: fiche.pickup,
+    chauffeur: fiche.chauffeur,
+    navette: val('navette'),
+    retour_transfert: fiche.retour_transfert,
+    referent_nom: val('referent_nom'),
+    referent_tel: val('referent_tel'),
   }
-  bloc(L.aller, L.allerSub, ligneVol(voyage.vol_aller, L))
-  bloc(L.retour, L.retourSub, ligneVol(voyage.vol_retour, L))
-  y += 1
 
-  // Hebergement
-  section(L.hebergement)
-  carte(43, () => {
-    const y0 = y
-    ligne(L.hotel, fiche.hotel, M + 6, 84)
-    y = y0; ligne(L.categorie, fiche.hotel_categorie || L.defCategorie, M + 100, 68)
-    y = y0 + 13; const y1 = y
-    ligne(L.adresse, fiche.hotel_adresse, M + 6, CW - 12)
-    y = y1 + 13; const y2 = y
-    ligne(L.dates, fiche.sejour || L.defSejour, M + 6, 88)
-    y = y2; ligne(L.confirmation, fiche.hotel_confirmation, M + 100, 68)
-    y = y0
-  })
-  y += 6
+  const tronques = []
+  const remplaces = []
+  const ecrire = (cle, texteBrut, boite, font, jeu, couleur, taille) => {
+    const { texte, remplace } = nettoyerTexte(texteBrut, jeu)
+    if (remplace) remplaces.push(cle)
+    if (!texte) return
+    const largeur = boite.x1 - boite.x0 - MARGE_G * 2
+    const r = ajuster(font, texte, largeur, taille)
+    if (r.tronque) tronques.push(cle)
+    const milieu = hautPage - (boite.y0 + boite.y1) / 2
+    page.drawText(r.texte, { x: boite.x0 + MARGE_G, y: milieu - r.size * 0.35, size: r.size, font, color: couleur })
+  }
 
-  // Transferts : grille 2 x 2
-  section(L.transferts)
-  const colW = (CW - 12 - 8) / 2
-  const cases = [
-    [L.aeroHotel, fiche.pickup],
-    [L.chauffeur, fiche.chauffeur],
-    [L.hotelPort, L.hotelPortTxt],
-    [L.hotelAero, fiche.retour_transfert],
-  ]
-  const mesures = cases.map(([, v]) => doc.splitTextToSize(v || '—', colW).length)
-  const h1 = 5 + Math.max(mesures[0], mesures[1]) * 4.8 + 4
-  const h2 = 5 + Math.max(mesures[2], mesures[3]) * 4.8 + 4
-  carte(h1 + h2 + 4, () => {
-    const y0 = y
-    y = y0; ligne(cases[0][0], cases[0][1], M + 6, colW)
-    y = y0; ligne(cases[1][0], cases[1][1], M + 6 + colW + 8, colW)
-    y = y0 + h1
-    const y1 = y
-    ligne(cases[2][0], cases[2][1], M + 6, colW)
-    y = y1; ligne(cases[3][0], cases[3][1], M + 6 + colW + 8, colW)
-    y = y0
-  })
-  y += 8
+  CASES_FICHE.forEach((cle, i) => ecrire(cle, valeurs[cle], cases[i], fMedium, jeuMedium, COULEUR_TEXTE, TAILLE))
 
-  // Besoin sur place
-  doc.setFillColor(...NAVY); doc.roundedRect(M, y, CW, 24, 3, 3, 'F')
-  doc.setFont(font, 'bold'); doc.setFontSize(8); doc.setTextColor(...SKY); doc.text(L.besoin.toUpperCase(), M + 6, y + 7)
-  doc.setFont(font, 'bold'); doc.setFontSize(11); doc.setTextColor(255, 255, 255); doc.text(ref || 'CRF Perfection', M + 6, y + 14)
-  doc.setFont(font, 'normal'); doc.setFontSize(8.5); doc.setTextColor(200, 220, 245)
-  doc.splitTextToSize(refTel ? L.joignable(refTel) : '', CW - 12).slice(0, 2).forEach((t, i) => doc.text(t, M + 6, y + 19.5 + i * 4.2))
+  // Categorie : pas de case, texte pose directement sur le fond gris (x = 169 pt, centre sur le libelle, jusqu'a x = 543)
+  ecrire('hotel_categorie', fiche.hotel_categorie, { x0: 169 - MARGE_G, x1: 543 + MARGE_G, y0: 411, y1: 424 }, fBold, jeuBold, COULEUR_CATEGORIE, 9.5)
 
-  doc.setFont(font, 'normal'); doc.setFontSize(8); doc.setTextColor(...MUTED)
-  doc.text(L.completeGuide, M, PAGE.h - 10)
-
+  const octets = await pdf.save()
   const filename = `${L.fichier(voyage.dossier || 'dossier')}.pdf`
-  if (download) doc.save(filename)
-  return { doc, filename }
+  if (download) telechargerOctets(octets, filename)
+  return { octets, filename, tronques, remplaces }
+}
+
+// ─── Aides pour les PDF en octets ───────────────────────────────────────────
+export function octetsEnBase64(octets) {
+  return versBase64(octets)
+}
+
+export function ouvrirOctets(octets) {
+  window.open(URL.createObjectURL(new Blob([octets], { type: 'application/pdf' })), '_blank', 'noopener')
+}
+
+export function telechargerOctets(octets, filename) {
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([octets], { type: 'application/pdf' }))
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000)
 }

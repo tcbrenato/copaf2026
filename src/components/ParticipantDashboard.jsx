@@ -491,6 +491,8 @@ function TabVoyage({ myDossier, tt, lang }) {
       const m = await import('../utils/generateVoyagePDF')
       if (genre === 'guide') await m.generateGuidePDF({ config: voyage.guide, lang, download: true })
       else await m.generateFichePDF({ voyage, config: voyage.guide || { fr: {}, en: {} }, lang, download: true })
+    } catch (e) {
+      console.error(e)
     } finally {
       setGen('')
     }
