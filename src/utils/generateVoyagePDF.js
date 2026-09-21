@@ -629,7 +629,8 @@ function contenuGuide(m, lang) {
   m.poser(m.bBande({
     etiq: t('22 octobre', '22 October'), titre: t('À votre départ', 'When you leave'),
     contenu: [{ segs: t("Un transfert retour vers l'aéroport Mohammed V est organisé selon l'horaire de votre vol. Merci de vous assurer que vos informations de vol retour sont à jour dans votre dossier.",
-      'A return transfer to Mohammed V Airport is organised according to your flight time. Please make sure your return flight details are up to date in your file.') }],
+      'A return transfer to Mohammed V Airport is organised according to your flight time. Please make sure your return flight details are up to date in your file.') },
+      { segs: t('Les nuitées supplémentaires après le 22 octobre restent à votre charge.', 'Additional nights after 22 October remain at your own expense.') }],
   }))
   m.poser(m.bBande({
     etiq: t('Ensuite', 'Afterwards'), titre: t("Après l'événement", 'After the event'),
