@@ -1241,9 +1241,13 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
   const showEur = n => montantsRevealed ? fmtEur(n) : MASKED_EUR
   const showNum = n => montantsRevealed ? n : MASKED_NUM
 
-  const total       = data.length
-  const totalParts  = data.reduce((s, r) => s + (r.participants || 0), 0)
-  const totalMontant= data.reduce((s, r) => s + (r.montant || 0), 0)
+  // Les dossiers annules sont exclus des totaux (comme partout ailleurs : montantEnAttente plus
+  // bas, AdminProforma) — sans quoi "Dossiers/Participants/Revenus" restait incoherent avec
+  // "Confirmes/En attente" juste a cote, qui eux excluaient deja les annules.
+  const dataActifs  = data.filter(r => r.paiement_status !== 'annule')
+  const total       = dataActifs.length
+  const totalParts  = dataActifs.reduce((s, r) => s + (r.participants || 0), 0)
+  const totalMontant= dataActifs.reduce((s, r) => s + (r.montant || 0), 0)
   const confirmes   = data.filter(r => r.paiement_status === 'confirme').length
   const enAttente   = data.filter(r => ['en_attente', 'reserve'].includes(r.paiement_status)).length
   const arrives     = data.filter(r => r.arrived).length + membres.filter(m => m.arrived).length
@@ -1754,7 +1758,10 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
   const showEur = n => montantsRevealed ? fmtEur(n) : MASKED_EUR
   const showNum = n => montantsRevealed ? n : MASKED_NUM
 
-  const totalRevenu  = inscriptions.reduce((s, r) => s + (r.montant || 0), 0)
+  // Les dossiers annules sont exclus de tous les totaux inscriptions ci-dessous (deja le cas pour
+  // montantEnAttente ; etendu ici a totalRevenu/Participants/tauxRemplissage pour rester coherent).
+  const inscriptionsActives = inscriptions.filter(r => r.paiement_status !== 'annule')
+  const totalRevenu  = inscriptionsActives.reduce((s, r) => s + (r.montant || 0), 0)
     + sponsors.reduce((s, r) => s + (r.montant || 0), 0)
     + partenaires.reduce((s, r) => s + (r.montant || 0), 0)
   const confirmes    = inscriptions.filter(r => r.paiement_status === 'confirme').length
@@ -1762,7 +1769,7 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
   // Financier & logistique
   const montantEncaisse  = inscriptions.filter(r => r.paiement_status === 'confirme').reduce((s, r) => s + (r.montant || 0), 0)
   const montantEnAttente = inscriptions.filter(r => r.paiement_status !== 'confirme' && r.paiement_status !== 'annule').reduce((s, r) => s + (r.montant || 0), 0)
-  const totalParticipantsReels = inscriptions.reduce((s, r) => s + (r.participants || 0), 0)
+  const totalParticipantsReels = inscriptionsActives.reduce((s, r) => s + (r.participants || 0), 0)
   const tauxRemplissage = Math.min(100, Math.round((totalParticipantsReels / CAPACITE_MAX_SALLE) * 100))
   const badgesEmis  = inscriptions.filter(r => r.badge_token).length
   const arrivesTotal = inscriptions.filter(r => r.arrived).length
@@ -1821,7 +1828,7 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
         </button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 20 }}>
-        <KpiCard icon="users"    label="Participants" value={showNum(inscriptions.reduce((s, r) => s + (r.participants || 0), 0))} color="#6366f1" sub={`${showNum(inscriptions.length)} dossiers`} />
+        <KpiCard icon="users"    label="Participants" value={showNum(totalParticipantsReels)} color="#6366f1" sub={`${showNum(inscriptionsActives.length)} dossiers`} />
         <KpiCard icon="euro"     label="Revenus totaux" value={showEur(totalRevenu)} color="#10b981" />
         <KpiCard icon="check"    label="Confirmés"    value={showNum(confirmes)} color="#10b981" tint sub={montantsRevealed ? `${Math.round((confirmes / (inscriptions.length || 1)) * 100)}% conv.` : undefined} />
         <KpiCard icon="diamond"  label="Sponsors"     value={showNum(sponsors.length)} color="#d97706" />
