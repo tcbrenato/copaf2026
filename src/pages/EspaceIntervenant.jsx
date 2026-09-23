@@ -50,6 +50,9 @@ const TR = {
     docText: 'Dossier partagé contenant les documents de référence de la conférence.',
     openFolder: 'Ouvrir le dossier',
     supports: 'Supports & Documents',
+    deadlineTitre: 'Date limite : dépôt de votre présentation',
+    deadlineTexte: 'Merci de déposer votre présentation (PPTX) ci-dessous avant le',
+    deadlineDate: '5 octobre 2026',
   },
   en: {
     jours: { 1: { date: 'October 19', sub: 'Day 1' }, 2: { date: 'October 20', sub: 'Day 2' }, 3: { date: 'October 21', sub: 'Day 3' } },
@@ -87,6 +90,9 @@ const TR = {
     docText: 'Shared folder containing the reference documents of the conference.',
     openFolder: 'Open the folder',
     supports: 'Materials & Documents',
+    deadlineTitre: 'Deadline: submit your presentation',
+    deadlineTexte: 'Please upload your presentation (PPTX) below before',
+    deadlineDate: '5 October 2026',
   },
 }
 
@@ -443,6 +449,17 @@ export default function EspaceIntervenant() {
                 <BoutonsEquipe lang={lang} docs={docs} />
               </div>
             )}
+
+            {/* Alerte : date limite de depot de la presentation PPTX */}
+            <div className="col-span-full" style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 20, padding: '18px 24px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: '#F59E0B', display: 'grid', placeItems: 'center', color: '#fff', flexShrink: 0 }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <h3 style={{ fontSize: 15, fontWeight: 800, color: '#92400E', margin: '0 0 3px' }}>{t.deadlineTitre}</h3>
+                <span style={{ fontSize: 13, color: '#78350F', lineHeight: 1.5 }}>{t.deadlineTexte} <strong>{t.deadlineDate}</strong>.</span>
+              </div>
+            </div>
 
             {/* Bento Card 3 : Espace Documents (Plein Largeur) */}
             <div className="bento-card-light col-span-full" style={{ padding: 28 }}>
