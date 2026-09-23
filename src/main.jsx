@@ -22,14 +22,31 @@ import App from './App.jsx'
 // pleine installation du SW (cache de precache pas encore garanti complet),
 // ce qui peut servir un jeu de fichiers incoherent. On n'ecoute donc que les
 // changements de controleur qui suivent un premier controleur deja en place.
+// Le rechargement lui-meme n'a pas a interrompre quelqu'un en plein travail (ex. l'admin en
+// train de remplir un formulaire) : s'il a lieu pendant que l'onglet est actif, on le reporte
+// silencieusement au moment ou l'onglet repasse en arriere-plan (changement d'onglet, fenetre
+// minimisee...), un peu comme WhatsApp Web se resynchronise pendant qu'on ne regarde pas. On ne
+// recharge tout de suite que si l'onglet est deja en arriere-plan au moment de la bascule.
 if ('serviceWorker' in navigator) {
   let hadController = !!navigator.serviceWorker.controller
   let refreshing = false
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!hadController) { hadController = true; return }
+  let miseAJourEnAttente = false
+
+  const recharger = () => {
     if (refreshing) return
     refreshing = true
     window.location.reload()
+  }
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) { hadController = true; return }
+    if (refreshing) return
+    if (document.hidden) recharger()
+    else miseAJourEnAttente = true
+  })
+
+  document.addEventListener('visibilitychange', () => {
+    if (miseAJourEnAttente && document.hidden) recharger()
   })
 }
 
