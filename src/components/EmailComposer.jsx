@@ -8,7 +8,7 @@
 //
 // `initialTo` permet de pre-remplir le destinataire (fiche d'une personne).
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { X, Search, Send, Eye, Users, Check } from 'lucide-react'
 import { supabase } from '../supabase'
 import RichTextEditor from './RichTextEditor'
@@ -45,25 +45,71 @@ async function chercherPersonnes(q) {
   ].filter(r => r.email && !vus.has(r.email.toLowerCase()) && vus.add(r.email.toLowerCase()))
 }
 
+// Brouillon enregistre localement (par contexte : dossier precis, ou general pour /admin/emails) pour ne
+// rien perdre d'un message en cours de redaction — y compris quand l'onglet repasse en arriere-plan et
+// que le site se recharge alors en silence pour prendre une nouvelle version (voir main.jsx). Ecrit a
+// chaque changement (debounce) ET force au moment ou l'onglet devient invisible, pour ne rater aucune
+// derniere frappe juste avant une bascule d'onglet.
+const cleBrouillon = dossier => `copaf_email_brouillon:${dossier || 'general'}`
+
+function chargerBrouillon(dossier) {
+  try {
+    const brut = localStorage.getItem(cleBrouillon(dossier))
+    if (!brut) return null
+    const d = JSON.parse(brut)
+    if (!d || (!d.objet && !d.corps && !(d.destinataires || []).length)) return null
+    return d
+  } catch { return null }
+}
+
 export default function EmailComposer({ initialTo = [], dossier = null, onSent }) {
-  const [destinataires, setDestinataires] = useState(() => [...new Set(initialTo.map(e => e.toLowerCase()))])
+  const [brouillonInitial] = useState(() => chargerBrouillon(dossier))
+  const [brouillonRestaure, setBrouillonRestaure] = useState(() => !!brouillonInitial)
+  const [destinataires, setDestinataires] = useState(() => brouillonInitial?.destinataires?.length ? brouillonInitial.destinataires : [...new Set(initialTo.map(e => e.toLowerCase()))])
   const [saisie, setSaisie] = useState('')
   const [suggestions, setSuggestions] = useState([])
-  const [objet, setObjet] = useState('')
-  const [corps, setCorps] = useState('')
+  const [objet, setObjet] = useState(() => brouillonInitial?.objet || '')
+  const [corps, setCorps] = useState(() => brouillonInitial?.corps || '')
   const [corpsKey, setCorpsKey] = useState(0)
   const [signature, setSignature] = useState(SIGNATURE_DEFAUT)
   const [signatureKey, setSignatureKey] = useState(0)
   const [signatureOuverte, setSignatureOuverte] = useState(false)
   const [signatureMsg, setSignatureMsg] = useState('')
-  const [habillage, setHabillage] = useState(true)
-  const [replyTo, setReplyTo] = useState('contact@copaf-ports.com')
+  const [habillage, setHabillage] = useState(() => brouillonInitial?.habillage ?? true)
+  const [replyTo, setReplyTo] = useState(() => brouillonInitial?.replyTo || 'contact@copaf-ports.com')
   const [apercu, setApercu] = useState(null)
   const [confirmer, setConfirmer] = useState(false)
   const [envoi, setEnvoi] = useState(false)
   const [erreur, setErreur] = useState('')
   const [resultat, setResultat] = useState(null)
   const minuterie = useRef(null)
+
+  // Autosauvegarde du brouillon : debattue a chaque frappe, mais forcee immediatement des que
+  // l'onglet devient invisible (cf. main.jsx) pour ne jamais perdre les toutes dernieres frappes.
+  const brouillonMinuterie = useRef(null)
+  const ecrireBrouillon = useCallback(() => {
+    try {
+      if (!objet && !corps.replace(/<[^>]*>/g, '').trim() && !destinataires.length) localStorage.removeItem(cleBrouillon(dossier))
+      else localStorage.setItem(cleBrouillon(dossier), JSON.stringify({ destinataires, objet, corps, habillage, replyTo }))
+    } catch { /* localStorage indisponible */ }
+  }, [dossier, destinataires, objet, corps, habillage, replyTo])
+  useEffect(() => {
+    clearTimeout(brouillonMinuterie.current)
+    brouillonMinuterie.current = setTimeout(ecrireBrouillon, 400)
+    return () => clearTimeout(brouillonMinuterie.current)
+  }, [destinataires, objet, corps, habillage, replyTo, ecrireBrouillon])
+  useEffect(() => {
+    const surVisibilite = () => { if (document.hidden) { clearTimeout(brouillonMinuterie.current); ecrireBrouillon() } }
+    document.addEventListener('visibilitychange', surVisibilite)
+    return () => document.removeEventListener('visibilitychange', surVisibilite)
+  }, [ecrireBrouillon])
+
+  const viderBrouillon = () => {
+    try { localStorage.removeItem(cleBrouillon(dossier)) } catch { /* localStorage indisponible */ }
+    setBrouillonRestaure(false)
+    setDestinataires([...new Set(initialTo.map(e => e.toLowerCase()))])
+    setObjet(''); setCorps(''); setCorpsKey(k => k + 1)
+  }
 
   // Signature enregistree du compte connecte.
   useEffect(() => {
@@ -160,6 +206,8 @@ export default function EmailComposer({ initialTo = [], dossier = null, onSent }
     setResultat(data)
     if (data?.envoyes === data?.total) {
       setObjet(''); setCorps(''); setCorpsKey(k => k + 1)
+      try { localStorage.removeItem(cleBrouillon(dossier)) } catch { /* localStorage indisponible */ }
+      setBrouillonRestaure(false)
       if (onSent) onSent(data)
     }
   }
@@ -168,6 +216,15 @@ export default function EmailComposer({ initialTo = [], dossier = null, onSent }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      {brouillonRestaure && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 10, padding: '9px 14px', fontSize: 13, color: NAVY }}>
+          <span style={{ flex: 1 }}>Brouillon non envoyé restauré automatiquement.</span>
+          <button type="button" onClick={viderBrouillon} style={{ background: 'none', border: 'none', padding: 0, color: NAVY, fontSize: 13, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit' }}>
+            Repartir d'un message vide
+          </button>
+        </div>
+      )}
+
       <div>
         <label style={LABEL}>Destinataire(s)</label>
         <div style={{ ...INPUT, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', padding: '7px 10px' }}>
