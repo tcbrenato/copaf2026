@@ -3,11 +3,11 @@ import { Navigate } from 'react-router-dom'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import QRCode from 'qrcode'
 import { supabase } from '../supabase'
-import { generateBadge } from '../utils/generateBadge'
 import { generateQrCard } from '../utils/generateQrCard'
 import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmationInscriptionPDF'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { useAdminAuth } from '../adminAuth'
+import { Avatar } from '../utils/dossierUi'
 import DocumentsSection from './DocumentsSection'
 import ValidationDocuments from './ValidationDocuments'
 import EcrireBouton from './EcrireBouton'
@@ -240,7 +240,7 @@ function BarRow({ label, value, max, color, pctBase }) {
 }
 
 // ─── MODAL GÉNÉRIQUE ─────────────────────────────────────────────────────────
-function Modal({ title, subtitle, accentColor, fields, status, statusField, onStatusChange, onSave, onDelete, onClose, saving, deleting, confirmDel, setConfirmDel, toast, onDownloadBadge, generatingBadge, children, readOnly = false }) {
+function Modal({ title, subtitle, accentColor, fields, status, statusField, onStatusChange, onSave, onDelete, onClose, saving, deleting, confirmDel, setConfirmDel, toast, children, readOnly = false }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.45)', backdropFilter: 'blur(4px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
       onClick={onClose}>
@@ -313,21 +313,8 @@ function Modal({ title, subtitle, accentColor, fields, status, statusField, onSt
         </div>
         )}
 
-        <div style={{ padding: readOnly ? '0 28px 20px' : '0' }}>
-          {onDownloadBadge && (
-            <button onClick={onDownloadBadge} disabled={generatingBadge} style={{
-              width: '100%', padding: '13px', marginTop: 10,
-              background: '#fff', border: '1.5px solid #000E91',
-              borderRadius: 12, color: '#000E91',
-              fontWeight: 700, fontSize: 14, cursor: generatingBadge ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit',
-              opacity: generatingBadge ? .6 : 1,
-            }}>
-              <Icon name="download" size={16} color="#000E91" />
-              {generatingBadge ? 'Génération du badge...' : 'Télécharger le badge (PNG)'}
-            </button>
-          )}
-        </div>
+        {/* Le badge n'est plus genere par le site : l'admin le concoit et le depose lui-meme
+            dans les documents de la personne, avec le type « Badge » (voir DocumentsSection). */}
 
         {children}
 
@@ -652,7 +639,6 @@ function ModalParticipant({ row, onClose, onUpdate }) {
   const [deleting,   setDeleting]   = useState(false)
   const [confirmDel, setConfirmDel] = useState(false)
   const [toast,      setToast]      = useState('')
-  const [genBadge,   setGenBadge]   = useState(false)
 
   const t = msg => { setToast(msg); setTimeout(() => setToast(''), 3000) }
 
@@ -685,20 +671,6 @@ function ModalParticipant({ row, onClose, onUpdate }) {
     else t('Erreur suppression : ' + error.message)
   }
 
-  const downloadBadge = async () => {
-    setGenBadge(true)
-    try {
-      await generateBadge({
-        nomPrenom: `${row.contacts?.prenom || ''} ${row.contacts?.nom || ''}`.trim(),
-        fonction: row.contacts?.pays || '',
-        dossier: row.dossier || row.id,
-        photoSrc: row.photo_url || undefined,
-      })
-    }
-    catch (e) { t('Erreur génération badge : ' + e.message) }
-    setGenBadge(false)
-  }
-
   return (
     <Modal
       title={`${row.prenom || ''} ${row.nom || ''}`}
@@ -721,8 +693,6 @@ function ModalParticipant({ row, onClose, onUpdate }) {
       readOnly={readOnly}
       confirmDel={confirmDel} setConfirmDel={setConfirmDel}
       onClose={onClose} toast={toast}
-      onDownloadBadge={status === 'confirme' ? downloadBadge : null}
-      generatingBadge={genBadge}
     >
       {row.dossier && (
         <DossierExtras
@@ -1274,6 +1244,7 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
         created_at: parent?.created_at,
         arrived: m.arrived,
         arrived_at: m.arrived_at,
+        photo_url: m.photo_url,
         numero_passeport: m.numero_passeport,
         nom_passeport: m.nom_passeport,
         prenom_passeport: m.prenom_passeport,
@@ -1341,12 +1312,15 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
 
   const TABLE_COLS = [
     { key: 'dossier',         label: 'Dossier',       render: v => <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#6366f1', fontWeight: 600, background: '#eef2ff', padding: '2px 8px', borderRadius: 6 }}>{v || '—'}</span> },
-    { key: 'nom',             label: 'Nom & Prenom',  render: (v, r) => <div>
-      <div style={{ fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
-        {r.contacts?.prenom} {r.contacts?.nom}
-        {r._isMember && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#7c3aed', background: '#ede9fe', borderRadius: 20, padding: '1px 7px', textTransform: 'uppercase', letterSpacing: .3 }}>Délégation</span>}
+    { key: 'nom',             label: 'Nom & Prenom',  render: (v, r) => <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <Avatar src={r.photo_url} prenom={r.contacts?.prenom} nom={r.contacts?.nom} size={32} />
+      <div>
+        <div style={{ fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
+          {r.contacts?.prenom} {r.contacts?.nom}
+          {r._isMember && <span style={{ fontSize: 9.5, fontWeight: 700, color: '#7c3aed', background: '#ede9fe', borderRadius: 20, padding: '1px 7px', textTransform: 'uppercase', letterSpacing: .3 }}>Délégation</span>}
+        </div>
+        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{r.contacts?.poste || '—'}</div>
       </div>
-      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{r.contacts?.poste || '—'}</div>
     </div> },
     { key: 'organisation',    label: 'Organisation',  muted: true, maxW: 180, render: (v, r) => r.contacts?.organisation || '—' },
     { key: 'pays',            label: 'Pays',          render: (v, r) => <span style={{ background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 6, padding: '3px 8px', fontSize: 11 }}>{r.contacts?.pays || '—'}</span> },

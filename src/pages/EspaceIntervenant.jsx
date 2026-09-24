@@ -4,6 +4,7 @@ import { supabase } from '../supabase'
 import SeoHead from '../components/SeoHead'
 import DocumentsSection from '../components/DocumentsSection'
 import BoutonsEquipe from '../components/BoutonsEquipe'
+import { Avatar } from '../utils/dossierUi'
 import { generateQrCard } from '../utils/generateQrCard'
 import LangToggle from '../components/LangToggle'
 import { useLang } from '../i18n/useLang'
@@ -324,8 +325,8 @@ export default function EspaceIntervenant() {
             <div className="bento-card-light" style={{ padding: 24, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyBetween: 'space-between', gap: 12, marginBottom: 20 }}>
-                  <div style={{ width: 56, height: 56, borderRadius: 18, background: BLUE, display: 'grid', placeItems: 'center', fontSize: 22, fontWeight: 900, color: '#FFF', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)' }}>
-                    {intervenant.prenom?.[0]}{intervenant.nom?.[0]}
+                  <div style={{ boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)', borderRadius: 18 }}>
+                    <Avatar src={intervenant.photo_url} prenom={intervenant.prenom} nom={intervenant.nom} size={56} radius={18} fontSize={22} />
                   </div>
                   <button
                     type="button" onClick={() => { setIntervenant(null); setNom(''); setEmail(''); setCode('') }}

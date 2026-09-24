@@ -29,6 +29,30 @@ export const Ico = ({ name, size = 20, color = 'currentColor' }) => {
 }
 
 // ── Carte de section (fond blanc, icone + titre + contenu libre) ──
+// ── Avatar : photo si disponible, sinon initiales sur un rond de couleur ──
+// Utilise partout ou une personne est representee : espace participant, espace intervenant,
+// liste admin des participants. La couleur des initiales est deterministe (derivee du nom),
+// pour qu'une meme personne garde toujours la meme couleur d'un endroit a l'autre.
+const AVATAR_TEINTES = ['#000E91', '#0073F4', '#0891b2', '#7c3aed', '#be185d', '#b45309', '#059669']
+function teinteAvatar(cle) {
+  let h = 0
+  for (const c of String(cle || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0
+  return AVATAR_TEINTES[h % AVATAR_TEINTES.length]
+}
+export function Avatar({ src, nom, prenom, size = 40, radius, fontSize }) {
+  const initiales = `${prenom?.[0] || ''}${nom?.[0] || ''}`.toUpperCase() || '?'
+  const commun = { width: size, height: size, borderRadius: radius ?? Math.round(size * 0.32), flexShrink: 0, objectFit: 'cover' }
+  if (src) return <img src={src} alt="" style={commun} />
+  return (
+    <div style={{
+      ...commun, background: teinteAvatar(`${prenom}${nom}`), color: '#fff', display: 'flex',
+      alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: fontSize ?? Math.round(size * 0.38), fontFamily: 'inherit',
+    }}>
+      {initiales}
+    </div>
+  )
+}
+
 export function Card({ icon, title, children }) {
   return (
     <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 18, padding: 20, boxShadow: '0 4px 16px rgba(15,23,42,.05)' }}>

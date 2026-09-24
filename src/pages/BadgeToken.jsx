@@ -385,6 +385,37 @@ export default function BadgeToken() {
       )
     }
 
+    // Scan public (n'importe qui, sans session) : meme gabarit "carte de visite numerique" que les
+    // intervenants (photo pleine largeur, fiche en dessous), mais sans les champs sensibles qu'un
+    // intervenant expose lui (pas de telephone/email/boutons de contact, pas de pays) — seuls
+    // nom, fonction, organisation et photo sont publics pour un participant/delegue.
+    if (!session) {
+      return (
+        <div style={wrapStyle}>
+          <FondNeige />
+          <div style={{ ...cardStyle, position: 'relative', zIndex: 1, padding: 0, overflow: 'hidden', textAlign: 'left' }}>
+            {data.photo_url ? (
+              <img src={data.photo_url} alt="" style={{ width: '100%', height: 260, objectFit: 'cover', display: 'block' }} />
+            ) : (
+              <div style={{ height: 100, background: `linear-gradient(135deg, ${NAVY}, ${BLUE})` }} />
+            )}
+            <div style={{ padding: 24 }}>
+              <div style={{ fontSize: 10, color: BLUE, opacity: .9, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700 }}>
+                {data.categorie || 'Participant'} COPAF 2026
+              </div>
+              <div style={{ fontSize: 21, fontWeight: 900, color: '#0f172a', marginTop: 6 }}>{data.prenom} {data.nom}</div>
+              {data.poste && <div style={{ fontSize: 14, color: '#334155', fontWeight: 600, marginTop: 3 }}>{data.poste}</div>}
+              {data.organisation && <div style={{ fontSize: 13, color: '#64748b', marginTop: 1 }}>{data.organisation}</div>}
+
+              <div style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid #f1f5f9', fontSize: 11, color: '#94a3b8', textAlign: 'center' }}>
+                Conférence des Ports Africains · 19–21 Oct. 2026, Casablanca
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     const tb = TR_BADGE[data.langue === 'en' ? 'en' : 'fr']
     return (
       <div style={wrapStyle}>
@@ -395,8 +426,8 @@ export default function BadgeToken() {
           {data.poste && <div style={{ fontSize: 14, opacity: 0.9, marginTop: 4 }}>{data.poste}</div>}
           {data.organisation && <div style={{ fontSize: 13, opacity: 0.7, marginTop: 2 }}>{data.organisation}</div>}
 
-          {/* Scan du QR / lien public : simple carte (nom, fonction, organisation), sans lien
-              ni formulaire. Le formulaire n'existe que dans "Mon espace" (/badge), apres connexion. */}
+          {/* Session active ("Mon espace", apres connexion par dossier + secret) : formulaire de
+              completion. Jamais affiche a un scan anonyme (deja gere par le retour ci-dessus). */}
           {session && (
             <div style={{ marginTop: 22, paddingTop: 18, borderTop: '1px solid rgba(255,255,255,.2)' }}>
               <div style={{ fontSize: 11, opacity: 0.75, fontWeight: 700, marginBottom: 10 }}>{tb.completerTitre}</div>

@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom'
 import { supabase } from '../supabase'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
-import { generateBadge } from '../utils/generateBadge'
 import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitivePDF'
 import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmationInscriptionPDF'
 import DocumentsSection from '../components/DocumentsSection'
@@ -638,14 +637,6 @@ export default function AdminProforma() {
     } finally { setGenLoading('') }
   }
 
-  const handleGenerateBadge = async () => {
-    setGenLoading('badge')
-    try {
-      await generateBadge({ nomPrenom: `${data.prenom} ${data.nom}`, fonction: data.poste || '', dossier: data.dossier, photoSrc: null, lang })
-      await logDocument(data.dossier, 'badge')
-    } finally { setGenLoading('') }
-  }
-
   const handleGenerateFactureDefinitive = async () => {
     setGenLoading('facture')
     try {
@@ -1179,17 +1170,10 @@ export default function AdminProforma() {
               </button>
 
               {data.statut === 'confirme' && (
-                <>
-                  <button onClick={handleGenerateBadge} disabled={genLoading === 'badge'} style={actionBtn('#d1fae5', '#065f46', '#6ee7b7')}>
-                    <Ico name="badge" size={15} color="#065f46" />
-                    {genLoading === 'badge' ? 'Génération...' : 'Badge'}
-                  </button>
-
-                  <button onClick={handleGenerateFactureDefinitive} disabled={genLoading === 'facture'} style={actionBtn('#fef3c7', '#92400e', '#fcd34d')}>
-                    <Ico name="receipt" size={15} color="#92400e" />
-                    {genLoading === 'facture' ? 'Génération...' : (data.numeroFacture ? `Facture (${data.numeroFacture})` : 'Facture définitive')}
-                  </button>
-                </>
+                <button onClick={handleGenerateFactureDefinitive} disabled={genLoading === 'facture'} style={actionBtn('#fef3c7', '#92400e', '#fcd34d')}>
+                  <Ico name="receipt" size={15} color="#92400e" />
+                  {genLoading === 'facture' ? 'Génération...' : (data.numeroFacture ? `Facture (${data.numeroFacture})` : 'Facture définitive')}
+                </button>
               )}
             </div>
             {isGroup && participantsListe.length > 1 && (

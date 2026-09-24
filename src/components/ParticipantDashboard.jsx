@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import i18n from '../i18n/i18n'
-import { Ico, Card, DocRow, ProgressTimeline } from '../utils/dossierUi'
+import { Ico, Card, DocRow, ProgressTimeline, Avatar } from '../utils/dossierUi'
 import { fmtEur, WHATSAPP_NUMBER, BANK_INFO, cardBtnStyle } from '../utils/dossierConstants'
 import BoutonsEvenement from './BoutonsEvenement'
 
@@ -106,14 +106,17 @@ export default function ParticipantDashboard({
         color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
         flexWrap: 'wrap', gap: 14, marginBottom: 18,
       }}>
-        <div>
-          <div style={{ fontSize: 11.5, opacity: 0.75, fontWeight: 600 }}>{t.recapLabels.dossier} {myDossier.dossier}</div>
-          <div style={{ fontSize: 20, fontWeight: 900, marginTop: 4 }}>{myDossier.prenom} {myDossier.nom}</div>
-          {(myDossier.organisation || myDossier.poste) && (
-            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
-              {[myDossier.organisation, myDossier.poste].filter(Boolean).join(' — ')}
-            </div>
-          )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <Avatar src={myDossier.photo_url} prenom={myDossier.prenom} nom={myDossier.nom} size={56} />
+          <div>
+            <div style={{ fontSize: 11.5, opacity: 0.75, fontWeight: 600 }}>{t.recapLabels.dossier} {myDossier.dossier}</div>
+            <div style={{ fontSize: 20, fontWeight: 900, marginTop: 4 }}>{myDossier.prenom} {myDossier.nom}</div>
+            {(myDossier.organisation || myDossier.poste) && (
+              <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
+                {[myDossier.organisation, myDossier.poste].filter(Boolean).join(' — ')}
+              </div>
+            )}
+          </div>
         </div>
         <span style={{ background: 'rgba(255,255,255,.18)', padding: '8px 16px', borderRadius: 100, fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>
           {(STATUTS[myDossier.statut] || {}).label || myDossier.statut}
