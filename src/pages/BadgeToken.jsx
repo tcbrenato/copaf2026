@@ -338,7 +338,7 @@ export default function BadgeToken() {
           <FondNeige />
           <div style={{ ...cardStyle, position: 'relative', zIndex: 1, padding: 0, overflow: 'hidden', textAlign: 'left' }}>
             {data.photo_url ? (
-              <img src={data.photo_url} alt="" style={{ width: '100%', height: 260, objectFit: 'cover', display: 'block' }} />
+              <img src={data.photo_url} alt="" style={{ width: '100%', height: 260, objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
             ) : (
               <div style={{ height: 100, background: `linear-gradient(135deg, ${NAVY}, ${BLUE})` }} />
             )}
@@ -395,7 +395,7 @@ export default function BadgeToken() {
           <FondNeige />
           <div style={{ ...cardStyle, position: 'relative', zIndex: 1, padding: 0, overflow: 'hidden', textAlign: 'left' }}>
             {data.photo_url ? (
-              <img src={data.photo_url} alt="" style={{ width: '100%', height: 260, objectFit: 'cover', display: 'block' }} />
+              <img src={data.photo_url} alt="" style={{ width: '100%', height: 260, objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
             ) : (
               <div style={{ height: 100, background: `linear-gradient(135deg, ${NAVY}, ${BLUE})` }} />
             )}
@@ -530,7 +530,7 @@ export default function BadgeToken() {
             <div style={{ fontSize: 10, color: BLUE, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' }}>{data.categorie || 'Participant'}</div>
             <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>{data.prenom} {data.nom}</div>
           </div>
-          {data.photo_url && <img src={data.photo_url} alt="" style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />}
+          {data.photo_url && <img src={data.photo_url} alt="" style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'cover', objectPosition: 'top', flexShrink: 0 }} />}
         </div>
 
         {[

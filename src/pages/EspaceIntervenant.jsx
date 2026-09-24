@@ -8,6 +8,7 @@ import { Avatar } from '../utils/dossierUi'
 import { generateQrCard } from '../utils/generateQrCard'
 import LangToggle from '../components/LangToggle'
 import { useLang } from '../i18n/useLang'
+import { normaliserDossier } from '../utils/dossierConstants'
 
 const BLUE = '#0284C7'
 
@@ -18,7 +19,7 @@ const TR = {
   fr: {
     jours: { 1: { date: '19 Octobre', sub: 'Jour 1' }, 2: { date: '20 Octobre', sub: 'Jour 2' }, 3: { date: '21 Octobre', sub: 'Jour 3' } },
     day: 'Jour',
-    loginError: "Nom, email ou code d'accès non reconnus. Vérifiez ces informations ou contactez l'organisation.",
+    loginError: "Dossier ou email non reconnus. Vérifiez ces informations ou contactez l'organisation.",
     seoTitle: 'Espace Intervenant — COPAF 2026',
     seoDesc: 'Espace personnel des intervenants COPAF 2026',
     badge: 'Portail Conférencier',
@@ -26,12 +27,10 @@ const TR = {
     intro: "Consultez vos accréditations, gérez vos horaires d'intervention et déposez vos supports de présentation.",
     idTitle: 'Identification',
     idHint: "Entrez vos identifiants fournis par l'organisation",
-    fullName: 'Nom complet',
-    namePh: 'Ex. William Odah',
+    dossier: 'Numéro de dossier',
+    dossierPh: 'Ex. INT2026-001',
     email: 'Email',
     emailPh: "Votre email communiqué à l'organisation",
-    code: "Code d'accès",
-    codePh: "Code reçu par email/organisation",
     connecting: 'Connexion en cours...',
     connect: 'Accéder à mon espace',
     logout: 'Déconnexion',
@@ -58,7 +57,7 @@ const TR = {
   en: {
     jours: { 1: { date: 'October 19', sub: 'Day 1' }, 2: { date: 'October 20', sub: 'Day 2' }, 3: { date: 'October 21', sub: 'Day 3' } },
     day: 'Day',
-    loginError: 'Name, email or access code not recognised. Please check this information or contact the organisers.',
+    loginError: 'File number or email not recognised. Please check this information or contact the organisers.',
     seoTitle: 'Speaker Area — COPAF 2026',
     seoDesc: 'Personal area for COPAF 2026 speakers',
     badge: 'Speaker Portal',
@@ -66,12 +65,10 @@ const TR = {
     intro: 'View your accreditations, manage your speaking times and upload your presentation materials.',
     idTitle: 'Sign in',
     idHint: 'Enter the credentials provided by the organisers',
-    fullName: 'Full name',
-    namePh: 'E.g. William Odah',
+    dossier: 'File number',
+    dossierPh: 'E.g. INT2026-001',
     email: 'Email',
     emailPh: 'Your email given to the organisers',
-    code: 'Access code',
-    codePh: 'Code received by email/from the organisers',
     connecting: 'Signing in...',
     connect: 'Access my area',
     logout: 'Log out',
@@ -100,9 +97,8 @@ const TR = {
 export default function EspaceIntervenant() {
   const lang = useLang()
   const t = TR[lang]
-  const [nom, setNom] = useState('')
+  const [dossierInput, setDossierInput] = useState('')
   const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [erreur, setErreur] = useState('')
   const [intervenant, setIntervenant] = useState(null)
@@ -152,9 +148,9 @@ export default function EspaceIntervenant() {
 
   const connexion = async e => {
     e.preventDefault()
-    if (!nom.trim() || !email.trim() || !code.trim()) return
+    if (!dossierInput.trim() || !email.trim()) return
     setLoading(true); setErreur('')
-    const { data, error } = await supabase.rpc('intervenant_login', { p_nom: nom.trim(), p_code: code.trim(), p_email: email.trim() })
+    const { data, error } = await supabase.rpc('intervenant_login', { p_dossier: normaliserDossier(dossierInput), p_email: email.trim() })
     setLoading(false)
     if (error || !data) {
       setErreur(t.loginError)
@@ -282,9 +278,9 @@ export default function EspaceIntervenant() {
 
             <form onSubmit={connexion} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
-                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.fullName}</label>
+                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.dossier}</label>
                 <input
-                  value={nom} onChange={e => setNom(e.target.value)} placeholder={t.namePh} autoFocus
+                  value={dossierInput} onChange={e => setDossierInput(e.target.value)} placeholder={t.dossierPh} autoFocus
                   className="light-input" style={{ width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, boxSizing: 'border-box' }}
                 />
               </div>
@@ -293,14 +289,6 @@ export default function EspaceIntervenant() {
                 <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.email}</label>
                 <input
                   type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t.emailPh}
-                  className="light-input" style={{ width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, boxSizing: 'border-box' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: 11.5, fontWeight: 700, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.code}</label>
-                <input
-                  type="password" value={code} onChange={e => setCode(e.target.value)} placeholder={t.codePh}
                   className="light-input" style={{ width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, boxSizing: 'border-box' }}
                 />
               </div>
@@ -329,7 +317,7 @@ export default function EspaceIntervenant() {
                     <Avatar src={intervenant.photo_url} prenom={intervenant.prenom} nom={intervenant.nom} size={56} radius={18} fontSize={22} />
                   </div>
                   <button
-                    type="button" onClick={() => { setIntervenant(null); setNom(''); setEmail(''); setCode('') }}
+                    type="button" onClick={() => { setIntervenant(null); setDossierInput(''); setEmail('') }}
                     style={{ background: '#F1F5F9', border: '1px solid #CBD5E1', borderRadius: 10, padding: '7px 12px', color: '#475569', fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
                   >
                     {t.logout}

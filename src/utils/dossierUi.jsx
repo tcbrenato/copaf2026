@@ -41,7 +41,9 @@ function teinteAvatar(cle) {
 }
 export function Avatar({ src, nom, prenom, size = 40, radius, fontSize }) {
   const initiales = `${prenom?.[0] || ''}${nom?.[0] || ''}`.toUpperCase() || '?'
-  const commun = { width: size, height: size, borderRadius: radius ?? Math.round(size * 0.32), flexShrink: 0, objectFit: 'cover' }
+  // objectPosition: 'top' evite de couper le haut du visage sur les portraits verticaux (constate en
+  // pratique : plusieurs photos deposees avaient le front/les cheveux rognes avec un cadrage centre).
+  const commun = { width: size, height: size, borderRadius: radius ?? Math.round(size * 0.32), flexShrink: 0, objectFit: 'cover', objectPosition: 'top' }
   if (src) return <img src={src} alt="" style={commun} />
   return (
     <div style={{
