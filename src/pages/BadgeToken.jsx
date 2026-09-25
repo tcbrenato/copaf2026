@@ -21,10 +21,59 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { Ico } from '../utils/dossierUi'
 import { normaliserDossier } from '../utils/dossierConstants'
+import { drapeauEmoji, logoPort } from '../utils/paysDrapeaux'
 import VoyageBadge from '../components/VoyageBadge'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
+const CYAN = '#38BDF8'
+
+// ─── Identite "badge" reprise sur la carte publique du QR code (bandeau marine + vagues en tete,
+// bandeau categorie, logos partenaires en pied) — communs a la carte Participant et Intervenant. ───
+function EnteteBadge({ dossier }) {
+  return (
+    <div style={{ position: 'relative', background: `linear-gradient(120deg, ${NAVY}, #001A66)`, padding: '10px 16px 22px', overflow: 'hidden' }}>
+      <svg viewBox="0 0 400 40" preserveAspectRatio="none" style={{ position: 'absolute', left: 0, right: 0, bottom: -1, width: '100%', height: 26, opacity: 0.25 }}>
+        <path d="M0 26 Q50 6 100 20 T200 18 T300 24 T400 12 V40 H0 Z" fill={CYAN} />
+      </svg>
+      <svg viewBox="0 0 400 40" preserveAspectRatio="none" style={{ position: 'absolute', left: 0, right: 0, bottom: -1, width: '100%', height: 18, opacity: 0.35 }}>
+        <path d="M0 30 Q60 14 130 26 T260 22 T400 28 V40 H0 Z" fill="#FFFFFF" />
+      </svg>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <span style={{ fontSize: 12.5, fontWeight: 900, color: '#fff', letterSpacing: 1.5 }}>COPAF <span style={{ color: CYAN }}>2026</span></span>
+        {dossier && (
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'rgba(255,255,255,.18)', borderRadius: 100, padding: '3px 10px', fontFamily: 'monospace', letterSpacing: .5 }}>
+            {dossier}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function BandeauCategorie({ categorie }) {
+  return (
+    <div style={{ margin: '14px 24px 0', background: `linear-gradient(90deg, ${BLUE}, ${CYAN})`, borderRadius: 10, padding: '7px 14px', textAlign: 'center' }}>
+      <span style={{ fontSize: 12, fontWeight: 900, color: '#fff', letterSpacing: 2, textTransform: 'uppercase' }}>{categorie}</span>
+    </div>
+  )
+}
+
+function PiedLogos({ organisation }) {
+  const logos = [
+    { src: '/logoagpaoc.png', alt: 'AGPAOC' },
+    { src: '/uapna.png', alt: 'UAPNA' },
+    { src: '/ANP.png', alt: 'ANP' },
+    { src: '/logocrf.png', alt: 'CRF Perfection' },
+  ]
+  const portSrc = logoPort(organisation)
+  if (portSrc) logos.push({ src: portSrc, alt: 'Autorité portuaire' })
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, flexWrap: 'wrap', padding: '16px 20px 18px', marginTop: 14, borderTop: '1px solid #f1f5f9' }}>
+      {logos.map(l => <img key={l.src} src={l.src} alt={l.alt} style={{ height: 22, maxWidth: 54, objectFit: 'contain' }} />)}
+    </div>
+  )
+}
 
 // Traductions de la carte "Participant" publique (nom/fonction + section
 // upload) — pilotees par la langue enregistree pour la personne (langue de
@@ -337,19 +386,21 @@ export default function BadgeToken() {
         <div style={wrapStyle}>
           <FondNeige />
           <div style={{ ...cardStyle, position: 'relative', zIndex: 1, padding: 0, overflow: 'hidden', textAlign: 'left' }}>
+            <EnteteBadge dossier={data.dossier} />
             {data.photo_url ? (
               <img src={data.photo_url} alt="" style={{ width: '100%', height: 260, objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
             ) : (
               <div style={{ height: 100, background: `linear-gradient(135deg, ${NAVY}, ${BLUE})` }} />
             )}
-            <div style={{ padding: 24 }}>
-              <div style={{ fontSize: 10, color: BLUE, opacity: .9, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700 }}>
-                Intervenant COPAF 2026
-              </div>
-              <div style={{ fontSize: 21, fontWeight: 900, color: '#0f172a', marginTop: 6 }}>{data.prenom} {data.nom}</div>
+            <div style={{ padding: '20px 24px 0' }}>
+              <div style={{ fontSize: 21, fontWeight: 900, color: '#0f172a' }}>{data.prenom} {data.nom}</div>
               {data.poste && <div style={{ fontSize: 14, color: '#334155', fontWeight: 600, marginTop: 3 }}>{data.poste}</div>}
-              {data.organisation && <div style={{ fontSize: 13, color: '#64748b', marginTop: 1 }}>{data.organisation}</div>}
-              {data.pays && <div style={{ fontSize: 12.5, color: '#94a3b8', marginTop: 4 }}>{data.pays}</div>}
+              {(data.organisation || data.pays) && (
+                <div style={{ fontSize: 13, color: '#64748b', marginTop: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {drapeauEmoji(data.pays) && <span style={{ fontSize: 14 }}>{drapeauEmoji(data.pays)}</span>}
+                  {data.organisation}
+                </div>
+              )}
 
               {contacts.length > 0 && (
                 <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
@@ -375,42 +426,41 @@ export default function BadgeToken() {
                 <MiniIco name="save" size={15} color="#fff" />
                 Enregistrer le contact
               </button>
-
-              <div style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid #f1f5f9', fontSize: 11, color: '#94a3b8', textAlign: 'center' }}>
-                Conférence des Ports Africains · 19–21 Oct. 2026, Casablanca
-              </div>
             </div>
+            <BandeauCategorie categorie="Intervenant" />
+            <PiedLogos organisation={data.organisation} />
           </div>
         </div>
       )
     }
 
-    // Scan public (n'importe qui, sans session) : meme gabarit "carte de visite numerique" que les
-    // intervenants (photo pleine largeur, fiche en dessous), mais sans les champs sensibles qu'un
-    // intervenant expose lui (pas de telephone/email/boutons de contact, pas de pays) — seuls
-    // nom, fonction, organisation et photo sont publics pour un participant/delegue.
+    // Scan public (n'importe qui, sans session) : carte "badge numerique" reprenant l'identite du
+    // badge physique (bandeau marine + vagues, photo en grand, bandeau categorie, logos partenaires)
+    // — mais sans les champs sensibles qu'un intervenant expose lui (pas de telephone/email/boutons
+    // de contact) : seuls nom, fonction, organisation, pays et photo sont publics ici.
     if (!session) {
       return (
         <div style={wrapStyle}>
           <FondNeige />
           <div style={{ ...cardStyle, position: 'relative', zIndex: 1, padding: 0, overflow: 'hidden', textAlign: 'left' }}>
+            <EnteteBadge dossier={data.dossier} />
             {data.photo_url ? (
               <img src={data.photo_url} alt="" style={{ width: '100%', height: 260, objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
             ) : (
               <div style={{ height: 100, background: `linear-gradient(135deg, ${NAVY}, ${BLUE})` }} />
             )}
-            <div style={{ padding: 24 }}>
-              <div style={{ fontSize: 10, color: BLUE, opacity: .9, letterSpacing: 2, textTransform: 'uppercase', fontWeight: 700 }}>
-                {data.categorie || 'Participant'} COPAF 2026
-              </div>
-              <div style={{ fontSize: 21, fontWeight: 900, color: '#0f172a', marginTop: 6 }}>{data.prenom} {data.nom}</div>
-              {data.poste && <div style={{ fontSize: 14, color: '#334155', fontWeight: 600, marginTop: 3 }}>{data.poste}</div>}
-              {data.organisation && <div style={{ fontSize: 13, color: '#64748b', marginTop: 1 }}>{data.organisation}</div>}
-
-              <div style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid #f1f5f9', fontSize: 11, color: '#94a3b8', textAlign: 'center' }}>
-                Conférence des Ports Africains · 19–21 Oct. 2026, Casablanca
-              </div>
+            <div style={{ padding: '20px 24px 0' }}>
+              <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>{data.prenom} {data.nom}</div>
+              {data.poste && <div style={{ fontSize: 13.5, color: '#334155', fontWeight: 600, marginTop: 3 }}>{data.poste}</div>}
+              {data.organisation && (
+                <div style={{ fontSize: 12.5, color: '#64748b', marginTop: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {drapeauEmoji(data.pays) && <span style={{ fontSize: 14 }}>{drapeauEmoji(data.pays)}</span>}
+                  {data.organisation}
+                </div>
+              )}
             </div>
+            <BandeauCategorie categorie={data.categorie || 'Participant'} />
+            <PiedLogos organisation={data.organisation} />
           </div>
         </div>
       )
