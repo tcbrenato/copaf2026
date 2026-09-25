@@ -38,24 +38,30 @@ export default function AdminVoyage() {
 
   const charger = useCallback(async () => {
     setErreur('')
-    const [g, insc, parts, voy] = await Promise.all([
+    const [g, insc, parts, interv, voy] = await Promise.all([
       supabase.from('guide_config').select('valeurs, publie').eq('id', 1).maybeSingle(),
       supabase.from('inscriptions').select('dossier, paiement_status, langue, contacts(nom, prenom, organisation, email)'),
       supabase.from('inscription_participants').select('dossier, nom, prenom, email, langue, inscriptions(paiement_status, langue, contacts(organisation))'),
+      supabase.from('intervenants').select('dossier, nom, prenom, organisation, email, langue'),
       supabase.from('voyages').select('*'),
     ])
-    if (g.error || insc.error || parts.error || voy.error) { setErreur('Chargement impossible (droits administrateur requis).'); return }
+    if (g.error || insc.error || parts.error || interv.error || voy.error) { setErreur('Chargement impossible (droits administrateur requis).'); return }
     setConfig(configAvecDefauts(g.data?.valeurs))
     setPublie(!!g.data?.publie)
     const voyages = Object.fromEntries((voy.data || []).map(v => [v.dossier, v]))
+    const trimme = s => String(s || '').trim() || null
     const liste = [
       ...(insc.data || []).map(i => ({
-        dossier: i.dossier, nom: i.contacts?.nom, prenom: i.contacts?.prenom, organisation: i.contacts?.organisation,
-        email: i.contacts?.email, langue: i.langue === 'en' ? 'en' : 'fr', paiement: i.paiement_status, voyage: voyages[i.dossier] || null,
+        dossier: i.dossier, nom: trimme(i.contacts?.nom), prenom: trimme(i.contacts?.prenom), organisation: trimme(i.contacts?.organisation),
+        email: i.contacts?.email, langue: i.langue === 'en' ? 'en' : 'fr', paiement: i.paiement_status, type: 'participant', voyage: voyages[i.dossier] || null,
       })),
       ...(parts.data || []).map(p => ({
-        dossier: p.dossier, nom: p.nom, prenom: p.prenom, organisation: p.inscriptions?.contacts?.organisation,
-        email: p.email, langue: (p.langue || p.inscriptions?.langue) === 'en' ? 'en' : 'fr', paiement: p.inscriptions?.paiement_status, voyage: voyages[p.dossier] || null,
+        dossier: p.dossier, nom: trimme(p.nom), prenom: trimme(p.prenom), organisation: trimme(p.inscriptions?.contacts?.organisation),
+        email: p.email, langue: (p.langue || p.inscriptions?.langue) === 'en' ? 'en' : 'fr', paiement: p.inscriptions?.paiement_status, type: 'participant', voyage: voyages[p.dossier] || null,
+      })),
+      ...(interv.data || []).map(v => ({
+        dossier: v.dossier, nom: trimme(v.nom), prenom: trimme(v.prenom), organisation: trimme(v.organisation),
+        email: v.email, langue: v.langue === 'en' ? 'en' : 'fr', paiement: 'confirme', type: 'intervenant', voyage: voyages[v.dossier] || null,
       })),
     ].filter(p => p.dossier).sort((a, b) => (a.organisation || '').localeCompare(b.organisation || '') || (a.nom || '').localeCompare(b.nom || ''))
     setPersonnes(liste)
@@ -259,7 +265,11 @@ function OngletGuide({ config, setConfig, publie, setPublie, personnes, recharge
               {destinataires.map(p => (
                 <tr key={p.dossier} style={{ borderTop: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '8px 12px' }}><input type="checkbox" checked={!!choisis[p.dossier]} onChange={e => setChoisis(c => ({ ...c, [p.dossier]: e.target.checked }))} /></td>
-                  <td style={{ padding: '8px 12px', fontWeight: 600 }}>{p.prenom} {p.nom}<div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 400 }}>{p.dossier}</div></td>
+                  <td style={{ padding: '8px 12px', fontWeight: 600 }}>
+                    {p.prenom} {p.nom}
+                    {p.type === 'intervenant' && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#7c3aed', background: '#f3e8ff', borderRadius: 100, padding: '1px 7px' }}>Intervenant</span>}
+                    <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 400 }}>{p.dossier}</div>
+                  </td>
                   <td style={{ padding: '8px 12px', color: '#475569' }}>{p.organisation || '—'}</td>
                   <td style={{ padding: '8px 12px' }}>{p.langue.toUpperCase()}</td>
                   <td style={{ padding: '8px 12px', fontSize: 12, color: p.voyage?.guide_envoye_le ? '#16a34a' : '#94a3b8' }}>
@@ -317,7 +327,11 @@ function OngletFiches({ config, personnes, recharger }) {
             {affiches.length === 0 && <tr><td colSpan={6} style={{ padding: 18, color: '#64748b' }}>Aucune personne pour ce filtre.</td></tr>}
             {affiches.map(p => (
               <tr key={p.dossier} style={{ borderTop: '1px solid #f1f5f9', verticalAlign: 'top' }}>
-                <td style={{ padding: '10px 14px', fontWeight: 600 }}>{p.prenom} {p.nom}<div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 400 }}>{p.dossier}</div></td>
+                <td style={{ padding: '10px 14px', fontWeight: 600 }}>
+                  {p.prenom} {p.nom}
+                  {p.type === 'intervenant' && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#7c3aed', background: '#f3e8ff', borderRadius: 100, padding: '1px 7px' }}>Intervenant</span>}
+                  <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 400 }}>{p.dossier}</div>
+                </td>
                 <td style={{ padding: '10px 14px', color: '#475569' }}>{p.organisation || '—'}</td>
                 <td style={{ padding: '10px 14px', fontSize: 12, color: '#334155' }}>
                   {lignevol(p.voyage?.vol_aller) ? <div>↘ {lignevol(p.voyage.vol_aller)}</div> : null}
