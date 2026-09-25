@@ -16,8 +16,9 @@ const TR = {
     badgeConfirmeTip: 'Présentez ce QR code à l\'accueil pour un enregistrement rapide.',
     badgeLocked: 'Votre badge sera disponible ici dès que votre paiement sera confirmé par notre équipe.',
     badgeDownload: 'Télécharger mon badge', badgeAVenir: 'Bientôt disponible',
-    programmeIntro: 'Ajoutez les sessions qui vous intéressent pour construire votre agenda personnel.',
+    programmeIntro: 'Choisissez un jour pour voir son programme et ajouter les sessions qui vous intéressent.',
     programmeAdd: 'Ajouter', programmeRemove: 'Retirer', programmeInAgenda: 'Dans mon agenda',
+    programmeVoirSessions: 'Voir les sessions', programmeDansMonAgendaCourt: 'dans mon agenda',
     paiementSectionTitle: 'Paiement', ribCopy: 'Copier l\'IBAN', ribCopied: 'IBAN copié !',
     preuveTitle: 'Preuve de virement', preuveIntro: 'Déposez une capture ou un PDF de votre virement pour accélérer la validation.',
     preuveUpload: 'Téléverser une preuve de virement', preuveUploading: 'Envoi en cours...',
@@ -37,8 +38,9 @@ const TR = {
     badgeConfirmeTip: 'Show this QR code at the front desk for quick check-in.',
     badgeLocked: 'Your badge will be available here as soon as your payment is confirmed by our team.',
     badgeDownload: 'Download my badge', badgeAVenir: 'Coming soon',
-    programmeIntro: 'Add the sessions you are interested in to build your personal agenda.',
+    programmeIntro: 'Choose a day to see its programme and add the sessions you are interested in.',
     programmeAdd: 'Add', programmeRemove: 'Remove', programmeInAgenda: 'In my agenda',
+    programmeVoirSessions: 'View sessions', programmeDansMonAgendaCourt: 'in my agenda',
     paiementSectionTitle: 'Payment', ribCopy: 'Copy IBAN', ribCopied: 'IBAN copied!',
     preuveTitle: 'Proof of transfer', preuveIntro: 'Upload a screenshot or PDF of your transfer to speed up validation.',
     preuveUpload: 'Upload a proof of transfer', preuveUploading: 'Uploading...',
@@ -232,8 +234,13 @@ function TabBadge({ myDossier, t, tt }) {
   // Le badge est le fichier depose par l'equipe dans l'espace de la personne (il n'est pas genere par le site)
   const badgeDepose = [...(myDossier.documents || [])].reverse().find(d => d.type === 'badge' && d.url)
 
+  // Le badge (QR + fichier depose) devient visible des que l'un ou l'autre est pret : soit le
+  // paiement est confirme, soit l'equipe a deja depose le fichier — sans attendre l'autre condition,
+  // pour ne pas cacher un badge que l'admin a deja prepare pour cette personne.
+  const debloque = confirme || !!badgeDepose
+
   useEffect(() => {
-    if (!confirme || !myDossier.badge_token) return
+    if (!debloque || !myDossier.badge_token) return
     let cancelled = false
     // Pointe vers /badge/{token} (pas le dossier en clair) : cette meme
     // page affiche soit la fiche complete + pointage arrivee (staff
@@ -244,9 +251,9 @@ function TabBadge({ myDossier, t, tt }) {
       .then(url => { if (!cancelled) setQrDataUrl(url) })
       .catch(() => { if (!cancelled) setQrDataUrl('') })
     return () => { cancelled = true }
-  }, [confirme, myDossier.badge_token])
+  }, [debloque, myDossier.badge_token])
 
-  if (!confirme) {
+  if (!debloque) {
     return (
       <Card icon="badge" title={t.docBadge}>
         <div style={{ background: '#f8fafc', border: '1.5px dashed #cbd5e1', borderRadius: 16, padding: '32px 20px', textAlign: 'center' }}>
@@ -294,6 +301,7 @@ function TabBadge({ myDossier, t, tt }) {
 // ── Programme / agenda personnalise en libre-service ──
 function TabProgramme({ myDossier, tt, lang, onRefresh }) {
   const [pending, setPending] = useState(() => new Set())
+  const [jourOuvert, setJourOuvert] = useState(null)
 
   const days = useMemo(() => {
     try { return i18n.getFixedT(lang)('programme.days', { returnObjects: true }) || [] }
@@ -319,22 +327,71 @@ function TabProgramme({ myDossier, tt, lang, onRefresh }) {
   return (
     <Card icon="calendar" title={tt.tabProgramme}>
       <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, marginBottom: 16 }}>{tt.programmeIntro}</p>
-      {days.map((day, di) => (
-        <div key={di} style={{ marginBottom: 18 }}>
-          <div style={{ fontSize: 12.5, fontWeight: 800, color: '#000E91', marginBottom: 8 }}>{day.jour} · {day.date} — {day.titre}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${days.length || 1}, 1fr)`, gap: 10 }}>
+        {days.map((day, di) => {
+          const nbDansAgenda = (day.sessions || []).filter((_, si) => agendaKeys.has(`j${di + 1}-s${si + 1}`)).length
+          const accent = day.accent || '#000E91'
+          return (
+            <button
+              key={di} type="button" onClick={() => setJourOuvert(di)}
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4, padding: '14px 14px', borderRadius: 14,
+                border: `1.5px solid ${accent}30`, background: `${accent}0d`, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+              }}
+            >
+              <span style={{ fontSize: 10.5, fontWeight: 800, color: accent, letterSpacing: 0.6, textTransform: 'uppercase' }}>{day.jour} · {day.date}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', lineHeight: 1.3 }}>{day.titre}</span>
+              <span style={{ fontSize: 11, fontWeight: 600, color: nbDansAgenda ? '#059669' : '#94a3b8', marginTop: 2 }}>
+                {nbDansAgenda > 0 ? `${nbDansAgenda} ${tt.programmeDansMonAgendaCourt}` : tt.programmeVoirSessions}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      {jourOuvert !== null && days[jourOuvert] && (
+        <ModalProgrammeJour
+          day={days[jourOuvert]} indexJour={jourOuvert} tt={tt} agendaKeys={agendaKeys} pending={pending}
+          onToggle={toggleSession} onClose={() => setJourOuvert(null)}
+        />
+      )}
+    </Card>
+  )
+}
+
+function ModalProgrammeJour({ day, indexJour, tt, agendaKeys, pending, onToggle, onClose }) {
+  const accent = day.accent || '#000E91'
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.55)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '85vh', overflow: 'auto' }}>
+        <div style={{ background: accent, color: '#fff', padding: '20px 24px', borderRadius: '20px 20px 0 0', position: 'sticky', top: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, opacity: 0.8, fontWeight: 700, letterSpacing: 1 }}>{day.jour} · {day.date}</div>
+              <div style={{ fontSize: 18, fontWeight: 900, marginTop: 4 }}>{day.titre}</div>
+            </div>
+            <button type="button" onClick={onClose} aria-label="Fermer" style={{ background: 'rgba(255,255,255,.2)', border: 'none', borderRadius: '50%', width: 30, height: 30, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Ico name="close" size={14} color="#fff" />
+            </button>
+          </div>
+          {day.objectif && <p style={{ fontSize: 12, opacity: 0.9, margin: '8px 0 0', lineHeight: 1.5 }}>{day.objectif}</p>}
+        </div>
+
+        <div style={{ padding: 20 }}>
           {(day.sessions || []).map((session, si) => {
-            const key = `j${di + 1}-s${si + 1}`
+            const key = `j${indexJour + 1}-s${si + 1}`
             const inAgenda = agendaKeys.has(key)
             const isPending = pending.has(key)
             return (
-              <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', border: '1.5px solid #e2e8f0', borderRadius: 12, marginBottom: 6 }}>
+              <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '10px 12px', border: '1.5px solid #e2e8f0', borderRadius: 12, marginBottom: 8 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 700 }}>{session.heure}</div>
                   <div style={{ fontSize: 13, color: '#0f172a', fontWeight: 600 }}>{session.titre}</div>
+                  {session.intervenant && session.intervenant !== '—' && <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 1 }}>{session.intervenant}</div>}
                 </div>
                 <button
                   type="button" disabled={isPending}
-                  onClick={() => toggleSession(key, day.jour, session.heure, session.titre)}
+                  onClick={() => onToggle(key, day.jour, session.heure, session.titre)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 100, flexShrink: 0,
                     border: `1.5px solid ${inAgenda ? '#a7f3d0' : '#cbd5e1'}`, background: inAgenda ? '#ecfdf5' : '#fff',
@@ -349,8 +406,8 @@ function TabProgramme({ myDossier, tt, lang, onRefresh }) {
             )
           })}
         </div>
-      ))}
-    </Card>
+      </div>
+    </div>
   )
 }
 
