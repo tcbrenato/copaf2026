@@ -72,6 +72,7 @@ const STATUS_CONFIG = {
   reserve:    { label: 'Réservé',     bg: '#dbeafe', color: '#1e40af', dot: '#2563eb' },
   confirme:   { label: 'Confirmé',    bg: '#d1fae5', color: '#065f46', dot: '#10b981' },
   annule:     { label: 'Annulé',      bg: '#fee2e2', color: '#991b1b', dot: '#ef4444' },
+  prospect:   { label: 'Prospect (à confirmer)', bg: '#e0e7ff', color: '#3730a3', dot: '#6366f1' },
 }
 
 // ─── MODULES (onglets sidebar) ────────────────────────────────────────────────
@@ -1214,7 +1215,7 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
   // Les dossiers annules sont exclus des totaux (comme partout ailleurs : montantEnAttente plus
   // bas, AdminProforma) — sans quoi "Dossiers/Participants/Revenus" restait incoherent avec
   // "Confirmes/En attente" juste a cote, qui eux excluaient deja les annules.
-  const dataActifs  = data.filter(r => r.paiement_status !== 'annule')
+  const dataActifs  = data.filter(r => r.paiement_status !== 'annule' && r.paiement_status !== 'prospect')
   const total       = dataActifs.length
   const totalParts  = dataActifs.reduce((s, r) => s + (r.participants || 0), 0)
   const totalMontant= dataActifs.reduce((s, r) => s + (r.montant || 0), 0)
@@ -1734,7 +1735,7 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
 
   // Les dossiers annules sont exclus de tous les totaux inscriptions ci-dessous (deja le cas pour
   // montantEnAttente ; etendu ici a totalRevenu/Participants/tauxRemplissage pour rester coherent).
-  const inscriptionsActives = inscriptions.filter(r => r.paiement_status !== 'annule')
+  const inscriptionsActives = inscriptions.filter(r => r.paiement_status !== 'annule' && r.paiement_status !== 'prospect')
   const totalRevenu  = inscriptionsActives.reduce((s, r) => s + (r.montant || 0), 0)
     + sponsors.reduce((s, r) => s + (r.montant || 0), 0)
     + partenaires.reduce((s, r) => s + (r.montant || 0), 0)
@@ -1742,7 +1743,7 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
 
   // Financier & logistique
   const montantEncaisse  = inscriptions.filter(r => r.paiement_status === 'confirme').reduce((s, r) => s + (r.montant || 0), 0)
-  const montantEnAttente = inscriptions.filter(r => r.paiement_status !== 'confirme' && r.paiement_status !== 'annule').reduce((s, r) => s + (r.montant || 0), 0)
+  const montantEnAttente = inscriptions.filter(r => r.paiement_status !== 'confirme' && r.paiement_status !== 'annule' && r.paiement_status !== 'prospect').reduce((s, r) => s + (r.montant || 0), 0)
   const totalParticipantsReels = inscriptionsActives.reduce((s, r) => s + (r.participants || 0), 0)
   const tauxRemplissage = Math.min(100, Math.round((totalParticipantsReels / CAPACITE_MAX_SALLE) * 100))
   const badgesEmis  = inscriptions.filter(r => r.badge_token).length

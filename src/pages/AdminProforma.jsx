@@ -17,6 +17,7 @@ const STATUT_OPTIONS = [
   { value: 'reserve',    label: 'Réservé',    color: '#2563eb', bg: '#dbeafe' },
   { value: 'confirme',   label: 'Confirmé',   color: '#059669', bg: '#d1fae5' },
   { value: 'annule',     label: 'Annulé',     color: '#dc2626', bg: '#fee2e2' },
+  { value: 'prospect',   label: 'Prospect (à confirmer)', color: '#4f46e5', bg: '#e0e7ff' },
 ]
 
 // Langues disponibles pour la génération des documents (proforma, récap, facture)
@@ -52,10 +53,7 @@ const fmtEur = n => `${Number(n || 0).toLocaleString('fr-FR')} EUR`
 const MASKED_EUR = '•••••• EUR'
 const MASKED_NUM = '•••'
 
-// Filtres rapides par statut de paiement — repris tels quels de STATUT_OPTIONS
-// (pas de statut "acompte verse" distinct dans le systeme actuel, seulement
-// en_attente/reserve/confirme/annule : mieux vaut refleter les vrais
-// statuts que d'en inventer un qui n'existe pas en base).
+// Filtres rapides par statut de paiement — repris tels quels de STATUT_OPTIONS.
 const QUICK_STATUT_FILTERS = [{ value: 'tous', label: 'Tous' }, ...STATUT_OPTIONS]
 
 // Masque une valeur sensible (passeport, etc.) : garde les 4 premiers et 2
@@ -291,10 +289,11 @@ export default function AdminProforma() {
 
   // Bandeau de metriques financieres — montant encaisse (confirme) / en
   // attente (en_attente + reserve) / total des dossiers, tous statuts sauf
-  // annule. Chiffres masques par defaut (voir showEur), comme sur le
-  // Dashboard.
+  // annule et prospect (dossiers non encore inscrits, crees seulement pour
+  // generer une proforma). Chiffres masques par defaut (voir showEur), comme
+  // sur le Dashboard.
   const loadMetrics = async () => {
-    const { data: rows } = await supabase.from('inscriptions').select('montant, paiement_status').neq('paiement_status', 'annule')
+    const { data: rows } = await supabase.from('inscriptions').select('montant, paiement_status').not('paiement_status', 'in', '(annule,prospect)')
     const encaisse  = (rows || []).filter(r => r.paiement_status === 'confirme').reduce((s, r) => s + (r.montant || 0), 0)
     const enAttente = (rows || []).filter(r => r.paiement_status !== 'confirme').reduce((s, r) => s + (r.montant || 0), 0)
     setMetrics({ total: (rows || []).length, encaisse, enAttente })
