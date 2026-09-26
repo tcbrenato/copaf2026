@@ -458,10 +458,12 @@ export default function ProjectionDiagnostic() {
 
       {/* QR de participation — permanent, discret, pour les retardataires
           dans la salle (l'ecran de projection n'indiquait avant aucun moyen
-          de rejoindre le questionnaire). */}
+          de rejoindre le questionnaire). En haut a gauche, symetrique du
+          bouton de langue en haut a droite, pour ne jamais chevaucher le
+          contenu qui defile plus bas (grille des profils individuels). */}
       {qrDiagnostic && (
         <div style={{
-          ...card, position: 'fixed', bottom: 20, left: 20, zIndex: 50, padding: 14,
+          ...card, position: 'fixed', top: 16, left: 16, zIndex: 50, padding: 14,
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
           <img src={qrDiagnostic} alt="QR" style={{ width: 72, height: 72, borderRadius: 8, display: 'block' }} />
