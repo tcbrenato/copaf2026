@@ -310,10 +310,10 @@ export default function EmailComposer({ initialTo = [], dossier = null, onSent }
       {resultat?.rapport && (
         <div style={{ background: resultat.envoyes === resultat.total ? '#f0fdf4' : '#fffbeb', border: `1px solid ${resultat.envoyes === resultat.total ? '#bbf7d0' : '#fde68a'}`, borderRadius: 10, padding: '12px 14px', fontSize: 13.5, color: '#0f172a' }}>
           <strong>{resultat.envoyes === resultat.total ? 'Message envoyé' : 'Envoi partiel'}</strong>
-          {resultat.total !== undefined && ` — ${resultat.envoyes ?? 0} sur ${resultat.total}`}
+          {resultat.total !== undefined && ` - ${resultat.envoyes ?? 0} sur ${resultat.total}`}
           <ul style={{ margin: '8px 0 0', paddingLeft: 18 }}>
             {resultat.rapport.map(r => (
-              <li key={r.to} style={{ color: r.ok ? '#047857' : '#b91c1c' }}>{r.ok ? '✓' : '✗'} {r.to}{r.ok ? '' : ` — ${r.detail || 'échec'}`}</li>
+              <li key={r.to} style={{ color: r.ok ? '#047857' : '#b91c1c' }}>{r.ok ? '✓' : '✗'} {r.to}{r.ok ? '' : ` - ${r.detail || 'échec'}`}</li>
             ))}
           </ul>
         </div>
@@ -342,7 +342,7 @@ export default function EmailComposer({ initialTo = [], dossier = null, onSent }
         <div onClick={() => setApercu(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(10,17,40,.6)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 720, height: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: '1px solid #e2e8f0' }}>
-              <strong style={{ fontSize: 14 }}>Aperçu — {objet || '(sans objet)'}</strong>
+              <strong style={{ fontSize: 14 }}>Aperçu - {objet || '(sans objet)'}</strong>
               <button type="button" onClick={() => setApercu(null)} aria-label="Fermer l'aperçu" style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={16} /></button>
             </div>
             <iframe title="Aperçu de l'email" srcDoc={apercu} sandbox="" style={{ flex: 1, border: 'none', width: '100%' }} />

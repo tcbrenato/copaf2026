@@ -13,18 +13,18 @@ function toICSDate(date) {
 
 const TXT = {
   fr: {
-    title: 'COPAF 2026 — Conférence des Ports Africains',
+    title: 'COPAF 2026 - Conférence des Ports Africains',
     description: "Smart Port Africain : Intelligence Artificielle et cybersécurité au service de la performance.",
     location: 'Port de Casablanca, Royaume du Maroc',
     plusInfos: "Plus d'infos",
-    rappel: 'Rappel — COPAF 2026 dans 7 jours',
+    rappel: 'Rappel - COPAF 2026 dans 7 jours',
   },
   en: {
-    title: 'COPAF 2026 — Conference of African Ports',
+    title: 'COPAF 2026 - Conference of African Ports',
     description: 'Smart African Port: Artificial Intelligence and cybersecurity for enhanced performance.',
     location: 'Port of Casablanca, Kingdom of Morocco',
     plusInfos: 'More information',
-    rappel: 'Reminder — COPAF 2026 in 7 days',
+    rappel: 'Reminder - COPAF 2026 in 7 days',
   },
 }
 

@@ -319,7 +319,7 @@ export default function AdminDiagnostics() {
     const cles = Object.keys(AXES_LABELS)
     const entetes = [
       'Organisation', 'Pays', 'Prénom', 'Nom', 'Email', 'Téléphone', ...cles.map(k => AXES_LABELS[k]), 'Score moyen', 'Date',
-      'Position officielle validée', 'Date validation position officielle', ...cles.map(k => `Officiel — ${AXES_LABELS[k]}`),
+      'Position officielle validée', 'Date validation position officielle', ...cles.map(k => `Officiel - ${AXES_LABELS[k]}`),
     ]
     const lignes = filtres.map(d => {
       const scores = cles.map(k => d.scores?.[k] ?? '')
@@ -350,7 +350,7 @@ export default function AdminDiagnostics() {
   const copierResumeTexte = async () => {
     const lignes = moyennesParAxe.map(a => `${a.label} : ${a.moyenne.toFixed(1)}/5`)
     const texte = [
-      `Diagnostics Smart Port — COPAF 2026`,
+      `Diagnostics Smart Port - COPAF 2026`,
       filtrePays ? `Pays : ${filtrePays}` : 'Tous pays',
       `${filtres.length} diagnostic(s)`,
       '',
@@ -360,7 +360,7 @@ export default function AdminDiagnostics() {
       await navigator.clipboard.writeText(texte)
       showToast('Résumé copié dans le presse-papiers')
     } catch {
-      showToast("Impossible de copier — presse-papiers indisponible")
+      showToast("Impossible de copier - presse-papiers indisponible")
     }
   }
 
@@ -557,7 +557,7 @@ export default function AdminDiagnostics() {
                 </button>
               ))}
               <span style={{ fontSize: 12, color: T.textMuted, marginLeft: 4 }}>
-                {sessionGate.bloc_ouvert === 0 ? 'Aucun bloc ouvert — les participants attendent.' : `Bloc ${sessionGate.bloc_ouvert} ouvert (et les précédents).`}
+                {sessionGate.bloc_ouvert === 0 ? 'Aucun bloc ouvert - les participants attendent.' : `Bloc ${sessionGate.bloc_ouvert} ouvert (et les précédents).`}
               </span>
             </div>
           )}
@@ -571,7 +571,7 @@ export default function AdminDiagnostics() {
               {sessionGate.bloc_verrouillage_at && new Date(sessionGate.bloc_verrouillage_at) > new Date() ? (
                 <>
                   <span style={{ fontSize: 12.5, fontWeight: 700, color: T.text }}>
-                    ⏱ Chrono en cours — clôture à {new Date(sessionGate.bloc_verrouillage_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                    ⏱ Chrono en cours - clôture à {new Date(sessionGate.bloc_verrouillage_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                   <button onClick={() => majGate({ bloc_verrouillage_at: null })} disabled={gateEnCours} style={{
                     padding: '7px 14px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: gateEnCours ? 'wait' : 'pointer', fontFamily: 'inherit',
@@ -883,7 +883,7 @@ export default function AdminDiagnostics() {
         {/* Moyennes agregees */}
         <div style={{ ...cardStyle, padding: 22, marginBottom: 24 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 16 }}>
-            Moyenne par axe {filtrePays ? `— ${filtrePays}` : '— tous les ports'}
+            Moyenne par axe {filtrePays ? `- ${filtrePays}` : '- tous les ports'}
           </div>
           {filtres.length === 0 ? (
             <p style={{ fontSize: 13, color: T.textFaint }}>Aucun diagnostic pour l'instant.</p>

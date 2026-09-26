@@ -85,8 +85,8 @@ export const AXES = [
     id: 'automatisation', icone: 'automatisation', bloc: 1,
     nom: { fr: 'Automatisation des opérations physiques', en: 'Automation of physical operations' },
     definition: {
-      fr: "Évalue le niveau d'automatisation des équipements physiques du port — grues, portiques, véhicules de manutention — et leur degré d'autonomie.",
-      en: "Assesses the automation level of the port's physical equipment — cranes, gantries, handling vehicles — and their degree of autonomy.",
+      fr: "Évalue le niveau d'automatisation des équipements physiques du port - grues, portiques, véhicules de manutention - et leur degré d'autonomie.",
+      en: "Assesses the automation level of the port's physical equipment - cranes, gantries, handling vehicles - and their degree of autonomy.",
     },
     enjeu: {
       fr: 'Cadences de quai plus élevées et réduction des coûts de manutention.',
@@ -127,7 +127,7 @@ export const AXES = [
     },
     enjeu: {
       fr: 'Visibilité en temps réel pour les armateurs et chargeurs, facteur de compétitivité commerciale.',
-      en: 'Real-time visibility for shipowners and shippers — a commercial competitiveness factor.',
+      en: 'Real-time visibility for shipowners and shippers - a commercial competitiveness factor.',
     },
     niveaux: [
       { fr: "Aucun outil numérique de suivi ; la localisation d'une marchandise s'obtient uniquement par appel téléphonique.", en: 'No digital tracking tool; the location of a shipment can only be obtained by phone call.' },
@@ -159,8 +159,8 @@ export const AXES = [
     id: 'ia', icone: 'ia', bloc: 2,
     nom: { fr: 'Intelligence artificielle & aide à la décision', en: 'Artificial intelligence & decision support' },
     definition: {
-      fr: "Évalue l'usage d'outils d'analyse de données et d'IA pour anticiper et optimiser les opérations (accostage, flux, maintenance) — au-delà de la simple collecte de données.",
-      en: 'Assesses the use of data analysis and AI tools to anticipate and optimise operations (berthing, flows, maintenance) — beyond simple data collection.',
+      fr: "Évalue l'usage d'outils d'analyse de données et d'IA pour anticiper et optimiser les opérations (accostage, flux, maintenance) - au-delà de la simple collecte de données.",
+      en: 'Assesses the use of data analysis and AI tools to anticipate and optimise operations (berthing, flows, maintenance) - beyond simple data collection.',
     },
     enjeu: {
       fr: "Anticipation des congestions et optimisation de l'accostage par des modèles prédictifs.",
@@ -233,8 +233,8 @@ export const AXES = [
     id: 'surete', icone: 'surete', bloc: 2,
     nom: { fr: 'Sûreté & sécurité opérationnelle', en: 'Safety & operational security' },
     definition: {
-      fr: "Évalue les dispositifs de sûreté physique du site (contrôle d'accès, surveillance, gestion des risques) — distincts de la cybersécurité.",
-      en: "Assesses the site's physical security arrangements (access control, surveillance, risk management) — distinct from cybersecurity.",
+      fr: "Évalue les dispositifs de sûreté physique du site (contrôle d'accès, surveillance, gestion des risques) - distincts de la cybersécurité.",
+      en: "Assesses the site's physical security arrangements (access control, surveillance, risk management) - distinct from cybersecurity.",
     },
     enjeu: {
       fr: 'Réduction des risques physiques et conformité aux standards internationaux de sûreté portuaire.',
@@ -270,8 +270,8 @@ export const AXES = [
     id: 'environnement', icone: 'environnement', bloc: 3,
     nom: { fr: 'Énergie & environnement', en: 'Energy & environment' },
     definition: {
-      fr: "Mesure les efforts en matière de suivi environnemental et de transition énergétique — pollution, électrification, réduction de l'empreinte carbone.",
-      en: "Measures efforts in environmental monitoring and energy transition — pollution, electrification, carbon footprint reduction.",
+      fr: "Mesure les efforts en matière de suivi environnemental et de transition énergétique - pollution, électrification, réduction de l'empreinte carbone.",
+      en: "Measures efforts in environmental monitoring and energy transition - pollution, electrification, carbon footprint reduction.",
     },
     enjeu: {
       fr: 'Maîtrise des coûts énergétiques et attractivité auprès des armateurs sensibles aux critères ESG.',
@@ -344,8 +344,8 @@ export const AXES = [
     id: 'competences', icone: 'competences', bloc: 3,
     nom: { fr: 'Capacités organisationnelles & compétences', en: 'Organisational capacity & skills' },
     definition: {
-      fr: "Mesure le niveau de formation et d'appropriation des outils digitaux par les équipes — le facteur humain derrière la technologie.",
-      en: "Measures the level of training and ownership of digital tools by staff — the human factor behind the technology.",
+      fr: "Mesure le niveau de formation et d'appropriation des outils digitaux par les équipes - le facteur humain derrière la technologie.",
+      en: "Measures the level of training and ownership of digital tools by staff - the human factor behind the technology.",
     },
     enjeu: {
       fr: "Capital humain prêt à opérer les outils numériques et l'IA de demain.",
@@ -381,8 +381,8 @@ export const AXES = [
     id: 'parties_prenantes', icone: 'parties_prenantes', bloc: 3,
     nom: { fr: 'Engagement des parties prenantes', en: 'Stakeholder engagement' },
     definition: {
-      fr: "Évalue la qualité de la concertation entre le port et son écosystème — douanes, transporteurs, clients, autorités — plutôt que des décisions prises en silo.",
-      en: "Assesses the quality of consultation between the port and its ecosystem — customs, carriers, customers, authorities — rather than decisions made in isolation.",
+      fr: "Évalue la qualité de la concertation entre le port et son écosystème - douanes, transporteurs, clients, autorités - plutôt que des décisions prises en silo.",
+      en: "Assesses the quality of consultation between the port and its ecosystem - customs, carriers, customers, authorities - rather than decisions made in isolation.",
     },
     enjeu: {
       fr: 'Alignement des acteurs de la chaîne logistique et réduction des temps de passage aux portes.',

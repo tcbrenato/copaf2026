@@ -8,7 +8,7 @@ const BLUE = '#0073F4'
 
 const TR = {
   fr: {
-    title: 'Sondages actifs — à projeter',
+    title: 'Sondages actifs - à projeter',
     intro: 'Choisissez la question à afficher en direct sur le grand écran.',
     loading: 'Chargement...',
     none: 'Aucun sondage actif pour le moment.',
@@ -16,7 +16,7 @@ const TR = {
     publicBadge: 'PUBLIC',
   },
   en: {
-    title: 'Active polls — to display',
+    title: 'Active polls - to display',
     intro: 'Choose the question to show live on the big screen.',
     loading: 'Loading...',
     none: 'No active poll at the moment.',

@@ -120,7 +120,7 @@ const TR = {
         id: 'platine', label: 'Platine', icon: 'trophy', price: '20 000 EUR', montant: 20000, badge: 'Niveau supérieur',
         color: '#000E91', light: 'rgba(0,14,145,0.06)',
         avantages: [
-          'Membre COPAF — accès conférences mondiales',
+          'Membre COPAF - accès conférences mondiales',
           'Logo officiel sur tous les supports',
           'Certificat de partenariat officiel',
           '4 tickets de participation inclus',
@@ -136,7 +136,7 @@ const TR = {
         id: 'or', label: 'Or', icon: 'star', price: '16 000 EUR', montant: 16000, badge: 'Très populaire',
         color: '#0073F4', light: 'rgba(0,115,244,0.06)',
         avantages: [
-          'Membre COPAF — accès conférences mondiales',
+          'Membre COPAF - accès conférences mondiales',
           'Logo sur le site de la conférence',
           'Certificat de partenariat',
           '3 tickets de participation inclus',
@@ -151,7 +151,7 @@ const TR = {
         id: 'argent', label: 'Argent', icon: 'award', price: '10 000 EUR', montant: 10000, badge: null,
         color: '#000E91', light: 'rgba(0,14,145,0.04)',
         avantages: [
-          'Membre COPAF — accès conférences mondiales',
+          'Membre COPAF - accès conférences mondiales',
           'Logo sur le site de la conférence',
           'Certificat de partenariat',
           '2 tickets de participation inclus',
@@ -165,7 +165,7 @@ const TR = {
         id: 'bronze', label: 'Bronze', icon: 'shield', price: '8 000 EUR', montant: 8000, badge: null,
         color: '#0073F4', light: 'rgba(0,115,244,0.04)',
         avantages: [
-          'Membre COPAF — accès conférences mondiales',
+          'Membre COPAF - accès conférences mondiales',
           'Logo sur le site de la conférence',
           'Certificat de partenariat',
           '1 ticket de participation inclus',
@@ -184,7 +184,7 @@ const TR = {
           "Membre officiel du comité d'organisation COPAF 2026",
           'Logo n°1 premium sur tous les supports officiels',
           'Co-branding COPAF x Votre organisation',
-          'Tribune officielle — prise de parole 20 minutes',
+          'Tribune officielle - prise de parole 20 minutes',
           '6 badges participants inclus',
           'Page dédiée premium sur le site COPAF',
           'Contenus prioritaires sur les tablettes',
@@ -200,7 +200,7 @@ const TR = {
         avantages: [
           'Logo sur tous les supports officiels',
           'Mention Partenaire Stratégique partout',
-          'Prise de parole officielle — 10 minutes',
+          'Prise de parole officielle - 10 minutes',
           '3 badges participants inclus',
           'Fiche dédiée sur le site COPAF',
           'Contenus sur les tablettes participants',
@@ -287,7 +287,7 @@ const TR = {
         id: 'platine', label: 'Platinum', icon: 'trophy', price: 'EUR 20,000', montant: 20000, badge: 'Top tier',
         color: '#000E91', light: 'rgba(0,14,145,0.06)',
         avantages: [
-          'COPAF member — access to global conferences',
+          'COPAF member - access to global conferences',
           'Official logo on all materials',
           'Official partnership certificate',
           '4 participation tickets included',
@@ -303,7 +303,7 @@ const TR = {
         id: 'or', label: 'Gold', icon: 'star', price: 'EUR 16,000', montant: 16000, badge: 'Most popular',
         color: '#0073F4', light: 'rgba(0,115,244,0.06)',
         avantages: [
-          'COPAF member — access to global conferences',
+          'COPAF member - access to global conferences',
           'Logo on the conference website',
           'Partnership certificate',
           '3 participation tickets included',
@@ -318,7 +318,7 @@ const TR = {
         id: 'argent', label: 'Silver', icon: 'award', price: 'EUR 10,000', montant: 10000, badge: null,
         color: '#000E91', light: 'rgba(0,14,145,0.04)',
         avantages: [
-          'COPAF member — access to global conferences',
+          'COPAF member - access to global conferences',
           'Logo on the conference website',
           'Partnership certificate',
           '2 participation tickets included',
@@ -332,7 +332,7 @@ const TR = {
         id: 'bronze', label: 'Bronze', icon: 'shield', price: 'EUR 8,000', montant: 8000, badge: null,
         color: '#0073F4', light: 'rgba(0,115,244,0.04)',
         avantages: [
-          'COPAF member — access to global conferences',
+          'COPAF member - access to global conferences',
           'Logo on the conference website',
           'Partnership certificate',
           '1 participation ticket included',
@@ -351,7 +351,7 @@ const TR = {
           'Official member of the COPAF 2026 organising committee',
           '#1 premium logo on all official materials',
           'COPAF x Your organisation co-branding',
-          'Official platform — 20-minute speaking slot',
+          'Official platform - 20-minute speaking slot',
           '6 participant badges included',
           'Premium dedicated page on the COPAF website',
           'Priority content on tablets',
@@ -367,7 +367,7 @@ const TR = {
         avantages: [
           'Logo on all official materials',
           'Strategic Partner mention everywhere',
-          'Official speaking slot — 10 minutes',
+          'Official speaking slot - 10 minutes',
           '3 participant badges included',
           'Dedicated page on the COPAF website',
           'Content on participant tablets',
@@ -708,7 +708,7 @@ export default function Partenariats() {
                   {t.sponsors.map(s => (
                     <button key={s.id} className="pill-btn" onClick={() => setSelectedOption(s.id)} style={{ background: selectedOption === s.id ? s.light : '#fff', border: `1.5px solid ${selectedOption === s.id ? s.color : '#e2e8f0'}`, borderRadius: 100, padding: '6px 16px', fontSize: 12, fontWeight: 700, color: selectedOption === s.id ? s.color : '#64748b' }}>
                       <Ico name={s.icon} size={13} color={selectedOption === s.id ? s.color : '#94a3b8'} />
-                      {s.label} — {s.price}
+                      {s.label} - {s.price}
                     </button>
                   ))}
                 </div>
@@ -723,7 +723,7 @@ export default function Partenariats() {
                       <h3 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 900, color: '#0f172a', textAlign: 'center', marginBottom: 6 }}>{t.formTitleSponsor}</h3>
                       <p style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', marginBottom: 24, lineHeight: 1.5 }}>
                         {selectedOption
-                          ? <><span style={{ color: '#64748b' }}>{t.niveauLabel}</span><strong style={{ color: selectedSponsor?.color }}>{selectedSponsor?.label} — {selectedSponsor?.price}</strong></>
+                          ? <><span style={{ color: '#64748b' }}>{t.niveauLabel}</span><strong style={{ color: selectedSponsor?.color }}>{selectedSponsor?.label} - {selectedSponsor?.price}</strong></>
                           : <span style={{ color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Ico name="alert" size={14} color="#ef4444" />{t.selectAlert}</span>
                         }
                       </p>
@@ -773,7 +773,7 @@ export default function Partenariats() {
                   {t.partenaires.map(p => (
                     <button key={p.id} className="pill-btn" onClick={() => setSelectedOption(p.id)} style={{ background: selectedOption === p.id ? p.light : '#fff', border: `1.5px solid ${selectedOption === p.id ? p.color : '#e2e8f0'}`, borderRadius: 100, padding: '6px 16px', fontSize: 12, fontWeight: 700, color: selectedOption === p.id ? p.color : '#64748b' }}>
                       <Ico name={p.icon} size={13} color={selectedOption === p.id ? p.color : '#94a3b8'} />
-                      {p.short} — {p.price}
+                      {p.short} - {p.price}
                     </button>
                   ))}
                 </div>
@@ -788,7 +788,7 @@ export default function Partenariats() {
                       <h3 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 900, color: '#0f172a', textAlign: 'center', marginBottom: 6 }}>{t.formTitleStrat}</h3>
                       <p style={{ color: '#94a3b8', fontSize: 13, textAlign: 'center', marginBottom: 24, lineHeight: 1.5 }}>
                         {selectedOption
-                          ? <><span style={{ color: '#64748b' }}>{t.niveauLabel}</span><strong style={{ color: selectedPartenaire?.color }}>{selectedPartenaire?.label} — {selectedPartenaire?.price}</strong></>
+                          ? <><span style={{ color: '#64748b' }}>{t.niveauLabel}</span><strong style={{ color: selectedPartenaire?.color }}>{selectedPartenaire?.label} - {selectedPartenaire?.price}</strong></>
                           : <span style={{ color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Ico name="alert" size={14} color="#ef4444" />{t.selectAlert}</span>
                         }
                       </p>

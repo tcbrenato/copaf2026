@@ -107,7 +107,7 @@ const TXT = {
     cordialement: 'Cordialement,',
     equipe: (structure) => `L'équipe ${structure}`,
     footer1: "Ce document est un récapitulatif informatif. L'inscription est confirmée après réception du paiement.",
-    footer2: (date) => `Document généré le ${date} — Conditions générales de vente et politique de confidentialité acceptées.`,
+    footer2: (date) => `Document généré le ${date} - Conditions générales de vente et politique de confidentialité acceptées.`,
   },
   en: {
     organisateurLabel: EVENT.organisateur.toUpperCase(),
@@ -163,7 +163,7 @@ const TXT = {
     cordialement: 'Best regards,',
     equipe: (structure) => `The ${structure} team`,
     footer1: 'This document is an informational summary. Registration is confirmed upon receipt of payment.',
-    footer2: (date) => `Document generated on ${date} — Terms and conditions and privacy policy accepted.`,
+    footer2: (date) => `Document generated on ${date} - Terms and conditions and privacy policy accepted.`,
   },
 }
 
@@ -251,7 +251,7 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(...GRAY)
-  doc.text(`${dates}  —  ${lieu}`, P, y)
+  doc.text(`${dates}  -  ${lieu}`, P, y)
   y += 16
 
   // ══════════════════════════════════════════
@@ -283,7 +283,7 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
   doc.setTextColor(...NAVY)
-  doc.text(`— ${L.attestationSignature}, COPAF 2026`, P + contentW - 12, y + attestationBoxH - 9, { align: 'right' })
+  doc.text(`- ${L.attestationSignature}, COPAF 2026`, P + contentW - 12, y + attestationBoxH - 9, { align: 'right' })
 
   y += attestationBoxH + 14
 
@@ -358,7 +358,7 @@ export async function generateRecapPDF({ form, dossier, nb, total, participants 
     const montantLabel = L.montantSuffix(fmtEur(total))
     const recap = [
       [L.recapLabels.ref, `N° ${dossier}`],
-      [L.recapLabels.evenement, `${EVENT.nom} — ${titreLong}`],
+      [L.recapLabels.evenement, `${EVENT.nom} - ${titreLong}`],
       [L.recapLabels.participants, String(nb)],
       [L.recapLabels.montant, montantLabel],
     ]

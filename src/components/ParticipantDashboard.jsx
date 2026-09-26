@@ -115,7 +115,7 @@ export default function ParticipantDashboard({
             <div style={{ fontSize: 20, fontWeight: 900, marginTop: 4 }}>{myDossier.prenom} {myDossier.nom}</div>
             {(myDossier.organisation || myDossier.poste) && (
               <div style={{ fontSize: 13, opacity: 0.85, marginTop: 2 }}>
-                {[myDossier.organisation, myDossier.poste].filter(Boolean).join(' — ')}
+                {[myDossier.organisation, myDossier.poste].filter(Boolean).join(' - ')}
               </div>
             )}
           </div>

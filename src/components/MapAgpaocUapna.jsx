@@ -16,7 +16,7 @@ const GROUP_LABELS = {
 
 const UI_TEXT = {
   fr: {
-    eyebrow: 'Réseau AGPAOC — UAPNA',
+    eyebrow: 'Réseau AGPAOC - UAPNA',
     title: 'Une communauté portuaire panafricaine',
     subtitle: 'Découvrez les autorités portuaires membres de l’AGPAOC et de l’UAPNA à travers le continent.',
     portsLabel: 'Autorité(s) portuaire(s)',
@@ -24,7 +24,7 @@ const UI_TEXT = {
     hint: 'Survolez ou touchez un pays pour l’explorer.',
   },
   en: {
-    eyebrow: 'AGPAOC — UAPNA network',
+    eyebrow: 'AGPAOC - UAPNA network',
     title: 'A pan-African port community',
     subtitle: 'Explore the port authorities that make up AGPAOC and UAPNA across the continent.',
     portsLabel: 'Port authority(ies)',

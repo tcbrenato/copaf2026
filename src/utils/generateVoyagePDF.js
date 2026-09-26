@@ -57,8 +57,8 @@ export const GUIDE_FIELDS = [
   { key: 'contact_logistique', fr: 'Contact : transferts et logistique à Casablanca', en: 'Contact: transfers and logistics in Casablanca', hint: 'Nom · téléphone local' },
   { key: 'contact_urgence', fr: 'Numéro d’urgence 24h/24', en: '24/7 emergency number', hint: '+212 …' },
   { key: 'navette', fr: 'Navette hôtel → port (fiches de voyage)', en: 'Hotel → port shuttle (travel sheets)', hint: "Départ de l'hôtel à 8h00, du 19 au 21 octobre · rendez-vous dans le hall" },
-  { key: 'referent_nom', fr: 'Référent sur place (nom) — fiches de voyage', en: 'On-site contact (name) — travel sheets', hint: 'M. …' },
-  { key: 'referent_tel', fr: 'Référent sur place (téléphone) — fiches de voyage', en: 'On-site contact (phone) — travel sheets', hint: '+212 …' },
+  { key: 'referent_nom', fr: 'Référent sur place (nom) - fiches de voyage', en: 'On-site contact (name) - travel sheets', hint: 'M. …' },
+  { key: 'referent_tel', fr: 'Référent sur place (téléphone) - fiches de voyage', en: 'On-site contact (phone) - travel sheets', hint: '+212 …' },
 ]
 
 // Champs communs aux fiches de voyage (pas necessaires a l'envoi du guide)

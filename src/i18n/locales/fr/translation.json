@@ -97,7 +97,7 @@
         "sessions": [
           { "heure": "09h00 – 09h45", "type": "Ouverture", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "CRF PERFECTION / AGPAOC / ANPUAPNA", "categorie": "Partenaire" },
           { "heure": "10h15 – 11h30", "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Modeste ABIALA", "categorie": "Recruté" },
-          { "heure": "11h30 – 12h45", "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire — session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
+          { "heure": "11h30 – 12h45", "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire - session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
           { "heure": "12h45 – 13h45", "type": "Pause", "titre": "Déjeuner", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
           { "heure": "13h45 – 15h00", "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
           { "heure": "15h00 – 15h30", "type": "Pause", "titre": "Pause café", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
@@ -156,7 +156,7 @@
     "navigationTitle": "Navigation",
     "navLinks": ["À Propos", "Programme", "Axes Thématiques", "Inscription"],
     "contactTitle": "Contact",
-    "copyright": "© 2026 COPAF — CRF Perfection. Tous droits réservés.",
+    "copyright": "© 2026 COPAF - CRF Perfection. Tous droits réservés.",
     "location": "Casablanca, Maroc · 19–21 Octobre 2026"
   },
   "contact": {
@@ -169,7 +169,7 @@
       { "label": "WhatsApp", "value": "+229 0169 30 30 19", "cta": "Discuter sur WhatsApp" },
       { "label": "Téléphone", "value": "+1 (240) 978-4155", "cta": "Appeler" }
     ],
-    "sectionOneTitle": "CRF Perfection — présence régionale",
+    "sectionOneTitle": "CRF Perfection - présence régionale",
     "sectionOneText": "Bénin · Côte d'Ivoire · Togo · États-Unis",
     "sectionTwoTitle": "Vérifiez toujours nos coordonnées bancaires",
     "sectionTwoText": "Avant tout virement, confirmez le RIB officiel sur copaf-ports.com/verifier.",
@@ -266,14 +266,14 @@
     "atelierMarocTitre": "Atelier : Modèle économique de développement d'un projet technologique portuaire",
     "odahTitre": "Directeur Général CRF Perfection & Directeur du Comité scientifique de la COPAF 2026",
     "balsomiTitre": "CEO & Experte en Cybersécurité Offensive et Transformation Digitale",
-    "panelMarocTitre": "Panel : Sécurité & Sûreté — détection automatique des anomalies",
+    "panelMarocTitre": "Panel : Sécurité & Sûreté - détection automatique des anomalies",
     "biegniebeTitre": "Directeur Général",
     "bioComingSoon": "Biographie à venir. Cet intervenant sera annoncé prochainement.",
     "odahTitre": "Expert en Gouvernance Stratégique et Développement Portuaire",
     "odahBio": "Directeur Général de CRF Perfection, le Dr. William ODAH est un expert international en gouvernance stratégique, actif aux États-Unis, au Canada, en Europe et en Afrique. Depuis de nombreuses années, il accompagne institutions et entreprises d'Afrique de l'Ouest et d'ailleurs dans leurs projets de développement portuaire, de formation et de structuration organisationnelle. Son expertise s'articule autour de trois leviers de performance pour répondre aux défis de la transformation numérique : le marketing stratégique, pour le positionnement concurrentiel et la valorisation des services ; la digitalisation des processus, pour l'optimisation opérationnelle et l'efficience ; et la mise en conformité organisationnelle, pour la résilience, la gouvernance et la conformité réglementaire. Intervenant auprès d'acteurs publics et privés du secteur maritime et logistique sur quatre continents, il est reconnu pour son approche pragmatique alliant conduite du changement institutionnel, renforcement des capacités des cadres et accompagnement stratégique des projets à fort enjeu portuaire.",
-    "biegniebeBio": "Marc BIEGNIEBE est Directeur Général d'ANAXAR, entreprise de transport routier opérant sur les corridors reliant le port de Lomé aux pays de l'hinterland — Burkina Faso, Mali et Niger. Fort de plus de 10 ans d'expérience dans la chaîne logistique portuaire et transfrontalière, il intervient sur les enjeux de fluidité des corridors, de dédouanement et de digitalisation du transport en Afrique de l'Ouest.",
+    "biegniebeBio": "Marc BIEGNIEBE est Directeur Général d'ANAXAR, entreprise de transport routier opérant sur les corridors reliant le port de Lomé aux pays de l'hinterland - Burkina Faso, Mali et Niger. Fort de plus de 10 ans d'expérience dans la chaîne logistique portuaire et transfrontalière, il intervient sur les enjeux de fluidité des corridors, de dédouanement et de digitalisation du transport en Afrique de l'Ouest.",
     "tchoboTitre": "Digital Product Builder et Full-Stack Developer, spécialisé en Web Platforms, Digital Strategy, IT, IA et Data.",
-    "tchoboBio": "Rénato TCHOBO est Chief Digital & IT Officer chez CRF Perfection, où il pilote le développement web, la stratégie digitale et la transformation numérique des projets institutionnels et événementiels. Consultant freelance en développement web et community management, il conçoit et déploie des plateformes numériques complètes — de la conception à la mise en production — pour des organisations basées à Cotonou et à l'international. Son expertise couvre la structuration de projets digitaux complexes, l'automatisation des processus et l'accompagnement stratégique de la transformation numérique.",
+    "tchoboBio": "Rénato TCHOBO est Chief Digital & IT Officer chez CRF Perfection, où il pilote le développement web, la stratégie digitale et la transformation numérique des projets institutionnels et événementiels. Consultant freelance en développement web et community management, il conçoit et déploie des plateformes numériques complètes - de la conception à la mise en production - pour des organisations basées à Cotonou et à l'international. Son expertise couvre la structuration de projets digitaux complexes, l'automatisation des processus et l'accompagnement stratégique de la transformation numérique.",
     "balsomiBio": "Babel BALSOMI est CEO du groupe HIERO DIGITAL INTERNATIONAL, actif en Afrique, en Europe et au Canada. Experte en cybersécurité offensive, intelligence artificielle et transformation digitale, elle est notamment reconnue pour ses travaux de recherche sur la sécurité des grands modèles de langage. Fondatrice de plusieurs structures dédiées à la cybersécurité, à la formation et à l'inclusion numérique en Afrique (HDI, Hiero Academy, H&C IT Academy, CONNECT-IA), elle accompagne institutions et entreprises dans le renforcement de leur résilience numérique. Elle intervient régulièrement dans des forums internationaux dédiés à la cybersécurité et à l'intelligence artificielle.",
     "abialaBio": "M. Modeste ABIALA est Directeur des Solutions Maritimes chez AGL Bénin (ex Groupe Bolloré), où il a précédemment occupé pendant 15 ans la fonction de Directeur Commercial et Marketing. Fort de 28 années d'expérience dans le secteur maritime et portuaire, il accompagne les acteurs économiques et institutionnels dans l'optimisation de leurs flux de marchandises et le déploiement de solutions portuaires innovantes en Afrique de l'Ouest. Son expertise couvre la stratégie commerciale grands comptes, le développement de nouveaux marchés et la digitalisation des services portuaires en Afrique."
   },
@@ -299,7 +299,7 @@
         "activities": [
           { "type": "Ouverture", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "CRF PERFECTION / AGPAOC / ANPUAPNA", "categorie": "Partenaire" },
           { "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Modeste ABIALA", "categorie": "Recruté" },
-          { "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire — session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
+          { "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire - session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
           { "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
           { "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Rénato TCHOBO / Mme Babel BALSOMI", "categorie": "Maison" }
         ]
@@ -354,7 +354,7 @@
     "pageDediee": "Page dédiée →",
     "voirInclus": "Voir ce qui est inclus",
     "inclusTitle": "Ce qui est inclus",
-    "inclusTarif": "Tarif Participant — 3 500 EUR",
+    "inclusTarif": "Tarif Participant - 3 500 EUR",
     "inclusList": [
       "Accueil à l'aéroport et installation à l'hôtel",
       "Navette Aéroport ↔ Hôtel (aller-retour)",
@@ -378,7 +378,7 @@
     "photoLabel": "Photo (pour votre badge participant)",
     "photoChoose": "Choisir une photo",
     "photoChange": "Changer la photo",
-    "photoHint": "Facultatif à ce stade — utilisé pour générer votre badge une fois l'inscription confirmée. Format portrait recommandé.",
+    "photoHint": "Facultatif à ce stade - utilisé pour générer votre badge une fois l'inscription confirmée. Format portrait recommandé.",
     "messageLabel": "Message / Besoins spécifiques",
     "messagePlaceholder": "Questions, besoins alimentaires, accessibilité...",
     "paiementLabel": "Mode de paiement *",

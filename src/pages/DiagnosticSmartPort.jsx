@@ -30,14 +30,14 @@ const TR = {
     organisationSearch: 'Rechercher votre organisation, votre pays...',
     organisationAucun: 'Aucune organisation trouvée pour cette recherche.',
     site: 'Site précis évalué *',
-    siteAide: 'Cette organisation gère plusieurs sites — précisez celui concerné par ce diagnostic.',
+    siteAide: 'Cette organisation gère plusieurs sites - précisez celui concerné par ce diagnostic.',
     autreOrgNom: "Nom de votre organisation *", autreOrgNomP: 'Ex : Port Autonome de Kribi',
     autrePays: 'Pays *', autrePaysP: 'Ex : Cameroun',
     changer: 'Changer',
     erreurForm: 'Merci de renseigner au moins votre nom, prénom et organisation.',
     avantCommencer: 'Avant de commencer',
     commentFonctionne: 'Comment fonctionne ce diagnostic',
-    explication: "10 dimensions du « Smart Port » à évaluer, notées de 0 à 5. Prenez un instant pour lire chaque définition — une compréhension commune garantit des résultats comparables entre tous les ports.",
+    explication: "10 dimensions du « Smart Port » à évaluer, notées de 0 à 5. Prenez un instant pour lire chaque définition - une compréhension commune garantit des résultats comparables entre tous les ports.",
     bareme: 'Le barème de notation',
     dixDimensions: 'Les 10 dimensions évaluées',
     jaiCompris: "J'ai compris, commencer le diagnostic",
@@ -77,14 +77,14 @@ const TR = {
     organisationSearch: 'Search your organisation, your country...',
     organisationAucun: 'No organisation found for this search.',
     site: 'Specific site being assessed *',
-    siteAide: 'This organisation runs several sites — specify which one this diagnostic covers.',
+    siteAide: 'This organisation runs several sites - specify which one this diagnostic covers.',
     autreOrgNom: 'Your organisation name *', autreOrgNomP: 'E.g.: Port Autonome de Kribi',
     autrePays: 'Country *', autrePaysP: 'E.g.: Cameroon',
     changer: 'Change',
     erreurForm: 'Please provide at least your first name, last name and organisation.',
     avantCommencer: 'Before you start',
     commentFonctionne: 'How this diagnostic works',
-    explication: '10 "Smart Port" dimensions to assess, scored from 0 to 5. Take a moment to read each definition — a shared understanding ensures results are comparable across all ports.',
+    explication: '10 "Smart Port" dimensions to assess, scored from 0 to 5. Take a moment to read each definition - a shared understanding ensures results are comparable across all ports.',
     bareme: 'The scoring scale',
     dixDimensions: 'The 10 dimensions assessed',
     jaiCompris: 'Got it, start the diagnostic',
@@ -102,7 +102,7 @@ const TR = {
     liveAgregatTitre: 'Current collective average for this site',
     liveAgregatNote: n => `${n} diagnostic${n > 1 ? 's' : ''} already submitted for this site during the conference.`,
     attenteTitre: 'Waiting for the next dimension to be unlocked',
-    attenteTexte: 'The moderator will unlock the rest of the diagnostic shortly. This page updates automatically — no need to reload.',
+    attenteTexte: 'The moderator will unlock the rest of the diagnostic shortly. This page updates automatically - no need to reload.',
   },
 }
 
@@ -309,7 +309,7 @@ export default function DiagnosticSmartPort() {
   // d'une meme presence.
   useEffect(() => {
     if (!orgSelectionnee?.country) return
-    const organisation = [txt(orgSelectionnee.nom, lang), siteSelectionne ? txt(siteSelectionne.nom, lang) : null].filter(Boolean).join(' — ')
+    const organisation = [txt(orgSelectionnee.nom, lang), siteSelectionne ? txt(siteSelectionne.nom, lang) : null].filter(Boolean).join(' - ')
     globalChannelRef.current?.track({
       online_at: new Date().toISOString(),
       country: orgSelectionnee.country,
@@ -356,7 +356,7 @@ export default function DiagnosticSmartPort() {
     setErreurForm('')
     const organisationNom = orgId === ORG_AUTRE.id
       ? autreOrgNom.trim()
-      : [txt(orgSelectionnee?.nom, lang), siteSelectionne ? txt(siteSelectionne.nom, lang) : null].filter(Boolean).join(' — ')
+      : [txt(orgSelectionnee?.nom, lang), siteSelectionne ? txt(siteSelectionne.nom, lang) : null].filter(Boolean).join(' - ')
     const pays = orgId === ORG_AUTRE.id ? autrePays.trim() : (orgSelectionnee?.country || '')
     setForm(f => ({ ...f, organisation: organisationNom, pays }))
     setEtape(0)
@@ -827,7 +827,7 @@ export default function DiagnosticSmartPort() {
         <div style={{ ...card, maxWidth: 900 }}>
           <div style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: '#94a3b8', marginBottom: 8 }}>
-              <span>{t.bloc.toUpperCase()} {axe.bloc} — {txt(BLOCS[axe.bloc], lang).toUpperCase()} ({etape}{t.sur}{AXES.length})</span>
+              <span>{t.bloc.toUpperCase()} {axe.bloc} - {txt(BLOCS[axe.bloc], lang).toUpperCase()} ({etape}{t.sur}{AXES.length})</span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ChronoBadge deadline={sessionGate.bloc_verrouillage_at} />
                 {participantsCount > 1 && (
@@ -865,7 +865,7 @@ export default function DiagnosticSmartPort() {
               <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: 'rgba(0,115,244,0.08)', border: '1px solid rgba(0,115,244,0.25)', borderRadius: 12, padding: '12px 16px', marginBottom: 24 }}>
                 <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1.4 }}>🎯</span>
                 <p style={{ fontSize: 13, color: '#dbeafe', lineHeight: 1.55, margin: 0 }}>
-                  <span style={{ fontWeight: 800, color: '#93c5fd', textTransform: 'uppercase', letterSpacing: 0.4, fontSize: 11 }}>{t.enjeuLabel} — </span>
+                  <span style={{ fontWeight: 800, color: '#93c5fd', textTransform: 'uppercase', letterSpacing: 0.4, fontSize: 11 }}>{t.enjeuLabel} - </span>
                   {txt(axe.enjeu, lang)}
                 </p>
               </div>

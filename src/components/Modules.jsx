@@ -321,7 +321,7 @@ const AxesThematiques = () => {
                 )}
                 {r.pays.some(p => p.visa) && (
                   <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 8, lineHeight: 1.6 }}>
-                    Statut à titre indicatif pour un passeport ordinaire (séjour ≤ 90 jours) — vérifiez toujours auprès du consulat du Maroc avant votre voyage.
+                    Statut à titre indicatif pour un passeport ordinaire (séjour ≤ 90 jours) - vérifiez toujours auprès du consulat du Maroc avant votre voyage.
                   </div>
                 )}
               </div>

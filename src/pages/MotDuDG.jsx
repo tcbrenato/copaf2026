@@ -15,7 +15,7 @@ export default function MotDuDG() {
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#0f172a', background: '#f8faff' }}>
       <SeoHead
-        title={isEn ? 'A Word from the Director General — COPAF 2026' : 'Le Mot du Directeur Général — COPAF 2026'}
+        title={isEn ? 'A Word from the Director General - COPAF 2026' : 'Le Mot du Directeur Général - COPAF 2026'}
         description={isEn
           ? "Dr William ODAH, Director General of CRF Perfection, shares his vision of COPAF 2026's challenges."
           : "Le Dr William ODAH, Directeur Général de CRF Perfection, partage sa vision des enjeux de la COPAF 2026."}
@@ -40,7 +40,7 @@ export default function MotDuDG() {
           />
           <div>
             <p style={{ margin: 0, fontSize: 16, fontWeight: 800, color: NAVY }}>Dr William ODAH</p>
-            <p style={{ margin: '4px 0 0', fontSize: 13.5, color: '#64748b' }}>{t('intervenants.odahTitre')} — CRF Perfection</p>
+            <p style={{ margin: '4px 0 0', fontSize: 13.5, color: '#64748b' }}>{t('intervenants.odahTitre')} - CRF Perfection</p>
           </div>
         </div>
 

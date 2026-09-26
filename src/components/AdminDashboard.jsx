@@ -511,7 +511,7 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
       {/* Badge QR — telechargement direct en carte brandee (voir generateQrCard) */}
       {badgeToken && (
         <div style={{ marginTop: 20 }}>
-          <div style={EXTRAS_LABEL}>Badge — QR code de {contactName || 'ce contact'} (contact principal)</div>
+          <div style={EXTRAS_LABEL}>Badge - QR code de {contactName || 'ce contact'} (contact principal)</div>
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             {badgeQr && (
               <img src={badgeQr} alt="QR code badge" style={{ width: 96, height: 96, borderRadius: 10, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />
@@ -542,7 +542,7 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
               }}>
                 <Icon name={arrived ? 'check' : 'users'} size={13} color={arrived ? '#065f46' : '#fff'} />
                 {arrived
-                  ? `Arrivé${arrivedAt ? ` à ${fmtTime(arrivedAt)}` : ''} — marquer non arrivé`
+                  ? `Arrivé${arrivedAt ? ` à ${fmtTime(arrivedAt)}` : ''} - marquer non arrivé`
                   : 'Marquer arrivé et installé'}
               </button>
             </div>
@@ -558,7 +558,7 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
           telecharger directement sans avoir a rouvrir sa fiche. */}
       {membres.length > 0 && (
         <div style={{ marginTop: 20 }}>
-          <div style={EXTRAS_LABEL}>Membres de la délégation ({membres.length}) — chacun son propre badge/QR</div>
+          <div style={EXTRAS_LABEL}>Membres de la délégation ({membres.length}) - chacun son propre badge/QR</div>
           {membres.map(m => (
             <MembreBadgeRow key={m.id} membre={m} toggling={togglingArrivee === m.id} onToggleArrivee={() => toggleArrivee(m.id, m.arrived)} />
           ))}
@@ -576,7 +576,7 @@ function DossierExtras({ dossier, badgeToken, inscriptionId, arrived, arrivedAt,
           {agenda.map(item => (
             <div key={item.id} style={EXTRAS_ROW}>
               <span style={{ fontSize: 12.5, color: '#0f172a', flex: 1 }}>
-                <strong>{item.jour}</strong> · {item.heure} — {item.titre}
+                <strong>{item.jour}</strong> · {item.heure} - {item.titre}
               </span>
             </div>
           ))}
@@ -816,7 +816,7 @@ function ModalMembre({ membre, onClose, onUpdate }) {
         </div>
 
         <div style={{ padding: '4px 28px 28px' }}>
-          <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 10 }}>Badge — QR code</div>
+          <div style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', fontWeight: 700, letterSpacing: .5, marginBottom: 10 }}>Badge - QR code</div>
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 16 }}>
             {badgeQr && <img src={badgeQr} alt="QR code badge" style={{ width: 96, height: 96, borderRadius: 10, border: '1.5px solid #e2e8f0', flexShrink: 0 }} />}
             <button type="button" onClick={downloadBadgeQr} disabled={!badgeQr} style={{
@@ -841,13 +841,13 @@ function ModalMembre({ membre, onClose, onUpdate }) {
             color: membre.arrived ? '#065f46' : '#fff', background: membre.arrived ? '#d1fae5' : '#0f172a',
           }}>
             {membre.arrived
-              ? `Arrivé${membre.arrived_at ? ` à ${fmtTime(membre.arrived_at)}` : ''} — marquer non arrivé`
+              ? `Arrivé${membre.arrived_at ? ` à ${fmtTime(membre.arrived_at)}` : ''} - marquer non arrivé`
               : 'Marquer arrivé et installé'}
           </button>
           )}
 
           <p style={{ fontSize: 11.5, color: '#94a3b8', textAlign: 'center', marginTop: 12, marginBottom: 4, lineHeight: 1.5 }}>
-            Fait partie du dossier groupé — statut de paiement partagé avec le contact principal.
+            Fait partie du dossier groupé - statut de paiement partagé avec le contact principal.
           </p>
         </div>
 
@@ -900,7 +900,7 @@ function ModalMembre({ membre, onClose, onUpdate }) {
           <ValidationDocuments dossier={membre.dossier} />
           <DocumentsSection dossier={membre.dossier} participantId={membre._memberId} />
           <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 8, lineHeight: 1.5 }}>
-            Ces documents sont visibles uniquement dans l'espace personnel de {membre.contacts?.prenom} — pour un document partagé par tout le groupe, déposez-le plutôt depuis la fiche du contact principal.
+            Ces documents sont visibles uniquement dans l'espace personnel de {membre.contacts?.prenom} - pour un document partagé par tout le groupe, déposez-le plutôt depuis la fiche du contact principal.
           </p>
         </div>
       </div>
@@ -1175,7 +1175,7 @@ function RowActions({ row, onView }) {
     const email = row.contacts?.email
     if (!email) return
     const nom = `${row.contacts?.prenom || ''} ${row.contacts?.nom || ''}`.trim()
-    const subject = `COPAF 2026 — Votre dossier ${row.dossier}`
+    const subject = `COPAF 2026 - Votre dossier ${row.dossier}`
     const body = `Bonjour ${nom},\n\nVoici un rappel concernant votre inscription à la COPAF 2026 (dossier ${row.dossier}).\n\nRetrouvez le suivi de votre dossier, vos documents et votre badge à tout moment sur : https://copaf-ports.com/verifier\n\nCordialement,\nL'équipe COPAF 2026`
     window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }
@@ -1359,7 +1359,7 @@ function SectionParticipants({ data, membres = [], setData, setMembres }) {
         <KpiCard icon="euro"   label="Revenus"      value={showEur(totalMontant)} color="#d97706" />
         <KpiCard icon="check"  label="Confirmés"    value={showNum(confirmes)}       color="#10b981" tint sub={montantsRevealed ? `${Math.round((confirmes/total||0)*100)}% de conversion` : undefined} />
         <KpiCard icon="clock"  label="En attente"   value={showNum(enAttente)}       color="#d97706" tint />
-        <KpiCard icon="search" label="Arrivés"      value={showNum(arrives)}         color="#0891b2" subTitle="Contacts principaux — voir la fiche pour les délégations" />
+        <KpiCard icon="search" label="Arrivés"      value={showNum(arrives)}         color="#0891b2" subTitle="Contacts principaux - voir la fiche pour les délégations" />
       </div>
 
       <Toolbar
@@ -1701,7 +1701,7 @@ function ModalEmailMassif({ inscriptions, onClose }) {
           </div>
 
           <p style={{ fontSize: 12, color: '#94a3b8', lineHeight: 1.6, marginBottom: 16 }}>
-            Pas d'envoi automatique de masse depuis l'admin — copiez la liste et collez-la en CCI (Bcc) dans votre client mail habituel pour composer et envoyer vous-même le message.
+            Pas d'envoi automatique de masse depuis l'admin - copiez la liste et collez-la en CCI (Bcc) dans votre client mail habituel pour composer et envoyer vous-même le message.
           </p>
 
           <button onClick={copyEmails} disabled={destinataires.length === 0} style={{
@@ -1896,7 +1896,7 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
 
       {/* Statuts inscriptions */}
       <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
-        <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Répartition des statuts — Inscriptions</div>
+        <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 20 }}>Répartition des statuts - Inscriptions</div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           {statutsInsc.map((s, i) => (
             <div key={i} style={{ background: '#f8fafc', border: '1px solid #e8edf5', borderRadius: 14, padding: '16px 20px', minWidth: 110, textAlign: 'center', flex: 1 }}>
@@ -2219,7 +2219,7 @@ function SectionAnalytics({ inscriptions = [] }) {
       {/* Trafic dans le temps */}
       <div style={{ ...CARD_STYLE, padding: '22px 20px', marginBottom: 20 }}>
         <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Trafic dans le temps</div>
-        <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8 }}>Visites et inscriptions — {periodLabel}</div>
+        <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 8 }}>Visites et inscriptions - {periodLabel}</div>
         {trafficChartData.length === 0 ? (
           <div style={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 12 }}>Aucune donnée</div>
         ) : (
@@ -2259,7 +2259,7 @@ function SectionAnalytics({ inscriptions = [] }) {
         {/* Tunnel de conversion */}
         <div style={{ ...CARD_STYLE, padding: '22px 20px' }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a', marginBottom: 4 }}>Tunnel de conversion</div>
-          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Visite → Inscription confirmée — {periodLabel}</div>
+          <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 20 }}>Visite → Inscription confirmée - {periodLabel}</div>
           {funnel.length === 0
             ? <div style={{ color: '#94a3b8', fontSize: 13 }}>Aucune donnée</div>
             : funnel.map((f, i) => (
@@ -2416,7 +2416,7 @@ function repondreAssistant(question, allData) {
   const q = normaliserTexte(question)
   const annuaire = construireAnnuaire(allData)
   const nomComplet = p => normaliserTexte(`${p.prenom} ${p.nom}`)
-  const ligne = p => `• ${p.prenom} ${p.nom} — ${p.dossier}`
+  const ligne = p => `• ${p.prenom} ${p.nom} - ${p.dossier}`
 
   if (/\bcombien\b.*(inscri|personne|participant|dossier)/.test(q) && !/pays/.test(q)) {
     const dossiers = new Set(annuaire.map(p => p.dossier))
@@ -2449,7 +2449,7 @@ function repondreAssistant(question, allData) {
 
   if (/n.?a pas|pas encore|impaye/.test(q) && /(paye|paiement|regle)/.test(q)) {
     const res = annuaire.filter(p => p.paiement_status && p.paiement_status !== 'confirme')
-    return res.length ? `${res.length} en attente de paiement :\n` + res.map(p => `• ${p.prenom} ${p.nom} — ${p.dossier} (${p.paiement_status})`).join('\n') : 'Tout le monde a un paiement confirmé.'
+    return res.length ? `${res.length} en attente de paiement :\n` + res.map(p => `• ${p.prenom} ${p.nom} - ${p.dossier} (${p.paiement_status})`).join('\n') : 'Tout le monde a un paiement confirmé.'
   }
 
   if (/sans badge|pas.*badge|badge.*pas/.test(q)) {
@@ -2607,12 +2607,12 @@ export default function AdminPage() {
       .channel('admin-notif-inscriptions')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'inscriptions' }, payload => {
         const row = payload.new
-        const texte = `Nouvelle inscription — dossier ${row?.dossier || '—'}`
+        const texte = `Nouvelle inscription - dossier ${row?.dossier || '—'}`
         console.log('[notif] nouvelle inscription reçue via Realtime', row)
         setNotifToast(texte)
         setTimeout(() => setNotifToast(null), 7000)
         if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          const n = new Notification('COPAF 2026 — Nouvelle inscription', { body: texte, icon: '/icons/icon-192.png' })
+          const n = new Notification('COPAF 2026 - Nouvelle inscription', { body: texte, icon: '/icons/icon-192.png' })
           n.onclick = () => { allerVersInscription(); n.close() }
         }
       })

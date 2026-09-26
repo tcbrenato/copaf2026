@@ -292,7 +292,7 @@ function OngletGuide({ config, setConfig, publie, setPublie, personnes, recharge
           </button>
           {envoi && (
             <span style={{ fontSize: 13, color: envoi.echecs.length ? '#b45309' : '#16a34a', fontWeight: 700 }}>
-              {envoi.fait}/{envoi.total} traités{envoi.echecs.length ? ` — échecs : ${envoi.echecs.join(', ')}` : ''}
+              {envoi.fait}/{envoi.total} traités{envoi.echecs.length ? ` - échecs : ${envoi.echecs.join(', ')}` : ''}
             </span>
           )}
         </div>
@@ -469,7 +469,7 @@ function FenetreFiche({ personne, personnes, config, onClose, onSaved }) {
   const alertes = r => [
     r.tronques?.length ? `Texte tronqué (trop long) : ${r.tronques.join(', ')}` : '',
     r.remplaces?.length ? `Caractères non pris en charge remplacés par « ? » : ${r.remplaces.join(', ')}` : '',
-  ].filter(Boolean).join(' — ')
+  ].filter(Boolean).join(' - ')
 
   const apercu = async () => {
     try {
@@ -573,7 +573,7 @@ function FenetreFiche({ personne, personnes, config, onClose, onSaved }) {
                   const h = hotelsConnus[Number(e.target.value)]
                   if (h) setF(x => ({ ...x, hotel: h.hotel, hotel_categorie: h.hotel_categorie, hotel_adresse: h.hotel_adresse }))
                 }}>
-                  <option value="">— Copier l’hôtel d’une autre fiche —</option>
+                  <option value="">- Copier l’hôtel d’une autre fiche -</option>
                   {hotelsConnus.map((h, i) => <option key={i} value={i}>{h.hotel}{h.hotel_categorie ? ` (${h.hotel_categorie})` : ''}</option>)}
                 </select>
               </Ligne>

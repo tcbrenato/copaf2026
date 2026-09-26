@@ -165,7 +165,7 @@ export default function AdminTirage() {
     <div style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 20px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 22, fontWeight: 900, color: '#0f172a', marginBottom: 6 }}>Tirage au sort</div>
-        <div style={{ fontSize: 13.5, color: '#64748b' }}>Tombola, animation de formation, tirage clients — préparez la liste puis lancez la roue sur l'écran connecté au projecteur.</div>
+        <div style={{ fontSize: 13.5, color: '#64748b' }}>Tombola, animation de formation, tirage clients - préparez la liste puis lancez la roue sur l'écran connecté au projecteur.</div>
       </div>
 
       {toast && (

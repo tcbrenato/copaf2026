@@ -19,7 +19,7 @@ const Mail = () => (
 // Contenu bilingue : le texte francais est la reference, la version anglaise en est la traduction.
 const TR = {
   fr: {
-    seoTitle: 'Mentions Légales — COPAF 2026',
+    seoTitle: 'Mentions Légales - COPAF 2026',
     seoDesc: 'Mentions légales et informations officielles du site COPAF 2026, Conférence des Ports Africains.',
     h1a: 'Informations Légales',
     h1b: 'Mentions Légales',
@@ -38,7 +38,7 @@ const TR = {
               <p style={{ margin: '4px 0 0 0' }}>• <strong>Siège social :</strong> Cotonou, Carré 1735, Akogbato, Bénin</p>
               <p style={{ margin: '4px 0 0 0' }}>• <strong>Téléphone / WhatsApp :</strong> +229 01 69 30 30 19</p>
               <p style={{ margin: '4px 0 0 0' }}>• <strong>Courrier électronique :</strong> <Mail /></p>
-              <p style={{ margin: '4px 0 0 0' }}>• <strong>Immatriculation :</strong> RCCM RB/COT/15-B-13727 — IFU 87015034851</p>
+              <p style={{ margin: '4px 0 0 0' }}>• <strong>Immatriculation :</strong> RCCM RB/COT/15-B-13727 - IFU 87015034851</p>
             </div>
           </>
         ),
@@ -110,7 +110,7 @@ const TR = {
     top: '↑ Remonter en haut',
   },
   en: {
-    seoTitle: 'Legal Notice — COPAF 2026',
+    seoTitle: 'Legal Notice - COPAF 2026',
     seoDesc: 'Legal notice and official information of the COPAF 2026 website, the African Ports Conference.',
     h1a: 'Legal Information',
     h1b: 'Legal Notice',
@@ -129,7 +129,7 @@ const TR = {
               <p style={{ margin: '4px 0 0 0' }}>• <strong>Registered office:</strong> Cotonou, Carré 1735, Akogbato, Benin</p>
               <p style={{ margin: '4px 0 0 0' }}>• <strong>Phone / WhatsApp:</strong> +229 01 69 30 30 19</p>
               <p style={{ margin: '4px 0 0 0' }}>• <strong>Email:</strong> <Mail /></p>
-              <p style={{ margin: '4px 0 0 0' }}>• <strong>Registration:</strong> RCCM RB/COT/15-B-13727 — IFU 87015034851</p>
+              <p style={{ margin: '4px 0 0 0' }}>• <strong>Registration:</strong> RCCM RB/COT/15-B-13727 - IFU 87015034851</p>
             </div>
           </>
         ),

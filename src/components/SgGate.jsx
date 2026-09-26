@@ -56,7 +56,7 @@ export default function SgGate({ children }) {
           </svg>
         </div>
         <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 4 }}>Suivi des inscriptions</div>
-        <div style={{ fontSize: 13, color: '#64748b', marginBottom: 28 }}>Accès réservé — Secrétariat Général AGPAOC / UAPNA</div>
+        <div style={{ fontSize: 13, color: '#64748b', marginBottom: 28 }}>Accès réservé - Secrétariat Général AGPAOC / UAPNA</div>
 
         <input
           type="password"

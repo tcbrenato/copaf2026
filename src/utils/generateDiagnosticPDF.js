@@ -90,7 +90,7 @@ export async function generateDiagnosticPDF({ diag, benchmark = null, download =
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7.5)
     doc.setTextColor(...GRAY)
-    doc.text('COPAF 2026 — Diagnostic Smart Port', M, footerY + 14)
+    doc.text('COPAF 2026 - Diagnostic Smart Port', M, footerY + 14)
     doc.text('contact@copaf-ports.com', M, footerY + 24)
     doc.text('www.copaf-ports.com', W - M, footerY + 14, { align: 'right' })
   }

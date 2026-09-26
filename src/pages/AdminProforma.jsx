@@ -146,7 +146,7 @@ function CorrectionsRIB({ onClose }) {
   }
 
   const mailtoHref = row => {
-    const subject = encodeURIComponent(`COPAF 2026 — Facture proforma corrigée (Dossier ${row.dossier})`)
+    const subject = encodeURIComponent(`COPAF 2026 - Facture proforma corrigée (Dossier ${row.dossier})`)
     const body = encodeURIComponent(
       `Bonjour ${row.contacts?.prenom || ''},\n\n` +
       `Veuillez trouver ci-joint votre facture proforma corrigée : nos coordonnées bancaires ont été mises à jour (banque, IBAN, BIC et titulaire). Merci de ne considérer QUE cette version pour votre virement, en ignorant tout document précédent.\n\n` +
@@ -164,7 +164,7 @@ function CorrectionsRIB({ onClose }) {
             <Ico name="alert" size={16} color="#92400e" /> Proformas à renvoyer (RIB corrigé)
           </div>
           <div style={{ fontSize: 12.5, color: '#64748b', marginTop: 4, lineHeight: 1.5 }}>
-            Générées avant la correction des coordonnées bancaires (banque, IBAN, BIC, titulaire). Téléchargez le PDF corrigé puis renvoyez-le manuellement en pièce jointe — l'ancien IBAN était incorrect.
+            Générées avant la correction des coordonnées bancaires (banque, IBAN, BIC, titulaire). Téléchargez le PDF corrigé puis renvoyez-le manuellement en pièce jointe - l'ancien IBAN était incorrect.
           </div>
         </div>
         <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 700, color: '#64748b', cursor: 'pointer', fontFamily: 'inherit', flexShrink: 0 }}>
@@ -185,7 +185,7 @@ function CorrectionsRIB({ onClose }) {
             }}>
               <div style={{ flex: '1 1 220px', minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
-                  {row.contacts?.prenom} {row.contacts?.nom} — {row.contacts?.organisation}
+                  {row.contacts?.prenom} {row.contacts?.nom} - {row.contacts?.organisation}
                 </div>
                 <div style={{ fontSize: 11.5, color: '#64748b' }}>
                   {row.dossier} · {row.contacts?.email} · généré le {fmtDateTime(row.generatedAt)}
@@ -222,7 +222,7 @@ function TarifBadge({ tarifType, codePromo }) {
   const color = estPreferentiel ? '#059669' : '#64748b'
   const border = estPreferentiel ? '#6ee7b7' : '#e2e8f0'
   const label = estPreferentiel
-    ? `Tarif préférentiel${codePromo ? ` — code ${codePromo}` : ' — pays UAPNA/ANP'}`
+    ? `Tarif préférentiel${codePromo ? ` - code ${codePromo}` : ' - pays UAPNA/ANP'}`
     : 'Tarif standard'
   return (
     <div style={{
@@ -968,7 +968,7 @@ export default function AdminProforma() {
             {isGroup && (
               <>
                 <p style={{ fontSize: 11.5, color: '#94a3b8', marginTop: 0, marginBottom: 14, lineHeight: 1.6 }}>
-                  Regroupe des inscriptions de la <strong>même organisation</strong> (attention : "même pays" ne suffit pas — deux participants du même pays peuvent venir de structures différentes). La facture proforma groupée sera adressée à cette organisation.
+                  Regroupe des inscriptions de la <strong>même organisation</strong> (attention : "même pays" ne suffit pas - deux participants du même pays peuvent venir de structures différentes). La facture proforma groupée sera adressée à cette organisation.
                 </p>
 
                 <div style={{ marginBottom: 14 }}>
@@ -1143,7 +1143,7 @@ export default function AdminProforma() {
             </div>
             {(data.nomPasseport || data.prenomPasseport) && (
               <p style={{ fontSize: 12, color: '#64748b', margin: '-4px 0 12px' }}>
-                Nom sur le passeport (saisi par la personne) : <strong style={{ color: '#0f172a' }}>{[data.prenomPasseport, data.nomPasseport].filter(Boolean).join(' ')}</strong> — utilisé pour la confirmation d'inscription.
+                Nom sur le passeport (saisi par la personne) : <strong style={{ color: '#0f172a' }}>{[data.prenomPasseport, data.nomPasseport].filter(Boolean).join(' ')}</strong> - utilisé pour la confirmation d'inscription.
               </p>
             )}
 
@@ -1197,12 +1197,12 @@ export default function AdminProforma() {
           <div style={{ background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 16, padding: 20, boxShadow: '0 4px 16px rgba(0,14,145,.05)' }}>
             <EcrireBouton dossier={data.dossier} />
             <ValidationDocuments dossier={data.dossier} />
-            <DocumentsSection dossier={data.dossier} titre={`Documents — ${data.prenom} ${data.nom} (contact principal)`} />
+            <DocumentsSection dossier={data.dossier} titre={`Documents - ${data.prenom} ${data.nom} (contact principal)`} />
             {isGroup && participantsListe.filter(p => p.participantId).map(p => (
               <div key={p._id} style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #f1f5f9' }}>
                 <EcrireBouton dossier={p.dossier} />
                 <ValidationDocuments dossier={p.dossier} />
-                <DocumentsSection dossier={data.dossier} participantId={p.participantId} titre={`Documents — ${p.prenom} ${p.nom}`} />
+                <DocumentsSection dossier={data.dossier} participantId={p.participantId} titre={`Documents - ${p.prenom} ${p.nom}`} />
               </div>
             ))}
           </div>
@@ -1233,7 +1233,7 @@ export default function AdminProforma() {
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderBottom: '1.5px solid #e2e8f0' }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Aperçu — {preview.titre} ({data.dossier})</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>Aperçu - {preview.titre} ({data.dossier})</div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button onClick={telechargerDepuisPreview} style={actionBtn('#fdf2f4', MAROON, '#f3c9d0')}>
                   <Ico name="file" size={14} color={MAROON} />

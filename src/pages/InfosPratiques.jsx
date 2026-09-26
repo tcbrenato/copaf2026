@@ -17,7 +17,7 @@ export default function InfosPratiques() {
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#0f172a', background: '#f8faff' }}>
       <SeoHead
-        title={isEn ? 'Practical Information — COPAF 2026' : 'Infos Pratiques — COPAF 2026'}
+        title={isEn ? 'Practical Information - COPAF 2026' : 'Infos Pratiques - COPAF 2026'}
         description={isEn
           ? 'Practical information for attending COPAF 2026 in Casablanca: visa, accommodation, transport.'
           : 'Informations pratiques pour se rendre à la COPAF 2026 à Casablanca : visa, hébergement, transport.'}

@@ -81,7 +81,7 @@ export default function PromoPopup() {
         <a href="/inscription" onClick={close} style={{ display: 'block', lineHeight: 0 }}>
           <img
             src="/popup-flyer.png"
-            alt={lang === 'en' ? 'COPAF 2026 — October 19, 20 & 21, Port of Casablanca' : 'COPAF 2026 — 19, 20 & 21 Octobre, Port de Casablanca'}
+            alt={lang === 'en' ? 'COPAF 2026 - October 19, 20 & 21, Port of Casablanca' : 'COPAF 2026 - 19, 20 & 21 Octobre, Port de Casablanca'}
             style={{ width: '100%', height: 'auto', display: 'block' }}
           />
         </a>

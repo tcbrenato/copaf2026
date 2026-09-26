@@ -20,7 +20,7 @@ const TR = {
     jours: { 1: { date: '19 Octobre', sub: 'Jour 1' }, 2: { date: '20 Octobre', sub: 'Jour 2' }, 3: { date: '21 Octobre', sub: 'Jour 3' } },
     day: 'Jour',
     loginError: "Dossier ou email non reconnus. Vérifiez ces informations ou contactez l'organisation.",
-    seoTitle: 'Espace Intervenant — COPAF 2026',
+    seoTitle: 'Espace Intervenant - COPAF 2026',
     seoDesc: 'Espace personnel des intervenants COPAF 2026',
     badge: 'Portail Conférencier',
     h1: 'Espace Intervenant',
@@ -58,7 +58,7 @@ const TR = {
     jours: { 1: { date: 'October 19', sub: 'Day 1' }, 2: { date: 'October 20', sub: 'Day 2' }, 3: { date: 'October 21', sub: 'Day 3' } },
     day: 'Day',
     loginError: 'File number or email not recognised. Please check this information or contact the organisers.',
-    seoTitle: 'Speaker Area — COPAF 2026',
+    seoTitle: 'Speaker Area - COPAF 2026',
     seoDesc: 'Personal area for COPAF 2026 speakers',
     badge: 'Speaker Portal',
     h1: 'Speaker Area',
@@ -329,7 +329,7 @@ export default function EspaceIntervenant() {
                   {intervenant.prenom} {intervenant.nom}
                 </h2>
                 <p style={{ fontSize: 13.5, color: '#64748B', margin: 0, lineHeight: 1.5 }}>
-                  {intervenant.fonction}{intervenant.organisation ? ` — ${intervenant.organisation}` : ''}
+                  {intervenant.fonction}{intervenant.organisation ? ` - ${intervenant.organisation}` : ''}
                 </p>
               </div>
 

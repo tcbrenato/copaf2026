@@ -193,7 +193,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
     <div style={{ marginTop: 20 }}>
       <div style={LABEL}>
         {titre || (en ? 'Uploaded documents (visible in their personal space)' : 'Documents déposés (visibles dans son espace personnel)')}
-        {participantId && (en ? ' — personal to this person + shared with the file' : ' — personnels à cette personne + partagés du dossier')}
+        {participantId && (en ? ' - personal to this person + shared with the file' : ' - personnels à cette personne + partagés du dossier')}
       </div>
       {docs.map(doc => (
         <div key={doc.id} style={{ ...ROW, flexWrap: 'wrap' }}>
@@ -262,7 +262,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
         }}
       >
         <Icon name="upload" color={dragOver ? '#0073F4' : '#64748b'} />
-        {uploading ? (en ? 'Uploading...' : 'Envoi en cours...') : dragOver ? (en ? 'Drop the file here' : 'Déposez le fichier ici') : participantId ? 'Déposer un document pour cette personne (ou glisser-déposer)' : (en ? 'Upload a document (badge, certificate...) — or drag and drop' : 'Déposer un document (badge, attestation...) — ou glisser-déposer')}
+        {uploading ? (en ? 'Uploading...' : 'Envoi en cours...') : dragOver ? (en ? 'Drop the file here' : 'Déposez le fichier ici') : participantId ? 'Déposer un document pour cette personne (ou glisser-déposer)' : (en ? 'Upload a document (badge, certificate...) - or drag and drop' : 'Déposer un document (badge, attestation...) - ou glisser-déposer')}
         <input ref={fileRef} type="file" onChange={uploadDoc} disabled={uploading} style={{ display: 'none' }} />
       </label>
     </div>

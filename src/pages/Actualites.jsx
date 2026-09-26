@@ -10,7 +10,7 @@ const BLUE = '#0073F4'
 const TR = {
   fr: {
     locale: 'fr-FR',
-    seoTitle: 'Actualités — COPAF 2026, Conférence des Ports Africains',
+    seoTitle: 'Actualités - COPAF 2026, Conférence des Ports Africains',
     seoDesc: 'Analyses et communiqués sur la transformation digitale des ports africains : cybersécurité maritime, intelligence artificielle portuaire, actualité de la COPAF 2026.',
     badge: 'COPAF 2026 • Le Mag',
     title: 'Bienvenue à la COPAF 2026',
@@ -23,7 +23,7 @@ const TR = {
   },
   en: {
     locale: 'en-GB',
-    seoTitle: 'News — COPAF 2026, African Ports Conference',
+    seoTitle: 'News - COPAF 2026, African Ports Conference',
     seoDesc: 'Analysis and press releases on the digital transformation of African ports: maritime cybersecurity, port artificial intelligence, COPAF 2026 news.',
     badge: 'COPAF 2026 • The Mag',
     title: 'Welcome to COPAF 2026',

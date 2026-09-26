@@ -30,7 +30,7 @@ const Ico = ({ name, size = 22, color = 'currentColor' }) => {
 
 const TR = {
   fr: {
-    seoTitle: 'Live Streaming — COPAF 2026',
+    seoTitle: 'Live Streaming - COPAF 2026',
     seoDesc: 'Suivez la Conférence des Ports Africains (COPAF) 2026 en direct, du 19 au 21 octobre à Casablanca.',
     liveNow: 'En direct maintenant',
     intro: 'Suivez les sessions de la conférence en direct depuis Casablanca, où que vous soyez.',
@@ -38,10 +38,10 @@ const TR = {
     startDate: '19 octobre 2026',
     days: 'jours', hours: 'heures', min: 'min',
     subscribe: "S'abonner sur YouTube",
-    iframeTitle: 'COPAF 2026 — Live Streaming',
+    iframeTitle: 'COPAF 2026 - Live Streaming',
   },
   en: {
-    seoTitle: 'Live Streaming — COPAF 2026',
+    seoTitle: 'Live Streaming - COPAF 2026',
     seoDesc: 'Follow the African Ports Conference (COPAF) 2026 live, from 19 to 21 October in Casablanca.',
     liveNow: 'Live now',
     intro: 'Follow the conference sessions live from Casablanca, wherever you are.',
@@ -49,7 +49,7 @@ const TR = {
     startDate: 'October 19, 2026',
     days: 'days', hours: 'hours', min: 'min',
     subscribe: 'Subscribe on YouTube',
-    iframeTitle: 'COPAF 2026 — Live Streaming',
+    iframeTitle: 'COPAF 2026 - Live Streaming',
   },
 }
 

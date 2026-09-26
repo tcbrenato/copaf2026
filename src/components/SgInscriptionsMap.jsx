@@ -50,7 +50,7 @@ export default function SgInscriptionsMap({ countsByCountry }) {
                     pressed: { outline: 'none' },
                   }}
                 >
-                  {country && <title>{`${country.name_fr} — ${count} participant${count > 1 ? 's' : ''}`}</title>}
+                  {country && <title>{`${country.name_fr} - ${count} participant${count > 1 ? 's' : ''}`}</title>}
                 </Geography>
               )
             })

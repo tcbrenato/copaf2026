@@ -57,7 +57,7 @@ function SuiviInscriptionsContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f6f8fc', fontFamily: "'Plus Jakarta Sans', 'Helvetica Neue', sans-serif" }}>
-      <SeoHead title="Suivi des inscriptions — COPAF 2026" description="Suivi des inscriptions COPAF 2026" type="website" />
+      <SeoHead title="Suivi des inscriptions - COPAF 2026" description="Suivi des inscriptions COPAF 2026" type="website" />
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');`}</style>
 
       {/* En-tete institutionnel */}
@@ -69,7 +69,7 @@ function SuiviInscriptionsContent() {
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <img src="/logocopaf.png" alt="COPAF 2026" style={{ height: 40, marginBottom: 22 }} />
           <h1 style={{ fontSize: 'clamp(24px, 3.4vw, 34px)', fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.01em' }}>
-            Suivi des inscriptions — AGPAOC / UAPNA
+            Suivi des inscriptions - AGPAOC / UAPNA
           </h1>
           <p style={{ fontSize: 14.5, color: 'rgba(255,255,255,0.8)', margin: 0, maxWidth: 640, lineHeight: 1.6 }}>
             État d'avancement des inscriptions à la COPAF 2026, par pays membre. Document de suivi à usage du Secrétariat Général.

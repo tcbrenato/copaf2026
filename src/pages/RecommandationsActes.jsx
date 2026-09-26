@@ -31,10 +31,10 @@ const Ico = ({ name, size = 20, color = 'currentColor' }) => {
 // jusqu'a ce que l'equipe COPAF fournisse le contenu reel a integrer ici.
 const TR = {
   fr: {
-    seoTitle: 'Recommandations Officielles & Actes — COPAF 2026',
+    seoTitle: 'Recommandations Officielles & Actes - COPAF 2026',
     seoDesc: 'Consultez et téléchargez les feuilles de route stratégiques et les décisions consensuelles issues des travaux de la COPAF 2026 à Casablanca.',
     live: "Mis à jour en direct pendant l'événement",
-    h1: 'Recommandations Officielles & Actes — COPAF 2026',
+    h1: 'Recommandations Officielles & Actes - COPAF 2026',
     intro: 'Consultez et téléchargez les feuilles de route stratégiques et les décisions consensuelles issues des travaux de Casablanca.',
     keyPoints: 'Points clés & thématiques',
     officialReco: 'Recommandations officielles',
@@ -52,7 +52,7 @@ const TR = {
         tags: ['IA', 'Diagnostic digital', 'Automatisation', 'Gouvernance de la donnée'] },
       { id: 'jour2', badge: 'JOUR 2', short: 'J2', titre: 'Excellence Opérationnelle, Sécurité & Cybersécurité', date: '20 Octobre 2026',
         tags: ['Cybersécurité', 'Sûreté portuaire', 'Opérations nautiques', 'Pilotage temps réel'] },
-      { id: 'jour3', badge: 'JOUR 3', short: 'J3', titre: 'Immersion Terrain — Port de Casablanca', date: '21 Octobre 2026',
+      { id: 'jour3', badge: 'JOUR 3', short: 'J3', titre: 'Immersion Terrain - Port de Casablanca', date: '21 Octobre 2026',
         tags: ['Visite technique', 'Infrastructures IA', 'Réseautage'] },
     ],
     tabs: [
@@ -64,10 +64,10 @@ const TR = {
     ],
   },
   en: {
-    seoTitle: 'Official Recommendations & Proceedings — COPAF 2026',
+    seoTitle: 'Official Recommendations & Proceedings - COPAF 2026',
     seoDesc: 'Read and download the strategic roadmaps and consensus decisions resulting from the work of COPAF 2026 in Casablanca.',
     live: 'Updated live during the event',
-    h1: 'Official Recommendations & Proceedings — COPAF 2026',
+    h1: 'Official Recommendations & Proceedings - COPAF 2026',
     intro: 'Read and download the strategic roadmaps and consensus decisions resulting from the work in Casablanca.',
     keyPoints: 'Key points & themes',
     officialReco: 'Official recommendations',
@@ -85,7 +85,7 @@ const TR = {
         tags: ['AI', 'Digital diagnostic', 'Automation', 'Data governance'] },
       { id: 'jour2', badge: 'DAY 2', short: 'D2', titre: 'Operational Excellence, Security and Cybersecurity', date: '20 October 2026',
         tags: ['Cybersecurity', 'Port security', 'Nautical operations', 'Real-time monitoring'] },
-      { id: 'jour3', badge: 'DAY 3', short: 'D3', titre: 'Field Immersion — Port of Casablanca', date: '21 October 2026',
+      { id: 'jour3', badge: 'DAY 3', short: 'D3', titre: 'Field Immersion - Port of Casablanca', date: '21 October 2026',
         tags: ['Technical visit', 'AI infrastructure', 'Networking'] },
     ],
     tabs: [
@@ -123,7 +123,7 @@ function TagPill({ children }) {
 function JourCard({ jour: jourTxt, register, t }) {
   const jour = { ...jourTxt, ...DONNEES_JOURS[jourTxt.id] }
   const dispo = jour.recommandations.length > 0
-  const shareText = encodeURIComponent(`${jour.badge} — ${jour.titre} — ${t.shareSuffix}`)
+  const shareText = encodeURIComponent(`${jour.badge} - ${jour.titre} - ${t.shareSuffix}`)
 
   return (
     <div id={jour.id} ref={el => register(jour.id, el)} style={{

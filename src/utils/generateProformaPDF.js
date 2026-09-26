@@ -93,7 +93,7 @@ const TXT = {
     colQte: 'QTÉ',
     colPu: 'P.U.',
     colTotal: 'TOTAL',
-    ligneDesc: 'Frais de participation — COPAF 2026',
+    ligneDesc: 'Frais de participation - COPAF 2026',
     ligneSousDesc: 'Voir prestations incluses ci-dessous',
     montantTotalTtc: 'MONTANT TOTAL TTC',
     montantLettresPrefix: 'Montant total arrêté à la présente facture proforma à la somme de :',
@@ -132,7 +132,7 @@ const TXT = {
     colQte: 'QTY',
     colPu: 'UNIT PRICE',
     colTotal: 'TOTAL',
-    ligneDesc: 'Participation fee — COPAF 2026',
+    ligneDesc: 'Participation fee - COPAF 2026',
     ligneSousDesc: 'See included services below',
     montantTotalTtc: 'TOTAL AMOUNT',
     montantLettresPrefix: 'Total amount of this proforma invoice set at the sum of:',
@@ -332,7 +332,7 @@ export async function generateProformaPDF({
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7.5)
     doc.setTextColor(...GRAY)
-    doc.text('CRF Perfection — contact@copaf-ports.com', M, footerY + 14)
+    doc.text('CRF Perfection - contact@copaf-ports.com', M, footerY + 14)
     doc.text(EMETTEUR.emailAlt, M, footerY + 26)
     doc.text(`${EMETTEUR.tel1}  ·  ${EMETTEUR.tel2}`, W - M, footerY + 14, { align: 'right' })
   }

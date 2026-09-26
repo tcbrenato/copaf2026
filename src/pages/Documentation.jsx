@@ -18,7 +18,7 @@ const Ico = ({ name, size = 22, color = 'currentColor' }) => {
 
 const TR = {
   fr: {
-    seoTitle: 'Documentation — COPAF 2026',
+    seoTitle: 'Documentation - COPAF 2026',
     seoDesc: 'Téléchargez le programme, la brochure et les documents logistiques de la COPAF 2026, Conférence des Ports Africains.',
     intro: 'Tous les documents officiels de la conférence, en français et en anglais.',
     download: 'Télécharger',
@@ -32,7 +32,7 @@ const TR = {
     ],
   },
   en: {
-    seoTitle: 'Documentation — COPAF 2026',
+    seoTitle: 'Documentation - COPAF 2026',
     seoDesc: 'Download the programme, the brochure and the logistics documents of COPAF 2026, the African Ports Conference.',
     intro: 'All the official conference documents, in French and English.',
     download: 'Download',

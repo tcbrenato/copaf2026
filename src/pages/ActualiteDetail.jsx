@@ -16,7 +16,7 @@ const TR = {
     allNews: '← Toutes les actualités',
     readingFull: 'min de lecture',
     seoSuffix: 'COPAF 2026',
-    boxTitle: 'COPAF 2026 — Conférence des Ports Africains',
+    boxTitle: 'COPAF 2026 - Conférence des Ports Africains',
     boxBefore: "Du 19 au 21 octobre 2026 à Casablanca. Plus d'informations et inscription sur",
     alsoRead: 'À lire aussi',
   },
@@ -27,7 +27,7 @@ const TR = {
     allNews: '← All news',
     readingFull: 'min read',
     seoSuffix: 'COPAF 2026',
-    boxTitle: 'COPAF 2026 — African Ports Conference',
+    boxTitle: 'COPAF 2026 - African Ports Conference',
     boxBefore: 'From 19 to 21 October 2026 in Casablanca. More information and registration at',
     alsoRead: 'Also read',
   },
@@ -72,7 +72,7 @@ export default function ActualiteDetail() {
   return (
     <div style={wrap}>
       <SeoHead
-        title={`${article.title} — ${t.seoSuffix}`}
+        title={`${article.title} - ${t.seoSuffix}`}
         description={article.metaDescription}
         canonical={canonical}
         ogImage={article.imageUrl ? `https://copaf-ports.com${article.imageUrl}` : undefined}

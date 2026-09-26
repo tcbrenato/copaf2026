@@ -275,7 +275,7 @@ const HighlightsBanner = () => {
             />
             <div>
               <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: NAVY }}>Dr William ODAH</p>
-              <p style={{ margin: '3px 0 0', fontSize: 13, color: '#64748b' }}>{t('intervenants.odahTitre')} — CRF Perfection</p>
+              <p style={{ margin: '3px 0 0', fontSize: 13, color: '#64748b' }}>{t('intervenants.odahTitre')} - CRF Perfection</p>
             </div>
           </div>
           <div style={{ background: '#f8faff', borderRadius: 14, padding: 22, border: '1px solid rgba(0,14,145,0.08)', marginBottom: 24 }}>

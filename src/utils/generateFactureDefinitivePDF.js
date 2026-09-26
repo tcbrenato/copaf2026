@@ -75,7 +75,7 @@ const TXT = {
     colQte: 'QTÉ',
     colPu: 'P.U.',
     colTotal: 'TOTAL',
-    ligneDesc: 'Frais de participation — COPAF 2026',
+    ligneDesc: 'Frais de participation - COPAF 2026',
     ligneSousDesc: 'Voir prestations incluses ci-dessous',
     montantTotalTtc: 'MONTANT TOTAL TTC',
     prestationsIncluses: 'Prestations incluses dans ce montant',
@@ -99,7 +99,7 @@ const TXT = {
     colQte: 'QTY',
     colPu: 'UNIT PRICE',
     colTotal: 'TOTAL',
-    ligneDesc: 'Participation fee — COPAF 2026',
+    ligneDesc: 'Participation fee - COPAF 2026',
     ligneSousDesc: 'See included services below',
     montantTotalTtc: 'TOTAL AMOUNT',
     prestationsIncluses: 'Services included in this amount',
@@ -381,7 +381,7 @@ export async function generateFactureDefinitivePDF({ form, numeroFacture, nb, to
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7.5)
   doc.setTextColor(...GRAY)
-  doc.text(lang === 'en' ? 'CRF Perfection — Research and Training Firm' : 'Cabinet de Recherche et de Formation Perfection', M, footerY + 14)
+  doc.text(lang === 'en' ? 'CRF Perfection - Research and Training Firm' : 'Cabinet de Recherche et de Formation Perfection', M, footerY + 14)
   doc.text(EMETTEUR.email, M, footerY + 26)
   doc.text(`${EMETTEUR.tel1}  ·  ${EMETTEUR.tel2}`, W - M, footerY + 14, { align: 'right' })
 

@@ -7,9 +7,9 @@
 // (seuls les libelles `nom`/`sites[].nom` peuvent etre corriges).
 
 export const RESEAUX = {
-  agpaoc: { fr: "AGPAOC / PMAWCA — Afrique de l'Ouest et du Centre", en: 'AGPAOC / PMAWCA — West & Central Africa' },
-  pmaesa: { fr: "PMAESA — Afrique de l'Est, Australe et Océan Indien", en: 'PMAESA — East, Southern Africa & Indian Ocean' },
-  uapna: { fr: 'UAPNA — Afrique du Nord', en: 'UAPNA — North Africa' },
+  agpaoc: { fr: "AGPAOC / PMAWCA - Afrique de l'Ouest et du Centre", en: 'AGPAOC / PMAWCA - West & Central Africa' },
+  pmaesa: { fr: "PMAESA - Afrique de l'Est, Australe et Océan Indien", en: 'PMAESA - East, Southern Africa & Indian Ocean' },
+  uapna: { fr: 'UAPNA - Afrique du Nord', en: 'UAPNA - North Africa' },
   associe: { fr: 'Membres associés (pays enclavés)', en: 'Associate members (landlocked countries)' },
 }
 

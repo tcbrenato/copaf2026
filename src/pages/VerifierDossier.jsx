@@ -14,15 +14,15 @@ const OFFICIAL_IBAN = 'BJ66BJ1040100103762812010162'
 
 const STATUT_LABEL = {
   fr: {
-    en_attente: { label: 'Inscription bien reçue — en cours de traitement', color: '#d97706', bg: '#fef3c7' },
-    reserve:    { label: 'Place réservée — en attente de règlement', color: '#2563eb', bg: '#dbeafe' },
-    confirme:   { label: 'Traité — documents disponibles', color: '#059669', bg: '#d1fae5' },
+    en_attente: { label: 'Inscription bien reçue - en cours de traitement', color: '#d97706', bg: '#fef3c7' },
+    reserve:    { label: 'Place réservée - en attente de règlement', color: '#2563eb', bg: '#dbeafe' },
+    confirme:   { label: 'Traité - documents disponibles', color: '#059669', bg: '#d1fae5' },
     annule:     { label: 'Annulé', color: '#dc2626', bg: '#fee2e2' },
   },
   en: {
-    en_attente: { label: 'Registration received — processing in progress', color: '#d97706', bg: '#fef3c7' },
-    reserve:    { label: 'Spot reserved — awaiting payment', color: '#2563eb', bg: '#dbeafe' },
-    confirme:   { label: 'Processed — documents available', color: '#059669', bg: '#d1fae5' },
+    en_attente: { label: 'Registration received - processing in progress', color: '#d97706', bg: '#fef3c7' },
+    reserve:    { label: 'Spot reserved - awaiting payment', color: '#2563eb', bg: '#dbeafe' },
+    confirme:   { label: 'Processed - documents available', color: '#059669', bg: '#d1fae5' },
     annule:     { label: 'Cancelled', color: '#dc2626', bg: '#fee2e2' },
   },
 }
@@ -43,7 +43,7 @@ const TR = {
     dossierVerifSub: 'Ce numéro correspond bien à une inscription COPAF 2026 réelle.',
     recapLabels: { dossier: 'Dossier', titulaire: 'Titulaire', participants: 'Participants', statut: 'Statut', date: "Date d'inscription" },
     espacePerso: 'Mon espace personnel',
-    espacePersoText: 'Entrez votre numéro de dossier et l\'email utilisé lors de votre inscription pour accéder directement à votre badge numérique, vos documents et le suivi de votre dossier — sans rien recevoir par e-mail.',
+    espacePersoText: 'Entrez votre numéro de dossier et l\'email utilisé lors de votre inscription pour accéder directement à votre badge numérique, vos documents et le suivi de votre dossier - sans rien recevoir par e-mail.',
     dossierPh: 'N° de dossier (ex. COPAF2026-12345)',
     emailPh: 'votre@email.com',
     validerBtn: 'Valider',
@@ -63,7 +63,7 @@ const TR = {
     voirProgrammeComplet: 'Voir le programme complet',
     paiementTitle: 'Paiement',
     paiementConfirme: 'Paiement confirmé',
-    paiementDifferee: 'Règlement différé — à régler avant la conférence',
+    paiementDifferee: 'Règlement différé - à régler avant la conférence',
     paiementEnAttente: 'Virement en attente de confirmation',
     voirRib: 'Voir les coordonnées bancaires',
     aideTitle: "Besoin d'aide",
@@ -74,7 +74,7 @@ const TR = {
     notFoundTitle: "Cette référence n'existe pas dans notre base",
     notFoundSub: "Ne procédez à aucun virement avant d'avoir vérifié l'authenticité de cette coordonnée.",
     notFoundText: (phone) => <>Si un tiers vous a fourni cet IBAN ou ce numéro en prétendant représenter COPAF 2026, contactez-nous immédiatement au <strong>{phone}</strong> avant tout virement bancaire.</>,
-    bankTitle: 'Coordonnées bancaires officielles — les SEULES valables',
+    bankTitle: 'Coordonnées bancaires officielles - les SEULES valables',
     bankLabels: { banque: 'Banque', titulaire: 'Titulaire' },
     fraudWarning: (phone) => <><strong>Nos coordonnées bancaires ne seront JAMAIS modifiées</strong> par e-mail, SMS ou WhatsApp. Si une personne vous contacte en se faisant passer pour <strong>CRF PERFECTION</strong>, organisateur de la COPAF, veuillez ne communiquer aucune information et nous le signaler immédiatement au <strong>{phone}</strong> ou par e-mail à <strong>contact@copaf-ports.com</strong>.</>,
     dateLocale: 'fr-FR',
@@ -94,7 +94,7 @@ const TR = {
     dossierVerifSub: 'This reference number matches a real COPAF 2026 registration.',
     recapLabels: { dossier: 'File', titulaire: 'Holder', participants: 'Participants', statut: 'Status', date: 'Registration date' },
     espacePerso: 'My personal space',
-    espacePersoText: 'Enter your file reference number and the email used at registration to access your digital badge, your documents and your file tracking directly — nothing to receive by email.',
+    espacePersoText: 'Enter your file reference number and the email used at registration to access your digital badge, your documents and your file tracking directly - nothing to receive by email.',
     dossierPh: 'File reference (e.g. COPAF2026-12345)',
     emailPh: 'your@email.com',
     validerBtn: 'Confirm',
@@ -114,7 +114,7 @@ const TR = {
     voirProgrammeComplet: 'View the full programme',
     paiementTitle: 'Payment',
     paiementConfirme: 'Payment confirmed',
-    paiementDifferee: 'Deferred payment — due before the conference',
+    paiementDifferee: 'Deferred payment - due before the conference',
     paiementEnAttente: 'Bank transfer awaiting confirmation',
     voirRib: 'View bank details',
     aideTitle: 'Need help',
@@ -125,7 +125,7 @@ const TR = {
     notFoundTitle: 'This reference does not exist in our database',
     notFoundSub: 'Do not proceed with any bank transfer before verifying the authenticity of this reference.',
     notFoundText: (phone) => <>If someone provided you this IBAN or reference claiming to represent COPAF 2026, contact us immediately at <strong>{phone}</strong> before making any bank transfer.</>,
-    bankTitle: 'Official bank details — the ONLY valid ones',
+    bankTitle: 'Official bank details - the ONLY valid ones',
     bankLabels: { banque: 'Bank', titulaire: 'Account holder' },
     fraudWarning: (phone) => <>Our <strong>bank details will NEVER be changed</strong> by email, SMS or WhatsApp. If someone contacts you claiming to represent <strong>CRF PERFECTION</strong>, organiser of COPAF, please do not share any information and report it to us immediately at <strong>{phone}</strong> or by email at <strong>contact@copaf-ports.com</strong>.</>,
     dateLocale: 'en-GB',
@@ -307,7 +307,7 @@ export default function VerifierDossier() {
         .lang-switch:hover{border-color:#0073F4;background:#EBF3FF}
       `}</style>
 
-      <img src="/coverscopaf.png" alt="COPAF 2026 — Conférence des Ports Africains" style={{ width: '100%', height: 'clamp(90px,18vw,190px)', objectFit: 'cover', objectPosition: 'top', display: 'block', marginBottom: 'clamp(40px,8vw,72px)' }} />
+      <img src="/coverscopaf.png" alt="COPAF 2026 - Conférence des Ports Africains" style={{ width: '100%', height: 'clamp(90px,18vw,190px)', objectFit: 'cover', objectPosition: 'top', display: 'block', marginBottom: 'clamp(40px,8vw,72px)' }} />
 
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 20px' }}>
 
@@ -402,7 +402,7 @@ export default function VerifierDossier() {
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, padding: '16px 20px', marginBottom: 24 }}>
               {[
                 { l: t.recapLabels.dossier,      v: result.dossier },
-                { l: t.recapLabels.titulaire,    v: `${result.initiales} — ${result.organisation || 'N/A'}` },
+                { l: t.recapLabels.titulaire,    v: `${result.initiales} - ${result.organisation || 'N/A'}` },
                 { l: t.recapLabels.participants, v: result.participants },
                 { l: t.recapLabels.statut,       v: (STATUTS[result.statut] || {}).label || result.statut },
                 { l: t.recapLabels.date, v: new Date(result.date_inscription).toLocaleDateString(t.dateLocale, { day: '2-digit', month: 'long', year: 'numeric' }) },

@@ -279,7 +279,7 @@ export default function AdminIntervenants() {
               </span>
               <div>
                 <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{iv.prenom} {iv.nom}</div>
-                <div style={{ fontSize: 12, color: '#64748b' }}>{iv.fonction}{iv.organisation ? ` — ${iv.organisation}` : ''} · {iv.dossier}</div>
+                <div style={{ fontSize: 12, color: '#64748b' }}>{iv.fonction}{iv.organisation ? ` - ${iv.organisation}` : ''} · {iv.dossier}</div>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={e => e.stopPropagation()}>
@@ -304,7 +304,7 @@ export default function AdminIntervenants() {
               <ValidationDocuments dossier={iv.dossier} />
               <DocumentsSection
                 dossier={iv.dossier} table="documents_intervenants" bucket="documents-intervenants"
-                titre={`Documents — ${iv.prenom} ${iv.nom}`}
+                titre={`Documents - ${iv.prenom} ${iv.nom}`}
               />
             </div>
           )}

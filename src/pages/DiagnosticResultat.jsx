@@ -30,7 +30,7 @@ const TR = {
     prioritesTitre: "⚡ 3 priorités d'investissement",
     recommandationCATitre: '📌 Recommandation pour le Conseil d\'Administration',
     detailParDimension: 'Détail du plan d\'action par dimension',
-    footer: 'Cette page reste accessible à tout moment — conservez le lien pour la retrouver.',
+    footer: 'Cette page reste accessible à tout moment - conservez le lien pour la retrouver.',
     planSousTitre: 'Des actions concrètes, adaptées à votre score actuel sur chaque axe.',
     tierLabel: { faible: 'Priorités à traiter', moyen: 'Prochaines étapes', bon: 'Pour aller plus loin' },
     analyseEnCours: 'Analyse de votre profil Smart Port en cours...',
@@ -44,7 +44,7 @@ const TR = {
     collectifSousTitre: n => n === 1
       ? 'Basée sur 1 diagnostic soumis pour ce port pendant la conférence (le vôtre).'
       : `Basée sur ${n} diagnostics soumis pour ce port pendant la conférence.`,
-    focusTitre: '🎯 Focus COPAF 2026 — IA & Cyber-résilience',
+    focusTitre: '🎯 Focus COPAF 2026 - IA & Cyber-résilience',
     focusSousTitre: 'Les deux dimensions suivies en priorité par le comité d\'organisation cette année.',
     comparatifTitre: 'Comparaison des répondants',
     comparatifSousTitre: 'Chaque colonne est une personne de votre organisation ayant rempli ce diagnostic.',
@@ -55,7 +55,7 @@ const TR = {
     positionBtn: 'Valider comme position officielle du port',
     positionBtnMaj: 'Mettre à jour la position officielle',
     positionReviewTitre: 'Choisissez le score retenu pour chaque dimension',
-    positionReviewSousTitre: 'Pré-rempli avec vos propres scores — modifiez chaque dimension si besoin, aucune moyenne automatique.',
+    positionReviewSousTitre: 'Pré-rempli avec vos propres scores - modifiez chaque dimension si besoin, aucune moyenne automatique.',
     positionConfirmer: 'Confirmer la position officielle',
     positionAnnuler: 'Annuler',
     positionEnCours: 'Enregistrement...',
@@ -83,7 +83,7 @@ const TR = {
     prioritesTitre: '⚡ 3 investment priorities',
     recommandationCATitre: '📌 Board recommendation',
     detailParDimension: 'Detailed action plan by dimension',
-    footer: 'This page stays accessible at any time — keep the link to find it again.',
+    footer: 'This page stays accessible at any time - keep the link to find it again.',
     planSousTitre: 'Concrete actions, matched to your current score on each axis.',
     tierLabel: { faible: 'Priorities to address', moyen: 'Next steps', bon: 'To go further' },
     analyseEnCours: 'Analysing your Smart Port profile...',
@@ -97,7 +97,7 @@ const TR = {
     collectifSousTitre: n => n === 1
       ? 'Based on 1 diagnostic submitted for this port during the conference (yours).'
       : `Based on ${n} diagnostics submitted for this port during the conference.`,
-    focusTitre: '🎯 COPAF 2026 Focus — AI & Cyber-resilience',
+    focusTitre: '🎯 COPAF 2026 Focus - AI & Cyber-resilience',
     focusSousTitre: "The two dimensions tracked as this year's organising committee priority.",
     comparatifTitre: 'Respondent comparison',
     comparatifSousTitre: 'Each column is a person from your organisation who filled in this diagnostic.',
@@ -108,7 +108,7 @@ const TR = {
     positionBtn: 'Validate as official port position',
     positionBtnMaj: 'Update the official position',
     positionReviewTitre: 'Choose the score to keep for each dimension',
-    positionReviewSousTitre: 'Pre-filled with your own scores — edit any dimension as needed, no automatic average.',
+    positionReviewSousTitre: 'Pre-filled with your own scores - edit any dimension as needed, no automatic average.',
     positionConfirmer: 'Confirm official position',
     positionAnnuler: 'Cancel',
     positionEnCours: 'Saving...',

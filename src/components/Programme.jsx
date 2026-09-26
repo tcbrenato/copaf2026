@@ -412,7 +412,7 @@ const Programme = () => {
               </div>
               <div>
                 <div style={{ fontSize: 10, color: C.blue, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 2 }}>{i18n.language?.startsWith('en') ? 'Interactive map' : 'Carte interactive'}</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: C.navy }}>{i18n.language?.startsWith('en') ? 'Port Community Building — Port of Casablanca' : 'Bâtiment Communautaire Portuaire — Port de Casablanca'}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.navy }}>{i18n.language?.startsWith('en') ? 'Port Community Building - Port of Casablanca' : 'Bâtiment Communautaire Portuaire - Port de Casablanca'}</div>
               </div>
             </div>
             <a href="https://share.google/TuPWU0lXbXr8RWSvm" target="_blank" rel="noopener noreferrer" style={{
@@ -423,7 +423,7 @@ const Programme = () => {
             </a>
           </div>
           <iframe
-            title="Localisation — Port de Casablanca"
+            title="Localisation - Port de Casablanca"
             src="https://www.google.com/maps?q=Port+de+Casablanca,+Maroc&output=embed"
             style={{ width: '100%', height: 320, border: 0, display: 'block' }}
             loading="lazy"
@@ -455,7 +455,7 @@ const Programme = () => {
                 </div>
                 <div>
                   <div style={{ fontSize: 10, color: C.blueMid, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 5, fontWeight: 700 }}>
-                    {activeSession.type} — {activeSession.jourTitre}
+                    {activeSession.type} - {activeSession.jourTitre}
                   </div>
                   <div style={{ fontSize: 'clamp(16px, 3vw, 21px)', fontWeight: 900, color: C.white, lineHeight: 1.2, letterSpacing: '-0.01em' }}>
                     {activeSession.titre}

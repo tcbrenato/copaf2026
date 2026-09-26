@@ -58,7 +58,7 @@ export function generateSyntheseAnimateurPDF({ moyennesParAxe, nbDiagnostics, sc
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7.5)
     doc.setTextColor(...GRAY)
-    doc.text('COPAF 2026 — Synthèse Diagnostic Smart Port', M, footerY + 14)
+    doc.text('COPAF 2026 - Synthèse Diagnostic Smart Port', M, footerY + 14)
     doc.text('contact@copaf-ports.com', M, footerY + 24)
     doc.text('www.copaf-ports.com', W - M, footerY + 14, { align: 'right' })
   }
@@ -109,7 +109,7 @@ export function generateSyntheseAnimateurPDF({ moyennesParAxe, nbDiagnostics, sc
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(18)
   doc.setTextColor(...DARK)
-  doc.text('Synthèse — Diagnostic Smart Port', M, y)
+  doc.text('Synthèse - Diagnostic Smart Port', M, y)
   y += 16
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9.5)
@@ -122,7 +122,7 @@ export function generateSyntheseAnimateurPDF({ moyennesParAxe, nbDiagnostics, sc
   doc.setFont('helvetica', 'italic')
   doc.setFontSize(7.5)
   doc.setTextColor(...GRAY)
-  doc.text("Document agrégé — aucune donnée individuelle ou nominative ne figure dans ce rapport.", M, y)
+  doc.text("Document agrégé - aucune donnée individuelle ou nominative ne figure dans ce rapport.", M, y)
   y += 24
 
   // ══════════════════════════════════════════

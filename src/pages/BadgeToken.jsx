@@ -165,7 +165,7 @@ function telechargerVCard(data) {
     data.poste && `TITLE:${data.poste}`,
     data.telephone && `TEL;TYPE=CELL:${data.telephone}`,
     data.email && `EMAIL:${data.email}`,
-    'NOTE:COPAF 2026 — Conférence des Ports Africains',
+    'NOTE:COPAF 2026 - Conférence des Ports Africains',
     'END:VCARD',
   ].filter(Boolean)
   const blob = new Blob([lignes.join('\r\n')], { type: 'text/vcard;charset=utf-8' })
