@@ -38,6 +38,7 @@ const DiagnosticSmartPort  = lazy(() => import('./pages/DiagnosticSmartPort'))
 const DiagnosticResultat   = lazy(() => import('./pages/DiagnosticResultat'))
 const ProjectionDiagnostic = lazy(() => import('./pages/ProjectionDiagnostic'))
 const TabletteHub          = lazy(() => import('./pages/TabletteHub'))
+const OutilsHub            = lazy(() => import('./pages/OutilsHub'))
 const Actualites           = lazy(() => import('./pages/Actualites'))
 const ActualiteDetail      = lazy(() => import('./pages/ActualiteDetail'))
 const MentionsLegales      = lazy(() => import('./pages/MentionsLegales'))
@@ -236,6 +237,7 @@ function App() {
         <Route path="/diagnostic/resultat/:id" element={<DiagnosticResultat />} />
         <Route path="/diagnostic/projection"   element={<ProjectionDiagnostic />} />
         <Route path="/tablette"                element={<TabletteHub />} />
+        <Route path="/outils"                  element={<OutilsHub />} />
         <Route path="/visiter" element={<VisiterExposition />} />
       </Routes>
       </Suspense>
