@@ -39,6 +39,7 @@ const DiagnosticResultat   = lazy(() => import('./pages/DiagnosticResultat'))
 const ProjectionDiagnostic = lazy(() => import('./pages/ProjectionDiagnostic'))
 const TabletteHub          = lazy(() => import('./pages/TabletteHub'))
 const OutilsHub            = lazy(() => import('./pages/OutilsHub'))
+const TirageLive           = lazy(() => import('./pages/TirageLive'))
 const Actualites           = lazy(() => import('./pages/Actualites'))
 const ActualiteDetail      = lazy(() => import('./pages/ActualiteDetail'))
 const MentionsLegales      = lazy(() => import('./pages/MentionsLegales'))
@@ -238,6 +239,7 @@ function App() {
         <Route path="/diagnostic/projection"   element={<ProjectionDiagnostic />} />
         <Route path="/tablette"                element={<TabletteHub />} />
         <Route path="/outils"                  element={<OutilsHub />} />
+        <Route path="/tirage"                  element={<TirageLive />} />
         <Route path="/visiter" element={<VisiterExposition />} />
       </Routes>
       </Suspense>

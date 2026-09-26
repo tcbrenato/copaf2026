@@ -1,6 +1,8 @@
 // Page interne (pas de login) qui regroupe les outils "live" a utiliser
-// pendant la conference (vote, diagnostic, projection, tablette, streaming),
+// pendant la conference (vote, diagnostic, projection, tablette, tirage),
 // pour que l'ordinateur de presentation n'ait jamais besoin d'ouvrir /admin.
+// Le tirage reste protege par un mot de passe operateur (TirageGate), car
+// contrairement aux autres il permet de modifier des donnees (la liste).
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -12,19 +14,19 @@ const Ico = ({ name, size = 26, color = 'currentColor' }) => {
     poll:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
     monitor:  <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>,
     tablet:   <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>,
-    play:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>,
+    gift:     <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="8" width="20" height="14" rx="1"/><path d="M12 8v14M2 12h20"/><path d="M12 8c-1.5-4-6-4-6-1.5S9 8 12 8c3 0 6-1 6-3.5S13.5 4 12 8z"/></svg>,
     globe:    <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
   }
   return icons[name] || null
 }
 
 const TUILES = [
-  { titre: 'Diagnostic Smart Port', sousTitre: 'Auto-évaluation — à faire remplir par les participants', href: '/diagnostic', icone: 'radar', accent: true },
-  { titre: 'Sondage — vote public', sousTitre: 'Page à faire scanner par la salle pour voter', href: '/vote', icone: 'poll', accent: true },
-  { titre: 'Sondage — choisir / projeter', sousTitre: 'Poste opérateur : sélectionner le sondage actif et projeter ses résultats', href: '/sondage-live', icone: 'monitor' },
-  { titre: 'Diagnostic — écran de projection', sousTitre: 'Vue collective en direct (moyennes uniquement, jamais de nom)', href: '/diagnostic/projection', icone: 'radar' },
+  { titre: 'Diagnostic Smart Port', sousTitre: 'Auto-évaluation - à faire remplir par les participants', href: '/diagnostic', icone: 'radar', accent: true },
+  { titre: 'Sondage - vote public', sousTitre: 'Page à faire scanner par la salle pour voter', href: '/vote', icone: 'poll', accent: true },
+  { titre: 'Sondage - choisir / projeter', sousTitre: 'Poste opérateur : sélectionner le sondage actif et projeter ses résultats', href: '/sondage-live', icone: 'monitor' },
+  { titre: 'Diagnostic - écran de projection', sousTitre: 'Vue collective en direct (moyennes uniquement, jamais de nom)', href: '/diagnostic/projection', icone: 'radar' },
   { titre: 'Menu tablette', sousTitre: 'Écran d\'accueil pour les tablettes prêtées aux participants', href: '/tablette', icone: 'tablet' },
-  { titre: 'Streaming live', sousTitre: 'Diffusion en direct de la conférence', href: '/live', icone: 'play' },
+  { titre: 'Tirage au sort', sousTitre: 'Roue des participants - mot de passe opérateur requis', href: '/tirage', icone: 'gift' },
 ]
 
 export default function OutilsHub() {
