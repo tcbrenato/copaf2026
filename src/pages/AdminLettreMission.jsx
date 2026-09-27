@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabase'
 import { generateLettreMissionPDF } from '../utils/generateLettreMissionPDF'
+import { pdfEnBase64 } from '../utils/generateVoyagePDF'
 import { PRESETS_LETTRE_MISSION, MODELE_INTERVENANT } from '../utils/lettreMissionPresets'
 
 const NAVY = '#000E91'
@@ -253,6 +254,29 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
 
   const marquerPrete = async () => { await enregistrer('prete') }
 
+  const envoyerParEmail = async () => {
+    if (!nom.trim()) { setMsg('Le nom et prénoms sont requis.'); return }
+    if (!p0.email) { setMsg("Cette personne n'a pas d'email enregistré (dossier intervenant introuvable ou non accrédité)."); return }
+    if (!window.confirm(`Envoyer la lettre de mission à ${nom} (${p0.email}) ?`)) return
+    setOccupe(true); setMsg('')
+    try {
+      const ok = await enregistrer('prete')
+      if (!ok) { setOccupe(false); return }
+      const { personne: pers, mission } = construitPersonneEtMission()
+      const doc = await generateLettreMissionPDF({ personne: pers, mission, lang: p0.langue === 'en' ? 'en' : 'fr', download: false })
+      const filename = `Lettre_de_mission_${(nom || '').replace(/[^A-Za-z0-9]+/g, '')}.pdf`
+      const { data, error } = await supabase.functions.invoke('voyage-notify', {
+        body: { action: 'envoyer', kind: 'lettre_mission', dossier: dossier.trim(), pdf: pdfEnBase64(doc), filename },
+      })
+      if (error || !data?.success) {
+        setMsg(data?.raison === 'sans_email' ? "Cette personne n'a pas d'email enregistré." : "Échec de l'envoi de l'email.")
+      } else {
+        setStatut('envoyee'); setMsg('Lettre envoyée par email ✓'); onSaved()
+      }
+    } catch (e) { setMsg(e.message || "Échec de l'envoi.") }
+    setOccupe(false)
+  }
+
   const inp = (val, set, type = 'text', placeholder) => (
     <input type={type} style={INPUT} value={val} placeholder={placeholder} onChange={e => { setMsg(''); set(e.target.value) }} />
   )
@@ -370,6 +394,9 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
             <button type="button" style={BTN_SOFT} onClick={apercu}>Aperçu PDF</button>
             <button type="button" style={BTN_SOFT} onClick={telecharger}>Télécharger le PDF</button>
             {statut !== 'prete' && statut !== 'envoyee' && <button type="button" style={BTN_SOFT} disabled={occupe} onClick={marquerPrete}>Marquer « prête »</button>}
+            <button type="button" style={{ ...BTN, background: '#16a34a', color: '#fff' }} disabled={occupe || !p0.email} onClick={envoyerParEmail} title={p0.email || "Aucun email enregistré pour cette personne"}>
+              {statut === 'envoyee' ? 'Renvoyer par email' : 'Envoyer par email'}
+            </button>
             <button type="button" style={{ ...BTN, background: '#f1f5f9', color: '#334155', marginLeft: 'auto' }} onClick={onClose}>Fermer</button>
           </div>
           {msg && <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: msg.includes('✓') ? '#16a34a' : '#b45309' }}>{msg}</p>}
