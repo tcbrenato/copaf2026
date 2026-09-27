@@ -13,6 +13,10 @@ const BTN_PRIMARY = { ...BTN, background: NAVY, color: '#fff' }
 const BTN_SOFT = { ...BTN, background: '#eef2ff', color: NAVY }
 const ATTRIBUTIONS_MAX = 260
 const ITINERAIRE_DEFAUT = 'Cotonou – Abidjan – Istanbul – Casablanca (aller-retour)'
+const ITINERAIRES_SUGGERES = [
+  'Cotonou – Abidjan – Istanbul – Casablanca (aller-retour)',
+  'Cotonou – Casablanca – Cotonou',
+]
 
 const STATUTS = {
   aucun:   { label: 'Pas commencée', bg: '#f1f5f9', fg: '#475569' },
@@ -330,7 +334,17 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
             <div><label style={LABEL}>Date de début</label>{inp(dateDebut, setDateDebut, 'date')}</div>
             <div><label style={LABEL}>Date de fin</label>{inp(dateFin, setDateFin, 'date')}</div>
           </div>
-          <div><label style={LABEL}>Itinéraire</label>{inp(itineraire, setItineraire)}</div>
+          <div>
+            <label style={LABEL}>Itinéraire</label>
+            <input
+              style={INPUT} value={itineraire} list="itineraires-suggeres"
+              onChange={e => { setMsg(''); setItineraire(e.target.value) }}
+              placeholder="Choisissez une suggestion ou saisissez librement"
+            />
+            <datalist id="itineraires-suggeres">
+              {ITINERAIRES_SUGGERES.map(it => <option key={it} value={it} />)}
+            </datalist>
+          </div>
 
           <div>
             <label style={LABEL}>Frais pris en charge par l'organisation</label>
