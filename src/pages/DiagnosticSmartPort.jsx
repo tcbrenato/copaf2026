@@ -971,14 +971,14 @@ export default function DiagnosticSmartPort() {
         <div style={wrap}>
           <Fond />
           <BoutonLang />
-          <div style={{ ...card, textAlign: 'center', paddingTop: 100 }}>
-            <p style={{ color: '#fff', fontSize: 18, fontWeight: 800, marginBottom: 24 }}>{t.merciReponse}</p>
+          <div style={{ width: '100%', maxWidth: 900, textAlign: 'center', paddingTop: 100 }}>
+            <p style={{ color: '#fff', fontSize: 'clamp(28px, 4.5vw, 52px)', fontWeight: 900, lineHeight: 1.15, letterSpacing: '-0.02em', marginBottom: 36 }}>{t.merciReponse}</p>
             <button
               onClick={() => navigate(`/diagnostic/resultat/${diagnosticId}?lang=${lang}`)}
               style={{
-                padding: '16px 36px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
-                borderRadius: 14, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
-                boxShadow: '0 8px 24px rgba(0,115,244,0.4)',
+                padding: '22px 52px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
+                borderRadius: 18, color: '#fff', fontSize: 'clamp(16px, 1.8vw, 22px)', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+                boxShadow: '0 10px 32px rgba(0,115,244,0.45)',
               }}
             >
               {t.lancerResultats}
@@ -991,9 +991,9 @@ export default function DiagnosticSmartPort() {
       <div style={wrap}>
         <Fond />
         <BoutonLang />
-        <div style={{ width: '100%', maxWidth: 720, textAlign: 'center', paddingTop: 40 }}>
-          <p style={{ color: '#fff', fontSize: 18, fontWeight: 800, marginBottom: 8 }}>{t.merciReponse}</p>
-          <p style={{ color: '#94a3b8', fontSize: 14, marginBottom: 28 }}>{t.attenteResultatsTexte}</p>
+        <div style={{ width: '100%', maxWidth: 900, textAlign: 'center', paddingTop: 40 }}>
+          <p style={{ color: '#fff', fontSize: 'clamp(26px, 4vw, 44px)', fontWeight: 900, lineHeight: 1.15, letterSpacing: '-0.02em', marginBottom: 14 }}>{t.merciReponse}</p>
+          <p style={{ color: '#cbd5e1', fontSize: 'clamp(15px, 1.6vw, 20px)', marginBottom: 36 }}>{t.attenteResultatsTexte}</p>
           <DiagnosticLiveMap liveCountries={new Set()} activeCountry={null} />
         </div>
       </div>
