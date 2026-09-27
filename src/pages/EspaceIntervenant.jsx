@@ -6,6 +6,7 @@ import DocumentsSection from '../components/DocumentsSection'
 import BoutonsEquipe from '../components/BoutonsEquipe'
 import { Avatar } from '../utils/dossierUi'
 import { generateQrCard } from '../utils/generateQrCard'
+import { generateLettreMissionPDF } from '../utils/generateLettreMissionPDF'
 import LangToggle from '../components/LangToggle'
 import { useLang } from '../i18n/useLang'
 import { normaliserDossier } from '../utils/dossierConstants'
@@ -53,6 +54,10 @@ const TR = {
     deadlineTitre: 'Date limite : dépôt de votre présentation',
     deadlineTexte: 'Merci de déposer votre présentation (PPTX) ci-dessous avant le',
     deadlineDate: '5 octobre 2026',
+    lettreMissionTitre: 'Lettre de mission',
+    lettreMissionText: 'Document officiel signé par le Directeur Général, à présenter si nécessaire (ambassade, employeur, douanes...).',
+    lettreMissionBtn: 'Télécharger ma lettre de mission',
+    lettreMissionGen: 'Génération...',
   },
   en: {
     jours: { 1: { date: 'October 19', sub: 'Day 1' }, 2: { date: 'October 20', sub: 'Day 2' }, 3: { date: 'October 21', sub: 'Day 3' } },
@@ -91,6 +96,10 @@ const TR = {
     deadlineTitre: 'Deadline: submit your presentation',
     deadlineTexte: 'Please upload your presentation (PPTX) below before',
     deadlineDate: '5 October 2026',
+    lettreMissionTitre: 'Mission letter',
+    lettreMissionText: 'Official document signed by the Director General, to present if needed (embassy, employer, customs...).',
+    lettreMissionBtn: 'Download my mission letter',
+    lettreMissionGen: 'Generating...',
   },
 }
 
@@ -106,6 +115,8 @@ export default function EspaceIntervenant() {
   const [telechargement, setTelechargement] = useState(false)
   const [badgeDoc, setBadgeDoc] = useState(null)
   const [docs, setDocs] = useState([])
+  const [lettreMission, setLettreMission] = useState(null)
+  const [lettreGen, setLettreGen] = useState(false)
 
   const onDocsChange = docs => {
     setDocs(docs)
@@ -129,6 +140,25 @@ export default function EspaceIntervenant() {
       .catch(() => { if (!cancelled) setQr('') })
     return () => { cancelled = true }
   }, [intervenant?.badge_token])
+
+  useEffect(() => {
+    if (!intervenant?.dossier) { setLettreMission(null); return }
+    let cancelled = false
+    supabase.rpc('lettre_mission_public', { p_dossier: intervenant.dossier }).then(({ data }) => {
+      if (!cancelled) setLettreMission(Array.isArray(data) && data[0] ? data[0] : null)
+    })
+    return () => { cancelled = true }
+  }, [intervenant?.dossier])
+
+  const telechargerLettreMission = async () => {
+    if (!lettreMission) return
+    setLettreGen(true)
+    try {
+      await generateLettreMissionPDF({ personne: lettreMission, mission: lettreMission, lang, download: true })
+    } finally {
+      setLettreGen(false)
+    }
+  }
 
   const telechargerQr = async () => {
     if (!qr || !intervenant) return
@@ -432,6 +462,21 @@ export default function EspaceIntervenant() {
                 {t.openFolder}
               </a>
             </div>
+
+            {lettreMission && (
+              <div className="bento-card-light col-span-full" style={{ padding: 28, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: '#E0F2FE', border: '1px solid #BAE6FD', display: 'grid', placeItems: 'center', color: BLUE, flexShrink: 0 }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <div style={{ flex: 1, minWidth: 220 }}>
+                  <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0F172A', margin: '0 0 4px' }}>{t.lettreMissionTitre}</h3>
+                  <span style={{ fontSize: 13, color: '#64748B', lineHeight: 1.5 }}>{t.lettreMissionText}</span>
+                </div>
+                <button type="button" onClick={telechargerLettreMission} disabled={lettreGen} className="btn-blue" style={{ padding: '12px 22px', borderRadius: 12, fontSize: 13.5, border: 'none', cursor: lettreGen ? 'wait' : 'pointer' }}>
+                  {lettreGen ? t.lettreMissionGen : t.lettreMissionBtn}
+                </button>
+              </div>
+            )}
 
             {intervenant.equipe && (
               <div className="col-span-full">
