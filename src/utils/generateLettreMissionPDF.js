@@ -36,19 +36,22 @@ const FIELDS_CM = {
   le:           { x: 3.134,  y: 26.002, w: 5.228,  h: 0.549 },
 }
 
-// Centres des cases a cocher (cote ~0.36cm), mesures sur le fond.
+// Centres exacts des cases a cocher (cote mesure ~25-26px sur le fond
+// 1414x2000, soit ~0.38cm), retrouves par detection des bordures navy
+// (#0000AD) sur le fond — pas une estimation, un bounding-box pixel reel.
+const CHECKBOX_SIDE_CM = 0.379
 const CHECKBOXES_CM = {
   qualite: {
-    comite:      { x: 1.767,  y: 13.454 },
-    equipe:      { x: 6.638,  y: 13.454 },
-    intervenant: { x: 11.510, y: 13.454 },
-    autre:       { x: 14.895, y: 13.454 },
+    comite:      { x: 1.953,  y: 13.689 },
+    equipe:      { x: 6.825,  y: 13.689 },
+    intervenant: { x: 11.691, y: 13.689 },
+    autre:       { x: 15.074, y: 13.689 },
   },
   frais: {
-    transport:    { x: 1.767,  y: 23.107 },
-    hebergement:  { x: 6.356,  y: 23.107 },
-    restauration: { x: 10.410, y: 23.107 },
-    transferts:   { x: 14.465, y: 23.107 },
+    transport:    { x: 1.953,  y: 22.832 },
+    hebergement:  { x: 6.543,  y: 22.832 },
+    restauration: { x: 10.598, y: 22.832 },
+    transferts:   { x: 14.654, y: 22.832 },
   },
 }
 
@@ -109,19 +112,26 @@ async function loadBackgroundAsJPEG(src, quality = 0.88) {
   return canvas.toDataURL('image/jpeg', quality)
 }
 
-// Ecrit un texte sur une seule ligne, verticalement centre dans sa case,
-// reduit la police si necessaire pour tenir dans la largeur.
+const PT_PER_CM = 28.3465
+
+// Ecrit un texte sur une seule ligne, verticalement centre dans sa case.
+// Baseline explicite (haut du champ + moitie de hauteur + ~1/3 de la
+// taille de police) plutot que l'option baseline:'middle' de jsPDF, dont le
+// rendu vertical varie selon la police embarquee — moins fiable que ce
+// calcul direct pour un centrage precis.
 function drawField(doc, text, box, fontFamily, maxPt = 11) {
   if (!text) return
-  let size = Math.min(maxPt, box.h * 28.3465 * 0.65)
+  let size = Math.min(maxPt, box.h * PT_PER_CM * 0.65)
   doc.setFont(fontFamily, 'normal')
   doc.setFontSize(size)
   while (doc.getTextWidth(text) > box.w - 0.2 && size > 6) { size -= 0.5; doc.setFontSize(size) }
   doc.setTextColor(...FIELD_COLOR)
-  doc.text(text, box.x + 0.15, box.y + box.h / 2, { align: 'left', baseline: 'middle' })
+  const y = box.y + box.h / 2 + (size / PT_PER_CM) / 3
+  doc.text(text, box.x + 0.15, y, { align: 'left' })
 }
 
-// Rôle et attributions : plusieurs lignes possibles dans une case plus haute.
+// Rôle et attributions : plusieurs lignes possibles dans une case plus haute,
+// meme logique de centrage vertical explicite appliquee au bloc entier.
 function drawMultiline(doc, text, box, fontFamily, pt = 10) {
   if (!text) return
   doc.setFont(fontFamily, 'normal')
@@ -131,17 +141,20 @@ function drawMultiline(doc, text, box, fontFamily, pt = 10) {
   const lineH = pt * 0.0423 // pt -> cm approx pour un interligne confortable
   const maxLines = Math.max(1, Math.floor((box.h - 0.15) / lineH))
   const shown = lines.slice(0, maxLines)
-  let y = box.y + 0.18 + lineH * 0.6
+  const blockH = shown.length * lineH
+  let y = box.y + box.h / 2 - blockH / 2 + lineH * 0.75
   shown.forEach(line => { doc.text(line, box.x + 0.15, y); y += lineH })
 }
 
-function drawCheck(doc, point) {
-  const s = 0.36
+// Coche centree dans la case (cote CHECKBOX_SIDE_CM), point = centre exact
+// mesure sur le fond — jamais un coin approximatif.
+function drawCheck(doc, center) {
+  const s = CHECKBOX_SIDE_CM * 0.78
   doc.setDrawColor(...CHECK_COLOR)
-  doc.setLineWidth(0.045)
-  const x0 = point.x + 0.05, y0 = point.y - s / 2 + 0.05
-  doc.line(x0, y0 + s * 0.5, x0 + s * 0.35, y0 + s * 0.85)
-  doc.line(x0 + s * 0.35, y0 + s * 0.85, x0 + s * 0.95, y0 + s * 0.1)
+  doc.setLineWidth(0.05)
+  const x0 = center.x - s / 2, y0 = center.y - s / 2
+  doc.line(x0, y0 + s * 0.55, x0 + s * 0.38, y0 + s * 0.9)
+  doc.line(x0 + s * 0.38, y0 + s * 0.9, x0 + s, y0 + s * 0.05)
 }
 
 function sanitizeFilenamePart(s) {
