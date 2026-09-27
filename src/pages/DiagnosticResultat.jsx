@@ -31,8 +31,11 @@ const TR = {
     recommandationCATitre: '📌 Recommandation pour le Conseil d\'Administration',
     detailParDimension: 'Détail du plan d\'action par dimension',
     footer: 'Cette page reste accessible à tout moment - conservez le lien pour la retrouver.',
-    planSousTitre: 'Des actions concrètes, adaptées à votre score actuel sur chaque axe.',
+    planSousTitre: 'Des actions concrètes, adaptées à votre score actuel sur chaque axe. Cliquez une carte pour l\'ouvrir.',
     tierLabel: { faible: 'Priorités à traiter', moyen: 'Prochaines étapes', bon: 'Pour aller plus loin' },
+    actionsCount: n => `${n} action${n > 1 ? 's' : ''}`,
+    fermer: 'Fermer',
+    prioriteNum: n => `Priorité ${n}`,
     analyseEnCours: 'Analyse de votre profil Smart Port en cours...',
     chargementMessages: [
       'Analyse de votre cyber-résilience et de votre potentiel IA en cours...',
@@ -85,8 +88,11 @@ const TR = {
     recommandationCATitre: '📌 Board recommendation',
     detailParDimension: 'Detailed action plan by dimension',
     footer: 'This page stays accessible at any time - keep the link to find it again.',
-    planSousTitre: 'Concrete actions, matched to your current score on each axis.',
+    planSousTitre: 'Concrete actions, matched to your current score on each axis. Click a card to open it.',
     tierLabel: { faible: 'Priorities to address', moyen: 'Next steps', bon: 'To go further' },
+    actionsCount: n => `${n} action${n > 1 ? 's' : ''}`,
+    fermer: 'Close',
+    prioriteNum: n => `Priority ${n}`,
     analyseEnCours: 'Analysing your Smart Port profile...',
     chargementMessages: [
       'Analysing your cyber-resilience and AI potential...',
@@ -152,6 +158,18 @@ const Ico = ({ name, size = 18, color = 'currentColor' }) => {
     check: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
     refresh: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>,
     target: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill={color} stroke="none"/></svg>,
+    close: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    arrowRight: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+    infrastructure: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,
+    automatisation: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+    tracabilite: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>,
+    ia: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a10 10 0 0 1 7.54 16.63"/><path d="M12 12v9"/><path d="M12 2a10 10 0 0 0-7.54 16.63"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>,
+    cybersecurite: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+    surete: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    environnement: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M2 22s2-2 5-2 5 2 8 2 5-2 5-2V3s-2 2-5 2-5-2-8-2-5 2-5 2z"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+    synchromodalite: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>,
+    competences: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
+    parties_prenantes: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
   }
   return icons[name] || null
 }
@@ -228,6 +246,11 @@ export default function DiagnosticResultat() {
   const [lienCopie, setLienCopie] = useState(false)
   const [lang, setLang] = useState(searchParams.get('lang') === 'en' ? 'en' : 'fr')
   const [collectif, setCollectif] = useState(null)
+  // Cartes cliquables (priorites d'investissement, plan d'action par
+  // dimension) : au lieu d'un mur de texte toujours deplie, chaque carte
+  // n'affiche qu'un resume et s'ouvre en modal au clic pour le detail.
+  const [prioriteOuverte, setPrioriteOuverte] = useState(null)
+  const [dimensionOuverte, setDimensionOuverte] = useState(null)
   // Moyenne globale de tous les diagnostics soumis pendant la conference
   // (RPC anonyme, deja utilisee par l'ecran de projection) — superposee
   // au radar du rapport PDF pour que le port se situe instantanement par
@@ -466,6 +489,11 @@ export default function DiagnosticResultat() {
           grid-template-columns: 1fr 1fr;
           gap: 14px;
         }
+        .priorites-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 10px;
+        }
         @media (max-width: 860px) {
           .dash-grid { grid-template-columns: 1fr; }
           .plan-grid { grid-template-columns: 1fr; }
@@ -474,6 +502,8 @@ export default function DiagnosticResultat() {
         }
         .dash-btn { transition: transform .15s ease, box-shadow .15s ease; cursor: pointer; }
         .dash-btn:hover { transform: translateY(-2px); }
+        .clic-carte { transition: transform .15s ease, border-color .15s ease, background .15s ease; }
+        .clic-carte:hover { transform: translateY(-2px); border-color: rgba(96,165,250,0.4) !important; background: rgba(96,165,250,0.06) !important; }
       `}</style>
 
       <div className="dash-wrap">
@@ -633,15 +663,17 @@ export default function DiagnosticResultat() {
 
               <div>
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>{t.prioritesTitre}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div className="priorites-grid">
                   {(diag.recommandations_v2.prioritesInvestissement || []).map((p, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 16px' }}>
+                    <button
+                      key={i} type="button" onClick={() => setPrioriteOuverte(i)}
+                      className="clic-carte"
+                      style={{ display: 'flex', gap: 14, alignItems: 'center', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '14px 16px', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }}
+                    >
                       <span style={{ flexShrink: 0, width: 26, height: 26, borderRadius: '50%', background: 'linear-gradient(135deg,#0073F4,#000E91)', color: '#fff', fontSize: 12, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{i + 1}</span>
-                      <div>
-                        <div style={{ fontSize: 13.5, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{p.titre}</div>
-                        <div style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.55 }}>{p.explication}</div>
-                      </div>
-                    </div>
+                      <span style={{ fontSize: 13.5, fontWeight: 800, color: '#fff', flex: 1, minWidth: 0 }}>{p.titre}</span>
+                      <Ico name="arrowRight" size={15} color="#60a5fa" />
+                    </button>
                   ))}
                 </div>
               </div>
@@ -651,7 +683,11 @@ export default function DiagnosticResultat() {
                 <div style={{ fontSize: 13.5, color: '#fff', lineHeight: 1.65, fontWeight: 600 }}>{diag.recommandations_v2.recommandationCA}</div>
               </div>
 
-              {/* Detail par dimension — fusionne ici (voir commentaire ci-dessus) */}
+              {/* Detail par dimension — fusionne ici (voir commentaire ci-dessus).
+                  Cartes compactes cliquables (icone + titre + badge + nombre
+                  d'actions) plutot que tout deplie d'un coup : le detail
+                  complet s'ouvre en modal, pour un scan visuel rapide au lieu
+                  d'un mur de texte a parcourir. */}
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11.5, fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
                   <Ico name="target" size={13} color="#94a3b8" /> {t.detailParDimension}
@@ -665,19 +701,25 @@ export default function DiagnosticResultat() {
                     const items = axe.actions?.[tier] || []
                     if (!items.length) return null
                     return (
-                      <div key={axe.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '14px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
-                          <span style={{ fontSize: 12.5, fontWeight: 700, color: '#fff' }}>{txt(axe.nom, lang)}</span>
-                          <span style={{ fontSize: 10.5, fontWeight: 700, color: c, padding: '2px 8px', borderRadius: 20, background: `${c}22`, border: `1px solid ${c}55`, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                            {t.tierLabel[tier]}
+                      <button
+                        key={axe.id} type="button" onClick={() => setDimensionOuverte(axe.id)}
+                        className="clic-carte"
+                        style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '14px 16px', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }}
+                      >
+                        <span style={{ flexShrink: 0, width: 38, height: 38, borderRadius: 10, background: `${c}1a`, border: `1px solid ${c}44`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Ico name={axe.id} size={18} color={c} />
+                        </span>
+                        <span style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{txt(axe.nom, lang)}</span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 10.5, fontWeight: 700, color: c, padding: '2px 8px', borderRadius: 20, background: `${c}22`, border: `1px solid ${c}55`, whiteSpace: 'nowrap' }}>
+                              {t.tierLabel[tier]}
+                            </span>
+                            <span style={{ fontSize: 11, color: '#64748b' }}>{t.actionsCount(items.length)}</span>
                           </span>
-                        </div>
-                        <ul style={{ margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                          {items.map((item, i) => (
-                            <li key={i} style={{ fontSize: 12, color: '#cbd5e1', lineHeight: 1.5 }}>{txt(item, lang)}</li>
-                          ))}
-                        </ul>
-                      </div>
+                        </span>
+                        <Ico name="arrowRight" size={15} color="#475569" />
+                      </button>
                     )
                   })}
                 </div>
@@ -843,6 +885,64 @@ export default function DiagnosticResultat() {
           {t.footer}
         </p>
       </div>
+
+      {/* Modal priorite d'investissement */}
+      {prioriteOuverte !== null && diag?.recommandations_v2?.prioritesInvestissement?.[prioriteOuverte] && (() => {
+        const p = diag.recommandations_v2.prioritesInvestissement[prioriteOuverte]
+        return (
+          <div onClick={() => setPrioriteOuverte(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(6,9,18,0.75)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+            <div onClick={e => e.stopPropagation()} style={{ ...panelStyle, maxWidth: 560, width: '100%', maxHeight: '85vh', overflowY: 'auto', padding: 28, position: 'relative' }}>
+              <button onClick={() => setPrioriteOuverte(null)} aria-label={t.fermer} style={{ position: 'absolute', top: 18, right: 18, width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Ico name="close" size={14} color="#cbd5e1" />
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                <span style={{ flexShrink: 0, width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg,#0073F4,#000E91)', color: '#fff', fontSize: 14, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{prioriteOuverte + 1}</span>
+                <div>
+                  <div style={{ fontSize: 10.5, fontWeight: 800, color: '#60a5fa', textTransform: 'uppercase', letterSpacing: 0.8 }}>{t.prioriteNum(prioriteOuverte + 1)}</div>
+                  <div style={{ fontSize: 16.5, fontWeight: 800, color: '#fff' }}>{p.titre}</div>
+                </div>
+              </div>
+              <p style={{ fontSize: 14, color: '#cbd5e1', lineHeight: 1.7, margin: 0 }}>{p.explication}</p>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Modal detail par dimension */}
+      {dimensionOuverte && (() => {
+        const axe = AXES.find(a => a.id === dimensionOuverte)
+        if (!axe) return null
+        const v = scores[axe.id] ?? 0
+        const tier = tierNiveau(v)
+        const c = couleurNiveau(v)
+        const items = axe.actions?.[tier] || []
+        return (
+          <div onClick={() => setDimensionOuverte(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(6,9,18,0.75)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+            <div onClick={e => e.stopPropagation()} style={{ ...panelStyle, maxWidth: 560, width: '100%', maxHeight: '85vh', overflowY: 'auto', padding: 28, position: 'relative' }}>
+              <button onClick={() => setDimensionOuverte(null)} aria-label={t.fermer} style={{ position: 'absolute', top: 18, right: 18, width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Ico name="close" size={14} color="#cbd5e1" />
+              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                <span style={{ flexShrink: 0, width: 42, height: 42, borderRadius: 12, background: `${c}1a`, border: `1px solid ${c}44`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Ico name={axe.id} size={20} color={c} />
+                </span>
+                <div style={{ fontSize: 17, fontWeight: 800, color: '#fff' }}>{txt(axe.nom, lang)}</div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: c, padding: '3px 10px', borderRadius: 20, background: `${c}22`, border: `1px solid ${c}55` }}>
+                  {t.tierLabel[tier]}
+                </span>
+                <span style={{ fontSize: 11.5, color: '#64748b' }}>{t.scoreMoyen}{v}/5</span>
+              </div>
+              <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {items.map((item, i) => (
+                  <li key={i} style={{ fontSize: 13.5, color: '#e2e8f0', lineHeight: 1.6 }}>{txt(item, lang)}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
