@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import RetourMenu from '../components/RetourMenu'
+import DiagnosticLiveMap from '../components/DiagnosticLiveMap'
 import { AXES, ECHELLE, BLOCS, txt } from '../utils/diagnosticAxes'
 import { RESEAUX, ORG_AUTRE, getOrganisationsByNetwork, findOrganisationById, searchOrganisations } from '../utils/diagnosticOrganisations'
 
@@ -56,6 +57,9 @@ const TR = {
     liveAgregatNote: n => `${n} diagnostic${n > 1 ? 's' : ''} déjà soumis pour ce site pendant la conférence.`,
     attenteTitre: 'En attente du lancement de la dimension suivante',
     attenteTexte: "L'animateur va bientôt débloquer la suite du diagnostic. Cette page se met à jour automatiquement, pas besoin de recharger.",
+    merciReponse: 'Merci, votre diagnostic est enregistré',
+    attenteResultatsTexte: "Les résultats, analyses et recommandations seront dévoilés pour tout le monde en même temps. Restez sur cette page - elle se met à jour automatiquement.",
+    lancerResultats: 'Lancer mon diagnostic',
   },
   en: {
     intro: "Assess your port's digital maturity across 10 dimensions, and leave with personalised recommendations.",
@@ -103,6 +107,9 @@ const TR = {
     liveAgregatNote: n => `${n} diagnostic${n > 1 ? 's' : ''} already submitted for this site during the conference.`,
     attenteTitre: 'Waiting for the next dimension to be unlocked',
     attenteTexte: 'The moderator will unlock the rest of the diagnostic shortly. This page updates automatically - no need to reload.',
+    merciReponse: 'Thank you, your diagnostic is saved',
+    attenteResultatsTexte: 'Results, analysis and recommendations will be revealed for everyone at the same time. Stay on this page - it updates automatically.',
+    lancerResultats: 'Discover my results',
   },
 }
 
@@ -188,6 +195,7 @@ export default function DiagnosticSmartPort() {
   const [reponses, setReponses] = useState({})
   const [soumission, setSoumission] = useState(false)
   const [erreurSoumission, setErreurSoumission] = useState('')
+  const [diagnosticId, setDiagnosticId] = useState(null)
 
   // Session collaborative (phase 2) : des qu'une organisation + site precis
   // est choisi, on rejoint un canal Realtime partage par tous les
@@ -205,12 +213,12 @@ export default function DiagnosticSmartPort() {
   // ouvert affiche un ecran d'attente au lieu de la question — synchronise
   // en direct via Realtime (postgres_changes), avec repli par sondage toutes
   // les 10s en cas de coupure de la connexion temps reel.
-  const [sessionGate, setSessionGate] = useState({ session_active: false, bloc_ouvert: 0, bloc_verrouillage_at: null })
+  const [sessionGate, setSessionGate] = useState({ session_active: false, bloc_ouvert: 0, bloc_verrouillage_at: null, resultats_debloques: false })
 
   useEffect(() => {
     let active = true
     const charger = async () => {
-      const { data } = await supabase.from('diagnostic_session').select('session_active, bloc_ouvert, bloc_verrouillage_at').eq('id', 1).maybeSingle()
+      const { data } = await supabase.from('diagnostic_session').select('session_active, bloc_ouvert, bloc_verrouillage_at, resultats_debloques').eq('id', 1).maybeSingle()
       if (active && data) setSessionGate(data)
     }
     charger()
@@ -400,7 +408,13 @@ export default function DiagnosticSmartPort() {
       channelRef.current?.send({ type: 'broadcast', event: 'nouvelle-reponse', payload: payloadAnonyme }),
       globalChannelRef.current?.send({ type: 'broadcast', event: 'nouvelle-reponse', payload: payloadAnonyme }),
     ])
-    navigate(`/diagnostic/resultat/${id}?lang=${lang}`)
+    // En session live (feu vert admin), le diagnostic est deja enregistre
+    // mais on ne navigue pas tout de suite : on reste sur un ecran d'attente
+    // (carte de l'Afrique) jusqu'a ce que l'animateur debloque les resultats
+    // pour tout le monde en meme temps (moment collectif de reveal). Hors
+    // session live, comportement inchange : on file directement au resultat.
+    setDiagnosticId(id)
+    if (!sessionGate.session_active) navigate(`/diagnostic/resultat/${id}?lang=${lang}`)
   }
 
   useEffect(() => {
@@ -942,6 +956,45 @@ export default function DiagnosticSmartPort() {
               {estDerniereAxe ? t.terminer : t.suivant} <Ico name="arrow" size={16} color="#fff" />
             </button>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Session live et diagnostic deja enregistre : ecran d'attente collectif
+  // (carte de l'Afrique) jusqu'a ce que l'animateur debloque les resultats
+  // pour tout le monde en meme temps, plutot que chacun file directement
+  // sur son resultat individuel des qu'il a fini.
+  if (diagnosticId && sessionGate.session_active) {
+    if (sessionGate.resultats_debloques) {
+      return (
+        <div style={wrap}>
+          <Fond />
+          <BoutonLang />
+          <div style={{ ...card, textAlign: 'center', paddingTop: 100 }}>
+            <p style={{ color: '#fff', fontSize: 18, fontWeight: 800, marginBottom: 24 }}>{t.merciReponse}</p>
+            <button
+              onClick={() => navigate(`/diagnostic/resultat/${diagnosticId}?lang=${lang}`)}
+              style={{
+                padding: '16px 36px', background: 'linear-gradient(135deg,#0073F4,#000E91)', border: 'none',
+                borderRadius: 14, color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+                boxShadow: '0 8px 24px rgba(0,115,244,0.4)',
+              }}
+            >
+              {t.lancerResultats}
+            </button>
+          </div>
+        </div>
+      )
+    }
+    return (
+      <div style={wrap}>
+        <Fond />
+        <BoutonLang />
+        <div style={{ width: '100%', maxWidth: 720, textAlign: 'center', paddingTop: 40 }}>
+          <p style={{ color: '#fff', fontSize: 18, fontWeight: 800, marginBottom: 8 }}>{t.merciReponse}</p>
+          <p style={{ color: '#94a3b8', fontSize: 14, marginBottom: 28 }}>{t.attenteResultatsTexte}</p>
+          <DiagnosticLiveMap liveCountries={new Set()} activeCountry={null} />
         </div>
       </div>
     )

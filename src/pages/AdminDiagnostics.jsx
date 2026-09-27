@@ -258,7 +258,7 @@ export default function AdminDiagnostics() {
   // min en conference. Hors session (session_active = false), le
   // questionnaire reste ouvert normalement pour tous les autres usages du
   // diagnostic (pas seulement pendant la conference).
-  const [sessionGate, setSessionGate] = useState({ session_active: false, bloc_ouvert: 0, bloc_verrouillage_at: null })
+  const [sessionGate, setSessionGate] = useState({ session_active: false, bloc_ouvert: 0, bloc_verrouillage_at: null, resultats_debloques: false })
   const [gateEnCours, setGateEnCours] = useState(false)
   // Duree (minutes) proposee pour le prochain chrono — simple champ local,
   // n'est envoye en base qu'au clic sur "Lancer le chrono".
@@ -266,7 +266,7 @@ export default function AdminDiagnostics() {
 
   useEffect(() => {
     const chargerGate = async () => {
-      const { data } = await supabase.from('diagnostic_session').select('session_active, bloc_ouvert, bloc_verrouillage_at').eq('id', 1).maybeSingle()
+      const { data } = await supabase.from('diagnostic_session').select('session_active, bloc_ouvert, bloc_verrouillage_at, resultats_debloques').eq('id', 1).maybeSingle()
       if (data) setSessionGate(data)
     }
     chargerGate()
@@ -526,7 +526,7 @@ export default function AdminDiagnostics() {
               <span style={{ fontSize: 13.5, fontWeight: 800, color: T.text }}>Session live (feu vert des blocs)</span>
             </div>
             <button
-              onClick={() => majGate(sessionGate.session_active ? { session_active: false, bloc_ouvert: 0 } : { session_active: true, bloc_ouvert: 0 })}
+              onClick={() => majGate(sessionGate.session_active ? { session_active: false, bloc_ouvert: 0, resultats_debloques: false } : { session_active: true, bloc_ouvert: 0, resultats_debloques: false })}
               disabled={gateEnCours}
               style={{
                 padding: '9px 18px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: gateEnCours ? 'wait' : 'pointer', fontFamily: 'inherit',
@@ -558,6 +558,32 @@ export default function AdminDiagnostics() {
               ))}
               <span style={{ fontSize: 12, color: T.textMuted, marginLeft: 4 }}>
                 {sessionGate.bloc_ouvert === 0 ? 'Aucun bloc ouvert - les participants attendent.' : `Bloc ${sessionGate.bloc_ouvert} ouvert (et les précédents).`}
+              </span>
+            </div>
+          )}
+
+          {/* Une fois tout le monde a fini de repondre, chacun reste sur un
+              ecran d'attente (carte de l'Afrique) jusqu'a ce deblocage — pour
+              que la decouverte des resultats/analyses/recommandations soit
+              un moment collectif, pas chacun a son rythme. */}
+          {sessionGate.session_active && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 14, paddingTop: 14, borderTop: `1px solid ${T.rowBorder}` }}>
+              <button
+                onClick={() => majGate({ resultats_debloques: !sessionGate.resultats_debloques })}
+                disabled={gateEnCours}
+                style={{
+                  padding: '10px 18px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: gateEnCours ? 'wait' : 'pointer', fontFamily: 'inherit',
+                  background: sessionGate.resultats_debloques ? 'linear-gradient(135deg,#0073F4,#000E91)' : T.chipBg,
+                  color: sessionGate.resultats_debloques ? '#fff' : T.text,
+                  border: `1px solid ${sessionGate.resultats_debloques ? 'transparent' : T.chipBorder}`,
+                }}
+              >
+                {sessionGate.resultats_debloques ? '✓ Résultats débloqués' : 'Débloquer les résultats pour tous'}
+              </button>
+              <span style={{ fontSize: 12, color: T.textMuted }}>
+                {sessionGate.resultats_debloques
+                  ? 'Chacun peut cliquer "Lancer mon diagnostic" pour voir son resultat.'
+                  : "Les participants ayant fini attendent sur l'ecran carte de l'Afrique."}
               </span>
             </div>
           )}

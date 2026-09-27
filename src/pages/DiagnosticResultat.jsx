@@ -40,10 +40,11 @@ const TR = {
       'Identification de vos priorités d\'investissement...',
       'Préparation de votre plan d\'action personnalisé...',
     ],
-    collectifTitre: 'Vue collective de votre port',
+    collectifTitre: n => n === 1 ? 'Votre profil' : 'Vue collective de votre port',
     collectifSousTitre: n => n === 1
       ? 'Basée sur 1 diagnostic soumis pour ce port pendant la conférence (le vôtre).'
       : `Basée sur ${n} diagnostics soumis pour ce port pendant la conférence.`,
+    collectifRepondants: 'Répondants :',
     focusTitre: '🎯 Focus COPAF 2026 - IA & Cyber-résilience',
     focusSousTitre: 'Les deux dimensions suivies en priorité par le comité d\'organisation cette année.',
     comparatifTitre: 'Comparaison des répondants',
@@ -93,10 +94,11 @@ const TR = {
       'Identifying your investment priorities...',
       'Preparing your personalised action plan...',
     ],
-    collectifTitre: 'Collective view for your port',
+    collectifTitre: n => n === 1 ? 'Your profile' : 'Collective view for your port',
     collectifSousTitre: n => n === 1
       ? 'Based on 1 diagnostic submitted for this port during the conference (yours).'
       : `Based on ${n} diagnostics submitted for this port during the conference.`,
+    collectifRepondants: 'Respondents:',
     focusTitre: '🎯 COPAF 2026 Focus - AI & Cyber-resilience',
     focusSousTitre: "The two dimensions tracked as this year's organising committee priority.",
     comparatifTitre: 'Respondent comparison',
@@ -579,8 +581,19 @@ export default function DiagnosticResultat() {
         {/* Vue collective du port — pleine largeur */}
         {collectif && (
           <div style={{ ...panelStyle, padding: 24, marginBottom: 18 }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{t.collectifTitre}</div>
-            <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16 }}>{t.collectifSousTitre(collectif.nbReponses)}</p>
+            <div style={{ fontSize: 14, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{t.collectifTitre(collectif.nbReponses)}</div>
+            <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: collectif.nbReponses > 1 && peers.length > 1 ? 4 : 16 }}>{t.collectifSousTitre(collectif.nbReponses)}</p>
+            {collectif.nbReponses > 1 && peers.length > 1 && (
+              <p style={{ fontSize: 12, color: '#cbd5e1', marginBottom: 16 }}>
+                <span style={{ color: '#94a3b8' }}>{t.collectifRepondants} </span>
+                {peers.map((p, i) => (
+                  <span key={p.id}>
+                    {i > 0 && ', '}
+                    {p.prenom} {p.nom}{p.is_dg ? ` (${t.dgBadge})` : p.poste ? ` (${p.poste})` : ''}
+                  </span>
+                ))}
+              </p>
+            )}
             {AXES.map(axe => {
               const v = collectif.parAxe[axe.id]
               if (v === undefined) return null
