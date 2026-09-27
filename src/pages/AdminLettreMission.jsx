@@ -218,6 +218,7 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
 
   const enregistrer = async (nouveauStatut = statut) => {
     if (!dossier.trim()) { setMsg('Le numéro de dossier est requis (sert de référence pour cette personne).'); return false }
+    if (!nom.trim()) { setMsg('Le nom et prénoms sont requis.'); return false }
     setOccupe(true); setMsg('')
     const ligne = { ...donnees(), statut: nouveauStatut, updated_at: new Date().toISOString() }
     if (nouveauStatut === 'prete' || nouveauStatut === 'envoyee') ligne.genere_le = new Date().toISOString()
@@ -234,6 +235,7 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
   })
 
   const apercu = async () => {
+    if (!nom.trim()) { setMsg('Le nom et prénoms sont requis.'); return }
     try {
       const { personne: pers, mission } = construitPersonneEtMission()
       const doc = await generateLettreMissionPDF({ personne: pers, mission, lang: p0.langue === 'en' ? 'en' : 'fr', download: false })
@@ -242,6 +244,7 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
   }
 
   const telecharger = async () => {
+    if (!nom.trim()) { setMsg('Le nom et prénoms sont requis.'); return }
     try {
       const { personne: pers, mission } = construitPersonneEtMission()
       await generateLettreMissionPDF({ personne: pers, mission, lang: p0.langue === 'en' ? 'en' : 'fr', download: true })
@@ -290,7 +293,7 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div><label style={LABEL}>Nom et prénoms</label>{inp(nom, setNom)}</div>
+            <div><label style={LABEL}>Nom et prénoms *</label>{inp(nom, setNom)}</div>
             <div><label style={LABEL}>Fonction / Titre</label>{inp(fonction, setFonction)}</div>
             <div><label style={LABEL}>Organisation / Structure</label>{inp(organisation, setOrganisation)}</div>
             <div><label style={LABEL}>Nationalité</label>{inp(paysNat, setPaysNat)}</div>
