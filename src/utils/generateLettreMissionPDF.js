@@ -119,27 +119,34 @@ const PT_PER_CM = 28.3465
 // taille de police) plutot que l'option baseline:'middle' de jsPDF, dont le
 // rendu vertical varie selon la police embarquee — moins fiable que ce
 // calcul direct pour un centrage precis.
-function drawField(doc, text, box, fontFamily, maxPt = 11) {
+function drawField(doc, text, box, fontFamily, maxPt = 15) {
   if (!text) return
-  let size = Math.min(maxPt, box.h * PT_PER_CM * 0.65)
-  doc.setFont(fontFamily, 'normal')
+  let size = Math.min(maxPt, box.h * PT_PER_CM * 0.82)
+  doc.setFont(fontFamily, 'bold')
   doc.setFontSize(size)
-  while (doc.getTextWidth(text) > box.w - 0.2 && size > 6) { size -= 0.5; doc.setFontSize(size) }
+  while (doc.getTextWidth(text) > box.w - 0.2 && size > 7) { size -= 0.5; doc.setFontSize(size) }
   doc.setTextColor(...FIELD_COLOR)
   const y = box.y + box.h / 2 + (size / PT_PER_CM) / 3
   doc.text(text, box.x + 0.15, y, { align: 'left' })
 }
 
 // Rôle et attributions : plusieurs lignes possibles dans une case plus haute,
-// meme logique de centrage vertical explicite appliquee au bloc entier.
-function drawMultiline(doc, text, box, fontFamily, pt = 10) {
+// meme logique de centrage vertical explicite appliquee au bloc entier. Taille
+// reduite automatiquement si le texte (jusqu'a 260 caracteres) ne tient pas
+// en entier, pour ne jamais tronquer une attribution.
+function drawMultiline(doc, text, box, fontFamily, maxPt = 12) {
   if (!text) return
-  doc.setFont(fontFamily, 'normal')
-  doc.setFontSize(pt)
+  doc.setFont(fontFamily, 'bold')
+  let size = maxPt, lines, lineH, maxLines
+  for (;;) {
+    doc.setFontSize(size)
+    lines = doc.splitTextToSize(text, box.w - 0.3)
+    lineH = size * 0.0423 // pt -> cm approx pour un interligne confortable
+    maxLines = Math.max(1, Math.floor((box.h - 0.15) / lineH))
+    if (lines.length <= maxLines || size <= 7) break
+    size -= 0.5
+  }
   doc.setTextColor(...FIELD_COLOR)
-  const lines = doc.splitTextToSize(text, box.w - 0.3)
-  const lineH = pt * 0.0423 // pt -> cm approx pour un interligne confortable
-  const maxLines = Math.max(1, Math.floor((box.h - 0.15) / lineH))
   const shown = lines.slice(0, maxLines)
   const blockH = shown.length * lineH
   let y = box.y + box.h / 2 - blockH / 2 + lineH * 0.75
