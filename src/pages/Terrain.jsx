@@ -21,7 +21,7 @@
 // "Hors connexion" desactive juste les actions en attendant le reseau ou la
 // liste papier (bouton Imprimer).
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { useAdminAuth } from '../adminAuth'
@@ -33,7 +33,8 @@ const CLE_EQUIPIER = 'copaf_terrain_equipier' // partagee avec StaffScan.jsx —
 
 const ETAPES = {
   aeroport: { label: 'Accueilli à l\'aéroport' },
-  hotel: { label: 'Arrivé à l\'hôtel', champValeur: true, placeholderValeur: 'N° chambre (optionnel)', valeurRequise: false },
+  // Pas de numero de chambre : donnee sensible retiree pour la securite des participants.
+  hotel: { label: 'Arrivé à l\'hôtel' },
   badge: { label: 'Badge et kit remis' },
   tablette: { label: 'Tablette remise', champValeur: true, placeholderValeur: 'N° tablette', valeurRequise: true },
   present: { label: 'Présent', parJour: true },
@@ -127,6 +128,13 @@ export default function Terrain() {
 
   useEffect(() => { if (authorized) { charger(); chargerIncidents() } }, [authorized, charger, chargerIncidents])
 
+  // charger()/chargerIncidents() changent d'identite a chaque changement de
+  // jour (deps de useCallback) : passer par une ref evite de desabonner et
+  // rouvrir le canal Realtime a chaque fois qu'on change d'onglet jour,
+  // l'abonnement lui-meme ne depend que de la connexion (authorized).
+  const chargeursRef = useRef({ charger, chargerIncidents })
+  useEffect(() => { chargeursRef.current = { charger, chargerIncidents } }, [charger, chargerIncidents])
+
   // Realtime : une action a l'aeroport doit apparaitre immediatement a
   // l'hotel/au comptoir. Filet de secours (poll 30s + retour au premier
   // plan) en plus, au cas ou l'abonnement se coupe silencieusement.
@@ -134,14 +142,18 @@ export default function Terrain() {
     if (!authorized) return
     const channel = supabase
       .channel('terrain-suivi')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'suivi_terrain' }, () => charger())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'suivi_incidents' }, () => chargerIncidents())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'suivi_terrain' }, () => chargeursRef.current.charger())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'suivi_incidents' }, () => chargeursRef.current.chargerIncidents())
       .subscribe()
-    const poll = setInterval(() => { if (document.visibilityState === 'visible') { charger(); chargerIncidents() } }, 30000)
-    const onVisible = () => { if (document.visibilityState === 'visible') { charger(); chargerIncidents() } }
+    const poll = setInterval(() => {
+      if (document.visibilityState === 'visible') { chargeursRef.current.charger(); chargeursRef.current.chargerIncidents() }
+    }, 30000)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') { chargeursRef.current.charger(); chargeursRef.current.chargerIncidents() }
+    }
     document.addEventListener('visibilitychange', onVisible)
     return () => { supabase.removeChannel(channel); clearInterval(poll); document.removeEventListener('visibilitychange', onVisible) }
-  }, [authorized, charger, chargerIncidents])
+  }, [authorized])
 
   useEffect(() => {
     const on = () => setEnLigne(true), off = () => setEnLigne(false)
