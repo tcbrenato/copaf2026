@@ -135,6 +135,7 @@ export default function AdminLettreMission() {
       {edition && (
         <FenetreLettre
           personne={edition.personne}
+          annuaire={personnes || []}
           referenceSuggeree={prochaineReference(personnes || [])}
           onClose={() => setEdition(null)}
           onSaved={() => { charger() }}
@@ -144,9 +145,11 @@ export default function AdminLettreMission() {
   )
 }
 
-function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
+function FenetreLettre({ personne, annuaire, referenceSuggeree, onClose, onSaved }) {
+  const [lien, setLien] = useState(null) // fiche intervenant retrouvee via le préréglage
   const p0 = personne || {}
   const m0 = p0.mission || {}
+  const cible = personne || lien || {}
 
   const [presetId, setPresetId] = useState('libre')
   const [dossier, setDossier] = useState(p0.dossier || '')
@@ -205,6 +208,15 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
     if (!preset) return
     setNom(preset.nom); setFonction(preset.fonction); setOrganisation(preset.organisation)
     setQualite(preset.qualite); setRole(preset.attributions.slice(0, ATTRIBUTIONS_MAX))
+    // Rattache la fiche intervenant : dossier, passeport, nationalité (jamais pour une autre personne que celle ouverte)
+    const fiche = preset.dossier && (!personne || personne.dossier === preset.dossier)
+      ? annuaire.find(a => a.dossier === preset.dossier) : null
+    setLien(fiche || null)
+    if (fiche) {
+      if (!personne) setDossier(fiche.dossier)
+      setPasseport(fiche.numero_passeport || '')
+      setPaysNat(fiche.pays || '')
+    }
   }
 
   const donnees = () => ({
@@ -239,7 +251,7 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
     if (!nom.trim()) { setMsg('Le nom et prénoms sont requis.'); return }
     try {
       const { personne: pers, mission } = construitPersonneEtMission()
-      const doc = await generateLettreMissionPDF({ personne: pers, mission, lang: p0.langue === 'en' ? 'en' : 'fr', download: false })
+      const doc = await generateLettreMissionPDF({ personne: pers, mission, lang: cible.langue === 'en' ? 'en' : 'fr', download: false })
       ouvrirBlob(doc)
     } catch (e) { setMsg(e.message || 'Génération impossible.') }
   }
@@ -248,7 +260,7 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
     if (!nom.trim()) { setMsg('Le nom et prénoms sont requis.'); return }
     try {
       const { personne: pers, mission } = construitPersonneEtMission()
-      await generateLettreMissionPDF({ personne: pers, mission, lang: p0.langue === 'en' ? 'en' : 'fr', download: true })
+      await generateLettreMissionPDF({ personne: pers, mission, lang: cible.langue === 'en' ? 'en' : 'fr', download: true })
     } catch (e) { setMsg(e.message || 'Génération impossible.') }
   }
 
@@ -256,14 +268,14 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
 
   const envoyerParEmail = async () => {
     if (!nom.trim()) { setMsg('Le nom et prénoms sont requis.'); return }
-    if (!p0.email) { setMsg("Cette personne n'a pas d'email enregistré (dossier intervenant introuvable ou non accrédité)."); return }
-    if (!window.confirm(`Envoyer la lettre de mission à ${nom} (${p0.email}) ?`)) return
+    if (!cible.email) { setMsg("Cette personne n'a pas d'email enregistré (dossier intervenant introuvable ou non accrédité)."); return }
+    if (!window.confirm(`Envoyer la lettre de mission à ${nom} (${cible.email}) ?`)) return
     setOccupe(true); setMsg('')
     try {
       const ok = await enregistrer('prete')
       if (!ok) { setOccupe(false); return }
       const { personne: pers, mission } = construitPersonneEtMission()
-      const doc = await generateLettreMissionPDF({ personne: pers, mission, lang: p0.langue === 'en' ? 'en' : 'fr', download: false })
+      const doc = await generateLettreMissionPDF({ personne: pers, mission, lang: cible.langue === 'en' ? 'en' : 'fr', download: false })
       const filename = `Lettre_de_mission_${(nom || '').replace(/[^A-Za-z0-9]+/g, '')}.pdf`
       const { data, error } = await supabase.functions.invoke('voyage-notify', {
         body: { action: 'envoyer', kind: 'lettre_mission', dossier: dossier.trim(), pdf: pdfEnBase64(doc), filename },
@@ -394,7 +406,7 @@ function FenetreLettre({ personne, referenceSuggeree, onClose, onSaved }) {
             <button type="button" style={BTN_SOFT} onClick={apercu}>Aperçu PDF</button>
             <button type="button" style={BTN_SOFT} onClick={telecharger}>Télécharger le PDF</button>
             {statut !== 'prete' && statut !== 'envoyee' && <button type="button" style={BTN_SOFT} disabled={occupe} onClick={marquerPrete}>Marquer « prête »</button>}
-            <button type="button" style={{ ...BTN, background: '#16a34a', color: '#fff' }} disabled={occupe || !p0.email} onClick={envoyerParEmail} title={p0.email || "Aucun email enregistré pour cette personne"}>
+            <button type="button" style={{ ...BTN, background: '#16a34a', color: '#fff' }} disabled={occupe || !cible.email} onClick={envoyerParEmail} title={cible.email || "Aucun email enregistré pour cette personne"}>
               {statut === 'envoyee' ? 'Renvoyer par email' : 'Envoyer par email'}
             </button>
             <button type="button" style={{ ...BTN, background: '#f1f5f9', color: '#334155', marginLeft: 'auto' }} onClick={onClose}>Fermer</button>

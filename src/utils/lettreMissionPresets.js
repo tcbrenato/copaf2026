@@ -9,6 +9,7 @@
 export const PRESETS_LETTRE_MISSION = [
   {
     id: 'odah',
+    dossier: 'INT2026-001',
     nom: 'Dr Oloutayo William ODAH',
     fonction: 'Directeur Général, CRF Perfection',
     organisation: 'CRF Perfection',
@@ -17,6 +18,7 @@ export const PRESETS_LETTRE_MISSION = [
   },
   {
     id: 'taofic',
+    dossier: 'INT2026-007',
     nom: 'Taofic [NOM À COMPLÉTER]',
     fonction: 'Assistant du Directeur Général',
     organisation: 'CRF Perfection',
@@ -25,6 +27,7 @@ export const PRESETS_LETTRE_MISSION = [
   },
   {
     id: 'renato',
+    dossier: 'INT2026-002',
     nom: 'Rénato TCHOBO',
     fonction: 'Directeur Numérique & IT',
     organisation: 'CRF Perfection',
@@ -33,6 +36,7 @@ export const PRESETS_LETTRE_MISSION = [
   },
   {
     id: 'yvette',
+    dossier: 'INT2026-008',
     nom: 'Yvette FANOU',
     fonction: 'Directrice Commerciale et Marketing (DCM)',
     organisation: 'CRF Perfection',
@@ -41,6 +45,7 @@ export const PRESETS_LETTRE_MISSION = [
   },
   {
     id: 'eliram',
+    dossier: 'INT2026-009',
     nom: 'Eliram [NOM À COMPLÉTER]',
     fonction: 'Assistant technique',
     organisation: 'CRF Perfection',
@@ -57,6 +62,7 @@ export const PRESETS_LETTRE_MISSION = [
   },
   {
     id: 'balsomi',
+    dossier: 'INT2026-005',
     nom: 'Dr Babel BALSOMI',
     fonction: 'Experte en cybersécurité',
     organisation: '[ORGANISATION À COMPLÉTER]',
