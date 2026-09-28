@@ -15,6 +15,7 @@
 // le jour J.
 
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../supabase'
 import { useAdminAuth } from '../adminAuth'
@@ -24,6 +25,10 @@ const NAVY = '#000E91'
 const BLUE = '#0073F4'
 const DOMAINES_AUTORISES = ['copaf-ports.com', 'www.copaf-ports.com', 'localhost']
 const PAUSE_APRES_SCAN_MS = 2200
+// Cle localStorage partagee avec Terrain.jsx (memes deux fichiers doivent
+// utiliser exactement la meme chaine) : identifie l'equipier au comptoir,
+// transmis a badge_checkin comme fait_par.
+const CLE_EQUIPIER = 'copaf_terrain_equipier'
 
 function extractToken(decodedText) {
   const brut = decodedText.trim()
@@ -73,7 +78,7 @@ export default function StaffScan() {
     if (enPauseRef.current) return
     enPauseRef.current = true
     try {
-      const { data: rows, error } = await supabase.rpc('badge_checkin', { p_token: token })
+      const { data: rows, error } = await supabase.rpc('badge_checkin', { p_token: token, p_fait_par: localStorage.getItem(CLE_EQUIPIER) || null })
       const r = Array.isArray(rows) ? rows[0] : rows
       if (error || !r) {
         bipEtVibre(false)
@@ -151,7 +156,10 @@ export default function StaffScan() {
   return (
     <div style={wrapStyle}>
       <div style={{ ...cardStyle, maxWidth: 480, textAlign: 'left' }}>
-        <div style={{ fontSize: 11, color: BLUE, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>COPAF 2026 · Accueil</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+          <div style={{ fontSize: 11, color: BLUE, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>COPAF 2026 · Accueil</div>
+          <Link to="/terrain" style={{ fontSize: 11.5, color: NAVY, fontWeight: 700, textDecoration: 'none' }}>Tableau terrain →</Link>
+        </div>
         <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 16 }}>Scanner un badge</div>
 
         <div style={{ position: 'relative' }}>

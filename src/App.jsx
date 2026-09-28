@@ -52,6 +52,7 @@ const Documentation        = lazy(() => import('./pages/Documentation'))
 const RecommandationsActes = lazy(() => import('./pages/RecommandationsActes'))
 const BadgeToken           = lazy(() => import('./pages/BadgeToken'))
 const StaffScan            = lazy(() => import('./pages/StaffScan'))
+const Terrain               = lazy(() => import('./pages/Terrain'))
 const EspaceIntervenant    = lazy(() => import('./pages/EspaceIntervenant'))
 
 // ─── Repli affiche pendant le telechargement d'une route secondaire ──────────
@@ -127,7 +128,7 @@ const PromoPopupGate = () => {
   if (pathname === '/inscription') return null
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
-  if (pathname === '/staff/scan' || pathname.startsWith('/badge/')) return null
+  if (pathname === '/staff/scan' || pathname === '/terrain' || pathname.startsWith('/badge/')) return null
   return <PromoPopup />
 }
 
@@ -196,6 +197,12 @@ const StaffScanPage = () => (
   </AuthGate>
 )
 
+const TerrainPage = () => (
+  <AuthGate title="COPAF 2026" subtitle="Accès réservé au personnel terrain">
+    <Terrain />
+  </AuthGate>
+)
+
 // ─── Application principale ───────────────────────────────────────────────────
 function App() {
   return (
@@ -228,6 +235,7 @@ function App() {
         <Route path="/badge/:token"           element={<BadgeToken />} />
         <Route path="/intervenant"            element={<EspaceIntervenant />} />
         <Route path="/staff/scan"             element={<StaffScanPage />} />
+        <Route path="/terrain"                element={<TerrainPage />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/diagnostics"      element={<Navigate to="/admin" replace />} />
