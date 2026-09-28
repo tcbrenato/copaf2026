@@ -413,7 +413,7 @@ function FenetreLettre({ personne, annuaire, referenceSuggeree, onClose, onSaved
           </div>
           {msg && <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: msg.includes('✓') ? '#16a34a' : '#b45309' }}>{msg}</p>}
           <p style={{ fontSize: 11.5, color: '#94a3b8', margin: 0 }}>
-            « Prête » rend la lettre téléchargeable par la personne elle-même depuis son espace intervenant, si son numéro de dossier correspond à un compte intervenant existant.
+            <strong>Prête</strong> : la personne peut télécharger sa lettre elle-même en se connectant à son espace intervenant (bouton « Télécharger ma lettre de mission »). Cela ne fonctionne que si elle a un dossier intervenant (INT2026-…). <strong>Envoyer par email</strong> lui envoie la lettre en pièce jointe et passe le statut à « Envoyée ».
           </p>
         </div>
       </div>
