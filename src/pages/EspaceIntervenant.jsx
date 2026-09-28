@@ -144,11 +144,11 @@ export default function EspaceIntervenant() {
   useEffect(() => {
     if (!intervenant?.dossier) { setLettreMission(null); return }
     let cancelled = false
-    supabase.rpc('lettre_mission_public', { p_dossier: intervenant.dossier }).then(({ data }) => {
+    supabase.rpc('lettre_mission_public', { p_dossier: intervenant.dossier, p_email: email.trim() }).then(({ data }) => {
       if (!cancelled) setLettreMission(Array.isArray(data) && data[0] ? data[0] : null)
     })
     return () => { cancelled = true }
-  }, [intervenant?.dossier])
+  }, [intervenant?.dossier, email])
 
   const telechargerLettreMission = async () => {
     if (!lettreMission) return
