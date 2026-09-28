@@ -1741,7 +1741,7 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
   const totalRevenu  = inscriptionsActives.reduce((s, r) => s + (r.montant || 0), 0)
     + sponsors.reduce((s, r) => s + (r.montant || 0), 0)
     + partenaires.reduce((s, r) => s + (r.montant || 0), 0)
-  const confirmes    = inscriptions.filter(r => r.paiement_status === 'confirme').length
+  const confirmes    = inscriptions.filter(r => r.paiement_status === 'confirme').reduce((s, r) => s + (r.participants || 0), 0)
 
   // Financier & logistique
   const montantEncaisse  = inscriptions.filter(r => r.paiement_status === 'confirme').reduce((s, r) => s + (r.montant || 0), 0)
@@ -1807,7 +1807,7 @@ function SectionDashboard({ allData, setActiveModule, onDataChange }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 16, marginBottom: 20 }}>
         <KpiCard icon="users"    label="Participants" value={showNum(totalParticipantsReels)} color="#6366f1" sub={`${showNum(inscriptionsActives.length)} dossiers`} />
         <KpiCard icon="euro"     label="Revenus totaux" value={showEur(totalRevenu)} color="#10b981" />
-        <KpiCard icon="check"    label="Confirmés"    value={showNum(confirmes)} color="#10b981" tint sub={montantsRevealed ? `${Math.round((confirmes / (inscriptions.length || 1)) * 100)}% conv.` : undefined} />
+        <KpiCard icon="check"    label="Confirmés"    value={showNum(confirmes)} color="#10b981" tint sub={montantsRevealed ? `${Math.round((confirmes / (totalParticipantsReels || 1)) * 100)}% conv.` : undefined} />
         <KpiCard icon="diamond"  label="Sponsors"     value={showNum(sponsors.length)} color="#d97706" />
         <KpiCard icon="building" label="Partenaires"  value={showNum(partenaires.length)} color="#000E91" />
         <KpiCard icon="monitor"  label="Exposants"    value={showNum(exposants.length)} color="#0891b2" />

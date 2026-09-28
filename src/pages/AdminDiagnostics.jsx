@@ -697,6 +697,11 @@ export default function AdminDiagnostics() {
             <div style={{ padding: 20 }}>
               {ongletPanneau === 'actions' && (
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {filtres.length === 0 && (
+                    <div style={{ width: '100%', fontSize: 12.5, color: '#f59e0b', fontWeight: 600 }}>
+                      {filtrePays ? `Aucun diagnostic pour ${filtrePays}` : 'Aucun diagnostic enregistré pour le moment'} - l'export, le résumé et la suppression sont disponibles dès qu'au moins un diagnostic existe.
+                    </div>
+                  )}
                   <button onClick={exporterCSV} disabled={filtres.length === 0} style={{ ...boutonAction('#60a5fa'), opacity: filtres.length === 0 ? 0.5 : 1, cursor: filtres.length === 0 ? 'default' : 'pointer' }}>
                     ⬇️ Exporter en CSV {filtrePays ? `(${filtrePays})` : '(tous)'}
                   </button>
@@ -709,7 +714,7 @@ export default function AdminDiagnostics() {
                     📄 Exporter la synthèse (PDF)
                   </button>
 
-                  <button onClick={load} style={boutonAction('#22c55e')}>
+                  <button onClick={async () => { await load(); showToast('Données actualisées ✓') }} style={boutonAction('#22c55e')}>
                     ⟳ Forcer l'actualisation
                   </button>
 
