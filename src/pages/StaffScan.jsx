@@ -2,81 +2,137 @@
 //
 // Page reservee au personnel d'accueil (compte admin scope 'checkin' ou
 // 'all', connexion deja geree par AuthGate qui enveloppe cette page dans
-// App.jsx). Scan camera du QR de badge -> redirection vers /badge/{token}
-// qui affichera alors la vue staff complete (session deja active). Une
-// recherche manuelle par nom sert de secours si le QR est illisible ou le
-// badge abime.
+// App.jsx). Scan continu : chaque badge lu declenche directement l'emargement
+// (badge_checkin) sans quitter la page — la camera (Html5Qrcode bas niveau,
+// facingMode 'environment') redemarre seule apres la banniere de
+// confirmation, au lieu de naviguer vers /badge/{token} et de perdre 5-10s
+// par personne a relancer le scanner. La recherche manuelle sert de secours
+// si le QR est illisible ou le badge abime, et emarge aussi directement.
 //
 // Non couvert dans cette premiere version : mode hors-ligne avec file
 // d'attente locale synchronisee au retour reseau (mentionne dans le
 // cahier des charges) — a construire separement si besoin reel confirme
 // le jour J.
 
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Html5QrcodeScanner } from 'html5-qrcode'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../supabase'
 import { useAdminAuth } from '../adminAuth'
 import { Ico } from '../utils/dossierUi'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
+const DOMAINES_AUTORISES = ['copaf-ports.com', 'www.copaf-ports.com', 'localhost']
+const PAUSE_APRES_SCAN_MS = 2200
 
 function extractToken(decodedText) {
+  const brut = decodedText.trim()
   try {
-    const url = new URL(decodedText)
+    const url = new URL(brut)
+    if (!DOMAINES_AUTORISES.includes(url.hostname)) return null // QR d'un autre site : ignore
     const parts = url.pathname.split('/').filter(Boolean)
     const idx = parts.indexOf('badge')
     if (idx !== -1 && parts[idx + 1]) return parts[idx + 1]
+    return null
   } catch {
-    // pas une URL — peut-etre deja un token brut colle/scanne autrement
+    // pas une URL — token brut colle/scanne autrement (UUID attendu)
+    return /^[0-9a-f-]{20,40}$/i.test(brut) ? brut : null
   }
-  return decodedText.trim()
+}
+
+function bipEtVibre(ok) {
+  try {
+    if (navigator.vibrate) navigator.vibrate(ok ? 80 : [60, 60, 60])
+    const ctx = new (window.AudioContext || window.webkitAudioContext)()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain); gain.connect(ctx.destination)
+    osc.frequency.value = ok ? 880 : 300
+    gain.gain.setValueAtTime(0.15, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2)
+    osc.start(); osc.stop(ctx.currentTime + 0.2)
+    setTimeout(() => ctx.close().catch(() => {}), 300)
+  } catch { /* audio indisponible (permissions, navigateur) — tant pis, la vibration/bannière suffisent */ }
 }
 
 export default function StaffScan() {
   const { scope } = useAdminAuth()
-  const navigate = useNavigate()
   const authorized = scope === 'checkin' || scope === 'all'
 
   const scannerRef = useRef(null)
+  const enPauseRef = useRef(false)
 
   const [query, setQuery] = useState('')
   const [searching, setSearching] = useState(false)
   const [results, setResults] = useState([])
   const [searchError, setSearchError] = useState('')
+  const [banniere, setBanniere] = useState(null) // { ok, nom, organisation, photo_url, deja, heure } | { erreur }
+  const [cameraErreur, setCameraErreur] = useState('')
+
+  const emarger = useCallback(async token => {
+    if (enPauseRef.current) return
+    enPauseRef.current = true
+    try {
+      const { data: rows, error } = await supabase.rpc('badge_checkin', { p_token: token })
+      const r = Array.isArray(rows) ? rows[0] : rows
+      if (error || !r) {
+        bipEtVibre(false)
+        setBanniere({ erreur: true, message: 'Badge introuvable.' })
+      } else {
+        bipEtVibre(true)
+        setBanniere({
+          ok: true, nom: `${r.prenom || ''} ${r.nom || ''}`.trim(), organisation: r.organisation,
+          photo_url: r.photo_url, deja: r.deja_arrive,
+          heure: r.arrived_at ? new Date(r.arrived_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
+        })
+      }
+    } catch {
+      bipEtVibre(false)
+      setBanniere({ erreur: true, message: 'Erreur réseau, réessayez.' })
+    }
+    setTimeout(() => { setBanniere(null); enPauseRef.current = false }, PAUSE_APRES_SCAN_MS)
+  }, [])
 
   useEffect(() => {
     if (!authorized) return
-    const scanner = new Html5QrcodeScanner('staff-scan-reader', {
-      fps: 10, qrbox: { width: 250, height: 250 }, rememberLastUsedCamera: true,
-    }, false)
+    const scanner = new Html5Qrcode('staff-scan-reader')
     scannerRef.current = scanner
+    let arrete = false
 
-    scanner.render(
+    scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 250, height: 250 } },
       decodedText => {
+        if (enPauseRef.current) return
         const token = extractToken(decodedText)
-        scanner.clear().catch(() => {})
-        navigate(`/badge/${token}`)
+        if (token) emarger(token)
       },
       () => { /* echec de decodage sur une frame — normal en continu, on ignore */ }
-    )
+    ).catch(() => { if (!arrete) setCameraErreur("Impossible d'accéder à la caméra. Vérifiez les autorisations du navigateur.") })
 
-    return () => { scannerRef.current?.clear().catch(() => {}) }
-  }, [authorized, navigate])
+    return () => {
+      arrete = true
+      scannerRef.current?.stop().then(() => scannerRef.current?.clear()).catch(() => {})
+    }
+  }, [authorized, emarger])
 
   const handleSearch = async e => {
     e.preventDefault()
-    if (!query.trim()) return
+    const q = query.trim()
+    if (q.length < 2) { setSearchError('Au moins 2 caractères.'); return }
     setSearching(true); setSearchError(''); setResults([])
-    // staff_search() couvre a la fois les inscriptions principales et les
-    // membres de groupe (inscription_participants, ex. delegations) —
-    // chercher uniquement dans inscriptions manquait les BIO/KAMARA de ce
-    // monde, invisibles depuis /admin mais bien de vrais participants.
-    const { data, error } = await supabase.rpc('staff_search', { p_query: query.trim() })
+    // staff_search() couvre inscriptions, membres de groupe (delegations) et
+    // intervenants/equipe — chercher uniquement dans inscriptions manquait
+    // ces deux categories, invisibles depuis /admin mais de vraies personnes.
+    const { data, error } = await supabase.rpc('staff_search', { p_query: q })
     setSearching(false)
     if (error) { setSearchError('Erreur de recherche.'); return }
     setResults(data || [])
+  }
+
+  const choisirResultat = r => {
+    setResults([]); setQuery('')
+    emarger(r.badge_token)
   }
 
   if (!authorized) {
@@ -98,7 +154,37 @@ export default function StaffScan() {
         <div style={{ fontSize: 11, color: BLUE, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>COPAF 2026 · Accueil</div>
         <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 16 }}>Scanner un badge</div>
 
-        <div id="staff-scan-reader" style={{ borderRadius: 14, overflow: 'hidden' }} />
+        <div style={{ position: 'relative' }}>
+          <div id="staff-scan-reader" style={{ borderRadius: 14, overflow: 'hidden' }} />
+          {banniere && (
+            <div style={{
+              position: 'absolute', inset: 0, borderRadius: 14, display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16, textAlign: 'center',
+              background: banniere.erreur ? '#dc2626' : banniere.deja ? '#d97706' : '#16a34a', color: '#fff',
+            }}>
+              {banniere.erreur ? (
+                <>
+                  <Ico name="alert" size={30} color="#fff" />
+                  <div style={{ fontSize: 14, fontWeight: 700 }}>{banniere.message}</div>
+                </>
+              ) : (
+                <>
+                  {banniere.photo_url ? (
+                    <img src={banniere.photo_url} alt="" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,.6)' }} />
+                  ) : (
+                    <Ico name={banniere.deja ? 'alert' : 'check'} size={30} color="#fff" />
+                  )}
+                  <div style={{ fontSize: 16, fontWeight: 900 }}>{banniere.nom || 'Badge reconnu'}</div>
+                  {banniere.organisation && <div style={{ fontSize: 12, opacity: 0.9 }}>{banniere.organisation}</div>}
+                  <div style={{ fontSize: 12.5, fontWeight: 700 }}>
+                    {banniere.deja ? `Déjà émargé${banniere.heure ? ` à ${banniere.heure}` : ''}` : 'Émargé ✓'}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+        {cameraErreur && <p style={{ fontSize: 12.5, color: '#dc2626', marginTop: 10 }}>{cameraErreur}</p>}
 
         <div style={{ margin: '24px 0 16px', borderTop: '1px solid #f1f5f9', paddingTop: 16 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#64748b', marginBottom: 8 }}>QR illisible ? Recherche manuelle</div>
@@ -117,7 +203,7 @@ export default function StaffScan() {
           </form>
           {searchError && <p style={{ fontSize: 12.5, color: '#dc2626', marginTop: 8 }}>{searchError}</p>}
           {results.map(r => (
-            <button key={r.dossier} type="button" onClick={() => navigate(`/badge/${r.badge_token}`)} style={{
+            <button key={r.dossier} type="button" onClick={() => choisirResultat(r)} style={{
               display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%',
               padding: '10px 12px', marginTop: 8, background: '#f8fafc', border: '1.5px solid #e2e8f0',
               borderRadius: 10, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit',
