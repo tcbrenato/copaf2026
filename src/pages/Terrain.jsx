@@ -71,10 +71,11 @@ const sansAccents = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
 const JOURS_CONF = ['2026-10-18', '2026-10-19', '2026-10-20', '2026-10-21', '2026-10-22']
 const fmtJour = j => j ? new Intl.DateTimeFormat('fr-FR', { timeZone: TZ, day: '2-digit', month: 'short' }).format(new Date(j + 'T12:00:00Z')) : ''
 
-const BTN = { padding: '9px 14px', borderRadius: 10, border: 'none', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }
+const BTN = { padding: '9px 14px', borderRadius: 10, border: 'none', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 6 }
 const boutonAction = bg => ({ ...BTN, background: bg, color: '#fff', padding: '10px 16px' })
 const INPUT = { width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1.5px solid #e2e8f0', borderRadius: 10, fontSize: 13.5, fontFamily: 'inherit', outline: 'none' }
-const CARTE = { background: '#fff', borderRadius: 14, border: '1px solid #eef1f8', boxShadow: '0 4px 14px -4px rgba(15,23,42,.08)' }
+const CARTE = { background: '#fff', borderRadius: 16, border: '1px solid #eef1f8', boxShadow: '0 4px 14px -4px rgba(15,23,42,.08)' }
+const PILL_CAT = { participant: { bg: '#ecfeff', fg: '#0e7490', bd: '#a5f3fc' }, intervenant: { bg: '#f5f3ff', fg: '#6d28d9', bd: '#ddd6fe' }, organisation: { bg: '#fffbeb', fg: '#b45309', bd: '#fde68a' } }
 
 function telechargerFichier(nom, contenu, type) {
   const blob = new Blob([contenu], { type })
@@ -330,32 +331,43 @@ export default function Terrain() {
   if (editionEquipier) {
     return (
       <div style={wrap}>
-        <div style={{ ...CARTE, padding: 28, maxWidth: 380, width: '100%' }}>
-          <div style={{ fontSize: 11, color: BLUE, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6 }}>COPAF 2026 · Terrain</div>
-          <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', marginBottom: 4 }}>Qui êtes-vous ?</div>
-          <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 14px' }}>Votre prénom sera enregistré comme auteur de chaque action.</p>
-          {equipeConnue.length > 0 && (
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-              {equipeConnue.map(n => (
-                <button key={n} type="button" onClick={() => enregistrerEquipier(n)} style={{ ...BTN, background: '#eef2ff', color: NAVY }}>{n}</button>
-              ))}
-            </div>
-          )}
-          <input autoFocus placeholder="Ou saisissez librement" style={INPUT} defaultValue={equipier}
-            onKeyDown={e => { if (e.key === 'Enter') enregistrerEquipier(e.currentTarget.value) }}
-            id="champ-equipier" />
-          <button type="button" style={{ ...boutonAction(NAVY), width: '100%', marginTop: 12 }}
-            onClick={() => enregistrerEquipier(document.getElementById('champ-equipier').value)}>
-            Continuer
-          </button>
+        <div style={{ ...CARTE, overflow: 'hidden', maxWidth: 380, width: '100%' }}>
+          <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`, padding: '22px 26px 20px', color: '#fff' }}>
+            <div style={{ fontSize: 11, opacity: 0.85, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>COPAF 2026 · Terrain</div>
+            <div style={{ fontSize: 19, fontWeight: 900, marginTop: 4 }}>Qui êtes-vous ?</div>
+          </div>
+          <div style={{ padding: 24 }}>
+            <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 16px' }}>Votre prénom sera enregistré comme auteur de chaque action.</p>
+            {equipeConnue.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+                {equipeConnue.map(n => (
+                  <button key={n} type="button" onClick={() => enregistrerEquipier(n)} style={{ ...BTN, background: '#eef2ff', color: NAVY }}>{n}</button>
+                ))}
+              </div>
+            )}
+            <input autoFocus placeholder="Ou saisissez librement" style={INPUT} defaultValue={equipier}
+              onKeyDown={e => { if (e.key === 'Enter') enregistrerEquipier(e.currentTarget.value) }}
+              id="champ-equipier" />
+            <button type="button" style={{ ...boutonAction(NAVY), width: '100%', marginTop: 14, justifyContent: 'center' }}
+              onClick={() => enregistrerEquipier(document.getElementById('champ-equipier').value)}>
+              Continuer
+            </button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif", padding: '16px 16px 60px' }}>
+    <div style={{ minHeight: '100vh', background: '#f1f5fb', fontFamily: "'Plus Jakarta Sans', sans-serif", padding: '0 0 60px' }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap');
+        .terrain-carte { transition: box-shadow .15s ease, transform .15s ease; }
+        .terrain-carte:hover { box-shadow: 0 10px 26px -8px rgba(15,23,42,.14); transform: translateY(-1px); }
+        .terrain-modal-overlay { animation: terrainFadeIn .15s ease; }
+        .terrain-modal-box { animation: terrainPopIn .18s cubic-bezier(.2,.9,.3,1.2); }
+        @keyframes terrainFadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes terrainPopIn { from { opacity: 0; transform: scale(.96) translateY(6px) } to { opacity: 1; transform: scale(1) translateY(0) } }
         @media print {
           body * { visibility: hidden; }
           #feuille-impression, #feuille-impression * { visibility: visible; }
@@ -363,21 +375,25 @@ export default function Terrain() {
         }
       `}</style>
 
-      <div style={{ maxWidth: 920, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {/* En-tete */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+      {/* Bandeau d'en-tete */}
+      <div style={{ background: `linear-gradient(120deg, ${NAVY}, #001a66 60%, ${BLUE})`, padding: '22px 16px 46px' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <div style={{ fontSize: 11, color: BLUE, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>COPAF 2026 · Terrain</div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>Tableau de bord terrain</div>
+            <div style={{ fontSize: 11, color: '#93c5fd', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>COPAF 2026 · Terrain</div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginTop: 2 }}>Tableau de bord terrain</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => setEditionEquipier(true)} style={{ ...BTN, background: '#eef2ff', color: NAVY }}>
-              👤 {equipier}
+            <button type="button" onClick={() => setEditionEquipier(true)} style={{ ...BTN, background: 'rgba(255,255,255,.14)', color: '#fff', border: '1px solid rgba(255,255,255,.25)' }}>
+              <Ico name="user" size={13} color="#fff" /> {equipier}
             </button>
-            <Link to="/staff/scan" style={{ fontSize: 12.5, color: NAVY, fontWeight: 700, textDecoration: 'none' }}>Scanner →</Link>
+            <Link to="/staff/scan" style={{ ...BTN, background: '#fff', color: NAVY, textDecoration: 'none' }}>
+              <Ico name="search" size={13} color={NAVY} /> Scanner
+            </Link>
           </div>
         </div>
+      </div>
 
+      <div style={{ maxWidth: 960, margin: '-28px auto 0', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {!enLigne && (
           <div style={{ background: '#fef2f2', border: '1.5px solid #fecaca', borderRadius: 12, padding: '10px 14px', color: '#991b1b', fontSize: 13, fontWeight: 700 }}>
             Hors connexion — utilisez la liste papier. Les actions sont désactivées.
@@ -386,28 +402,37 @@ export default function Terrain() {
         {erreur && <p style={{ color: '#dc2626', fontSize: 13.5 }}>{erreur}</p>}
         {msg && <div style={{ background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 10, padding: '9px 14px', color: NAVY, fontSize: 13, fontWeight: 700 }}>{msg}</div>}
 
-        {/* Jour + onglets de mode */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <select value={jour} onChange={e => setJour(e.target.value)} disabled={!!mode.jourFixe} style={{ ...INPUT, width: 'auto', padding: '8px 10px', fontWeight: 700 }}>
-            {JOURS_CONF.map(j => <option key={j} value={j}>{fmtJour(j)}</option>)}
-          </select>
-          {mode.jourFixe && <span style={{ fontSize: 11.5, color: '#94a3b8' }}>(fixé au {fmtJour(mode.jourFixe)})</span>}
-          <button type="button" onClick={() => setPanneauIncidents(v => !v)} style={{ ...BTN, background: incidentsOuverts.length ? '#fef2f2' : '#f1f5f9', color: incidentsOuverts.length ? '#dc2626' : '#64748b' }}>
-            ⚠ {incidentsOuverts.length} incident(s)
-          </button>
-        </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {MODES.map(m => (
-            <button key={m.id} type="button" onClick={() => setModeId(m.id)} style={{
-              ...BTN, padding: '8px 14px', background: modeId === m.id ? NAVY : '#f1f5f9', color: modeId === m.id ? '#fff' : '#334155',
+        {/* Carte "jour + onglets" flottante sur le bandeau */}
+        <div className="terrain-carte" style={{ ...CARTE, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <select value={jour} onChange={e => setJour(e.target.value)} disabled={!!mode.jourFixe} style={{ ...INPUT, width: 'auto', padding: '8px 10px', fontWeight: 700 }}>
+                {JOURS_CONF.map(j => <option key={j} value={j}>{fmtJour(j)}</option>)}
+              </select>
+              {mode.jourFixe && <span style={{ fontSize: 11.5, color: '#94a3b8' }}>(fixé au {fmtJour(mode.jourFixe)})</span>}
+            </div>
+            <button type="button" onClick={() => setPanneauIncidents(v => !v)} style={{
+              ...BTN, background: incidentsOuverts.length ? '#fef2f2' : '#f1f5f9', color: incidentsOuverts.length ? '#dc2626' : '#64748b',
             }}>
-              {m.label}
+              <Ico name="alert" size={13} color={incidentsOuverts.length ? '#dc2626' : '#94a3b8'} /> {incidentsOuverts.length} incident(s)
             </button>
-          ))}
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {MODES.map(m => (
+              <button key={m.id} type="button" onClick={() => setModeId(m.id)} style={{
+                ...BTN, padding: '8px 15px', borderRadius: 100,
+                background: modeId === m.id ? `linear-gradient(135deg, ${NAVY}, ${BLUE})` : '#f1f5f9',
+                color: modeId === m.id ? '#fff' : '#334155',
+                boxShadow: modeId === m.id ? '0 4px 12px -3px rgba(0,14,145,.4)' : 'none',
+              }}>
+                {m.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {panneauIncidents && (
-          <div style={{ ...CARTE, padding: 16 }}>
+          <div className="terrain-carte" style={{ ...CARTE, padding: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 800, marginBottom: 10 }}>Incidents ouverts</div>
             {incidentsOuverts.length === 0 && <p style={{ fontSize: 12.5, color: '#94a3b8', margin: 0 }}>Aucun incident ouvert.</p>}
             {incidentsOuverts.map(i => (
@@ -423,23 +448,32 @@ export default function Terrain() {
         )}
 
         {/* Compteurs */}
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {compteurs.map(c => (
-            <div key={c.etape} style={{ ...CARTE, padding: '10px 16px', minWidth: 140 }}>
-              <div style={{ fontSize: 18, fontWeight: 900, color: NAVY }}>{c.faits} / {c.total}</div>
-              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{c.label}</div>
-            </div>
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10 }}>
+          {compteurs.map(c => {
+            const pct = c.total ? Math.round((c.faits / c.total) * 100) : 0
+            return (
+              <div key={c.etape} className="terrain-carte" style={{ ...CARTE, padding: '12px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 5 }}>
+                  <span style={{ fontSize: 19, fontWeight: 900, color: NAVY }}>{c.faits}</span>
+                  <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 700 }}>/ {c.total}</span>
+                </div>
+                <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 700, marginTop: 2, marginBottom: 8 }}>{c.label}</div>
+                <div style={{ height: 5, borderRadius: 100, background: '#eef2f7', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, borderRadius: 100, background: `linear-gradient(90deg, ${BLUE}, ${NAVY})`, transition: 'width .3s ease' }} />
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         {/* Recherche + filtres */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher (nom, organisation, dossier)…" style={{ ...INPUT, flex: 1, minWidth: 200 }} />
-          <select value={filtreCategorie} onChange={e => setFiltreCategorie(e.target.value)} style={{ ...INPUT, width: 'auto' }}>
+        <div className="terrain-carte" style={{ ...CARTE, padding: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher (nom, organisation, dossier)…" style={{ ...INPUT, flex: 1, minWidth: 200, border: '1.5px solid #eef1f8', background: '#f8fafc' }} />
+          <select value={filtreCategorie} onChange={e => setFiltreCategorie(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
             <option value="tous">Toutes catégories</option>
             {Object.entries(CAT_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
           </select>
-          <select value={filtreDelegation} onChange={e => setFiltreDelegation(e.target.value)} style={{ ...INPUT, width: 'auto' }}>
+          <select value={filtreDelegation} onChange={e => setFiltreDelegation(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
             <option value="">Toutes délégations</option>
             {delegations.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
@@ -459,31 +493,36 @@ export default function Terrain() {
         )}
 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button type="button" onClick={exporterCSV} style={boutonAction('#0891b2')}>⬇️ Export CSV</button>
-          <button type="button" onClick={imprimerListe} style={boutonAction('#64748b')}>🖨️ Imprimer la liste</button>
-          <button type="button" onClick={exporterVisiteJ3} style={boutonAction('#d97706')}>⬇️ Liste Visite J3</button>
-          <button type="button" onClick={exporterAttestations} style={boutonAction('#16a34a')}>⬇️ Éligibles attestations</button>
+          <button type="button" onClick={exporterCSV} style={boutonAction('#0891b2')}><Ico name="download" size={13} color="#fff" /> Export CSV</button>
+          <button type="button" onClick={imprimerListe} style={boutonAction('#64748b')}><Ico name="receipt" size={13} color="#fff" /> Imprimer la liste</button>
+          <button type="button" onClick={exporterVisiteJ3} style={boutonAction('#d97706')}><Ico name="download" size={13} color="#fff" /> Liste Visite J3</button>
+          <button type="button" onClick={exporterAttestations} style={boutonAction('#16a34a')}><Ico name="download" size={13} color="#fff" /> Éligibles attestations</button>
         </div>
 
         {/* Liste */}
         {personnes === null && !erreur && <p style={{ color: '#64748b', fontSize: 13.5 }}>Chargement…</p>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {affiches.length === 0 && personnes !== null && <p style={{ color: '#94a3b8', fontSize: 13, padding: 16, textAlign: 'center' }}>Aucune personne pour ce filtre.</p>}
+          {affiches.length === 0 && personnes !== null && (
+            <div style={{ padding: 32, textAlign: 'center', background: '#fff', borderRadius: 14, border: '1.5px dashed #cbd5e1', color: '#94a3b8', fontSize: 13, fontWeight: 600 }}>
+              Aucune personne pour ce filtre.
+            </div>
+          )}
           {affiches.map(p => {
             const incidentOuvert = incidentsOuverts.some(i => i.personne_type === p.personne_type && i.personne_id === p.personne_id)
+            const pill = PILL_CAT[p.categorie] || { bg: '#f1f5f9', fg: '#475569', bd: '#e2e8f0' }
             return (
-              <div key={cleP(p)} style={{ ...CARTE, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div key={cleP(p)} className="terrain-carte" style={{ ...CARTE, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                 {p.photo_url ? (
-                  <img src={p.photo_url} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                  <img src={p.photo_url} alt="" style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #eef1f8' }} />
                 ) : (
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#eef2ff', color: NAVY, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, flexShrink: 0 }}>
+                  <div style={{ width: 42, height: 42, borderRadius: '50%', background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, flexShrink: 0 }}>
                     {(p.prenom?.[0] || '') + (p.nom?.[0] || '')}
                   </div>
                 )}
                 <div style={{ minWidth: 160, flex: 1 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                     {p.prenom} {p.nom}
-                    <span style={{ fontSize: 10, fontWeight: 800, color: '#fff', background: CAT_COLOR[p.categorie], borderRadius: 20, padding: '1px 7px' }}>{CAT_LABEL[p.categorie]}</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, color: pill.fg, background: pill.bg, border: `1px solid ${pill.bd}`, borderRadius: 20, padding: '1px 8px' }}>{CAT_LABEL[p.categorie]}</span>
                     {p.statut_dossier === 'a_regulariser' && <span style={{ fontSize: 9.5, fontWeight: 800, color: '#92400e', background: '#fef3c7', borderRadius: 20, padding: '1px 6px' }}>Dossier à régulariser</span>}
                     {incidentOuvert && <Ico name="alert" size={13} color="#dc2626" />}
                   </div>
@@ -505,18 +544,18 @@ export default function Terrain() {
                     }
                     return fait ? (
                       <button key={e} type="button" onClick={() => ouvrirAnnulation(p, e)} disabled={!enLigne} title="Cliquer pour annuler" style={{
-                        ...BTN, background: '#16a34a', color: '#fff', minWidth: 90, textAlign: 'center',
+                        ...BTN, background: '#16a34a', color: '#fff', minWidth: 90, justifyContent: 'center',
                       }}>
-                        ✓ {heure(fait.fait_le)} · {fait.fait_par}{fait.mode === 'scan' ? ' 📷' : ''}
+                        <Ico name="check" size={11} color="#fff" /> {heure(fait.fait_le)} · {fait.fait_par}{fait.mode === 'scan' ? ' 📷' : ''}
                       </button>
                     ) : (
-                      <button key={e} type="button" onClick={() => demarrerMarquage(p, e)} disabled={!enLigne} style={{ ...BTN, background: '#e2e8f0', color: '#334155', minWidth: 90 }}>
+                      <button key={e} type="button" onClick={() => demarrerMarquage(p, e)} disabled={!enLigne} style={{ ...BTN, background: '#eef2f7', color: '#334155', minWidth: 90, justifyContent: 'center' }}>
                         {ETAPES[e].label}
                       </button>
                     )
                   })}
                   <button type="button" onClick={() => setModalIncident({ personne: p })} disabled={!enLigne} style={{ ...BTN, background: '#fef2f2', color: '#dc2626' }}>
-                    ⚠ Incident
+                    <Ico name="alert" size={12} color="#dc2626" /> Incident
                   </button>
                 </div>
               </div>
@@ -570,14 +609,14 @@ export default function Terrain() {
 
 const thTd = { border: '1px solid #333', padding: '6px 8px', textAlign: 'left', fontSize: 12 }
 const wrap = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }
-const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,.55)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }
-const boiteModal = { background: '#fff', borderRadius: 16, width: '100%', maxWidth: 380, padding: 22 }
+const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,.5)', backdropFilter: 'blur(3px)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }
+const boiteModal = { background: '#fff', borderRadius: 18, width: '100%', maxWidth: 380, padding: 22, boxShadow: '0 24px 48px -12px rgba(15,23,42,.35)' }
 
 function ModalValeur({ titre, placeholder, requise, onValider, onFermer }) {
   const [v, setV] = useState('')
   return (
-    <div style={overlay} onClick={onFermer}>
-      <div style={boiteModal} onClick={e => e.stopPropagation()}>
+    <div style={overlay} className="terrain-modal-overlay" onClick={onFermer}>
+      <div style={boiteModal} className="terrain-modal-box" onClick={e => e.stopPropagation()}>
         <div style={{ fontSize: 14.5, fontWeight: 800, marginBottom: 12 }}>{titre}</div>
         <input autoFocus value={v} onChange={e => setV(e.target.value)} placeholder={placeholder} style={INPUT} />
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
@@ -592,8 +631,8 @@ function ModalValeur({ titre, placeholder, requise, onValider, onFermer }) {
 function ModalMotif({ titre, onValider, onFermer }) {
   const [motif, setMotif] = useState('')
   return (
-    <div style={overlay} onClick={onFermer}>
-      <div style={boiteModal} onClick={e => e.stopPropagation()}>
+    <div style={overlay} className="terrain-modal-overlay" onClick={onFermer}>
+      <div style={boiteModal} className="terrain-modal-box" onClick={e => e.stopPropagation()}>
         <div style={{ fontSize: 14.5, fontWeight: 800, marginBottom: 12 }}>{titre}</div>
         <textarea autoFocus value={motif} onChange={e => setMotif(e.target.value)} placeholder="Motif de l'annulation (obligatoire)" style={{ ...INPUT, minHeight: 70, resize: 'vertical' }} />
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
@@ -609,8 +648,8 @@ function ModalIncident({ personne, onValider, onFermer }) {
   const [type, setType] = useState('autre')
   const [note, setNote] = useState('')
   return (
-    <div style={overlay} onClick={onFermer}>
-      <div style={boiteModal} onClick={e => e.stopPropagation()}>
+    <div style={overlay} className="terrain-modal-overlay" onClick={onFermer}>
+      <div style={boiteModal} className="terrain-modal-box" onClick={e => e.stopPropagation()}>
         <div style={{ fontSize: 14.5, fontWeight: 800, marginBottom: 4 }}>Signaler un incident</div>
         <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12 }}>{personne.prenom} {personne.nom}</div>
         <select value={type} onChange={e => setType(e.target.value)} style={{ ...INPUT, marginBottom: 8 }}>
