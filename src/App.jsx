@@ -189,13 +189,8 @@ const AdminPage = () => (
   </AuthGate>
 )
 
-// ─── Scan badges (accueil) : meme mecanisme de connexion que /admin, mais
-// pour le personnel d'accueil (scope 'checkin') plutot que l'administration.
-const StaffScanPage = () => (
-  <AuthGate title="COPAF 2026" subtitle="Accès réservé au personnel d'accueil">
-    <StaffScan />
-  </AuthGate>
-)
+// ─── Scan badges (accueil) : pas d'AuthGate, StaffScan.jsx gere lui-meme
+// les deux niveaux d'acces (compte admin OU dossier+PIN), comme Terrain.jsx.
 
 // Pas d'AuthGate ici : Terrain.jsx gere lui-meme les deux niveaux d'acces
 // (compte admin Supabase Auth OU dossier+PIN pour le personnel terrain
@@ -232,7 +227,7 @@ function App() {
         <Route path="/badge"                  element={<BadgeToken />} />
         <Route path="/badge/:token"           element={<BadgeToken />} />
         <Route path="/intervenant"            element={<EspaceIntervenant />} />
-        <Route path="/staff/scan"             element={<StaffScanPage />} />
+        <Route path="/staff/scan"             element={<StaffScan />} />
         <Route path="/terrain"                element={<Terrain />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />

@@ -34,6 +34,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { Ico } from '../utils/dossierUi'
+import { useNiveauTerrain } from '../utils/terrainAuth'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -100,26 +101,11 @@ function versCSV(entetes, lignes) {
 export default function Terrain() {
   // Detection du niveau d'acces au montage : compte Supabase Auth admin
   // (scope checkin/all) d'abord, sinon formulaire dossier+PIN (voir
-  // ecran ci-dessous). Pas d'AuthGate ici : Terrain.jsx gere les deux
-  // chemins lui-meme (App.jsx ne l'enveloppe plus).
-  const [niveau, setNiveau] = useState(null) // null=detection en cours, 'admin' | 'limite' | 'anonyme'
-  const [identite, setIdentite] = useState(null) // { dossier, pin, nom, prenom } quand niveau === 'limite'
+  // ConnexionPin ci-dessous). Pas d'AuthGate ici : Terrain.jsx gere les deux
+  // chemins lui-meme (App.jsx ne l'enveloppe plus). Logique partagee avec
+  // StaffScan.jsx via utils/terrainAuth.js.
+  const { niveau, identite, acces, connecter } = useNiveauTerrain()
   const authorized = niveau === 'admin' || niveau === 'limite'
-
-  useEffect(() => {
-    let annule = false
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) { if (!annule) setNiveau('anonyme'); return }
-      const { data: adminRow } = await supabase.from('admins').select('scope').eq('user_id', data.session.user.id).maybeSingle()
-      if (annule) return
-      setNiveau(adminRow && (adminRow.scope === 'all' || adminRow.scope === 'checkin') ? 'admin' : 'anonyme')
-    })
-    return () => { annule = true }
-  }, [])
-
-  const acces = useMemo(() => (
-    niveau === 'limite' ? { p_dossier: identite.dossier, p_pin: identite.pin } : {}
-  ), [niveau, identite])
 
   const [equipier, setEquipier] = useState(() => localStorage.getItem(CLE_EQUIPIER) || '')
   const [editionEquipier, setEditionEquipier] = useState(!equipier)
@@ -354,7 +340,7 @@ export default function Terrain() {
   }
 
   if (niveau === 'anonyme') {
-    return <ConnexionPin onConnecte={(dossier, pin, id) => { setIdentite({ dossier, pin, ...id }); setNiveau('limite') }} />
+    return <ConnexionPin onConnecte={connecter} />
   }
 
   if (niveau === 'admin' && editionEquipier) {

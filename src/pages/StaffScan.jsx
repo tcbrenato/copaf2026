@@ -1,8 +1,11 @@
 // src/pages/StaffScan.jsx
 //
-// Page reservee au personnel d'accueil (compte admin scope 'checkin' ou
-// 'all', connexion deja geree par AuthGate qui enveloppe cette page dans
-// App.jsx). Scan continu : chaque badge lu declenche directement l'emargement
+// Page reservee au personnel d'accueil : compte admin Supabase Auth (scope
+// 'checkin'/'all') OU dossier+PIN (meme mecanisme que Terrain.jsx, voir
+// utils/terrainAuth.js et migration 20260929100000_scan_acces_pin.sql).
+// Pas d'AuthGate : la page gere les deux chemins elle-meme.
+//
+// Scan continu : chaque badge lu declenche directement l'emargement
 // (badge_checkin) sans quitter la page — la camera (Html5Qrcode bas niveau,
 // facingMode 'environment') redemarre seule apres la banniere de
 // confirmation, au lieu de naviguer vers /badge/{token} et de perdre 5-10s
@@ -18,7 +21,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../supabase'
-import { useAdminAuth } from '../adminAuth'
+import { useNiveauTerrain } from '../utils/terrainAuth'
 import { Ico } from '../utils/dossierUi'
 
 const NAVY = '#000E91'
@@ -26,8 +29,8 @@ const BLUE = '#0073F4'
 const DOMAINES_AUTORISES = ['copaf-ports.com', 'www.copaf-ports.com', 'localhost']
 const PAUSE_APRES_SCAN_MS = 2200
 // Cle localStorage partagee avec Terrain.jsx (memes deux fichiers doivent
-// utiliser exactement la meme chaine) : identifie l'equipier au comptoir,
-// transmis a badge_checkin comme fait_par.
+// utiliser exactement la meme chaine) : identifie l'equipier au comptoir
+// (chemin admin uniquement), transmis a badge_checkin comme fait_par.
 const CLE_EQUIPIER = 'copaf_terrain_equipier'
 
 function extractToken(decodedText) {
@@ -61,8 +64,9 @@ function bipEtVibre(ok) {
 }
 
 export default function StaffScan() {
-  const { scope } = useAdminAuth()
-  const authorized = scope === 'checkin' || scope === 'all'
+  const { niveau, identite, acces, connecter } = useNiveauTerrain()
+  const authorized = niveau === 'admin' || niveau === 'limite'
+  const auteurAffiche = niveau === 'limite' ? (identite?.prenom || '') : (localStorage.getItem(CLE_EQUIPIER) || null)
 
   const scannerRef = useRef(null)
   const enPauseRef = useRef(false)
@@ -78,7 +82,7 @@ export default function StaffScan() {
     if (enPauseRef.current) return
     enPauseRef.current = true
     try {
-      const { data: rows, error } = await supabase.rpc('badge_checkin', { p_token: token, p_fait_par: localStorage.getItem(CLE_EQUIPIER) || null })
+      const { data: rows, error } = await supabase.rpc('badge_checkin', { p_token: token, p_fait_par: auteurAffiche, ...acces })
       const r = Array.isArray(rows) ? rows[0] : rows
       if (error || !r) {
         bipEtVibre(false)
@@ -96,7 +100,7 @@ export default function StaffScan() {
       setBanniere({ erreur: true, message: 'Erreur réseau, réessayez.' })
     }
     setTimeout(() => { setBanniere(null); enPauseRef.current = false }, PAUSE_APRES_SCAN_MS)
-  }, [])
+  }, [auteurAffiche, acces])
 
   useEffect(() => {
     if (!authorized) return
@@ -129,7 +133,7 @@ export default function StaffScan() {
     // staff_search() couvre inscriptions, membres de groupe (delegations) et
     // intervenants/equipe — chercher uniquement dans inscriptions manquait
     // ces deux categories, invisibles depuis /admin mais de vraies personnes.
-    const { data, error } = await supabase.rpc('staff_search', { p_query: q })
+    const { data, error } = await supabase.rpc('staff_search', { p_query: q, ...acces })
     setSearching(false)
     if (error) { setSearchError('Erreur de recherche.'); return }
     setResults(data || [])
@@ -140,24 +144,21 @@ export default function StaffScan() {
     emarger(r.badge_token)
   }
 
-  if (!authorized) {
-    return (
-      <div style={wrapStyle}>
-        <div style={cardStyle}>
-          <Ico name="alert" size={28} color="#dc2626" />
-          <p style={{ fontSize: 14, color: '#991b1b', fontWeight: 600, marginTop: 12 }}>
-            Ce compte n'a pas accès au scan d'accueil.
-          </p>
-        </div>
-      </div>
-    )
+  if (niveau === null) {
+    return <div style={wrapStyle}><p style={{ color: '#64748b', fontSize: 13.5 }}>Chargement…</p></div>
+  }
+
+  if (niveau === 'anonyme') {
+    return <ConnexionPinAccueil onConnecte={connecter} />
   }
 
   return (
     <div style={wrapStyle}>
       <div style={{ ...cardStyle, maxWidth: 480, textAlign: 'left' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <div style={{ fontSize: 11, color: BLUE, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>COPAF 2026 · Accueil</div>
+          <div style={{ fontSize: 11, color: BLUE, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>
+            COPAF 2026 · Accueil {niveau === 'limite' && `· ${identite?.prenom || ''}`}
+          </div>
           <Link to="/terrain" style={{ fontSize: 11.5, color: NAVY, fontWeight: 700, textDecoration: 'none' }}>Tableau terrain →</Link>
         </div>
         <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 16 }}>Scanner un badge</div>
@@ -237,4 +238,55 @@ const wrapStyle = {
 const cardStyle = {
   width: '100%', maxWidth: 380, background: '#fff', borderRadius: 20, padding: 28,
   boxShadow: '0 12px 32px rgba(15,23,42,.12)', textAlign: 'center',
+}
+
+const champLogin = {
+  padding: '11px 14px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 13.5,
+  fontFamily: 'inherit', outline: 'none', width: '100%', boxSizing: 'border-box',
+}
+
+// Ecran de connexion pour le personnel sans compte Supabase Auth (memes
+// dossier+PIN que Terrain.jsx, voir terrain_login).
+function ConnexionPinAccueil({ onConnecte }) {
+  const [dossier, setDossier] = useState('')
+  const [pin, setPin] = useState('')
+  const [enCours, setEnCours] = useState(false)
+  const [erreur, setErreur] = useState('')
+
+  const connexion = async e => {
+    e.preventDefault()
+    if (!dossier.trim() || !pin.trim()) return
+    setEnCours(true); setErreur('')
+    try {
+      const { data, error } = await supabase.rpc('terrain_login', { p_dossier: dossier.trim(), p_pin: pin.trim() })
+      if (error) {
+        setErreur(/tentatives/i.test(error.message || '') ? 'Trop de tentatives, réessayez dans 15 minutes.' : 'Erreur, réessayez.')
+        return
+      }
+      if (!data) { setErreur('Dossier ou code incorrect.'); return }
+      onConnecte(dossier.trim(), pin.trim(), { nom: data.nom, prenom: data.prenom })
+    } finally {
+      setEnCours(false)
+    }
+  }
+
+  return (
+    <div style={wrapStyle}>
+      <div style={{ ...cardStyle, textAlign: 'left' }}>
+        <div style={{ fontSize: 11, color: BLUE, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', textAlign: 'center' }}>COPAF 2026 · Accueil</div>
+        <div style={{ fontSize: 18, fontWeight: 900, color: '#0f172a', marginTop: 10, textAlign: 'center' }}>Connexion</div>
+        <form onSubmit={connexion} style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <input value={dossier} onChange={e => { setErreur(''); setDossier(e.target.value) }} placeholder="INT2026-XXX" autoCapitalize="characters" autoComplete="username" style={champLogin} />
+          <input value={pin} onChange={e => { setErreur(''); setPin(e.target.value) }} placeholder="Code PIN" type="password" inputMode="numeric" autoComplete="current-password" style={champLogin} />
+          {erreur && <p style={{ fontSize: 12, color: '#dc2626', margin: 0, textAlign: 'center' }}>{erreur}</p>}
+          <button type="submit" disabled={enCours || !dossier.trim() || !pin.trim()} style={{
+            padding: '13px', border: 'none', borderRadius: 12, background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`,
+            color: '#fff', fontSize: 14, fontWeight: 700, cursor: enCours ? 'wait' : 'pointer', fontFamily: 'inherit', opacity: enCours ? 0.7 : 1,
+          }}>
+            {enCours ? '…' : 'Se connecter'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
 }
