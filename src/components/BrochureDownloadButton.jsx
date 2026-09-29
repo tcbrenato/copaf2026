@@ -18,48 +18,43 @@ function BrochureModal({ onClose }) {
   const [nom, setNom] = useState('')
   const [email, setEmail] = useState('')
   const [organisation, setOrganisation] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const [done, setDone] = useState(false)
 
   const isEn = i18n.language && i18n.language.toLowerCase().startsWith('en')
   const brochureUrl = isEn ? '/BrochureCOPAF2026ENGmaj.pdf' : '/BrochureCOPAF2026FRmaj.pdf'
   const brochureFilename = isEn ? 'BrochureCOPAF2026ENGmaj.pdf' : 'BrochureCOPAF2026FRmaj.pdf'
 
-  const handleSubmit = async e => {
+  const handleSubmit = e => {
     e.preventDefault()
-    setLoading(true)
-    setError('')
-    
-    try {
-      // Fonction RPC (SECURITY DEFINER) plutot qu'un upsert direct : la table
-      // n'est lisible que par les admins, et un upsert direct echoue en RLS
-      // pour un visiteur anonyme (PostgREST redemande la ligne inseree, ce
-      // qui necessite la policy SELECT — voir le meme correctif applique a
-      // newsletter_subscribers).
-      const { error: err } = await supabase.rpc('public_upsert_brochure_lead', {
-        p_nom: nom,
-        p_email: email,
-        p_organisation: organisation || null,
-      })
 
-      if (err) throw new Error(err.message)
+    // Le telechargement doit se declencher tout de suite, de facon
+    // synchrone dans le geste utilisateur (clic) : des qu'on attend un
+    // appel reseau (await) avant de cliquer sur le lien, certains
+    // navigateurs (Safari/iOS notamment) ne reconnaissent plus le clic
+    // programmatique comme venant de l'utilisateur et bloquent le
+    // telechargement, sans aucune erreur visible. L'enregistrement du
+    // lead ne doit donc jamais retarder ni conditionner le telechargement
+    // — il part en parallele, en best-effort.
+    const a = document.createElement('a')
+    a.href = brochureUrl
+    a.download = brochureFilename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    setDone(true)
 
-      // Déclenchement du téléchargement
-      const a = document.createElement('a')
-      a.href = brochureUrl
-      a.download = brochureFilename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-
-      setDone(true)
-    } catch (err) {
-      console.error("Erreur lead/téléchargement:", err)
-      setError(t('brochure.error') || "Une erreur est survenue lors de l'enregistrement.")
-    } finally {
-      setLoading(false)
-    }
+    // Fonction RPC (SECURITY DEFINER) plutot qu'un upsert direct : la table
+    // n'est lisible que par les admins, et un upsert direct echoue en RLS
+    // pour un visiteur anonyme (PostgREST redemande la ligne inseree, ce
+    // qui necessite la policy SELECT — voir le meme correctif applique a
+    // newsletter_subscribers).
+    supabase.rpc('public_upsert_brochure_lead', {
+      p_nom: nom,
+      p_email: email,
+      p_organisation: organisation || null,
+    }).then(({ error: err }) => {
+      if (err) console.error('Erreur enregistrement lead brochure:', err.message)
+    })
   }
 
   return (
@@ -132,23 +127,13 @@ function BrochureModal({ onClose }) {
                 }} />
               </div>
 
-              {error && (
-                <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 10, padding: '10px 14px', fontSize: 12.5, color: '#dc2626', marginBottom: 16 }}>
-                  {error} <br/>
-                  <a href={brochureUrl} download={brochureFilename} style={{ color: '#dc2626', fontWeight: 700, textDecoration: 'underline' }}>
-                    {t('brochure.downloadAgain') || "Télécharger directement"}
-                  </a>
-                </div>
-              )}
-
-              <button type="submit" disabled={loading} style={{
+              <button type="submit" style={{
                 width: '100%', padding: '13px', background: 'linear-gradient(135deg,#0073F4,#000E91)',
                 border: 'none', borderRadius: 12, color: '#fff', fontSize: 14, fontWeight: 700,
-                cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit',
               }}>
                 <Ico name="download" size={16} color="#fff" />
-                {loading ? t('brochure.submitLoading') : t('brochure.submit')}
+                {t('brochure.submit')}
               </button>
 
               <p style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 12, textAlign: 'center', lineHeight: 1.5 }}>
