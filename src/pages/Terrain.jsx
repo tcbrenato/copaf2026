@@ -17,6 +17,15 @@
 // 'participant_groupe' (membre de delegation), et 'intervenant' de 'equipe'
 // -> cle utilisee par toutes les RPC terrain_* (voir migration RPC).
 //
+// Deux niveaux d'acces (voir migration 20260929090000_terrain_acces_pin.sql) :
+// - 'admin' : vrai compte Supabase Auth (scope checkin/all), voit tout.
+// - 'limite' : dossier + PIN (intervenants.acces_terrain), meme identifiant
+//   que l'espace intervenant classique mais un secret dedie (le PIN, pas
+//   l'email qui n'est pas confidentiel) - ne voit que la categorie
+//   'organisation' (equipe/comite). Pas de session persistee en
+//   localStorage (le PIN ne vit qu'en memoire de l'onglet), meme
+//   convention que BadgeToken.jsx.
+//
 // Hors perimetre v1 (comme demande) : file d'attente hors-ligne. Le bandeau
 // "Hors connexion" desactive juste les actions en attendant le reseau ou la
 // liste papier (bouton Imprimer).
@@ -24,7 +33,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabase'
-import { useAdminAuth } from '../adminAuth'
 import { Ico } from '../utils/dossierUi'
 
 const NAVY = '#000E91'
@@ -90,11 +98,35 @@ function versCSV(entetes, lignes) {
 }
 
 export default function Terrain() {
-  const { scope } = useAdminAuth()
-  const authorized = scope === 'checkin' || scope === 'all'
+  // Detection du niveau d'acces au montage : compte Supabase Auth admin
+  // (scope checkin/all) d'abord, sinon formulaire dossier+PIN (voir
+  // ecran ci-dessous). Pas d'AuthGate ici : Terrain.jsx gere les deux
+  // chemins lui-meme (App.jsx ne l'enveloppe plus).
+  const [niveau, setNiveau] = useState(null) // null=detection en cours, 'admin' | 'limite' | 'anonyme'
+  const [identite, setIdentite] = useState(null) // { dossier, pin, nom, prenom } quand niveau === 'limite'
+  const authorized = niveau === 'admin' || niveau === 'limite'
+
+  useEffect(() => {
+    let annule = false
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) { if (!annule) setNiveau('anonyme'); return }
+      const { data: adminRow } = await supabase.from('admins').select('scope').eq('user_id', data.session.user.id).maybeSingle()
+      if (annule) return
+      setNiveau(adminRow && (adminRow.scope === 'all' || adminRow.scope === 'checkin') ? 'admin' : 'anonyme')
+    })
+    return () => { annule = true }
+  }, [])
+
+  const acces = useMemo(() => (
+    niveau === 'limite' ? { p_dossier: identite.dossier, p_pin: identite.pin } : {}
+  ), [niveau, identite])
 
   const [equipier, setEquipier] = useState(() => localStorage.getItem(CLE_EQUIPIER) || '')
   const [editionEquipier, setEditionEquipier] = useState(!equipier)
+  // Nom affiche/transmis comme auteur : le prenom reel pour un compte
+  // limite (le serveur l'impose de toute facon, cote client c'est juste
+  // pour l'affichage), la saisie libre pour un admin.
+  const auteurAffiche = niveau === 'limite' ? (identite?.prenom || '') : equipier
   const [jour, setJour] = useState(jourAujourdhui)
   const [modeId, setModeId] = useState('aeroport')
   const mode = MODES.find(m => m.id === modeId)
@@ -117,15 +149,15 @@ export default function Terrain() {
 
   const charger = useCallback(async () => {
     setErreur('')
-    const { data, error } = await supabase.rpc('terrain_liste', { p_jour: jourActif })
+    const { data, error } = await supabase.rpc('terrain_liste', { p_jour: jourActif, ...acces })
     if (error) { setErreur('Chargement impossible (droits accueil requis).'); return }
     setPersonnes(data || [])
-  }, [jourActif])
+  }, [jourActif, acces])
 
   const chargerIncidents = useCallback(async () => {
-    const { data } = await supabase.rpc('terrain_incidents', { p_ouverts_seulement: true })
+    const { data } = await supabase.rpc('terrain_incidents', { p_ouverts_seulement: true, ...acces })
     setIncidentsOuverts(data || [])
-  }, [])
+  }, [acces])
 
   useEffect(() => { if (authorized) { charger(); chargerIncidents() } }, [authorized, charger, chargerIncidents])
 
@@ -221,10 +253,10 @@ export default function Terrain() {
     const def = ETAPES[etapeId]
     const jourEtape = def.parJour ? jourActif : null
     const avant = p.etapes?.[etapeId]
-    patchLocal(p, etapeId, { id: 'temp', fait_le: new Date().toISOString(), fait_par: equipier, valeur: valeur || null, mode: 'manuel' })
+    patchLocal(p, etapeId, { id: 'temp', fait_le: new Date().toISOString(), fait_par: auteurAffiche, valeur: valeur || null, mode: 'manuel' })
     const { data, error } = await supabase.rpc('terrain_marquer', {
       p_personne_type: p.personne_type, p_personne_id: p.personne_id, p_etape: etapeId,
-      p_jour: jourEtape, p_valeur: valeur || null, p_mode: 'manuel', p_fait_par: equipier,
+      p_jour: jourEtape, p_valeur: valeur || null, p_mode: 'manuel', p_fait_par: auteurAffiche, ...acces,
     })
     if (error) {
       patchLocal(p, etapeId, avant)
@@ -232,7 +264,7 @@ export default function Terrain() {
       return
     }
     const r = Array.isArray(data) ? data[0] : data
-    patchLocal(p, etapeId, { id: r?.id, fait_le: new Date().toISOString(), fait_par: equipier, valeur: valeur || null, mode: 'manuel' })
+    patchLocal(p, etapeId, { id: r?.id, fait_le: new Date().toISOString(), fait_par: auteurAffiche, valeur: valeur || null, mode: 'manuel' })
     charger()
   }
 
@@ -252,7 +284,7 @@ export default function Terrain() {
     const { personne, etape, suiviId } = modalAnnuler
     const avant = personne.etapes?.[etape]
     patchLocal(personne, etape, undefined)
-    const { error } = await supabase.rpc('terrain_annuler', { p_suivi_id: suiviId, p_motif: motif.trim(), p_par: equipier })
+    const { error } = await supabase.rpc('terrain_annuler', { p_suivi_id: suiviId, p_motif: motif.trim(), p_par: auteurAffiche, ...acces })
     if (error) { patchLocal(personne, etape, avant); setMsg("Échec de l'annulation.") }
     setModalAnnuler(null)
     charger()
@@ -262,7 +294,7 @@ export default function Terrain() {
     if (!filtreDelegation) return
     if (!window.confirm(`Marquer « ${ETAPES[etapeId].label} » pour toute la délégation « ${filtreDelegation} » (${affiches.length} personne(s) affichée(s)) ?`)) return
     const jourEtape = ETAPES[etapeId].parJour ? jourActif : null
-    const { data, error } = await supabase.rpc('terrain_marquer_groupe', { p_delegation: filtreDelegation, p_etape: etapeId, p_jour: jourEtape, p_fait_par: equipier })
+    const { data, error } = await supabase.rpc('terrain_marquer_groupe', { p_delegation: filtreDelegation, p_etape: etapeId, p_jour: jourEtape, p_fait_par: auteurAffiche, ...acces })
     if (error) { setMsg("Échec de l'action groupée."); return }
     const r = Array.isArray(data) ? data[0] : data
     setMsg(`${r?.marques ?? 0} personne(s) marquée(s).`)
@@ -272,13 +304,13 @@ export default function Terrain() {
   const creerIncident = async (type, note) => {
     if (!modalIncident || !note.trim()) return
     const p = modalIncident.personne
-    await supabase.rpc('terrain_incident_creer', { p_personne_type: p.personne_type, p_personne_id: p.personne_id, p_type: type, p_note: note.trim(), p_par: equipier })
+    await supabase.rpc('terrain_incident_creer', { p_personne_type: p.personne_type, p_personne_id: p.personne_id, p_type: type, p_note: note.trim(), p_par: auteurAffiche, ...acces })
     setModalIncident(null)
     charger(); chargerIncidents()
   }
 
   const resoudreIncident = async id => {
-    await supabase.rpc('terrain_incident_resoudre', { p_id: id, p_par: equipier })
+    await supabase.rpc('terrain_incident_resoudre', { p_id: id, p_par: auteurAffiche, ...acces })
     chargerIncidents(); charger()
   }
 
@@ -299,7 +331,7 @@ export default function Terrain() {
     // l'ecran (sinon un export lance depuis un autre onglet/jour listerait
     // les presents de ce jour-la au lieu des inscrits a la visite).
     const jourVisite = MODES.find(m => m.id === 'visite').jourFixe
-    const { data, error } = await supabase.rpc('terrain_liste', { p_jour: jourVisite })
+    const { data, error } = await supabase.rpc('terrain_liste', { p_jour: jourVisite, ...acces })
     if (error) { setMsg("Échec de l'export Visite J3."); return }
     const liste = (data || []).filter(p => p.etapes?.present)
     const entetes = ['Nom', 'Prénom', 'Organisation', 'Dossier', 'Pièce d\'identité présentée', 'Signature']
@@ -317,18 +349,15 @@ export default function Terrain() {
 
   useEffect(() => { const t = setTimeout(() => setMsg(''), 4000); return () => clearTimeout(t) }, [msg])
 
-  if (!authorized) {
-    return (
-      <div style={wrap}>
-        <div style={{ ...CARTE, padding: 28, textAlign: 'center', maxWidth: 380 }}>
-          <Ico name="alert" size={28} color="#dc2626" />
-          <p style={{ fontSize: 14, color: '#991b1b', fontWeight: 600, marginTop: 12 }}>Ce compte n'a pas accès au tableau terrain.</p>
-        </div>
-      </div>
-    )
+  if (niveau === null) {
+    return <div style={wrap}><p style={{ color: '#64748b', fontSize: 13.5 }}>Chargement…</p></div>
   }
 
-  if (editionEquipier) {
+  if (niveau === 'anonyme') {
+    return <ConnexionPin onConnecte={(dossier, pin, id) => { setIdentite({ dossier, pin, ...id }); setNiveau('limite') }} />
+  }
+
+  if (niveau === 'admin' && editionEquipier) {
     return (
       <div style={wrap}>
         <div style={{ ...CARTE, overflow: 'hidden', maxWidth: 380, width: '100%' }}>
@@ -383,12 +412,20 @@ export default function Terrain() {
             <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginTop: 2 }}>Tableau de bord terrain</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => setEditionEquipier(true)} style={{ ...BTN, background: 'rgba(255,255,255,.14)', color: '#fff', border: '1px solid rgba(255,255,255,.25)' }}>
-              <Ico name="user" size={13} color="#fff" /> {equipier}
-            </button>
-            <Link to="/staff/scan" style={{ ...BTN, background: '#fff', color: NAVY, textDecoration: 'none' }}>
-              <Ico name="search" size={13} color={NAVY} /> Scanner
-            </Link>
+            {niveau === 'admin' ? (
+              <button type="button" onClick={() => setEditionEquipier(true)} style={{ ...BTN, background: 'rgba(255,255,255,.14)', color: '#fff', border: '1px solid rgba(255,255,255,.25)' }}>
+                <Ico name="user" size={13} color="#fff" /> {equipier}
+              </button>
+            ) : (
+              <span style={{ ...BTN, background: 'rgba(255,255,255,.14)', color: '#fff', border: '1px solid rgba(255,255,255,.25)', cursor: 'default' }}>
+                <Ico name="user" size={13} color="#fff" /> {auteurAffiche}
+              </span>
+            )}
+            {niveau === 'admin' && (
+              <Link to="/staff/scan" style={{ ...BTN, background: '#fff', color: NAVY, textDecoration: 'none' }}>
+                <Ico name="search" size={13} color={NAVY} /> Scanner
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -469,14 +506,18 @@ export default function Terrain() {
         {/* Recherche + filtres */}
         <div className="terrain-carte" style={{ ...CARTE, padding: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher (nom, organisation, dossier)…" style={{ ...INPUT, flex: 1, minWidth: 200, border: '1.5px solid #eef1f8', background: '#f8fafc' }} />
-          <select value={filtreCategorie} onChange={e => setFiltreCategorie(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
-            <option value="tous">Toutes catégories</option>
-            {Object.entries(CAT_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-          </select>
-          <select value={filtreDelegation} onChange={e => setFiltreDelegation(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
-            <option value="">Toutes délégations</option>
-            {delegations.map(d => <option key={d} value={d}>{d}</option>)}
-          </select>
+          {niveau === 'admin' && (
+            <select value={filtreCategorie} onChange={e => setFiltreCategorie(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
+              <option value="tous">Toutes catégories</option>
+              {Object.entries(CAT_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+            </select>
+          )}
+          {niveau === 'admin' && (
+            <select value={filtreDelegation} onChange={e => setFiltreDelegation(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
+              <option value="">Toutes délégations</option>
+              {delegations.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          )}
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: '#334155', cursor: 'pointer' }}>
             <input type="checkbox" checked={aFaireSeulement} onChange={e => setAFaireSeulement(e.target.checked)} /> À faire seulement
           </label>
@@ -496,7 +537,9 @@ export default function Terrain() {
           <button type="button" onClick={exporterCSV} style={boutonAction('#0891b2')}><Ico name="download" size={13} color="#fff" /> Export CSV</button>
           <button type="button" onClick={imprimerListe} style={boutonAction('#64748b')}><Ico name="receipt" size={13} color="#fff" /> Imprimer la liste</button>
           <button type="button" onClick={exporterVisiteJ3} style={boutonAction('#d97706')}><Ico name="download" size={13} color="#fff" /> Liste Visite J3</button>
-          <button type="button" onClick={exporterAttestations} style={boutonAction('#16a34a')}><Ico name="download" size={13} color="#fff" /> Éligibles attestations</button>
+          {niveau === 'admin' && (
+            <button type="button" onClick={exporterAttestations} style={boutonAction('#16a34a')}><Ico name="download" size={13} color="#fff" /> Éligibles attestations</button>
+          )}
         </div>
 
         {/* Liste */}
@@ -660,6 +703,60 @@ function ModalIncident({ personne, onValider, onFermer }) {
           <button type="button" disabled={!note.trim()} onClick={() => onValider(type, note)} style={{ ...boutonAction('#dc2626'), flex: 1, opacity: note.trim() ? 1 : 0.5 }}>Enregistrer</button>
           <button type="button" onClick={onFermer} style={{ ...BTN, background: '#f1f5f9', color: '#334155' }}>Annuler</button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// Ecran de connexion pour le personnel sans compte Supabase Auth (Yvette,
+// Eliram, l'equipe Maroc...) : dossier + PIN (voir terrain_login). Le PIN
+// ne reste qu'en memoire (etat du composant parent), jamais en
+// localStorage, meme convention que BadgeToken.jsx.
+function ConnexionPin({ onConnecte }) {
+  const [dossier, setDossier] = useState('')
+  const [pin, setPin] = useState('')
+  const [enCours, setEnCours] = useState(false)
+  const [erreur, setErreur] = useState('')
+
+  const connexion = async e => {
+    e.preventDefault()
+    if (!dossier.trim() || !pin.trim()) return
+    setEnCours(true); setErreur('')
+    try {
+      const { data, error } = await supabase.rpc('terrain_login', { p_dossier: dossier.trim(), p_pin: pin.trim() })
+      if (error) {
+        setErreur(/tentatives/i.test(error.message || '') ? 'Trop de tentatives, réessayez dans 15 minutes.' : 'Erreur, réessayez.')
+        return
+      }
+      if (!data) { setErreur('Dossier ou code incorrect.'); return }
+      onConnecte(dossier.trim(), pin.trim(), { nom: data.nom, prenom: data.prenom })
+    } finally {
+      setEnCours(false)
+    }
+  }
+
+  return (
+    <div style={wrap}>
+      <div style={{ ...CARTE, overflow: 'hidden', maxWidth: 380, width: '100%' }}>
+        <div style={{ background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`, padding: '22px 26px 20px', color: '#fff' }}>
+          <div style={{ fontSize: 11, opacity: 0.85, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>COPAF 2026 · Terrain</div>
+          <div style={{ fontSize: 19, fontWeight: 900, marginTop: 4 }}>Connexion</div>
+        </div>
+        <form onSubmit={connexion} style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 4px' }}>Votre numéro de dossier et le code PIN qui vous a été communiqué.</p>
+          <input
+            value={dossier} onChange={e => { setErreur(''); setDossier(e.target.value) }}
+            placeholder="INT2026-XXX" autoCapitalize="characters" autoComplete="username" style={INPUT}
+          />
+          <input
+            value={pin} onChange={e => { setErreur(''); setPin(e.target.value) }}
+            placeholder="Code PIN" type="password" inputMode="numeric" autoComplete="current-password" style={INPUT}
+          />
+          {erreur && <p style={{ fontSize: 12, color: '#dc2626', margin: 0 }}>{erreur}</p>}
+          <button type="submit" disabled={enCours || !dossier.trim() || !pin.trim()} style={{ ...boutonAction(NAVY), width: '100%', justifyContent: 'center', marginTop: 6, opacity: enCours ? 0.7 : 1 }}>
+            {enCours ? '…' : 'Se connecter'}
+          </button>
+        </form>
       </div>
     </div>
   )

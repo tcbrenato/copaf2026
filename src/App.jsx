@@ -197,11 +197,9 @@ const StaffScanPage = () => (
   </AuthGate>
 )
 
-const TerrainPage = () => (
-  <AuthGate title="COPAF 2026" subtitle="Accès réservé au personnel terrain">
-    <Terrain />
-  </AuthGate>
-)
+// Pas d'AuthGate ici : Terrain.jsx gere lui-meme les deux niveaux d'acces
+// (compte admin Supabase Auth OU dossier+PIN pour le personnel terrain
+// sans compte admin) - AuthGate ne propose que la connexion admin.
 
 // ─── Application principale ───────────────────────────────────────────────────
 function App() {
@@ -235,7 +233,7 @@ function App() {
         <Route path="/badge/:token"           element={<BadgeToken />} />
         <Route path="/intervenant"            element={<EspaceIntervenant />} />
         <Route path="/staff/scan"             element={<StaffScanPage />} />
-        <Route path="/terrain"                element={<TerrainPage />} />
+        <Route path="/terrain"                element={<Terrain />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/diagnostics"      element={<Navigate to="/admin" replace />} />
