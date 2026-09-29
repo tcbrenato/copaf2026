@@ -2792,10 +2792,16 @@ export default function AdminPage() {
             </button>
           ))}
           {(scope === 'all' || scope === 'checkin') && (
-            <a href="/staff/scan" className="nav-item" style={{ textDecoration: 'none' }}>
-              <Icon name="search" size={18} color="rgba(255,255,255,.55)" />
-              <span style={{ whiteSpace: 'nowrap' }}>Scanner badges</span>
-            </a>
+            <>
+              <a href="/staff/scan" className="nav-item" style={{ textDecoration: 'none' }}>
+                <Icon name="search" size={18} color="rgba(255,255,255,.55)" />
+                <span style={{ whiteSpace: 'nowrap' }}>Scanner badges</span>
+              </a>
+              <a href="/terrain" className="nav-item" style={{ textDecoration: 'none' }}>
+                <Icon name="globe" size={18} color="rgba(255,255,255,.55)" />
+                <span style={{ whiteSpace: 'nowrap' }}>Tableau terrain</span>
+              </a>
+            </>
           )}
         </nav>
 
