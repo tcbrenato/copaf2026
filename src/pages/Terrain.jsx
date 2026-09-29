@@ -555,6 +555,7 @@ export default function Terrain() {
                     {p.statut_dossier === 'a_regulariser' && <span style={{ fontSize: 9.5, fontWeight: 800, color: '#92400e', background: '#fef3c7', borderRadius: 20, padding: '1px 6px' }}>Dossier à régulariser</span>}
                     {incidentOuvert && <Ico name="alert" size={13} color="#dc2626" />}
                   </div>
+                  {p.fonction && <div style={{ fontSize: 12, color: '#334155', fontWeight: 600 }}>{p.fonction}</div>}
                   <div style={{ fontSize: 11.5, color: '#64748b' }}>
                     {p.organisation}{p.delegation ? ` · ${p.delegation}` : ''} · {p.dossier}
                     {mode.id === 'aeroport' && p.vol_arrivee && ` · ✈ ${p.vol_arrivee} ${p.heure_arrivee || ''}`}

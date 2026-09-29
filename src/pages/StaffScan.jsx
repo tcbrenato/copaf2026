@@ -90,7 +90,7 @@ export default function StaffScan() {
       } else {
         bipEtVibre(true)
         setBanniere({
-          ok: true, nom: `${r.prenom || ''} ${r.nom || ''}`.trim(), organisation: r.organisation,
+          ok: true, nom: `${r.prenom || ''} ${r.nom || ''}`.trim(), organisation: r.organisation, poste: r.poste,
           photo_url: r.photo_url, deja: r.deja_arrive,
           heure: r.arrived_at ? new Date(r.arrived_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
         })
@@ -184,6 +184,7 @@ export default function StaffScan() {
                     <Ico name={banniere.deja ? 'alert' : 'check'} size={30} color="#fff" />
                   )}
                   <div style={{ fontSize: 16, fontWeight: 900 }}>{banniere.nom || 'Badge reconnu'}</div>
+                  {banniere.poste && <div style={{ fontSize: 12.5, fontWeight: 700, opacity: 0.95 }}>{banniere.poste}</div>}
                   {banniere.organisation && <div style={{ fontSize: 12, opacity: 0.9 }}>{banniere.organisation}</div>}
                   <div style={{ fontSize: 12.5, fontWeight: 700 }}>
                     {banniere.deja ? `Déjà émargé${banniere.heure ? ` à ${banniere.heure}` : ''}` : 'Émargé ✓'}
@@ -219,6 +220,7 @@ export default function StaffScan() {
             }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
                 {r.prenom} {r.nom}
+                {r.poste && <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: '#334155' }}>{r.poste}</span>}
                 <span style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#94a3b8' }}>{r.organisation} · {r.dossier}</span>
               </span>
               <span style={{ color: '#94a3b8', fontSize: 18 }}>›</span>
