@@ -196,7 +196,7 @@ export default function AdminLettresInvitation() {
   // une personne" (auto-remplissage du formulaire). Charge une fois — la
   // liste ne change pas pendant une session d'edition.
   useEffect(() => {
-    supabase.from('intervenants').select('dossier, civilite, nom, prenom, fonction, organisation, pays, numero_passeport')
+    supabase.from('intervenants').select('dossier, civilite, nom, prenom, nom_passeport, prenom_passeport, fonction, organisation, pays, numero_passeport')
       .order('nom').then(({ data }) => setAnnuaire(data || []))
   }, [])
 
@@ -246,16 +246,19 @@ export default function AdminLettresInvitation() {
 
   const chargerDansFormulaire = personne => { setForm(personne); setMsg('') }
 
-  // Pre-remplit nationalite/passeport depuis la fiche intervenant existante
-  // (deja saisis a l'accreditation) des que le dossier est renseigne —
-  // jamais ecrase si l'admin a deja mis quelque chose dans ces 2 champs.
+  // Pre-remplit nom/prenom (version passeport si disponible)/nationalite/
+  // passeport depuis la fiche intervenant existante des que le dossier est
+  // renseigne a la main — jamais ecrase si l'admin a deja mis quelque chose
+  // dans ces champs.
   const chargerDepuisIntervenant = async () => {
     const dossierTrim = form.dossier?.trim()
     if (!dossierTrim) return
-    const { data } = await supabase.from('intervenants').select('pays, numero_passeport').ilike('dossier', dossierTrim).maybeSingle()
+    const { data } = await supabase.from('intervenants').select('nom, prenom, nom_passeport, prenom_passeport, pays, numero_passeport').ilike('dossier', dossierTrim).maybeSingle()
     if (!data) return
     setForm(f => (f.dossier?.trim() !== dossierTrim ? f : {
       ...f,
+      nom: f.nom || data.nom_passeport || data.nom || '',
+      prenom: f.prenom || data.prenom_passeport || data.prenom || '',
       nationalite: f.nationalite || nationaliteDepuisPays(data.pays),
       passeport: f.passeport || data.numero_passeport || '',
     }))
@@ -268,15 +271,20 @@ export default function AdminLettresInvitation() {
     const iv = annuaire.find(a => a.dossier === dossier)
     if (!iv) return
     setMsg('')
+    // Le nom/prenom "passeport" (saisi exactement comme sur le document) est
+    // prioritaire pour ces courriers officiels — le nom d'usage (nom/prenom)
+    // ne sert que de repli si la personne n'a pas encore renseigne le sien.
+    const nom = iv.nom_passeport || iv.nom || ''
+    const prenom = iv.prenom_passeport || iv.prenom || ''
     if (estInvitation) {
       setFormInv(f => ({
-        ...f, dossier: iv.dossier, civilite: iv.civilite || f.civilite, prenom: iv.prenom || '', nom: iv.nom || '',
+        ...f, dossier: iv.dossier, civilite: iv.civilite || f.civilite, prenom, nom,
         fonction: iv.fonction || '', institution: iv.organisation || '',
         villePays: f.villePays || iv.pays || '', nationalite: nationaliteDepuisPays(iv.pays), passeport: iv.numero_passeport || '',
       }))
     } else {
       setFormOm(f => ({
-        ...f, dossier: iv.dossier, civilite: iv.civilite || f.civilite, prenom: iv.prenom || '', nom: iv.nom || '',
+        ...f, dossier: iv.dossier, civilite: iv.civilite || f.civilite, prenom, nom,
         fonction: iv.fonction || '', nationalite: nationaliteDepuisPays(iv.pays), passeport: iv.numero_passeport || '',
       }))
     }
