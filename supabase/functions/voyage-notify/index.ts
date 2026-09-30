@@ -3,10 +3,14 @@
 // Emails et alertes du parcours "voyage" :
 //
 //  - action "envoyer" (ADMIN uniquement) : envoie a un participant/intervenant son
-//    Guide du participant, sa Fiche de voyage, ou sa Lettre de mission, PDF en piece
-//    jointe. Le PDF est genere par le navigateur de l'admin ; le destinataire, sa
-//    langue et son nom viennent de la base (jamais du client). Met a jour voyages ou
-//    lettres_mission (dates d'envoi, statut) selon le kind.
+//    Guide du participant ou sa Fiche de voyage, PDF en piece jointe. Le PDF est
+//    genere par le navigateur de l'admin ; le destinataire, sa langue et son nom
+//    viennent de la base (jamais du client). Met a jour voyages (dates d'envoi,
+//    statut) selon le kind.
+//  - action "notifier_document" (ADMIN uniquement) : previent un intervenant que
+//    sa lettre d'invitation ou son ordre de mission est publie et disponible en
+//    telechargement dans son espace (pas de PDF joint, juste un lien). Declenchee
+//    par le bouton "Publier" de AdminLettresInvitation.jsx.
 //  - action "vols_recus" (public, mais verifiee et limitee) : quand un participant
 //    vient d'enregistrer ses vols sur /badge -> alerte email + Telegram a l'equipe
 //    et confirmation au participant. Verifiee : les vols doivent avoir ete
@@ -100,6 +104,50 @@ Deno.serve(async req => {
     const langue: Langue = personne.langue === 'en' ? 'en' : 'fr'
     const nomComplet = `${personne.prenom || ''} ${personne.nom || ''}`.trim()
 
+    // ─────────── Notification "document disponible" (lettre d'invitation / ordre de mission) ───────────
+    if (action === 'notifier_document') {
+      const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
+      if (!jwt) return json({ error: 'Authentification requise' }, 401)
+      const { data: userData } = await supabase.auth.getUser(jwt)
+      if (!userData?.user) return json({ error: 'Session invalide' }, 401)
+      const { data: adminRow } = await supabase.from('admins').select('scope, email').eq('user_id', userData.user.id).maybeSingle()
+      if (!adminRow || adminRow.scope !== 'all') return json({ error: 'Accès réservé aux administrateurs' }, 403)
+
+      const kind = corps.kind
+      if (kind !== 'lettre_invitation' && kind !== 'ordre_mission') return json({ error: 'kind invalide' }, 400)
+      if (!personne.email) {
+        await journaliser({ dossier, type: kind, langue, ok: false, detail: 'Aucun email enregistré pour ce dossier', envoye_par: adminRow.email })
+        return json({ success: false, raison: 'sans_email' })
+      }
+      if (!resendKey) return json({ success: false, raison: 'email_non_configure' })
+
+      const en = langue === 'en'
+      const prenom = esc(personne.prenom)
+      const contenu = kind === 'lettre_invitation'
+        ? {
+          sujet: en ? 'COPAF 2026 — Your invitation letter is ready' : "COPAF 2026 — Votre lettre d'invitation est prête",
+          titre: en ? 'Your invitation letter is ready' : "Votre lettre d'invitation est prête",
+          sous: en ? 'Official document for your accreditation' : 'Document officiel pour votre accréditation',
+          texte: en
+            ? `Hello ${prenom},<br/><br/>Your <strong>official invitation letter</strong> for COPAF 2026 is now available in your speaker area.`
+            : `Bonjour ${prenom},<br/><br/>Votre <strong>lettre d'invitation officielle</strong> pour la COPAF 2026 est désormais disponible dans votre espace intervenant.`,
+          cta: { label: en ? 'Open my speaker area' : 'Ouvrir mon espace intervenant', url: `${SITE}/intervenant` },
+        }
+        : {
+          sujet: en ? 'COPAF 2026 — Your mission order is ready' : 'COPAF 2026 — Votre ordre de mission est prêt',
+          titre: en ? 'Your mission order is ready' : 'Votre ordre de mission est prêt',
+          sous: en ? 'Official document for your accreditation' : 'Document officiel pour votre accréditation',
+          texte: en
+            ? `Hello ${prenom},<br/><br/>Your <strong>official mission order</strong> for COPAF 2026 is now available in your speaker area.`
+            : `Bonjour ${prenom},<br/><br/>Votre <strong>ordre de mission officiel</strong> pour la COPAF 2026 est désormais disponible dans votre espace intervenant.`,
+          cta: { label: en ? 'Open my speaker area' : 'Ouvrir mon espace intervenant', url: `${SITE}/intervenant` },
+        }
+
+      const res = await envoyer(personne.email, contenu.sujet, shell({ langue, titre: contenu.titre, sousTitre: contenu.sous, corps: contenu.texte, cta: contenu.cta }))
+      await journaliser({ dossier, type: kind, destinataire: personne.email, langue, sujet: contenu.sujet, ok: res.ok, status: res.status, detail: res.ok ? null : res.detail, envoye_par: adminRow.email })
+      return json({ success: res.ok })
+    }
+
     // ───────────────────────── Envoi du guide / de la fiche (admin) ─────────────────────────
     if (action === 'envoyer') {
       const jwt = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
@@ -110,12 +158,12 @@ Deno.serve(async req => {
       if (!adminRow || adminRow.scope !== 'all') return json({ error: 'Accès réservé aux administrateurs' }, 403)
 
       const kind = corps.kind
-      if (kind !== 'guide' && kind !== 'fiche' && kind !== 'lettre_mission') return json({ error: 'kind invalide' }, 400)
+      if (kind !== 'guide' && kind !== 'fiche') return json({ error: 'kind invalide' }, 400)
       const pdf = typeof corps.pdf === 'string' ? corps.pdf : ''
       if (!pdf.startsWith('JVBER') || pdf.length * 0.75 > MAX_PDF_OCTETS) return json({ error: 'PDF invalide ou trop volumineux' }, 400)
-      const nomParDefaut = kind === 'guide' ? 'Guide_du_Participant_COPAF2026.pdf' : kind === 'fiche' ? 'Fiche_Voyage_COPAF2026.pdf' : 'Lettre_de_mission_COPAF2026.pdf'
+      const nomParDefaut = kind === 'guide' ? 'Guide_du_Participant_COPAF2026.pdf' : 'Fiche_Voyage_COPAF2026.pdf'
       const filename = String(corps.filename || nomParDefaut).replace(/[^A-Za-z0-9._-]/g, '_').slice(0, 80)
-      const typeLog = kind === 'guide' ? 'guide_participant' : kind === 'fiche' ? 'fiche_voyage' : 'lettre_mission'
+      const typeLog = kind === 'guide' ? 'guide_participant' : 'fiche_voyage'
       if (!personne.email) {
         await journaliser({ dossier, type: typeLog, langue, ok: false, detail: 'Aucun email enregistré pour ce dossier', envoye_par: adminRow.email })
         return json({ success: false, raison: 'sans_email' })
@@ -134,38 +182,24 @@ Deno.serve(async req => {
             : `Bonjour ${prenom},<br/><br/>Vous trouverez en pièce jointe le <strong>Guide du participant de la COPAF 2026</strong> : accueil, hébergement, déplacements, formalités et informations pratiques. Il est aussi disponible à tout moment dans votre espace participant.<br/><br/><strong>Prochaine étape (environ 3 minutes) :</strong> renseignez votre photo, votre numéro de passeport et vos informations de vol sur votre page personnelle.`,
           cta: { label: en ? 'Enter my information' : 'Renseigner mes informations', url: `${SITE}/badge` },
         }
-        : kind === 'fiche'
-          ? {
-            sujet: en ? 'COPAF 2026 — Your travel sheet' : 'COPAF 2026 — Votre fiche de voyage',
-            titre: en ? 'Your travel sheet is ready' : 'Votre fiche de voyage est prête',
-            sous: en ? 'Hotel, transfers and contacts' : 'Hôtel, transferts et contacts',
-            texte: en
-              ? `Hello ${prenom},<br/><br/>Your <strong>individual travel sheet</strong> is attached: hotel, address, confirmation number and transfer details. It is also available in your participant area.`
-              : `Bonjour ${prenom},<br/><br/>Votre <strong>fiche de voyage individuelle</strong> est jointe à ce message : hôtel, adresse, numéro de confirmation et modalités de transfert. Elle est aussi disponible dans votre espace participant.`,
-            cta: { label: en ? 'Open my participant area' : 'Ouvrir mon espace participant', url: `${SITE}/verifier` },
-          }
-          : {
-            sujet: en ? 'COPAF 2026 — Your mission letter' : 'COPAF 2026 — Votre lettre de mission',
-            titre: en ? 'Your mission letter is ready' : 'Votre lettre de mission est prête',
-            sous: en ? 'Official document for your accreditation' : 'Document officiel pour votre accréditation',
-            texte: en
-              ? `Hello ${prenom},<br/><br/>Please find attached your <strong>official mission letter</strong> for COPAF 2026. It is also available at any time in your speaker area.`
-              : `Bonjour ${prenom},<br/><br/>Vous trouverez en pièce jointe votre <strong>lettre de mission officielle</strong> pour la COPAF 2026. Elle est aussi disponible à tout moment dans votre espace intervenant.`,
-            cta: { label: en ? 'Open my speaker area' : 'Ouvrir mon espace intervenant', url: `${SITE}/intervenant` },
-          }
+        : {
+          sujet: en ? 'COPAF 2026 — Your travel sheet' : 'COPAF 2026 — Votre fiche de voyage',
+          titre: en ? 'Your travel sheet is ready' : 'Votre fiche de voyage est prête',
+          sous: en ? 'Hotel, transfers and contacts' : 'Hôtel, transferts et contacts',
+          texte: en
+            ? `Hello ${prenom},<br/><br/>Your <strong>individual travel sheet</strong> is attached: hotel, address, confirmation number and transfer details. It is also available in your participant area.`
+            : `Bonjour ${prenom},<br/><br/>Votre <strong>fiche de voyage individuelle</strong> est jointe à ce message : hôtel, adresse, numéro de confirmation et modalités de transfert. Elle est aussi disponible dans votre espace participant.`,
+          cta: { label: en ? 'Open my participant area' : 'Ouvrir mon espace participant', url: `${SITE}/verifier` },
+        }
 
       const res = await envoyer(personne.email, contenu.sujet, shell({ langue, titre: contenu.titre, sousTitre: contenu.sous, corps: contenu.texte, cta: contenu.cta }), { filename, content: pdf })
       await journaliser({ dossier, type: typeLog, destinataire: personne.email, langue, sujet: contenu.sujet, ok: res.ok, status: res.status, detail: res.ok ? null : res.detail, envoye_par: adminRow.email })
 
       if (res.ok) {
-        if (kind === 'lettre_mission') {
-          await supabase.from('lettres_mission').update({ envoyee_le: new Date().toISOString(), statut: 'envoyee', updated_at: new Date().toISOString() }).eq('dossier', dossier)
-        } else {
-          const maj = kind === 'guide'
-            ? { guide_envoye_le: new Date().toISOString() }
-            : { fiche_envoyee_le: new Date().toISOString(), statut: 'fiche_envoyee' }
-          await supabase.from('voyages').upsert({ dossier, ...maj, updated_at: new Date().toISOString() }, { onConflict: 'dossier' })
-        }
+        const maj = kind === 'guide'
+          ? { guide_envoye_le: new Date().toISOString() }
+          : { fiche_envoyee_le: new Date().toISOString(), statut: 'fiche_envoyee' }
+        await supabase.from('voyages').upsert({ dossier, ...maj, updated_at: new Date().toISOString() }, { onConflict: 'dossier' })
       }
       return json({ success: res.ok })
     }

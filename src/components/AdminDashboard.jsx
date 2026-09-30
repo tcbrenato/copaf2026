@@ -13,7 +13,6 @@ import ValidationDocuments from './ValidationDocuments'
 import EcrireBouton from './EcrireBouton'
 import AdminEmails from '../pages/AdminEmails'
 import AdminVoyage from '../pages/AdminVoyage'
-import AdminLettreMission from '../pages/AdminLettreMission'
 import AdminLettresInvitation from '../pages/AdminLettresInvitation'
 import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
@@ -95,8 +94,7 @@ const MODULES = [
   { id: 'newsletter',  label: 'Newsletter',       icon: 'mail',     table: null,            scope: 'all', adminOnly: true },
   { id: 'emails',      label: 'Envoyer un email', icon: 'mail',     table: null,            scope: 'all', adminOnly: true },
   { id: 'voyage',      label: 'Voyages & Guide',  icon: 'globe',    table: null,            scope: 'all', adminOnly: true },
-  { id: 'lettre-mission', label: 'Lettres de mission', icon: 'sheet', table: null,          scope: 'all', adminOnly: true },
-  { id: 'lettres-invitation', label: 'Lettres d\'invitation', icon: 'mail', table: null,     scope: 'all', adminOnly: true },
+  { id: 'lettres-invitation', label: 'Lettres & ordres de mission', icon: 'mail', table: null,     scope: 'all', adminOnly: true },
 ]
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -2922,8 +2920,6 @@ export default function AdminPage() {
             <AdminEmails />
           ) : activeModule === 'voyage' ? (
             <AdminVoyage />
-          ) : activeModule === 'lettre-mission' ? (
-            <AdminLettreMission />
           ) : activeModule === 'lettres-invitation' ? (
             <AdminLettresInvitation />
           ) : activeModule === 'intervenants' ? (

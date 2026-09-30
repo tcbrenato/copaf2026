@@ -6,7 +6,7 @@
 // de page deja integres a l'image, jamais redessines ici).
 //
 // Meme principe que generateConfirmationInscriptionPDF.js et
-// generateLettreMissionPDF.js (overlay jsPDF sur un fond image), avec
+// generateOrdreMissionPDF.js (overlay jsPDF sur un fond image), avec
 // Open Sans (au lieu de Poppins) embarquee pour ce document precis.
 //
 // Les positions/tailles ci-dessous sont fournies telles quelles (cm depuis
