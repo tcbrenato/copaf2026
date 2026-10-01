@@ -760,9 +760,9 @@ export const CASES_FICHE = [
   'pickup', 'chauffeur', 'navette', 'retour_transfert', 'referent_nom', 'referent_tel',
 ]
 
-// Champs obligatoires avant de marquer la fiche "prete" / de l'envoyer (l'hotel n'a pas
-// de categorie par defaut : elle doit etre saisie).
-export const FICHE_CHAMPS_REQUIS = ['hotel', 'hotel_categorie', 'hotel_adresse', 'hotel_confirmation', 'pickup', 'chauffeur', 'navette', 'retour_transfert', 'referent_nom', 'referent_tel']
+// Champs obligatoires avant de marquer la fiche "prete" / de l'envoyer.
+// hotel_categorie n'est plus demande ni imprime (voir generateFichePDF).
+export const FICHE_CHAMPS_REQUIS = ['hotel', 'hotel_adresse', 'hotel_confirmation', 'pickup', 'chauffeur', 'navette', 'retour_transfert', 'referent_nom', 'referent_tel']
 
 const COULEUR_TEXTE = rgb(10 / 255, 31 / 255, 61 / 255)   // #0A1F3D
 const COULEUR_CATEGORIE = rgb(0, 0, 173 / 255)             // #0000AD
@@ -869,7 +869,6 @@ export async function generateFichePDF({ voyage, config, lang = 'fr', download =
   const fMedium = await pdf.embedFont(medium, { subset: true })
   const fBold = await pdf.embedFont(bold, { subset: true })
   const jeuMedium = new Set(fMedium.getCharacterSet())
-  const jeuBold = new Set(fBold.getCharacterSet())
 
   const val = (cle) => valeurChamp(cfg, lang, cle)
   const valeurs = {
@@ -904,8 +903,30 @@ export async function generateFichePDF({ voyage, config, lang = 'fr', download =
 
   CASES_FICHE.forEach((cle, i) => ecrire(cle, valeurs[cle], cases[i], fMedium, jeuMedium, COULEUR_TEXTE, TAILLE))
 
-  // Categorie : pas de case, texte pose directement sur le fond gris (x = 169 pt, centre sur le libelle, jusqu'a x = 543)
-  ecrire('hotel_categorie', fiche.hotel_categorie, { x0: 169 - MARGE_G, x1: 543 + MARGE_G, y0: 411, y1: 424 }, fBold, jeuBold, COULEUR_CATEGORIE, 9.5)
+  // Le champ "Categorie" et le mot "Chauffeur" ne correspondent plus a l'usage
+  // reel (seul un referent/contact de transfert est renseigne) — mais ces deux
+  // libelles sont imprimes en dur sur le gabarit Canva (texte PDF, pas une case
+  // detectee), donc on les masque avec un rectangle de la meme couleur de fond
+  // que leur section plutot que de laisser un intitule sans valeur. Positions
+  // et couleurs releves directement sur le gabarit (voir getTextContent()).
+  const GRIS_HEBERGEMENT = rgb(212 / 255, 212 / 255, 212 / 255)
+  const GRIS_TRANSFERTS = rgb(226 / 255, 226 / 255, 226 / 255)
+  page.drawRectangle({ x: 40, y: 426, width: 70, height: 14, color: GRIS_HEBERGEMENT })
+  page.drawRectangle({ x: 38, y: 281, width: 140, height: 15, color: GRIS_TRANSFERTS })
+  // "Chauffeur / Referent" -> "Referent" : on redessine uniquement le mot
+  // restant (cle de donnees 'chauffeur' inchangee, seul l'intitule change),
+  // lettre par lettre plutot qu'en un seul page.drawText() avec des espaces :
+  // au-dela d'une certaine longueur de chaine, ce gabarit perd l'espacement
+  // a l'affichage avec un texte espace classique (constate sur « CONTACT
+  // PERSON », pas sur « RÉFÉRENT » plus court) — en avancant nous-memes x a
+  // chaque caractere, le rendu reste fiable quelle que soit la longueur.
+  const texteReferentSeul = lang === 'en' ? 'CONTACT PERSON' : 'RÉFÉRENT'
+  let xReferent = 41.52
+  const ESPACEMENT_LETTRE = 2.3
+  for (const ch of texteReferentSeul) {
+    if (ch !== ' ') page.drawText(ch, { x: xReferent, y: 286.07, size: 7.56, font: fBold, color: COULEUR_CATEGORIE })
+    xReferent += fBold.widthOfTextAtSize(ch, 7.56) + ESPACEMENT_LETTRE
+  }
 
   const octets = await pdf.save()
   const filename = `${L.fichier(voyage.dossier || 'dossier')}.pdf`

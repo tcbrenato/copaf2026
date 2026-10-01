@@ -360,10 +360,10 @@ const LB = {
     nom: 'Nom et prénom', dossier: 'N° de dossier', organisme: 'Organisme / Port',
     aller: 'Vol aller', allerSub: 'Arrivée à Casablanca', retour: 'Vol retour', retourSub: 'Départ de Casablanca',
     compagnie: 'Compagnie', numero: 'N° de vol', date: 'Date', heure: 'Heure',
-    hotel: 'Hôtel réservé', categorie: 'Catégorie', adresse: 'Adresse', dates: 'Dates du séjour', datesFixe: '18 au 22 octobre (imprimé dans la fiche)', confirmation: 'N° de confirmation',
-    aeroHotel: 'Aéroport → Hôtel', chauffeur: 'Chauffeur / Référent', hotelPort: 'Hôtel → Port de Casablanca', hotelAero: 'Hôtel → Aéroport (retour)',
+    hotel: 'Hôtel réservé', adresse: 'Adresse', dates: 'Dates du séjour', datesFixe: '18 au 22 octobre (imprimé dans la fiche)', confirmation: 'N° de confirmation',
+    aeroHotel: 'Aéroport → Hôtel', chauffeur: 'Référent', hotelPort: 'Hôtel → Port de Casablanca', hotelAero: 'Hôtel → Aéroport (retour)',
     refNom: 'Référent sur place', refTel: 'Joignable au',
-    h: { hotel: "Nom de l'hôtel", categorie: 'Ex. 4 étoiles', adresse: 'Adresse complète', confirmation: 'Référence de la réservation', pickup: 'Heure, point de rencontre, moyen de reconnaissance', chauffeur: 'Nom, téléphone', navette: "Ex. Départ de l'hôtel à 8h00, du 19 au 21 octobre · rendez-vous dans le hall", retour: 'Heure indicative', refNom: 'Nom du référent CRF Perfection à Casablanca', refTel: '+212 …' },
+    h: { hotel: "Nom de l'hôtel", adresse: 'Adresse complète', confirmation: 'Référence de la réservation', pickup: 'Heure, point de rencontre, moyen de reconnaissance', chauffeur: 'Nom, téléphone du référent transfert', navette: "Ex. Départ de l'hôtel à 8h00, du 19 au 21 octobre · rendez-vous dans le hall", retour: 'Heure indicative', refNom: 'Nom du référent CRF Perfection à Casablanca', refTel: '+212 …' },
   },
   en: {
     titre: 'INDIVIDUAL TRAVEL SHEET', sous: 'African Ports Conference | Casablanca, Morocco',
@@ -371,16 +371,16 @@ const LB = {
     nom: 'Full name', dossier: 'Registration no.', organisme: 'Organisation / Port',
     aller: 'Outbound flight', allerSub: 'Arrival in Casablanca', retour: 'Return flight', retourSub: 'Departure from Casablanca',
     compagnie: 'Airline', numero: 'Flight no.', date: 'Date', heure: 'Time',
-    hotel: 'Hotel booked', categorie: 'Category', adresse: 'Address', dates: 'Dates of stay', datesFixe: '18 to 22 October 2026 (4 nights) (printed in the sheet)', confirmation: 'Confirmation no.',
-    aeroHotel: 'Airport → Hotel', chauffeur: 'Driver / Contact person', hotelPort: 'Hotel → Casablanca Port', hotelAero: 'Hotel → Airport (return)',
+    hotel: 'Hotel booked', adresse: 'Address', dates: 'Dates of stay', datesFixe: '18 to 22 October 2026 (4 nights) (printed in the sheet)', confirmation: 'Confirmation no.',
+    aeroHotel: 'Airport → Hotel', chauffeur: 'Contact person', hotelPort: 'Hotel → Casablanca Port', hotelAero: 'Hotel → Airport (return)',
     refNom: 'Contact person on site', refTel: 'Reachable at',
-    h: { hotel: 'Hotel name', categorie: 'E.g. 4 stars', adresse: 'Full address', confirmation: 'Booking reference', pickup: 'Time, meeting point, how to recognise the driver', chauffeur: 'Name, phone', navette: 'E.g. Departure from the hotel at 8:00 am, 19 to 21 October · meet in the lobby', retour: 'Approximate time', refNom: 'Name of the CRF Perfection contact in Casablanca', refTel: '+212 …' },
+    h: { hotel: 'Hotel name', adresse: 'Full address', confirmation: 'Booking reference', pickup: 'Time, meeting point, how to recognise the driver', chauffeur: 'Name, phone of the transfer contact', navette: 'E.g. Departure from the hotel at 8:00 am, 19 to 21 October · meet in the lobby', retour: 'Approximate time', refNom: 'Name of the CRF Perfection contact in Casablanca', refTel: '+212 …' },
   },
 }
 
 // Nombre de caracteres a partir duquel le texte est reduit puis tronque dans la case du PDF
-const CAPACITE = { hotel: 90, hotel_categorie: 60, hotel_adresse: 88, hotel_confirmation: 88, pickup: 80, chauffeur: 80, navette: 80, retour_transfert: 80, referent_nom: 85, referent_tel: 70 }
-const CHAMPS_FICHE = ['hotel', 'hotel_categorie', 'hotel_adresse', 'hotel_confirmation', 'pickup', 'chauffeur', 'navette', 'retour_transfert', 'referent_nom', 'referent_tel']
+const CAPACITE = { hotel: 90, hotel_adresse: 88, hotel_confirmation: 88, pickup: 80, chauffeur: 80, navette: 80, retour_transfert: 80, referent_nom: 85, referent_tel: 70 }
+const CHAMPS_FICHE = ['hotel', 'hotel_adresse', 'hotel_confirmation', 'pickup', 'chauffeur', 'navette', 'retour_transfert', 'referent_nom', 'referent_tel']
 const COMMUNS = ['navette', 'referent_nom', 'referent_tel']
 const BLEU_FICHE = '#0000AD'
 
@@ -444,7 +444,7 @@ function FenetreFiche({ personne, personnes, config, onClose, onSaved }) {
     const vus = new Map()
     personnes.forEach(p => {
       const v = p.voyage
-      if (v?.hotel && p.dossier !== personne.dossier) vus.set(`${v.hotel}|${v.hotel_adresse || ''}`, { hotel: v.hotel, hotel_categorie: v.hotel_categorie || '', hotel_adresse: v.hotel_adresse || '' })
+      if (v?.hotel && p.dossier !== personne.dossier) vus.set(`${v.hotel}|${v.hotel_adresse || ''}`, { hotel: v.hotel, hotel_adresse: v.hotel_adresse || '' })
     })
     return [...vus.values()]
   }, [personnes, personne.dossier])
@@ -571,15 +571,14 @@ function FenetreFiche({ personne, personnes, config, onClose, onSaved }) {
               <Ligne etiquette="Reprendre un hôtel">
                 <select style={{ ...INPUT, background: '#fff' }} value="" onChange={e => {
                   const h = hotelsConnus[Number(e.target.value)]
-                  if (h) setF(x => ({ ...x, hotel: h.hotel, hotel_categorie: h.hotel_categorie, hotel_adresse: h.hotel_adresse }))
+                  if (h) setF(x => ({ ...x, hotel: h.hotel, hotel_adresse: h.hotel_adresse }))
                 }}>
                   <option value="">- Copier l’hôtel d’une autre fiche -</option>
-                  {hotelsConnus.map((h, i) => <option key={i} value={i}>{h.hotel}{h.hotel_categorie ? ` (${h.hotel_categorie})` : ''}</option>)}
+                  {hotelsConnus.map((h, i) => <option key={i} value={i}>{h.hotel}</option>)}
                 </select>
               </Ligne>
             )}
             {ligneChamp('hotel', L.hotel, L.h.hotel)}
-            {ligneChamp('hotel_categorie', L.categorie, L.h.categorie)}
             {ligneChamp('hotel_adresse', L.adresse, L.h.adresse)}
             {fixe(L.dates, L.datesFixe)}
             {ligneChamp('hotel_confirmation', L.confirmation, L.h.confirmation)}
