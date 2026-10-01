@@ -719,18 +719,14 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
         {/* Recherche + filtres */}
         <div className="terrain-carte" style={{ ...CARTE, padding: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher (nom, organisation, dossier)…" style={{ ...INPUT, flex: 1, minWidth: 200, border: '1.5px solid #eef1f8', background: '#f8fafc' }} />
-          {niveau === 'admin' && (
-            <select value={filtreCategorie} onChange={e => setFiltreCategorie(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
-              <option value="tous">Toutes catégories</option>
-              {Object.entries(CAT_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
-            </select>
-          )}
-          {niveau === 'admin' && (
-            <select value={filtreDelegation} onChange={e => setFiltreDelegation(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
-              <option value="">Toutes délégations</option>
-              {delegations.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-          )}
+          <select value={filtreCategorie} onChange={e => setFiltreCategorie(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
+            <option value="tous">Toutes catégories</option>
+            {Object.entries(CAT_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          </select>
+          <select value={filtreDelegation} onChange={e => setFiltreDelegation(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
+            <option value="">Toutes délégations</option>
+            {delegations.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
           <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: '#334155', cursor: 'pointer' }}>
             <input type="checkbox" checked={aFaireSeulement} onChange={e => setAFaireSeulement(e.target.checked)} /> À faire seulement
           </label>
