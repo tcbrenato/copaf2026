@@ -14,6 +14,7 @@ import EcrireBouton from './EcrireBouton'
 import AdminEmails from '../pages/AdminEmails'
 import AdminVoyage from '../pages/AdminVoyage'
 import AdminLettresInvitation from '../pages/AdminLettresInvitation'
+import Terrain from '../pages/Terrain'
 import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
 import AdminDiagnostics from '../pages/AdminDiagnostics'
@@ -95,6 +96,7 @@ const MODULES = [
   { id: 'emails',      label: 'Envoyer un email', icon: 'mail',     table: null,            scope: 'all', adminOnly: true },
   { id: 'voyage',      label: 'Voyages & Guide',  icon: 'globe',    table: null,            scope: 'all', adminOnly: true },
   { id: 'lettres-invitation', label: 'Lettres & ordres de mission', icon: 'mail', table: null,     scope: 'all', adminOnly: true },
+  { id: 'terrain',     label: 'Terrain',          icon: 'globe',    table: null,            scope: 'all', adminOnly: true },
 ]
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -2792,16 +2794,10 @@ export default function AdminPage() {
             </button>
           ))}
           {(scope === 'all' || scope === 'checkin') && (
-            <>
-              <a href="/staff/scan" className="nav-item" style={{ textDecoration: 'none' }}>
-                <Icon name="search" size={18} color="rgba(255,255,255,.55)" />
-                <span style={{ whiteSpace: 'nowrap' }}>Scanner badges</span>
-              </a>
-              <a href="/terrain" className="nav-item" style={{ textDecoration: 'none' }}>
-                <Icon name="globe" size={18} color="rgba(255,255,255,.55)" />
-                <span style={{ whiteSpace: 'nowrap' }}>Tableau terrain</span>
-              </a>
-            </>
+            <a href="/staff/scan" className="nav-item" style={{ textDecoration: 'none' }}>
+              <Icon name="search" size={18} color="rgba(255,255,255,.55)" />
+              <span style={{ whiteSpace: 'nowrap' }}>Scanner badges</span>
+            </a>
           )}
         </nav>
 
@@ -2922,6 +2918,8 @@ export default function AdminPage() {
             <AdminVoyage />
           ) : activeModule === 'lettres-invitation' ? (
             <AdminLettresInvitation />
+          ) : activeModule === 'terrain' ? (
+            <Terrain embarque />
           ) : activeModule === 'intervenants' ? (
             <AdminIntervenants />
           ) : activeModule === 'analytics' ? (

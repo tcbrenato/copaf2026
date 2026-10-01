@@ -39,6 +39,7 @@ import { useNiveauTerrain } from '../utils/terrainAuth'
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
 const CLE_EQUIPIER = 'copaf_terrain_equipier' // partagee avec StaffScan.jsx — garder la meme chaine
+const ACCES_ADMIN = {} // reference stable (mode embarque) : evite de recreer les useCallback charger/chargerIncidents a chaque rendu
 
 const ETAPES = {
   aeroport: { label: 'Accueilli à l\'aéroport' },
@@ -227,13 +228,23 @@ function versCSV(entetes, lignes) {
   return '﻿' + csv
 }
 
-export default function Terrain() {
+// `embarque` : rendu comme module du tableau de bord admin (AdminDashboard.jsx)
+// plutot que comme page autonome /terrain — l'admin y arrive deja authentifie,
+// donc pas de detection dossier+PIN ni de bandeau pleine page (le tableau de
+// bord fournit deja son propre cadre). /terrain reste la seule porte d'entree
+// pour les comptes dossier+PIN (Yvette, Eliram, equipe Maroc).
+export default function Terrain({ embarque = false }) {
   // Detection du niveau d'acces au montage : compte Supabase Auth admin
   // (scope checkin/all) d'abord, sinon formulaire dossier+PIN (voir
   // ConnexionPin ci-dessous). Pas d'AuthGate ici : Terrain.jsx gere les deux
   // chemins lui-meme (App.jsx ne l'enveloppe plus). Logique partagee avec
-  // StaffScan.jsx via utils/terrainAuth.js.
-  const { niveau, identite, acces, connecter } = useNiveauTerrain()
+  // StaffScan.jsx via utils/terrainAuth.js. Toujours appelee (regles des
+  // hooks), ignoree si embarque puisque l'acces admin est deja garanti.
+  const hookTerrain = useNiveauTerrain()
+  const niveau = embarque ? 'admin' : hookTerrain.niveau
+  const identite = embarque ? null : hookTerrain.identite
+  const acces = embarque ? ACCES_ADMIN : hookTerrain.acces
+  const connecter = hookTerrain.connecter
   const authorized = niveau === 'admin' || niveau === 'limite'
 
   const [equipier, setEquipier] = useState(() => localStorage.getItem(CLE_EQUIPIER) || '')
@@ -502,50 +513,72 @@ export default function Terrain() {
     )
   }
 
-  return (
-    <div style={{ minHeight: '100vh', background: '#f1f5fb', fontFamily: "'Plus Jakarta Sans', sans-serif", padding: '0 0 60px' }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap');
-        .terrain-carte { transition: box-shadow .15s ease, transform .15s ease; }
-        .terrain-carte:hover { box-shadow: 0 10px 26px -8px rgba(15,23,42,.14); transform: translateY(-1px); }
-        .terrain-modal-overlay { animation: terrainFadeIn .15s ease; }
-        .terrain-modal-box { animation: terrainPopIn .18s cubic-bezier(.2,.9,.3,1.2); }
-        @keyframes terrainFadeIn { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes terrainPopIn { from { opacity: 0; transform: scale(.96) translateY(6px) } to { opacity: 1; transform: scale(1) translateY(0) } }
-        @media print {
-          body * { visibility: hidden; }
-          #feuille-impression, #feuille-impression * { visibility: visible; }
-          #feuille-impression { position: absolute; left: 0; top: 0; width: 100%; }
-        }
-      `}</style>
+  const styleCommun = (
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap');
+      .terrain-carte { transition: box-shadow .15s ease, transform .15s ease; }
+      .terrain-carte:hover { box-shadow: 0 10px 26px -8px rgba(15,23,42,.14); transform: translateY(-1px); }
+      .terrain-modal-overlay { animation: terrainFadeIn .15s ease; }
+      .terrain-modal-box { animation: terrainPopIn .18s cubic-bezier(.2,.9,.3,1.2); }
+      @keyframes terrainFadeIn { from { opacity: 0 } to { opacity: 1 } }
+      @keyframes terrainPopIn { from { opacity: 0; transform: scale(.96) translateY(6px) } to { opacity: 1; transform: scale(1) translateY(0) } }
+      @media print {
+        body * { visibility: hidden; }
+        #feuille-impression, #feuille-impression * { visibility: visible; }
+        #feuille-impression { position: absolute; left: 0; top: 0; width: 100%; }
+      }
+    `}</style>
+  )
 
-      {/* Bandeau d'en-tete */}
-      <div style={{ background: `linear-gradient(120deg, ${NAVY}, #001a66 60%, ${BLUE})`, padding: '22px 16px 46px' }}>
-        <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 11, color: '#93c5fd', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>COPAF 2026 · Terrain</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginTop: 2 }}>Tableau de bord terrain</div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            {niveau === 'admin' ? (
-              <button type="button" onClick={() => setEditionEquipier(true)} style={{ ...BTN, background: 'rgba(255,255,255,.14)', color: '#fff', border: '1px solid rgba(255,255,255,.25)' }}>
-                <Ico name="user" size={13} color="#fff" /> {equipier}
-              </button>
-            ) : (
-              <span style={{ ...BTN, background: 'rgba(255,255,255,.14)', color: '#fff', border: '1px solid rgba(255,255,255,.25)', cursor: 'default' }}>
-                <Ico name="user" size={13} color="#fff" /> {auteurAffiche}
-              </span>
-            )}
-            {niveau === 'admin' && (
-              <Link to="/staff/scan" style={{ ...BTN, background: '#fff', color: NAVY, textDecoration: 'none' }}>
-                <Ico name="search" size={13} color={NAVY} /> Scanner
-              </Link>
-            )}
-          </div>
+  // Entete : bandeau degrade pleine page en page autonome (/terrain), simple
+  // titre + actions en ligne quand le tableau de bord fournit deja son cadre.
+  const entete = embarque ? (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+      <div>
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: '#0a1128', margin: '0 0 4px' }}>Terrain</h2>
+        <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Accueil aéroport, hôtel, badge, conférence et départ — une action = une étape enregistrée.</p>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <button type="button" onClick={() => setEditionEquipier(true)} style={{ ...BTN, background: '#eef2ff', color: NAVY }}>
+          <Ico name="user" size={13} color={NAVY} /> {equipier}
+        </button>
+        <Link to="/staff/scan" style={{ ...BTN, background: '#eef2ff', color: NAVY, textDecoration: 'none' }}>
+          <Ico name="search" size={13} color={NAVY} /> Scanner
+        </Link>
+      </div>
+    </div>
+  ) : (
+    <div style={{ background: `linear-gradient(120deg, ${NAVY}, #001a66 60%, ${BLUE})`, padding: '22px 16px 46px' }}>
+      <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, color: '#93c5fd', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>COPAF 2026 · Terrain</div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginTop: 2 }}>Tableau de bord terrain</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          {niveau === 'admin' ? (
+            <button type="button" onClick={() => setEditionEquipier(true)} style={{ ...BTN, background: 'rgba(255,255,255,.14)', color: '#fff', border: '1px solid rgba(255,255,255,.25)' }}>
+              <Ico name="user" size={13} color="#fff" /> {equipier}
+            </button>
+          ) : (
+            <span style={{ ...BTN, background: 'rgba(255,255,255,.14)', color: '#fff', border: '1px solid rgba(255,255,255,.25)', cursor: 'default' }}>
+              <Ico name="user" size={13} color="#fff" /> {auteurAffiche}
+            </span>
+          )}
+          {niveau === 'admin' && (
+            <Link to="/staff/scan" style={{ ...BTN, background: '#fff', color: NAVY, textDecoration: 'none' }}>
+              <Ico name="search" size={13} color={NAVY} /> Scanner
+            </Link>
+          )}
         </div>
       </div>
+    </div>
+  )
 
-      <div style={{ maxWidth: 960, margin: '-28px auto 0', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+  const contenu = (
+    <>
+      {styleCommun}
+      {entete}
+      <div style={{ maxWidth: 960, margin: embarque ? '14px auto 0' : '-28px auto 0', padding: embarque ? 0 : '0 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {!enLigne && (
           <div style={{ background: '#fef2f2', border: '1.5px solid #fecaca', borderRadius: 12, padding: '10px 14px', color: '#991b1b', fontSize: 13, fontWeight: 700 }}>
             Hors connexion — utilisez la liste papier. Les actions sont désactivées.
@@ -748,6 +781,16 @@ export default function Terrain() {
         </>
         )}
       </div>
+    </>
+  )
+
+  return (
+    <>
+      {embarque ? contenu : (
+        <div style={{ minHeight: '100vh', background: '#f1f5fb', fontFamily: "'Plus Jakarta Sans', sans-serif", padding: '0 0 60px' }}>
+          {contenu}
+        </div>
+      )}
 
       {modalTablette && (
         <ModalValeur
@@ -768,7 +811,7 @@ export default function Terrain() {
       {modalIncident && (
         <ModalIncident personne={modalIncident.personne} onValider={creerIncident} onFermer={() => setModalIncident(null)} />
       )}
-    </div>
+    </>
   )
 }
 
