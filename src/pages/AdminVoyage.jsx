@@ -85,11 +85,13 @@ export default function AdminVoyage() {
       <div style={{ display: 'flex', gap: 8 }}>
         <button type="button" style={tab('guide')} onClick={() => setOnglet('guide')}>Guide du participant</button>
         <button type="button" style={tab('fiches')} onClick={() => setOnglet('fiches')}>Fiches de voyage</button>
+        <button type="button" style={tab('arrivees')} onClick={() => setOnglet('arrivees')}>Arrivées &amp; départs groupés</button>
       </div>
       {erreur && <p style={{ color: '#dc2626', fontSize: 13.5, margin: 0 }}>{erreur}</p>}
       {personnes === null && !erreur && <p style={{ color: '#64748b', fontSize: 13.5, margin: 0 }}>Chargement…</p>}
       {personnes !== null && onglet === 'guide' && <OngletGuide config={config} setConfig={setConfig} publie={publie} setPublie={setPublie} personnes={personnes} recharger={charger} />}
       {personnes !== null && onglet === 'fiches' && <OngletFiches config={config} personnes={personnes} recharger={charger} />}
+      {personnes !== null && onglet === 'arrivees' && <OngletArrivees personnes={personnes} />}
     </div>
   )
 }
@@ -349,6 +351,93 @@ function OngletFiches({ config, personnes, recharger }) {
       </div>
       {edition && <FenetreFiche personne={edition} personnes={personnes} config={config} onClose={() => setEdition(null)} onSaved={() => { recharger() }} />}
     </>
+  )
+}
+
+// ─────────────────────────── Arrivées & départs groupés ───────────────────────────
+// Regroupe tout le monde (participants + intervenants) par vol exact (date +
+// heure + numero), pour l'accueil aeroport : un vol = un groupe de personnes
+// a reconnaitre et transferer ensemble, qu'elles soient inscrites comme
+// participant ou intervenant.
+function cleVol(v) {
+  if (!v?.date || !v?.heure) return null
+  return `${v.date}|${v.heure}|${v.numero || ''}|${v.compagnie || ''}`
+}
+
+function grouperParVol(personnes, champ) {
+  const groupes = new Map()
+  personnes.forEach(p => {
+    const v = p.voyage?.[champ]
+    const cle = cleVol(v)
+    if (!cle) return
+    if (!groupes.has(cle)) groupes.set(cle, { ...v, personnes: [] })
+    groupes.get(cle).personnes.push(p)
+  })
+  return [...groupes.values()].sort((a, b) => `${a.date} ${a.heure}`.localeCompare(`${b.date} ${b.heure}`))
+}
+
+const fmtDateLongue = d => (d ? new Date(`${d}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' }) : '')
+
+function GroupeVol({ groupe, directionIcone, sansVolLabel }) {
+  return (
+    <div style={{ ...CARTE, padding: 18 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 18 }}>{directionIcone}</span>
+          <div>
+            <div style={{ fontSize: 14.5, fontWeight: 800, color: '#0a1128', textTransform: 'capitalize' }}>{fmtDateLongue(groupe.date)} · {groupe.heure}</div>
+            <div style={{ fontSize: 12.5, color: '#64748b' }}>{[groupe.compagnie, groupe.numero].filter(Boolean).join(' ') || sansVolLabel}</div>
+          </div>
+        </div>
+        <span style={{ fontSize: 12, fontWeight: 800, color: NAVY, background: '#eef2ff', borderRadius: 100, padding: '4px 12px' }}>
+          {groupe.personnes.length} personne{groupe.personnes.length > 1 ? 's' : ''}
+        </span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {groupe.personnes.map(p => (
+          <div key={p.dossier} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f8faff', borderRadius: 10, flexWrap: 'wrap' }}>
+            <div>
+              <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{p.prenom} {p.nom}</span>
+              {p.type === 'intervenant' && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#7c3aed', background: '#f3e8ff', borderRadius: 100, padding: '1px 7px' }}>Intervenant</span>}
+              <div style={{ fontSize: 11, color: '#94a3b8' }}>{p.organisation || '—'} · {p.dossier}</div>
+            </div>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: p.voyage?.hotel ? '#166534' : '#b45309', background: p.voyage?.hotel ? '#dcfce7' : '#fffbeb', borderRadius: 100, padding: '3px 10px', whiteSpace: 'nowrap' }}>
+              {p.voyage?.hotel || 'Hôtel à attribuer'}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function OngletArrivees({ personnes }) {
+  const arrivees = useMemo(() => grouperParVol(personnes, 'vol_aller'), [personnes])
+  const departs = useMemo(() => grouperParVol(personnes, 'vol_retour'), [personnes])
+  const sansVol = personnes.filter(p => !p.voyage?.vol_aller && !p.voyage?.vol_retour).length
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
+        Tout le monde (participants et intervenants) groupé par vol exact — pratique pour savoir combien de personnes accueillir ou transférer en même temps, et à quelle heure. {sansVol > 0 && `${sansVol} personne(s) sans vol renseigné.`}
+      </p>
+
+      <div>
+        <h3 style={{ fontSize: 15, fontWeight: 800, color: '#0a1128', margin: '0 0 10px' }}>↘ Arrivées à Casablanca ({arrivees.length} vol{arrivees.length > 1 ? 's' : ''})</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {arrivees.length === 0 && <p style={{ fontSize: 13, color: '#94a3b8' }}>Aucun vol aller renseigné pour le moment.</p>}
+          {arrivees.map(g => <GroupeVol key={cleVol(g)} groupe={g} directionIcone="↘" sansVolLabel="Vol non précisé" />)}
+        </div>
+      </div>
+
+      <div>
+        <h3 style={{ fontSize: 15, fontWeight: 800, color: '#0a1128', margin: '0 0 10px' }}>↗ Départs de Casablanca ({departs.length} vol{departs.length > 1 ? 's' : ''})</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {departs.length === 0 && <p style={{ fontSize: 13, color: '#94a3b8' }}>Aucun vol retour renseigné pour le moment.</p>}
+          {departs.map(g => <GroupeVol key={cleVol(g)} groupe={g} directionIcone="↗" sansVolLabel="Vol non précisé" />)}
+        </div>
+      </div>
+    </div>
   )
 }
 
