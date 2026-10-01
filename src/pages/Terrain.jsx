@@ -59,6 +59,7 @@ const MODES = [
   { id: 'visite', label: 'Visite J3', etapes: ['present'], tri: 'nom', jourFixe: '2026-10-21' },
   { id: 'depart', label: 'Départ', etapes: ['tablette_rendue', 'depart'], tri: 'depart' },
   { id: 'tout', label: 'Tout', etapes: TOUTES_ETAPES, tri: 'nom', lecture: true },
+  { id: 'arrivees', label: 'Arrivées & départs groupés', etapes: [], tri: 'nom', lecture: true, vue: 'groupes', adminOnly: true },
 ]
 
 const INCIDENT_TYPES = [
@@ -85,6 +86,134 @@ const boutonAction = bg => ({ ...BTN, background: bg, color: '#fff', padding: '1
 const INPUT = { width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1.5px solid #e2e8f0', borderRadius: 10, fontSize: 13.5, fontFamily: 'inherit', outline: 'none' }
 const CARTE = { background: '#fff', borderRadius: 16, border: '1px solid #eef1f8', boxShadow: '0 4px 14px -4px rgba(15,23,42,.08)' }
 const PILL_CAT = { participant: { bg: '#ecfeff', fg: '#0e7490', bd: '#a5f3fc' }, intervenant: { bg: '#f5f3ff', fg: '#6d28d9', bd: '#ddd6fe' }, organisation: { bg: '#fffbeb', fg: '#b45309', bd: '#fde68a' } }
+
+// ── Arrivées & départs groupés (admin uniquement) : tout le monde groupé
+// par vol exact (date+heure+numero), dans les deux sens — pratique pour
+// l'accueil aeroport et les transferts (voir aussi l'onglet equivalent
+// dans Voyages & Guide, meme logique de groupement). Requete independante
+// de terrain_liste (qui ne renvoie pas la date du vol), sur les memes
+// tables que AdminVoyage.jsx.
+function cleVolTerrain(v) {
+  if (!v?.date || !v?.heure) return null
+  return `${v.date}|${v.heure}|${v.numero || ''}|${v.compagnie || ''}`
+}
+function grouperParVolTerrain(personnes, champ) {
+  const groupes = new Map()
+  personnes.forEach(p => {
+    const v = p[champ]
+    const cle = cleVolTerrain(v)
+    if (!cle) return
+    if (!groupes.has(cle)) groupes.set(cle, { ...v, personnes: [] })
+    groupes.get(cle).personnes.push(p)
+  })
+  return [...groupes.values()].sort((a, b) => `${a.date} ${a.heure}`.localeCompare(`${b.date} ${b.heure}`))
+}
+const fmtDateLongueTerrain = d => (d ? new Date(`${d}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' }) : '')
+
+function GroupeVolTerrain({ groupe, directionIcone }) {
+  return (
+    <div className="terrain-carte" style={{ ...CARTE, padding: 16 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 17 }}>{directionIcone}</span>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>{fmtDateLongueTerrain(groupe.date)} · {groupe.heure}</div>
+            <div style={{ fontSize: 12, color: '#64748b' }}>{[groupe.compagnie, groupe.numero].filter(Boolean).join(' ') || 'Vol non précisé'}</div>
+          </div>
+        </div>
+        <span style={{ fontSize: 11.5, fontWeight: 800, color: NAVY, background: '#eef2ff', borderRadius: 100, padding: '3px 11px' }}>
+          {groupe.personnes.length} personne{groupe.personnes.length > 1 ? 's' : ''}
+        </span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {groupe.personnes.map(p => {
+          const pill = PILL_CAT[p.categorie] || { bg: '#f1f5f9', fg: '#475569', bd: '#e2e8f0' }
+          return (
+            <div key={`${p.personne_type}:${p.personne_id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '7px 11px', background: '#f8faff', borderRadius: 10, flexWrap: 'wrap' }}>
+              <div>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: '#0f172a' }}>{p.prenom} {p.nom}</span>
+                <span style={{ marginLeft: 6, fontSize: 9.5, fontWeight: 800, color: pill.fg, background: pill.bg, border: `1px solid ${pill.bd}`, borderRadius: 20, padding: '1px 7px' }}>{CAT_LABEL[p.categorie]}</span>
+                <div style={{ fontSize: 10.5, color: '#94a3b8' }}>{p.organisation || '—'} · {p.dossier}</div>
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: p.hotel ? '#166534' : '#b45309', background: p.hotel ? '#dcfce7' : '#fffbeb', borderRadius: 100, padding: '2px 9px', whiteSpace: 'nowrap' }}>
+                {p.hotel || 'Hôtel à attribuer'}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function VueArriveesGroupees({ acces }) {
+  const [personnes, setPersonnes] = useState(null)
+  const [erreur, setErreur] = useState('')
+
+  useEffect(() => {
+    let annule = false
+    ;(async () => {
+      const [insc, parts, interv, voy] = await Promise.all([
+        supabase.from('inscriptions').select('dossier, paiement_status, contacts(nom, prenom, organisation)'),
+        supabase.from('inscription_participants').select('dossier, nom, prenom, inscriptions(paiement_status, contacts(organisation))'),
+        supabase.from('intervenants').select('dossier, nom, prenom, organisation, equipe'),
+        supabase.from('voyages').select('dossier, vol_aller, vol_retour, hotel'),
+      ])
+      if (annule) return
+      if (insc.error || parts.error || interv.error || voy.error) { setErreur('Chargement impossible (droits administrateur requis).'); return }
+      const voyages = Object.fromEntries((voy.data || []).map(v => [v.dossier, v]))
+      const trimme = s => String(s || '').trim() || null
+      const liste = [
+        ...(insc.data || []).filter(i => i.paiement_status !== 'annule' && i.paiement_status !== 'prospect').map(i => ({
+          personne_type: 'inscription', personne_id: i.dossier, dossier: i.dossier,
+          nom: trimme(i.contacts?.nom), prenom: trimme(i.contacts?.prenom), organisation: trimme(i.contacts?.organisation), categorie: 'participant',
+          vol_aller: voyages[i.dossier]?.vol_aller || null, vol_retour: voyages[i.dossier]?.vol_retour || null, hotel: voyages[i.dossier]?.hotel || null,
+        })),
+        ...(parts.data || []).filter(p => p.inscriptions?.paiement_status !== 'annule' && p.inscriptions?.paiement_status !== 'prospect').map(p => ({
+          personne_type: 'participant_groupe', personne_id: p.dossier, dossier: p.dossier,
+          nom: trimme(p.nom), prenom: trimme(p.prenom), organisation: trimme(p.inscriptions?.contacts?.organisation), categorie: 'participant',
+          vol_aller: voyages[p.dossier]?.vol_aller || null, vol_retour: voyages[p.dossier]?.vol_retour || null, hotel: voyages[p.dossier]?.hotel || null,
+        })),
+        ...(interv.data || []).map(v => ({
+          personne_type: v.equipe ? 'equipe' : 'intervenant', personne_id: v.dossier, dossier: v.dossier,
+          nom: trimme(v.nom), prenom: trimme(v.prenom), organisation: trimme(v.organisation), categorie: v.equipe ? 'organisation' : 'intervenant',
+          vol_aller: voyages[v.dossier]?.vol_aller || null, vol_retour: voyages[v.dossier]?.vol_retour || null, hotel: voyages[v.dossier]?.hotel || null,
+        })),
+      ]
+      setPersonnes(liste)
+    })()
+    return () => { annule = true }
+  }, [acces])
+
+  if (erreur) return <p style={{ color: '#dc2626', fontSize: 13.5 }}>{erreur}</p>
+  if (personnes === null) return <p style={{ color: '#64748b', fontSize: 13.5 }}>Chargement…</p>
+
+  const arrivees = grouperParVolTerrain(personnes, 'vol_aller')
+  const departs = grouperParVolTerrain(personnes, 'vol_retour')
+  const sansVol = personnes.filter(p => !p.vol_aller && !p.vol_retour).length
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <p style={{ fontSize: 12.5, color: '#64748b', margin: 0 }}>
+        Tout le monde groupé par vol exact — qui arrive ou repart ensemble, et à quelle heure. {sansVol > 0 && `${sansVol} personne(s) sans vol renseigné.`}
+      </p>
+      <div>
+        <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0a1128', margin: '0 0 10px' }}>↘ Arrivées à Casablanca ({arrivees.length})</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {arrivees.length === 0 && <p style={{ fontSize: 12.5, color: '#94a3b8' }}>Aucun vol aller renseigné.</p>}
+          {arrivees.map(g => <GroupeVolTerrain key={cleVolTerrain(g)} groupe={g} directionIcone="↘" />)}
+        </div>
+      </div>
+      <div>
+        <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0a1128', margin: '0 0 10px' }}>↗ Départs de Casablanca ({departs.length})</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {departs.length === 0 && <p style={{ fontSize: 12.5, color: '#94a3b8' }}>Aucun vol retour renseigné.</p>}
+          {departs.map(g => <GroupeVolTerrain key={cleVolTerrain(g)} groupe={g} directionIcone="↗" />)}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function telechargerFichier(nom, contenu, type) {
   const blob = new Blob([contenu], { type })
@@ -441,7 +570,7 @@ export default function Terrain() {
             </button>
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {MODES.map(m => (
+            {MODES.filter(m => !m.adminOnly || niveau === 'admin').map(m => (
               <button key={m.id} type="button" onClick={() => setModeId(m.id)} style={{
                 ...BTN, padding: '8px 15px', borderRadius: 100,
                 background: modeId === m.id ? `linear-gradient(135deg, ${NAVY}, ${BLUE})` : '#f1f5f9',
@@ -470,6 +599,10 @@ export default function Terrain() {
           </div>
         )}
 
+        {mode.vue === 'groupes' ? (
+          <VueArriveesGroupees acces={acces} />
+        ) : (
+        <>
         {/* Compteurs */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10 }}>
           {compteurs.map(c => {
@@ -612,6 +745,8 @@ export default function Terrain() {
             </tbody>
           </table>
         </div>
+        </>
+        )}
       </div>
 
       {modalTablette && (
