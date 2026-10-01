@@ -111,7 +111,18 @@ function grouperParVolTerrain(personnes, champ) {
 }
 const fmtDateLongueTerrain = d => (d ? new Date(`${d}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' }) : '')
 
-function GroupeVolTerrain({ groupe, directionIcone }) {
+// Statut partage d'un vol (pas d'une personne), meme table vols_statut que
+// Voyages & Guide — une delegation entiere partage le meme vol.
+const VOL_STATUTS_TERRAIN = {
+  a_heure: { label: 'À l\'heure', bg: '#dcfce7', fg: '#166534' },
+  retard: { label: 'Retardé', bg: '#fef3c7', fg: '#92400e' },
+  atterri: { label: 'Atterri', bg: '#dbeafe', fg: '#1e40af' },
+  annule: { label: 'Annulé', bg: '#fee2e2', fg: '#991b1b' },
+}
+const cleVolStatutTerrain = (numero, date) => `${numero || ''}|${date || ''}`
+const lienVolGoogleTerrain = numero => `https://www.google.com/search?q=${encodeURIComponent(`${numero} vol statut`)}`
+
+function GroupeVolTerrain({ groupe, directionIcone, statut, onChangerStatut }) {
   return (
     <div className="terrain-carte" style={{ ...CARTE, padding: 16 }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 10 }}>
@@ -119,13 +130,34 @@ function GroupeVolTerrain({ groupe, directionIcone }) {
           <span style={{ fontSize: 17 }}>{directionIcone}</span>
           <div>
             <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f172a', textTransform: 'capitalize' }}>{fmtDateLongueTerrain(groupe.date)} · {groupe.heure}</div>
-            <div style={{ fontSize: 12, color: '#64748b' }}>{[groupe.compagnie, groupe.numero].filter(Boolean).join(' ') || 'Vol non précisé'}</div>
+            <div style={{ fontSize: 12, color: '#64748b', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {[groupe.compagnie, groupe.numero].filter(Boolean).join(' ') || 'Vol non précisé'}
+              {groupe.numero && (
+                <a href={lienVolGoogleTerrain(groupe.numero)} target="_blank" rel="noopener noreferrer" style={{ color: NAVY, textDecoration: 'underline', fontSize: 11 }}>
+                  Vérifier le statut ↗
+                </a>
+              )}
+            </div>
           </div>
         </div>
         <span style={{ fontSize: 11.5, fontWeight: 800, color: NAVY, background: '#eef2ff', borderRadius: 100, padding: '3px 11px' }}>
           {groupe.personnes.length} personne{groupe.personnes.length > 1 ? 's' : ''}
         </span>
       </div>
+      {groupe.numero && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+          {Object.entries(VOL_STATUTS_TERRAIN).map(([id, v]) => (
+            <button key={id} type="button" onClick={() => onChangerStatut(groupe.numero, groupe.date, id)} style={{
+              ...BTN, padding: '4px 10px', fontSize: 11,
+              background: (statut?.statut || 'a_heure') === id ? v.bg : '#f1f5f9',
+              color: (statut?.statut || 'a_heure') === id ? v.fg : '#94a3b8',
+              border: (statut?.statut || 'a_heure') === id ? `1.5px solid ${v.fg}33` : '1.5px solid transparent',
+            }}>
+              {v.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {groupe.personnes.map(p => {
           const pill = PILL_CAT[p.categorie] || { bg: '#f1f5f9', fg: '#475569', bd: '#e2e8f0' }
@@ -150,18 +182,28 @@ function GroupeVolTerrain({ groupe, directionIcone }) {
 function VueArriveesGroupees({ acces }) {
   const [personnes, setPersonnes] = useState(null)
   const [erreur, setErreur] = useState('')
+  const [statuts, setStatuts] = useState({})
+
+  const changerStatut = async (numero, date, statut) => {
+    const { data: u } = await supabase.auth.getUser()
+    const ligne = { numero, date, statut, maj_par: u?.user?.email || null, updated_at: new Date().toISOString() }
+    setStatuts(s => ({ ...s, [cleVolStatutTerrain(numero, date)]: ligne }))
+    await supabase.from('vols_statut').upsert(ligne, { onConflict: 'numero,date' })
+  }
 
   useEffect(() => {
     let annule = false
     ;(async () => {
-      const [insc, parts, interv, voy] = await Promise.all([
+      const [insc, parts, interv, voy, vstatuts] = await Promise.all([
         supabase.from('inscriptions').select('dossier, paiement_status, contacts(nom, prenom, organisation)'),
         supabase.from('inscription_participants').select('dossier, nom, prenom, inscriptions(paiement_status, contacts(organisation))'),
         supabase.from('intervenants').select('dossier, nom, prenom, organisation, equipe'),
         supabase.from('voyages').select('dossier, vol_aller, vol_retour, hotel'),
+        supabase.from('vols_statut').select('*'),
       ])
       if (annule) return
       if (insc.error || parts.error || interv.error || voy.error) { setErreur('Chargement impossible (droits administrateur requis).'); return }
+      setStatuts(Object.fromEntries((vstatuts.data || []).map(s => [cleVolStatutTerrain(s.numero, s.date), s])))
       const voyages = Object.fromEntries((voy.data || []).map(v => [v.dossier, v]))
       const trimme = s => String(s || '').trim() || null
       const liste = [
@@ -202,14 +244,14 @@ function VueArriveesGroupees({ acces }) {
         <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0a1128', margin: '0 0 10px' }}>↘ Arrivées à Casablanca ({arrivees.length})</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {arrivees.length === 0 && <p style={{ fontSize: 12.5, color: '#94a3b8' }}>Aucun vol aller renseigné.</p>}
-          {arrivees.map(g => <GroupeVolTerrain key={cleVolTerrain(g)} groupe={g} directionIcone="↘" />)}
+          {arrivees.map(g => <GroupeVolTerrain key={cleVolTerrain(g)} groupe={g} directionIcone="↘" statut={statuts[cleVolStatutTerrain(g.numero, g.date)]} onChangerStatut={changerStatut} />)}
         </div>
       </div>
       <div>
         <h3 style={{ fontSize: 14, fontWeight: 800, color: '#0a1128', margin: '0 0 10px' }}>↗ Départs de Casablanca ({departs.length})</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {departs.length === 0 && <p style={{ fontSize: 12.5, color: '#94a3b8' }}>Aucun vol retour renseigné.</p>}
-          {departs.map(g => <GroupeVolTerrain key={cleVolTerrain(g)} groupe={g} directionIcone="↗" />)}
+          {departs.map(g => <GroupeVolTerrain key={cleVolTerrain(g)} groupe={g} directionIcone="↗" statut={statuts[cleVolStatutTerrain(g.numero, g.date)]} onChangerStatut={changerStatut} />)}
         </div>
       </div>
     </div>

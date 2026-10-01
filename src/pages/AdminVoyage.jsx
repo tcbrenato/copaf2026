@@ -378,7 +378,20 @@ function grouperParVol(personnes, champ) {
 
 const fmtDateLongue = d => (d ? new Date(`${d}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long' }) : '')
 
-function GroupeVol({ groupe, directionIcone, sansVolLabel }) {
+// Statut partage d'un vol (pas d'une personne) : table vols_statut, cle
+// numero+date — une delegation entiere partage le meme vol, inutile de
+// redemander le statut pour chacun. Saisi par l'equipe aeroport, visible
+// aussitot par les equipes hotel/transport (meme table lue des deux vues).
+const VOL_STATUTS = {
+  a_heure: { label: 'À l\'heure', bg: '#dcfce7', fg: '#166534' },
+  retard: { label: 'Retardé', bg: '#fef3c7', fg: '#92400e' },
+  atterri: { label: 'Atterri', bg: '#dbeafe', fg: '#1e40af' },
+  annule: { label: 'Annulé', bg: '#fee2e2', fg: '#991b1b' },
+}
+const cleVolStatut = (numero, date) => `${numero || ''}|${date || ''}`
+const lienVolGoogle = numero => `https://www.google.com/search?q=${encodeURIComponent(`${numero} vol statut`)}`
+
+function GroupeVol({ groupe, directionIcone, sansVolLabel, statut, onChangerStatut }) {
   return (
     <div style={{ ...CARTE, padding: 18 }}>
       <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 12 }}>
@@ -386,13 +399,35 @@ function GroupeVol({ groupe, directionIcone, sansVolLabel }) {
           <span style={{ fontSize: 18 }}>{directionIcone}</span>
           <div>
             <div style={{ fontSize: 14.5, fontWeight: 800, color: '#0a1128', textTransform: 'capitalize' }}>{fmtDateLongue(groupe.date)} · {groupe.heure}</div>
-            <div style={{ fontSize: 12.5, color: '#64748b' }}>{[groupe.compagnie, groupe.numero].filter(Boolean).join(' ') || sansVolLabel}</div>
+            <div style={{ fontSize: 12.5, color: '#64748b', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {[groupe.compagnie, groupe.numero].filter(Boolean).join(' ') || sansVolLabel}
+              {groupe.numero && (
+                <a href={lienVolGoogle(groupe.numero)} target="_blank" rel="noopener noreferrer" style={{ color: NAVY, textDecoration: 'underline', fontSize: 11.5 }}>
+                  Vérifier le statut ↗
+                </a>
+              )}
+            </div>
           </div>
         </div>
         <span style={{ fontSize: 12, fontWeight: 800, color: NAVY, background: '#eef2ff', borderRadius: 100, padding: '4px 12px' }}>
           {groupe.personnes.length} personne{groupe.personnes.length > 1 ? 's' : ''}
         </span>
       </div>
+      {groupe.numero && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+          {Object.entries(VOL_STATUTS).map(([id, v]) => (
+            <button key={id} type="button" onClick={() => onChangerStatut(groupe.numero, groupe.date, id)} style={{
+              ...BTN, padding: '5px 11px', fontSize: 11.5,
+              background: (statut?.statut || 'a_heure') === id ? v.bg : '#f1f5f9',
+              color: (statut?.statut || 'a_heure') === id ? v.fg : '#94a3b8',
+              border: (statut?.statut || 'a_heure') === id ? `1.5px solid ${v.fg}33` : '1.5px solid transparent',
+            }}>
+              {v.label}
+            </button>
+          ))}
+          {statut?.maj_par && <span style={{ fontSize: 10.5, color: '#94a3b8', alignSelf: 'center' }}>— {statut.maj_par}</span>}
+        </div>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {groupe.personnes.map(p => (
           <div key={p.dossier} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '8px 12px', background: '#f8faff', borderRadius: 10, flexWrap: 'wrap' }}>
@@ -416,6 +451,20 @@ function OngletArrivees({ personnes }) {
   const departs = useMemo(() => grouperParVol(personnes, 'vol_retour'), [personnes])
   const sansVol = personnes.filter(p => !p.voyage?.vol_aller && !p.voyage?.vol_retour).length
 
+  const [statuts, setStatuts] = useState({})
+  const chargerStatuts = useCallback(async () => {
+    const { data } = await supabase.from('vols_statut').select('*')
+    setStatuts(Object.fromEntries((data || []).map(s => [cleVolStatut(s.numero, s.date), s])))
+  }, [])
+  useEffect(() => { chargerStatuts() }, [chargerStatuts]) // eslint-disable-line react-hooks/set-state-in-effect
+
+  const changerStatut = async (numero, date, statut) => {
+    const { data: u } = await supabase.auth.getUser()
+    const ligne = { numero, date, statut, maj_par: u?.user?.email || null, updated_at: new Date().toISOString() }
+    setStatuts(s => ({ ...s, [cleVolStatut(numero, date)]: ligne }))
+    await supabase.from('vols_statut').upsert(ligne, { onConflict: 'numero,date' })
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>
@@ -426,7 +475,7 @@ function OngletArrivees({ personnes }) {
         <h3 style={{ fontSize: 15, fontWeight: 800, color: '#0a1128', margin: '0 0 10px' }}>↘ Arrivées à Casablanca ({arrivees.length} vol{arrivees.length > 1 ? 's' : ''})</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {arrivees.length === 0 && <p style={{ fontSize: 13, color: '#94a3b8' }}>Aucun vol aller renseigné pour le moment.</p>}
-          {arrivees.map(g => <GroupeVol key={cleVol(g)} groupe={g} directionIcone="↘" sansVolLabel="Vol non précisé" />)}
+          {arrivees.map(g => <GroupeVol key={cleVol(g)} groupe={g} directionIcone="↘" sansVolLabel="Vol non précisé" statut={statuts[cleVolStatut(g.numero, g.date)]} onChangerStatut={changerStatut} />)}
         </div>
       </div>
 
@@ -434,7 +483,7 @@ function OngletArrivees({ personnes }) {
         <h3 style={{ fontSize: 15, fontWeight: 800, color: '#0a1128', margin: '0 0 10px' }}>↗ Départs de Casablanca ({departs.length} vol{departs.length > 1 ? 's' : ''})</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {departs.length === 0 && <p style={{ fontSize: 13, color: '#94a3b8' }}>Aucun vol retour renseigné pour le moment.</p>}
-          {departs.map(g => <GroupeVol key={cleVol(g)} groupe={g} directionIcone="↗" sansVolLabel="Vol non précisé" />)}
+          {departs.map(g => <GroupeVol key={cleVol(g)} groupe={g} directionIcone="↗" sansVolLabel="Vol non précisé" statut={statuts[cleVolStatut(g.numero, g.date)]} onChangerStatut={changerStatut} />)}
         </div>
       </div>
     </div>
