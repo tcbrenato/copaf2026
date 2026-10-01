@@ -275,7 +275,7 @@ function versCSV(entetes, lignes) {
 // donc pas de detection dossier+PIN ni de bandeau pleine page (le tableau de
 // bord fournit deja son propre cadre). /terrain reste la seule porte d'entree
 // pour les comptes dossier+PIN (Yvette, Eliram, equipe Maroc).
-export default function Terrain({ embarque = false }) {
+export default function Terrain({ embarque = false, authEmail = '' }) {
   // Detection du niveau d'acces au montage : compte Supabase Auth admin
   // (scope checkin/all) d'abord, sinon formulaire dossier+PIN (voir
   // ConnexionPin ci-dessous). Pas d'AuthGate ici : Terrain.jsx gere les deux
@@ -289,12 +289,19 @@ export default function Terrain({ embarque = false }) {
   const connecter = hookTerrain.connecter
   const authorized = niveau === 'admin' || niveau === 'limite'
 
+  // "equipier" (saisie libre, memorisee par navigateur) ne sert que sur la
+  // page /terrain autonome, ou plusieurs personnes peuvent se relayer sur un
+  // meme appareil admin partage sans compte individuel. Embarque dans le
+  // tableau de bord, l'admin est deja identifie (son email de connexion) —
+  // pas de champ modifiable, pour eviter qu'un nom laisse par quelqu'un
+  // d'autre reste affiche sans qu'on comprenne pourquoi.
   const [equipier, setEquipier] = useState(() => localStorage.getItem(CLE_EQUIPIER) || '')
-  const [editionEquipier, setEditionEquipier] = useState(!equipier)
+  const [editionEquipier, setEditionEquipier] = useState(!embarque && !equipier)
   // Nom affiche/transmis comme auteur : le prenom reel pour un compte
   // limite (le serveur l'impose de toute facon, cote client c'est juste
-  // pour l'affichage), la saisie libre pour un admin.
-  const auteurAffiche = niveau === 'limite' ? (identite?.prenom || '') : equipier
+  // pour l'affichage), l'email de connexion en mode embarque, la saisie
+  // libre memorisee sur la page /terrain autonome.
+  const auteurAffiche = niveau === 'limite' ? (identite?.prenom || '') : (embarque ? authEmail : equipier)
   const [jour, setJour] = useState(jourAujourdhui)
   const [modeId, setModeId] = useState('aeroport')
   const mode = MODES.find(m => m.id === modeId)
@@ -525,7 +532,7 @@ export default function Terrain({ embarque = false }) {
     return <ConnexionPin onConnecte={connecter} />
   }
 
-  if (niveau === 'admin' && editionEquipier) {
+  if (!embarque && niveau === 'admin' && editionEquipier) {
     return (
       <div style={wrap}>
         <div style={{ ...CARTE, overflow: 'hidden', maxWidth: 380, width: '100%' }}>
@@ -581,9 +588,9 @@ export default function Terrain({ embarque = false }) {
         <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>Accueil aéroport, hôtel, badge, conférence et départ — une action = une étape enregistrée.</p>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-        <button type="button" onClick={() => setEditionEquipier(true)} style={{ ...BTN, background: '#eef2ff', color: NAVY }}>
-          <Ico name="user" size={13} color={NAVY} /> {equipier}
-        </button>
+        <span style={{ ...BTN, background: '#eef2ff', color: NAVY, cursor: 'default' }} title="Identifié automatiquement par votre connexion admin">
+          <Ico name="user" size={13} color={NAVY} /> {authEmail}
+        </span>
         <Link to="/staff/scan" style={{ ...BTN, background: '#eef2ff', color: NAVY, textDecoration: 'none' }}>
           <Ico name="search" size={13} color={NAVY} /> Scanner
         </Link>

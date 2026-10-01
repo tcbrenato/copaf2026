@@ -2919,7 +2919,7 @@ export default function AdminPage() {
           ) : activeModule === 'lettres-invitation' ? (
             <AdminLettresInvitation />
           ) : activeModule === 'terrain' ? (
-            <Terrain embarque />
+            <Terrain embarque authEmail={session?.user?.email || ''} />
           ) : activeModule === 'intervenants' ? (
             <AdminIntervenants />
           ) : activeModule === 'analytics' ? (
