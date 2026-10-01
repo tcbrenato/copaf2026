@@ -488,6 +488,18 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
     charger()
   }
 
+  // Masquer/demasquer une personne pour l'equipe terrain (comptes dossier+
+  // PIN) uniquement — reste toujours visible cote admin. Optimiste puis
+  // confirme par un rechargement, comme les autres actions terrain.
+  const toggleMasqueTerrain = async p => {
+    if (p.masque_terrain) {
+      await supabase.from('terrain_masques').delete().eq('personne_type', p.personne_type).eq('personne_id', p.personne_id)
+    } else {
+      await supabase.from('terrain_masques').insert({ personne_type: p.personne_type, personne_id: p.personne_id, masque_par: auteurAffiche })
+    }
+    setPersonnes(list => list.map(x => x === p ? { ...x, masque_terrain: !x.masque_terrain } : x))
+  }
+
   const creerIncident = async (type, note) => {
     if (!modalIncident || !note.trim()) return
     const p = modalIncident.personne
@@ -773,6 +785,23 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
                 )}
                 <div style={{ minWidth: 160, flex: 1 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    {niveau === 'admin' && (
+                      <button
+                        type="button" onClick={() => toggleMasqueTerrain(p)}
+                        title={p.masque_terrain ? "Masqué pour l'équipe terrain — cliquer pour afficher" : "Visible pour l'équipe terrain — cliquer pour masquer"}
+                        style={{
+                          width: 22, height: 22, borderRadius: '50%', border: 'none', cursor: 'pointer', flexShrink: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: p.masque_terrain ? '#fef2f2' : '#eef2ff', color: p.masque_terrain ? '#dc2626' : NAVY,
+                        }}
+                      >
+                        {p.masque_terrain ? (
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                        ) : (
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                        )}
+                      </button>
+                    )}
                     {p.prenom} {p.nom}
                     <span style={{ fontSize: 10, fontWeight: 800, color: pill.fg, background: pill.bg, border: `1px solid ${pill.bd}`, borderRadius: 20, padding: '1px 8px' }}>{CAT_LABEL[p.categorie]}</span>
                     {p.statut_dossier === 'a_regulariser' && <span style={{ fontSize: 9.5, fontWeight: 800, color: '#92400e', background: '#fef3c7', borderRadius: 20, padding: '1px 6px' }}>Dossier à régulariser</span>}
