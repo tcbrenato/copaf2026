@@ -17,6 +17,20 @@ const BLUE = '#0284C7'
 // Dossier Google Drive partage a tous les intervenants (meme lien pour tous).
 const DOCUMENTATION_DRIVE_URL = 'https://drive.google.com/drive/folders/1wkLerVKdj-mJ4QGTqMZiM90uSe2iyCHS?usp=sharing'
 
+// Visuel d'annonce "Intervenant" (reseaux sociaux, un fichier par personne,
+// depose a la main dans public/ par l'admin) — associe au dossier plutot
+// qu'au nom de famille seul : deux personnes peuvent partager le meme nom
+// (ex. INT2026-001 et INT2026-009 sont toutes les deux "ODAH"), et un nom
+// de fichier n'est pas toujours strictement le nom de famille (ex. "TCHOBO
+// YVES.jpeg"). A completer a la main a chaque nouveau visuel depose.
+const VISUELS_INTERVENANT = {
+  'INT2026-001': '/ODAH.jpeg',
+  'INT2026-002': '/TCHOBO YVES.jpeg',
+  'INT2026-003': '/ABIALA.jpeg',
+  'INT2026-004': '/BIEGNIEBE.jpeg',
+  'INT2026-005': '/BABEL.jpeg',
+}
+
 const TR = {
   fr: {
     jours: { 1: { date: '19 Octobre', sub: 'Jour 1' }, 2: { date: '20 Octobre', sub: 'Jour 2' }, 3: { date: '21 Octobre', sub: 'Jour 3' } },
@@ -62,6 +76,9 @@ const TR = {
     ordreMissionText: 'Document officiel signé par le Directeur Général, à présenter si nécessaire (ambassade, employeur, douanes...).',
     ordreMissionBtn: 'Télécharger mon ordre de mission',
     docGen: 'Génération...',
+    visuelTitre: 'Votre visuel COPAF 2026',
+    visuelText: 'Votre carte d\'annonce officielle en tant qu\'intervenant — à partager sur vos réseaux.',
+    visuelBtn: 'Visualiser',
   },
   en: {
     jours: { 1: { date: 'October 19', sub: 'Day 1' }, 2: { date: 'October 20', sub: 'Day 2' }, 3: { date: 'October 21', sub: 'Day 3' } },
@@ -107,6 +124,9 @@ const TR = {
     ordreMissionText: 'Official document signed by the Director General, to present if needed (embassy, employer, customs...).',
     ordreMissionBtn: 'Download my mission order',
     docGen: 'Generating...',
+    visuelTitre: 'Your COPAF 2026 visual',
+    visuelText: 'Your official speaker announcement card — ready to share on your own channels.',
+    visuelBtn: 'View',
   },
 }
 
@@ -221,6 +241,8 @@ export default function EspaceIntervenant() {
     }
     setIntervenant(data)
   }
+
+  const visuelUrl = intervenant?.dossier ? VISUELS_INTERVENANT[intervenant.dossier] : null
 
   return (
     <div style={{ minHeight: '100vh', width: '100%', maxWidth: '100vw', overflowX: 'hidden', boxSizing: 'border-box', background: '#F8FAFC', color: '#1E293B', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", position: 'relative' }}>
@@ -523,6 +545,23 @@ export default function EspaceIntervenant() {
                 <button type="button" onClick={telechargerOrdreMission} disabled={docGen} className="btn-blue" style={{ padding: '12px 22px', borderRadius: 12, fontSize: 13.5, border: 'none', cursor: docGen ? 'wait' : 'pointer' }}>
                   {docGen ? t.docGen : t.ordreMissionBtn}
                 </button>
+              </div>
+            )}
+
+            {visuelUrl && (
+              <div className="bento-card-light col-span-full" style={{ padding: 0, overflow: 'hidden' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                  <img src={visuelUrl} alt={t.visuelTitre} style={{ width: '100%', maxHeight: 420, objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
+                  <div style={{ padding: 22, display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: 220 }}>
+                      <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0F172A', margin: '0 0 4px' }}>{t.visuelTitre}</h3>
+                      <span style={{ fontSize: 13, color: '#64748B', lineHeight: 1.5 }}>{t.visuelText}</span>
+                    </div>
+                    <a href={visuelUrl} target="_blank" rel="noopener noreferrer" className="btn-blue" style={{ padding: '12px 22px', borderRadius: 12, fontSize: 13.5, border: 'none', textDecoration: 'none', display: 'inline-block' }}>
+                      {t.visuelBtn}
+                    </a>
+                  </div>
+                </div>
               </div>
             )}
 
