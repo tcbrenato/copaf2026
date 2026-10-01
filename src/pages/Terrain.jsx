@@ -334,14 +334,25 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
     setIncidentsOuverts(data || [])
   }, [acces])
 
-  useEffect(() => { if (authorized) { charger(); chargerIncidents() } }, [authorized, charger, chargerIncidents])
+  // Statuts de vol (vols_statut, admin uniquement — comptes dossier+PIN
+  // n'y ont pas acces en RLS, inutile de tenter l'appel pour eux) : affiches
+  // en badge a cote du numero de vol dans Aeroport/Depart, en plus de
+  // l'onglet dedie "Arrivees & departs groupes".
+  const [statutsVols, setStatutsVols] = useState({})
+  const chargerStatutsVols = useCallback(async () => {
+    if (niveau !== 'admin') return
+    const { data } = await supabase.from('vols_statut').select('*')
+    setStatutsVols(Object.fromEntries((data || []).map(s => [`${s.numero}|${s.date}`, s])))
+  }, [niveau])
+
+  useEffect(() => { if (authorized) { charger(); chargerIncidents(); chargerStatutsVols() } }, [authorized, charger, chargerIncidents, chargerStatutsVols])
 
   // charger()/chargerIncidents() changent d'identite a chaque changement de
   // jour (deps de useCallback) : passer par une ref evite de desabonner et
   // rouvrir le canal Realtime a chaque fois qu'on change d'onglet jour,
   // l'abonnement lui-meme ne depend que de la connexion (authorized).
-  const chargeursRef = useRef({ charger, chargerIncidents })
-  useEffect(() => { chargeursRef.current = { charger, chargerIncidents } }, [charger, chargerIncidents])
+  const chargeursRef = useRef({ charger, chargerIncidents, chargerStatutsVols })
+  useEffect(() => { chargeursRef.current = { charger, chargerIncidents, chargerStatutsVols } }, [charger, chargerIncidents, chargerStatutsVols])
 
   // Realtime : une action a l'aeroport doit apparaitre immediatement a
   // l'hotel/au comptoir. Filet de secours (poll 30s + retour au premier
@@ -352,6 +363,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
       .channel('terrain-suivi')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'suivi_terrain' }, () => chargeursRef.current.charger())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'suivi_incidents' }, () => chargeursRef.current.chargerIncidents())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'vols_statut' }, () => chargeursRef.current.chargerStatutsVols())
       .subscribe()
     const poll = setInterval(() => {
       if (document.visibilityState === 'visible') { chargeursRef.current.charger(); chargeursRef.current.chargerIncidents() }
@@ -771,10 +783,24 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
                     {incidentOuvert && <Ico name="alert" size={13} color="#dc2626" />}
                   </div>
                   {p.fonction && <div style={{ fontSize: 12, color: '#334155', fontWeight: 600 }}>{p.fonction}</div>}
-                  <div style={{ fontSize: 11.5, color: '#64748b' }}>
-                    {p.organisation}{p.delegation ? ` · ${p.delegation}` : ''} · {p.dossier}
-                    {mode.id === 'aeroport' && p.vol_arrivee && ` · ✈ ${p.vol_arrivee} ${p.heure_arrivee || ''}`}
-                    {mode.id === 'depart' && p.vol_depart && ` · ✈ ${p.vol_depart} ${p.heure_depart || ''}`}
+                  <div style={{ fontSize: 11.5, color: '#64748b', display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+                    <span>{p.organisation}{p.delegation ? ` · ${p.delegation}` : ''} · {p.dossier}</span>
+                    {mode.id === 'aeroport' && p.vol_arrivee && (
+                      <span>· ✈ {p.vol_arrivee} {p.heure_arrivee || ''}</span>
+                    )}
+                    {mode.id === 'aeroport' && p.vol_arrivee && (() => {
+                      const vs = statutsVols[`${p.vol_arrivee}|${p.date_arrivee}`]
+                      const v = VOL_STATUTS_TERRAIN[vs?.statut || 'a_heure']
+                      return vs ? <span style={{ fontSize: 10, fontWeight: 800, color: v.fg, background: v.bg, borderRadius: 20, padding: '1px 7px' }}>{v.label}</span> : null
+                    })()}
+                    {mode.id === 'depart' && p.vol_depart && (
+                      <span>· ✈ {p.vol_depart} {p.heure_depart || ''}</span>
+                    )}
+                    {mode.id === 'depart' && p.vol_depart && (() => {
+                      const vs = statutsVols[`${p.vol_depart}|${p.date_depart}`]
+                      const v = VOL_STATUTS_TERRAIN[vs?.statut || 'a_heure']
+                      return vs ? <span style={{ fontSize: 10, fontWeight: 800, color: v.fg, background: v.bg, borderRadius: 20, padding: '1px 7px' }}>{v.label}</span> : null
+                    })()}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
