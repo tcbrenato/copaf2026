@@ -12,7 +12,8 @@
     "digitalExposition": "Digital Exhibition",
     "visit": "Visit",
     "resources": "Resources",
-    "recommendations": "Official Recommendations & Proceedings"
+    "recommendations": "Official Recommendations & Proceedings",
+    "livret": "Participant notebook"
   },
   "languageSwitcher": { "fr": "FR", "en": "EN" },
   "hero": {

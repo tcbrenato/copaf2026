@@ -10,6 +10,7 @@ const TR = {
   fr: {
     tabApercu: 'Aperçu', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & paiement', tabSupport: 'Support', tabVoyage: 'Voyage',
     guideTitre: 'Guide du participant', guideBtn: 'Télécharger le guide (PDF)', guideAVenir: 'Le guide du participant sera disponible ici prochainement.',
+    livretTitre: 'Livret du participant', livretBtn: 'Livret du participant', livretNote: 'Ouvrez-le avec Adobe Acrobat Reader (gratuit) pour le remplir et l\'enregistrer.',
     ficheTitre: 'Ma fiche de voyage', ficheBtn: 'Télécharger ma fiche (PDF)', ficheEnPrep: 'Votre fiche de voyage est en préparation : elle apparaîtra ici dès que votre hébergement et vos transferts seront confirmés.',
     volsTitre: 'Mes informations de vol', volsAller: 'Aller', volsRetour: 'Retour', volsAucun: 'Vous n’avez pas encore renseigné vos vols.', volsLien: 'Renseigner mes vols', volsBillet: 'Billet déposé',
     apercuStatut: 'Statut du dossier', apercuMontant: 'Montant', apercuDocuments: 'documents disponibles', apercuAgenda: 'sessions dans mon agenda',
@@ -32,6 +33,7 @@ const TR = {
   en: {
     tabApercu: 'Overview', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & payment', tabSupport: 'Support', tabVoyage: 'Travel',
     guideTitre: 'Participant guide', guideBtn: 'Download the guide (PDF)', guideAVenir: 'The participant guide will be available here soon.',
+    livretTitre: 'Participant notebook', livretBtn: 'Participant notebook', livretNote: 'Open it with Adobe Acrobat Reader (free) to fill it in and save it.',
     ficheTitre: 'My travel sheet', ficheBtn: 'Download my travel sheet (PDF)', ficheEnPrep: 'Your travel sheet is being prepared: it will appear here as soon as your accommodation and transfers are confirmed.',
     volsTitre: 'My flight information', volsAller: 'Outbound', volsRetour: 'Return', volsAucun: 'You have not entered your flights yet.', volsLien: 'Enter my flights', volsBillet: 'Ticket uploaded',
     apercuStatut: 'File status', apercuMontant: 'Amount', apercuDocuments: 'documents available', apercuAgenda: 'sessions in my agenda',
@@ -581,6 +583,14 @@ function TabVoyage({ voyage, tt, lang }) {
         ) : (
           <p style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.6, margin: 0 }}>{tt.guideAVenir}</p>
         )}
+      </Card>
+
+      <Card icon="download" title={tt.livretTitre}>
+        <a href="/docs/COPAF_2026_Livret_Participant.pdf" download target="_blank" rel="noopener" style={cardBtnStyle}>
+          <Ico name="download" size={14} color="#0f172a" />
+          {tt.livretBtn}
+        </a>
+        <p style={{ fontSize: 12, color: '#64748b', lineHeight: 1.5, margin: '8px 0 0' }}>{tt.livretNote}</p>
       </Card>
 
       <Card icon="hotel" title={tt.ficheTitre}>

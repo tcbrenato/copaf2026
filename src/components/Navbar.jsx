@@ -110,6 +110,7 @@ const Navbar = () => {
     { label: 'Live Streaming', href: '/live' },
     { label: 'Documentation',  href: '/documentation' },
     { label: t('navbar.recommendations'), href: '/recommandations' },
+    { label: t('navbar.livret'), href: '/docs/COPAF_2026_Livret_Participant.pdf', download: true },
   ]
 
   const isDropdownActive   = dropdownLinks.some(l => window.location.pathname === l.href)
@@ -291,7 +292,7 @@ const Navbar = () => {
             </button>
             <div style={dropdownPanelStyle(ressourcesOpen)} onMouseEnter={openRessources} onMouseLeave={closeRessources}>
               {ressourcesLinks.map((item, i) => (
-                <a key={item.href} href={item.href} onClick={() => setRessourcesOpen(false)} style={{
+                <a key={item.href} href={item.href} {...(item.download ? { download: true, target: '_blank', rel: 'noopener' } : {})} onClick={() => setRessourcesOpen(false)} style={{
                   display: 'block', padding: '11px 20px', fontSize: 12,
                   fontWeight: 600, letterSpacing: 1.5, textTransform: 'uppercase',
                   textDecoration: 'none',
@@ -424,9 +425,9 @@ const Navbar = () => {
                 <path d="M2 3.5L5 6.5L8 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-            <div style={{ maxHeight: mobileRessourcesOpen ? '200px' : '0', overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
+            <div style={{ maxHeight: mobileRessourcesOpen ? '260px' : '0', overflow: 'hidden', transition: 'max-height 0.3s ease' }}>
               {ressourcesLinks.map(item => (
-                <a key={item.href} href={item.href} onClick={closeMobileMenu}
+                <a key={item.href} href={item.href} {...(item.download ? { download: true, target: '_blank', rel: 'noopener' } : {})} onClick={closeMobileMenu}
                   style={mobileSubItemStyle(window.location.pathname === item.href)}>
                   {item.label}
                 </a>

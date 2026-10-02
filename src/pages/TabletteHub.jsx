@@ -16,6 +16,7 @@ const Ico = ({ name, size = 26, color = 'currentColor' }) => {
     users: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
     handshake: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M11 17l-4 4-4-4 4-4"/><path d="M18 12l4 4-4 4-4-4"/><path d="M7 17l4-4 3-3 3 3"/></svg>,
     mail: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>,
+    book: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
     globe: <svg style={s} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
   }
   return icons[name] || null
@@ -31,6 +32,7 @@ const TR = {
       { titre: 'Diagnostic Smart Port', sousTitre: 'Évaluez la maturité digitale de votre port', href: '/diagnostic', icone: 'radar', accent: true },
       { titre: 'Sondage en direct', sousTitre: 'Votez en temps réel pendant les sessions', href: '/vote', icone: 'poll', accent: true },
       { titre: 'Programme', sousTitre: 'Le déroulé complet des 3 jours', href: '/#programme', icone: 'calendar' },
+      { titre: 'Livret du participant', sousTitre: 'À remplir avec Adobe Acrobat Reader (gratuit)', href: '/docs/COPAF_2026_Livret_Participant.pdf', icone: 'book', telechargement: true },
       { titre: 'Exposition digitale', sousTitre: 'Découvrez les solutions présentées', href: '/exposition-digitale', icone: 'monitor' },
       { titre: 'Intervenants', sousTitre: 'Qui parle, et à quel moment', href: '/#intervenants', icone: 'users' },
       { titre: 'Partenaires', sousTitre: 'Ils soutiennent la COPAF 2026', href: '/partenariats', icone: 'handshake' },
@@ -46,6 +48,7 @@ const TR = {
       { titre: 'Smart Port Diagnostic', sousTitre: "Assess your port's digital maturity", href: '/diagnostic', icone: 'radar', accent: true },
       { titre: 'Live poll', sousTitre: 'Vote in real time during the sessions', href: '/vote', icone: 'poll', accent: true },
       { titre: 'Programme', sousTitre: 'The full schedule of the 3 days', href: '/#programme', icone: 'calendar' },
+      { titre: 'Participant notebook', sousTitre: 'Fill it in with Adobe Acrobat Reader (free)', href: '/docs/COPAF_2026_Livret_Participant.pdf', icone: 'book', telechargement: true },
       { titre: 'Digital exhibition', sousTitre: 'Discover the solutions on show', href: '/exposition-digitale', icone: 'monitor' },
       { titre: 'Speakers', sousTitre: 'Who is speaking, and when', href: '/#intervenants', icone: 'users' },
       { titre: 'Partners', sousTitre: 'They support COPAF 2026', href: '/partenariats', icone: 'handshake' },
@@ -98,6 +101,7 @@ export default function TabletteHub() {
             <a
               key={t.href}
               href={t.href}
+              {...(t.telechargement ? { download: true, target: '_blank', rel: 'noopener' } : {})}
               style={{
                 display: 'flex', flexDirection: 'column', gap: 14, padding: '26px 22px',
                 borderRadius: 20, textDecoration: 'none', cursor: 'pointer',
