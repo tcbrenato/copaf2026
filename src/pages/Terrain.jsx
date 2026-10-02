@@ -467,7 +467,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
       if (dejaPris) {
         const autre = (personnes || []).find(x => x.personne_id === dejaPris[1])
         setMsg(`Ce numéro de tablette est déjà attribué à ${autre ? `${autre.prenom} ${autre.nom}` : dejaPris[1]}.`)
-      } else setMsg(error.message?.includes('Numero de tablette') ? 'Numéro de tablette requis.' : "Échec de l'enregistrement.")
+      } else setMsg(error.message?.includes('invalide') ? 'Numéro de tablette invalide : T01 à T35.' : error.message?.includes('Numero de tablette') ? 'Numéro de tablette requis.' : "Échec de l'enregistrement.")
       return
     }
     const r = Array.isArray(data) ? data[0] : data
@@ -971,11 +971,9 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
       )}
 
       {modalTablette && (
-        <ModalValeur
+        <ModalTablette
           titre={`${ETAPES[modalTablette.etape].label} — ${modalTablette.personne.prenom} ${modalTablette.personne.nom}`}
-          placeholder={ETAPES[modalTablette.etape].placeholderValeur}
-          requise={ETAPES[modalTablette.etape].valeurRequise}
-          note={modalTablette.etape === 'tablette' ? "Rappelez à la personne d'apporter sa tablette demain, au Jour 1 de la conférence." : null}
+          pris={Object.fromEntries((personnes || []).filter(x => x.etapes?.tablette?.valeur && x.personne_id !== modalTablette.personne.personne_id).map(x => [x.etapes.tablette.valeur.replace(/s+/g, '').toUpperCase(), `${x.prenom} ${x.nom}`]))}
           onValider={v => { marquer(modalTablette.personne, modalTablette.etape, v); setModalTablette(null) }}
           onFermer={() => setModalTablette(null)}
         />
@@ -999,16 +997,34 @@ const wrap = { minHeight: '100vh', display: 'flex', alignItems: 'center', justif
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,.5)', backdropFilter: 'blur(3px)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }
 const boiteModal = { background: '#fff', borderRadius: 18, width: '100%', maxWidth: 380, padding: 22, boxShadow: '0 24px 48px -12px rgba(15,23,42,.35)' }
 
-function ModalValeur({ titre, placeholder, requise, note, onValider, onFermer }) {
-  const [v, setV] = useState('')
+const NB_TABLETTES = 35
+const NUMEROS_TABLETTES = Array.from({ length: NB_TABLETTES }, (_, i) => `T${String(i + 1).padStart(2, '0')}`)
+
+function ModalTablette({ titre, pris, onValider, onFermer }) {
+  const [choix, setChoix] = useState('')
   return (
     <div style={overlay} className="terrain-modal-overlay" onClick={onFermer}>
-      <div style={boiteModal} className="terrain-modal-box" onClick={e => e.stopPropagation()}>
-        <div style={{ fontSize: 14.5, fontWeight: 800, marginBottom: 12 }}>{titre}</div>
-        <input autoFocus value={v} onChange={e => setV(e.target.value)} placeholder={placeholder} style={INPUT} />
-        {note && <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', fontSize: 12.5, fontWeight: 600 }}>{note}</div>}
+      <div style={{ ...boiteModal, maxWidth: 440 }} className="terrain-modal-box" onClick={e => e.stopPropagation()}>
+        <div style={{ fontSize: 14.5, fontWeight: 800, marginBottom: 4 }}>{titre}</div>
+        <div style={{ fontSize: 12.5, color: '#64748b', marginBottom: 10 }}>Touchez le numéro écrit sur la tablette remise.</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+          {NUMEROS_TABLETTES.map(n => {
+            const prisPar = pris[n]
+            const actif = choix === n
+            return (
+              <button key={n} type="button" disabled={!!prisPar} onClick={() => setChoix(n)} title={prisPar ? `Déjà remise à ${prisPar}` : undefined} style={{
+                ...BTN, justifyContent: 'center', padding: '10px 0', fontSize: 13,
+                background: actif ? NAVY : prisPar ? '#f1f5f9' : '#eef2f7', color: actif ? '#fff' : prisPar ? '#cbd5e1' : '#334155',
+                textDecoration: prisPar ? 'line-through' : 'none', cursor: prisPar ? 'not-allowed' : 'pointer',
+              }}>{n}</button>
+            )
+          })}
+        </div>
+        <div style={{ marginTop: 12, padding: '8px 10px', borderRadius: 10, background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', fontSize: 12.5, fontWeight: 600 }}>
+          Rappelez à la personne d'apporter sa tablette demain, au Jour 1 de la conférence.
+        </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
-          <button type="button" disabled={requise && !v.trim()} onClick={() => onValider(v)} style={{ ...boutonAction(NAVY), flex: 1, opacity: requise && !v.trim() ? 0.5 : 1 }}>Valider</button>
+          <button type="button" disabled={!choix} onClick={() => onValider(choix)} style={{ ...boutonAction(NAVY), flex: 1, opacity: choix ? 1 : 0.5 }}>{choix ? `Valider ${choix}` : 'Valider'}</button>
           <button type="button" onClick={onFermer} style={{ ...BTN, background: '#f1f5f9', color: '#334155' }}>Annuler</button>
         </div>
       </div>
