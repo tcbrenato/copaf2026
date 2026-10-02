@@ -637,6 +637,17 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
       .terrain-modal-box { animation: terrainPopIn .18s cubic-bezier(.2,.9,.3,1.2); }
       @keyframes terrainFadeIn { from { opacity: 0 } to { opacity: 1 } }
       @keyframes terrainPopIn { from { opacity: 0; transform: scale(.96) translateY(6px) } to { opacity: 1; transform: scale(1) translateY(0) } }
+      .terrain-filtres select, .terrain-filtres input { min-width: 0; max-width: 100%; }
+      @media (max-width: 640px) {
+        .terrain-filtres > * { flex: 1 1 100% !important; width: 100% !important; min-width: 0 !important; }
+        .terrain-personne { display: grid !important; grid-template-columns: 42px minmax(0, 1fr); align-items: start !important; gap: 10px 12px !important; }
+        .terrain-identite { min-width: 0 !important; overflow-wrap: anywhere; }
+        .terrain-actions { grid-column: 1 / -1; }
+        .terrain-actions > button { flex: 1 1 calc(50% - 6px); justify-content: center; padding: 13px 10px !important; font-size: 13.5px !important; min-width: 0 !important; }
+        .terrain-actions > button:first-child:nth-last-child(1) { flex-basis: 100%; }
+        .terrain-visibilite > button { flex: 1 1 100%; justify-content: center; text-align: center; white-space: normal; }
+        .terrain-exports > button { flex: 1 1 100%; justify-content: center; }
+      }
       @media print {
         body * { visibility: hidden; }
         #feuille-impression, #feuille-impression * { visibility: visible; }
@@ -717,7 +728,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
               <Ico name="alert" size={13} color={incidentsOuverts.length ? '#dc2626' : '#94a3b8'} /> {incidentsOuverts.length} incident(s)
             </button>
           </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          <div className="terrain-onglets" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {MODES.filter(m => !m.adminOnly || niveau === 'admin').map(m => (
               <button key={m.id} type="button" onClick={() => setModeId(m.id)} style={{
                 ...BTN, padding: '8px 15px', borderRadius: 100,
@@ -771,7 +782,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
         </div>
 
         {/* Recherche + filtres */}
-        <div className="terrain-carte" style={{ ...CARTE, padding: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="terrain-carte terrain-filtres" style={{ ...CARTE, padding: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher (nom, organisation, dossier)…" style={{ ...INPUT, flex: 1, minWidth: 200, border: '1.5px solid #eef1f8', background: '#f8fafc' }} />
           <select value={filtreCategorie} onChange={e => setFiltreCategorie(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
             <option value="tous">Toutes catégories</option>
@@ -789,7 +800,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
         {niveau === 'admin' && (
           <div className="terrain-carte" style={{ ...CARTE, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a' }}>Visibilité pour l'équipe terrain (Yvette, Eliram, équipe Maroc…)</div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div className="terrain-visibilite" style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               {[['participant', 'Participants'], ['intervenant', 'Intervenants'], ['organisation', 'Équipe / Comité']].map(([cat, libelle]) => {
                 const masquee = categoriesMasquees.includes(cat)
                 return (
@@ -819,7 +830,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div className="terrain-exports" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button type="button" onClick={exporterCSV} style={boutonAction('#0891b2')}><Ico name="download" size={13} color="#fff" /> Export CSV</button>
           <button type="button" onClick={imprimerListe} style={boutonAction('#64748b')}><Ico name="receipt" size={13} color="#fff" /> Imprimer la liste</button>
           <button type="button" onClick={exporterVisiteJ3} style={boutonAction('#d97706')}><Ico name="download" size={13} color="#fff" /> Liste Visite J3</button>
@@ -840,7 +851,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
             const incidentOuvert = incidentsOuverts.some(i => i.personne_type === p.personne_type && i.personne_id === p.personne_id)
             const pill = PILL_CAT[p.categorie] || { bg: '#f1f5f9', fg: '#475569', bd: '#e2e8f0' }
             return (
-              <div key={cleP(p)} className="terrain-carte" style={{ ...CARTE, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <div key={cleP(p)} className="terrain-carte terrain-personne" style={{ ...CARTE, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                 {p.photo_url ? (
                   <img src={p.photo_url} alt="" style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '1px solid #eef1f8' }} />
                 ) : (
@@ -848,7 +859,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
                     {(p.prenom?.[0] || '') + (p.nom?.[0] || '')}
                   </div>
                 )}
-                <div style={{ minWidth: 160, flex: 1 }}>
+                <div className="terrain-identite" style={{ minWidth: 160, flex: 1 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                     {niveau === 'admin' && (() => {
                       const parCategorie = categoriesMasquees.includes(p.categorie)
@@ -878,7 +889,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
                   </div>
                   {p.fonction && <div style={{ fontSize: 12, color: '#334155', fontWeight: 600 }}>{p.fonction}</div>}
                   <div style={{ fontSize: 11.5, color: '#64748b', display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
-                    <span>{p.organisation}{p.delegation ? ` · ${p.delegation}` : ''} · {p.dossier}</span>
+                    <span>{p.organisation}{p.delegation && p.delegation !== p.organisation ? ` · ${p.delegation}` : ''} · {p.dossier}</span>
                     {mode.id === 'aeroport' && p.vol_arrivee && (
                       <span>· ✈ {p.vol_arrivee} {p.heure_arrivee || ''}</span>
                     )}
@@ -897,7 +908,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
                     })()}
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <div className="terrain-actions" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                   {mode.etapes.map(e => {
                     const fait = p.etapes?.[e]
                     if (mode.lecture) {
