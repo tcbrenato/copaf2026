@@ -345,7 +345,15 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
     setStatutsVols(Object.fromEntries((data || []).map(s => [`${s.numero}|${s.date}`, s])))
   }, [niveau])
 
-  useEffect(() => { if (authorized) { charger(); chargerIncidents(); chargerStatutsVols() } }, [authorized, charger, chargerIncidents, chargerStatutsVols])
+  // Categories masquees en bloc pour l'equipe terrain (admin uniquement).
+  const [categoriesMasquees, setCategoriesMasquees] = useState([])
+  const chargerCategoriesMasquees = useCallback(async () => {
+    if (niveau !== 'admin') return
+    const { data } = await supabase.from('terrain_masques_categories').select('categorie')
+    setCategoriesMasquees((data || []).map(r => r.categorie))
+  }, [niveau])
+
+  useEffect(() => { if (authorized) { charger(); chargerIncidents(); chargerStatutsVols(); chargerCategoriesMasquees() } }, [authorized, charger, chargerIncidents, chargerStatutsVols, chargerCategoriesMasquees])
 
   // charger()/chargerIncidents() changent d'identite a chaque changement de
   // jour (deps de useCallback) : passer par une ref evite de desabonner et
@@ -498,6 +506,25 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
       await supabase.from('terrain_masques').insert({ personne_type: p.personne_type, personne_id: p.personne_id, masque_par: auteurAffiche })
     }
     setPersonnes(list => list.map(x => x === p ? { ...x, masque_terrain: !x.masque_terrain } : x))
+  }
+
+  // Masquage en bloc d'une categorie (participants / intervenants) pour
+  // l'equipe terrain : une seule ligne, valable aussi pour les futures
+  // inscriptions. Reafficher une categorie retire aussi les masquages
+  // individuels de cette categorie, pour que « afficher » veuille dire tout le
+  // monde. L'admin voit toujours tout.
+  const toggleCategorieMasquee = async cat => {
+    const dejaMasquee = categoriesMasquees.includes(cat)
+    if (dejaMasquee) {
+      await supabase.from('terrain_masques_categories').delete().eq('categorie', cat)
+      const ids = (personnes || []).filter(p => p.categorie === cat && p.masque_terrain).map(p => p.personne_id)
+      if (ids.length) await supabase.from('terrain_masques').delete().in('personne_id', ids)
+      setCategoriesMasquees(c => c.filter(x => x !== cat))
+      setPersonnes(list => list.map(x => x.categorie === cat ? { ...x, masque_terrain: false } : x))
+    } else {
+      await supabase.from('terrain_masques_categories').insert({ categorie: cat, masque_par: auteurAffiche })
+      setCategoriesMasquees(c => [...c, cat])
+    }
   }
 
   const creerIncident = async (type, note) => {
@@ -744,6 +771,29 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
           </label>
         </div>
 
+        {niveau === 'admin' && (
+          <div className="terrain-carte" style={{ ...CARTE, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a' }}>Visibilité pour l'équipe terrain (Yvette, Eliram, équipe Maroc…)</div>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {[['participant', 'Participants'], ['intervenant', 'Intervenants']].map(([cat, libelle]) => {
+                const masquee = categoriesMasquees.includes(cat)
+                return (
+                  <button key={cat} type="button" onClick={() => toggleCategorieMasquee(cat)} style={{
+                    ...BTN, padding: '9px 16px',
+                    background: masquee ? '#fef2f2' : '#dcfce7', color: masquee ? '#b91c1c' : '#166534',
+                    border: `1.5px solid ${masquee ? '#fecaca' : '#bbf7d0'}`,
+                  }}>
+                    {libelle} : {masquee ? 'masqués — cliquer pour afficher' : 'visibles — cliquer pour masquer'}
+                  </button>
+                )
+              })}
+            </div>
+            <div style={{ fontSize: 11.5, color: '#94a3b8' }}>
+              S'applique d'un coup à toute la catégorie, y compris aux futures inscriptions. Vous voyez toujours tout le monde ici. L'œil devant un nom reste dispo pour une exception.
+            </div>
+          </div>
+        )}
+
         {filtreDelegation && !mode.lecture && (
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {mode.etapes.filter(e => !ETAPES[e].champValeur || !ETAPES[e].valeurRequise).map(e => (
@@ -785,23 +835,27 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
                 )}
                 <div style={{ minWidth: 160, flex: 1 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                    {niveau === 'admin' && (
+                    {niveau === 'admin' && (() => {
+                      const parCategorie = categoriesMasquees.includes(p.categorie)
+                      const masque = p.masque_terrain || parCategorie
+                      return (
                       <button
-                        type="button" onClick={() => toggleMasqueTerrain(p)}
-                        title={p.masque_terrain ? "Masqué pour l'équipe terrain — cliquer pour afficher" : "Visible pour l'équipe terrain — cliquer pour masquer"}
+                        type="button" onClick={() => !parCategorie && toggleMasqueTerrain(p)} disabled={parCategorie}
+                        title={parCategorie ? 'Masqué pour l\'équipe terrain (toute la catégorie)' : masque ? "Masqué pour l'équipe terrain — cliquer pour afficher" : "Visible pour l'équipe terrain — cliquer pour masquer"}
                         style={{
-                          width: 22, height: 22, borderRadius: '50%', border: 'none', cursor: 'pointer', flexShrink: 0,
+                          width: 22, height: 22, borderRadius: '50%', border: 'none', cursor: parCategorie ? 'default' : 'pointer', flexShrink: 0,
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: p.masque_terrain ? '#fef2f2' : '#eef2ff', color: p.masque_terrain ? '#dc2626' : NAVY,
+                          background: masque ? '#fef2f2' : '#eef2ff', color: masque ? '#dc2626' : NAVY, opacity: parCategorie ? 0.7 : 1,
                         }}
                       >
-                        {p.masque_terrain ? (
+                        {masque ? (
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
                         ) : (
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                         )}
                       </button>
-                    )}
+                      )
+                    })()}
                     {p.prenom} {p.nom}
                     <span style={{ fontSize: 10, fontWeight: 800, color: pill.fg, background: pill.bg, border: `1px solid ${pill.bd}`, borderRadius: 20, padding: '1px 8px' }}>{CAT_LABEL[p.categorie]}</span>
                     {p.statut_dossier === 'a_regulariser' && <span style={{ fontSize: 9.5, fontWeight: 800, color: '#92400e', background: '#fef3c7', borderRadius: 20, padding: '1px 6px' }}>Dossier à régulariser</span>}
