@@ -10,7 +10,12 @@
 // facingMode 'environment') redemarre seule apres la banniere de
 // confirmation, au lieu de naviguer vers /badge/{token} et de perdre 5-10s
 // par personne a relancer le scanner. La recherche manuelle sert de secours
-// si le QR est illisible ou le badge abime, et emarge aussi directement.
+// si le QR est illisible ou le badge abime.
+//
+// Par defaut (mode fiche), un scan ou un resultat de recherche ouvre la FICHE de la
+// personne avec les boutons d'etapes (aeroport, hotel, kit, tablette T01-T35, present) :
+// rien n'est marque sans appui. Case « Emarger directement au scan » : ancien mode,
+// presence automatique pour les jours de conference.
 //
 // Non couvert dans cette premiere version : mode hors-ligne avec file
 // d'attente locale synchronisee au retour reseau (mentionne dans le
@@ -23,11 +28,25 @@ import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../supabase'
 import { useNiveauTerrain } from '../utils/terrainAuth'
 import { Ico } from '../utils/dossierUi'
+import { PREREQUIS, normaliserNumeroTablette } from '../utils/terrainEtapes'
+import ModalTablette from '../components/ModalTablette'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
 const DOMAINES_AUTORISES = ['copaf-ports.com', 'www.copaf-ports.com', 'localhost']
 const PAUSE_APRES_SCAN_MS = 2200
+
+// Etapes proposees sur la fiche d'une personne (scan ou recherche), dans l'ordre du parcours.
+const ETAPES_FICHE = [
+  { id: 'aeroport', label: "Accueilli à l'aéroport" },
+  { id: 'hotel', label: "Arrivé à l'hôtel" },
+  { id: 'badge', label: 'Badge et kit remis' },
+  { id: 'tablette', label: 'Tablette remise', valeur: true },
+  { id: 'present', label: "Présent aujourd'hui", parJour: true },
+]
+const TZ = 'Africa/Casablanca'
+const jourAujourdhui = () => new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+const heureCourte = iso => iso ? new Intl.DateTimeFormat('fr-FR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(new Date(iso)) : ''
 // Cle localStorage partagee avec Terrain.jsx (memes deux fichiers doivent
 // utiliser exactement la meme chaine) : identifie l'equipier au comptoir
 // (chemin admin uniquement), transmis a badge_checkin comme fait_par.
@@ -78,6 +97,12 @@ export default function StaffScan() {
   const [banniere, setBanniere] = useState(null) // { ok, nom, organisation, photo_url, deja, heure } | { erreur }
   const [cameraErreur, setCameraErreur] = useState('')
 
+  const [modeAuto, setModeAuto] = useState(false) // true : emargement direct au scan (jours de conference)
+  const modeAutoRef = useRef(false)
+  const [fiche, setFiche] = useState(null)
+  const [ficheMsg, setFicheMsg] = useState('')
+  const [modalTablette, setModalTablette] = useState(false)
+
   const emarger = useCallback(async token => {
     if (enPauseRef.current) return
     enPauseRef.current = true
@@ -102,6 +127,62 @@ export default function StaffScan() {
     setTimeout(() => { setBanniere(null); enPauseRef.current = false }, PAUSE_APRES_SCAN_MS)
   }, [auteurAffiche, acces])
 
+  const chargerFiche = useCallback(async token => {
+    const { data, error } = await supabase.rpc('staff_fiche', { p_token: token, ...acces })
+    if (error || !data) return false
+    setFiche({ ...data, token })
+    return true
+  }, [acces])
+
+  const ouvrirFiche = useCallback(async token => {
+    if (enPauseRef.current) return
+    enPauseRef.current = true // pas de nouveau scan tant que la fiche est ouverte
+    setFicheMsg('')
+    if (await chargerFiche(token)) { bipEtVibre(true); return }
+    bipEtVibre(false)
+    setBanniere({ erreur: true, message: 'Badge introuvable.' })
+    setTimeout(() => { setBanniere(null); enPauseRef.current = false }, PAUSE_APRES_SCAN_MS)
+  }, [chargerFiche])
+
+  const fermerFiche = () => { setFiche(null); setFicheMsg(''); setModalTablette(false); enPauseRef.current = false }
+
+  const marquerEtape = async (etape, valeur) => {
+    const def = ETAPES_FICHE.find(e => e.id === etape)
+    setFicheMsg('')
+    const { error } = await supabase.rpc('terrain_marquer', {
+      p_personne_type: fiche.personne_type, p_personne_id: fiche.personne_id, p_etape: etape,
+      p_jour: def?.parJour ? jourAujourdhui() : null, p_valeur: valeur || null, p_mode: 'manuel', p_fait_par: auteurAffiche, ...acces,
+    })
+    if (error) {
+      const dejaPris = error.message?.match(/deja attribue \((.+?)\)/)
+      setFicheMsg(dejaPris ? `Ce numéro de tablette est déjà attribué (${dejaPris[1]}).` : error.message?.includes('invalide') ? 'Numéro de tablette invalide : T01 à T35.' : "Échec de l'enregistrement.")
+      return
+    }
+    await chargerFiche(fiche.token)
+  }
+
+  const demarrerEtape = etape => {
+    const bloc = PREREQUIS[etape]
+    const libelle = id => ETAPES_FICHE.find(e => e.id === id)?.label || id
+    if (bloc && !fiche.etapes?.[bloc.avant]) {
+      if (!bloc.souple) { setFicheMsg(`« ${libelle(bloc.avant)} » doit être fait avant « ${libelle(etape)} ».`); return }
+      if (!window.confirm(`« ${libelle(bloc.avant)} » n'est pas marqué. Marquer « ${libelle(etape)} » quand même ?`)) return
+    }
+    if (etape === 'tablette') { setModalTablette(true); return }
+    marquerEtape(etape, null)
+  }
+
+  const annulerEtape = async etape => {
+    const info = fiche.etapes?.[etape]
+    if (!info) return
+    if (!window.confirm('Annuler cette étape ?')) return
+    const { error } = await supabase.rpc('terrain_annuler', { p_suivi_id: info.id, p_motif: 'Annulé depuis le scan', p_par: auteurAffiche, ...acces })
+    if (error) { setFicheMsg("Échec de l'annulation."); return }
+    await chargerFiche(fiche.token)
+  }
+
+  const surScan = useCallback(token => { if (modeAutoRef.current) emarger(token); else ouvrirFiche(token) }, [emarger, ouvrirFiche])
+
   useEffect(() => {
     if (!authorized) return
     const scanner = new Html5Qrcode('staff-scan-reader')
@@ -114,7 +195,7 @@ export default function StaffScan() {
       decodedText => {
         if (enPauseRef.current) return
         const token = extractToken(decodedText)
-        if (token) emarger(token)
+        if (token) surScan(token)
       },
       () => { /* echec de decodage sur une frame — normal en continu, on ignore */ }
     ).catch(() => { if (!arrete) setCameraErreur("Impossible d'accéder à la caméra. Vérifiez les autorisations du navigateur.") })
@@ -123,7 +204,7 @@ export default function StaffScan() {
       arrete = true
       scannerRef.current?.stop().then(() => scannerRef.current?.clear()).catch(() => {})
     }
-  }, [authorized, emarger])
+  }, [authorized, surScan])
 
   const handleSearch = async e => {
     e.preventDefault()
@@ -141,7 +222,7 @@ export default function StaffScan() {
 
   const choisirResultat = r => {
     setResults([]); setQuery('')
-    emarger(r.badge_token)
+    ouvrirFiche(r.badge_token)
   }
 
   if (niveau === null) {
@@ -162,6 +243,49 @@ export default function StaffScan() {
           <Link to="/terrain" style={{ fontSize: 11.5, color: NAVY, fontWeight: 700, textDecoration: 'none' }}>Tableau terrain →</Link>
         </div>
         <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginBottom: 16 }}>Scanner un badge</div>
+
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#475569', fontWeight: 600, marginBottom: 12 }}>
+          <input type="checkbox" checked={modeAuto} onChange={e => { setModeAuto(e.target.checked); modeAutoRef.current = e.target.checked }} />
+          Émarger directement au scan (jours de conférence)
+        </label>
+
+        {fiche && (
+          <div style={{ border: '1.5px solid #c7d2fe', borderRadius: 14, padding: 14, marginBottom: 14, background: '#f8faff' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {fiche.photo_url ? (
+                <img src={fiche.photo_url} alt="" style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>
+                  {(fiche.prenom?.[0] || '') + (fiche.nom?.[0] || '')}
+                </div>
+              )}
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 15, fontWeight: 900, color: '#0f172a' }}>{fiche.prenom} {fiche.nom}</div>
+                {fiche.poste && <div style={{ fontSize: 12, fontWeight: 600, color: '#334155' }}>{fiche.poste}</div>}
+                <div style={{ fontSize: 11.5, color: '#64748b' }}>{fiche.organisation} · {fiche.dossier}</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+              {ETAPES_FICHE.map(e => {
+                const fait = fiche.etapes?.[e.id]
+                const bloc = PREREQUIS[e.id]
+                const bloque = !fait && bloc && !bloc.souple && !fiche.etapes?.[bloc.avant]
+                return fait ? (
+                  <button key={e.id} type="button" onClick={() => annulerEtape(e.id)} title="Toucher pour annuler" style={{ ...boutonFiche, background: '#16a34a', color: '#fff', flexWrap: 'wrap' }}>
+                    <Ico name="check" size={13} color="#fff" /> {e.label}
+                    <span style={{ marginLeft: 'auto', fontSize: 11.5, fontWeight: 600, opacity: 0.95 }}>{heureCourte(fait.fait_le)} · {fait.fait_par}{e.valeur && fait.valeur ? ` · N° ${fait.valeur}` : ''}</span>
+                  </button>
+                ) : (
+                  <button key={e.id} type="button" onClick={() => demarrerEtape(e.id)} style={{ ...boutonFiche, background: '#eef2f7', color: '#334155', opacity: bloque ? 0.45 : 1 }}>
+                    {e.label}
+                  </button>
+                )
+              })}
+            </div>
+            {ficheMsg && <p style={{ fontSize: 12.5, color: '#b45309', fontWeight: 700, margin: '10px 0 0' }}>{ficheMsg}</p>}
+            <button type="button" onClick={fermerFiche} style={{ ...boutonFiche, marginTop: 12, background: NAVY, color: '#fff', justifyContent: 'center' }}>Terminé — scanner le suivant</button>
+          </div>
+        )}
 
         <div style={{ position: 'relative' }}>
           <div id="staff-scan-reader" style={{ borderRadius: 14, overflow: 'hidden' }} />
@@ -228,8 +352,21 @@ export default function StaffScan() {
           ))}
         </div>
       </div>
+      {modalTablette && fiche && (
+        <ModalTablette
+          titre={`Tablette remise — ${fiche.prenom} ${fiche.nom}`}
+          pris={fiche.tablettes_prises || {}}
+          onValider={v => { setModalTablette(false); marquerEtape('tablette', normaliserNumeroTablette(v)) }}
+          onFermer={() => setModalTablette(false)}
+        />
+      )}
     </div>
   )
+}
+
+const boutonFiche = {
+  display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '12px 14px', border: 'none', borderRadius: 10,
+  fontSize: 13.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
 }
 
 const wrapStyle = {
