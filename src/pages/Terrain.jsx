@@ -86,6 +86,7 @@ const fmtJour = j => j ? new Intl.DateTimeFormat('fr-FR', { timeZone: TZ, day: '
 const BTN = { padding: '9px 14px', borderRadius: 10, border: 'none', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 6 }
 const boutonAction = bg => ({ ...BTN, background: bg, color: '#fff', padding: '10px 16px' })
 const INPUT = { width: '100%', boxSizing: 'border-box', padding: '9px 12px', border: '1.5px solid #e2e8f0', borderRadius: 10, fontSize: 13.5, fontFamily: 'inherit', outline: 'none' }
+const BOUTON_ETAPE = { padding: '4px 12px', borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: 'pointer', flexDirection: 'column', gap: 1, textAlign: 'center' }
 const CARTE = { background: '#fff', borderRadius: 16, border: '1px solid #eef1f8', boxShadow: '0 4px 14px -4px rgba(15,23,42,.08)' }
 const PILL_CAT = { participant: { bg: '#ecfeff', fg: '#0e7490', bd: '#a5f3fc' }, intervenant: { bg: '#f5f3ff', fg: '#6d28d9', bd: '#ddd6fe' }, organisation: { bg: '#fffbeb', fg: '#b45309', bd: '#fde68a' } }
 
@@ -637,16 +638,20 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
       .terrain-modal-box { animation: terrainPopIn .18s cubic-bezier(.2,.9,.3,1.2); }
       @keyframes terrainFadeIn { from { opacity: 0 } to { opacity: 1 } }
       @keyframes terrainPopIn { from { opacity: 0; transform: scale(.96) translateY(6px) } to { opacity: 1; transform: scale(1) translateY(0) } }
+      .scroll-x { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      .scroll-x::-webkit-scrollbar { display: none; }
+      .scroll-x > * { flex-shrink: 0; }
+      .btn-touch { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; touch-action: manipulation; user-select: none; font-family: inherit; }
+      .input-mobile { height: 44px; border-radius: 10px; border: 1.5px solid #cbd5e1; padding: 0 12px; font-size: 14px; width: 100%; outline: none; box-sizing: border-box; font-family: inherit; background: #fff; }
       .terrain-filtres select, .terrain-filtres input { min-width: 0; max-width: 100%; }
       @media (max-width: 640px) {
-        .terrain-filtres > * { flex: 1 1 100% !important; width: 100% !important; min-width: 0 !important; }
-        .terrain-personne { display: grid !important; grid-template-columns: 42px minmax(0, 1fr); align-items: start !important; gap: 10px 12px !important; }
+        .terrain-filtres { flex-direction: column !important; align-items: stretch !important; }
+        .terrain-filtres > * { width: 100% !important; min-width: 0 !important; flex: none !important; }
+        .terrain-personne { display: grid !important; grid-template-columns: 42px minmax(0, 1fr); align-items: start !important; gap: 10px 12px !important; padding: 12px !important; }
         .terrain-identite { min-width: 0 !important; overflow-wrap: anywhere; }
-        .terrain-actions { grid-column: 1 / -1; }
-        .terrain-actions > button { flex: 1 1 calc(50% - 6px); justify-content: center; padding: 13px 10px !important; font-size: 13.5px !important; min-width: 0 !important; }
-        .terrain-actions > button:first-child:nth-last-child(1) { flex-basis: 100%; }
-        .terrain-visibilite > button { flex: 1 1 100%; justify-content: center; text-align: center; white-space: normal; }
-        .terrain-exports > button { flex: 1 1 100%; justify-content: center; }
+        .terrain-actions { grid-column: 1 / -1; display: grid !important; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px !important; }
+        .terrain-actions > button { width: 100%; min-width: 0 !important; }
+        .terrain-visibilite > button, .terrain-exports > button { flex: 1 1 100%; justify-content: center; text-align: center; white-space: normal; }
       }
       @media print {
         body * { visibility: hidden; }
@@ -674,28 +679,22 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
       </div>
     </div>
   ) : (
-    <div style={{ background: `linear-gradient(120deg, ${NAVY}, #001a66 60%, ${BLUE})`, padding: '22px 16px 46px' }}>
-      <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <div style={{ fontSize: 11, color: '#93c5fd', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>COPAF 2026 · Terrain</div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: '#fff', marginTop: 2 }}>Tableau de bord terrain</div>
+    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '12px 12px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap', background: '#fff', padding: '8px 14px', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <Ico name="user" size={14} color={NAVY} /> {auteurAffiche || 'Opérateur'}
+          <span style={{ fontSize: 10.5, fontWeight: 800, color: '#94a3b8', letterSpacing: 1.2, textTransform: 'uppercase' }}>COPAF 2026 · Terrain</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          {niveau === 'admin' ? (
-            <button type="button" onClick={() => setEditionEquipier(true)} style={{ ...BTN, background: 'rgba(255,255,255,.14)', color: '#fff', border: '1px solid rgba(255,255,255,.25)' }}>
-              <Ico name="user" size={13} color="#fff" /> {equipier}
+        {niveau === 'admin' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button type="button" onClick={() => setEditionEquipier(true)} className="btn-touch" style={{ background: 'none', border: 'none', color: BLUE, fontSize: 12.5, fontWeight: 700, cursor: 'pointer', padding: '0 8px' }}>
+              Changer
             </button>
-          ) : (
-            <span style={{ ...BTN, background: 'rgba(255,255,255,.14)', color: '#fff', border: '1px solid rgba(255,255,255,.25)', cursor: 'default' }}>
-              <Ico name="user" size={13} color="#fff" /> {auteurAffiche}
-            </span>
-          )}
-          {niveau === 'admin' && (
-            <Link to="/staff/scan" style={{ ...BTN, background: '#fff', color: NAVY, textDecoration: 'none' }}>
+            <Link to="/staff/scan" className="btn-touch" style={{ ...BTN, background: '#eef2ff', color: NAVY, textDecoration: 'none' }}>
               <Ico name="search" size={13} color={NAVY} /> Scanner
             </Link>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -704,42 +703,53 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
     <>
       {styleCommun}
       {entete}
-      <div style={{ maxWidth: 960, margin: embarque ? '14px auto 0' : '-28px auto 0', padding: embarque ? 0 : '0 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ maxWidth: 1100, margin: embarque ? '14px auto 0' : '0 auto', padding: embarque ? 0 : '12px 12px 80px', display: 'flex', flexDirection: 'column', gap: 14 }}>
         {!enLigne && (
-          <div style={{ background: '#fef2f2', border: '1.5px solid #fecaca', borderRadius: 12, padding: '10px 14px', color: '#991b1b', fontSize: 13, fontWeight: 700 }}>
-            Hors connexion — utilisez la liste papier. Les actions sont désactivées.
+          <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#991b1b', padding: '10px 14px', borderRadius: 10, fontSize: 12.5, fontWeight: 700, textAlign: 'center' }}>
+            ⚠️ Hors connexion : utilisez la liste papier. Les actions sont désactivées.
           </div>
         )}
         {erreur && <p style={{ color: '#dc2626', fontSize: 13.5 }}>{erreur}</p>}
-        {msg && <div style={{ background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 10, padding: '9px 14px', color: NAVY, fontSize: 13, fontWeight: 700 }}>{msg}</div>}
-
-        {/* Carte "jour + onglets" flottante sur le bandeau */}
-        <div className="terrain-carte" style={{ ...CARTE, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-              <select value={jour} onChange={e => setJour(e.target.value)} disabled={!!mode.jourFixe} style={{ ...INPUT, width: 'auto', padding: '8px 10px', fontWeight: 700 }}>
-                {JOURS_CONF.map(j => <option key={j} value={j}>{fmtJour(j)}</option>)}
-              </select>
-              {mode.jourFixe && <span style={{ fontSize: 11.5, color: '#94a3b8' }}>(fixé au {fmtJour(mode.jourFixe)})</span>}
-            </div>
-            <button type="button" onClick={() => setPanneauIncidents(v => !v)} style={{
-              ...BTN, background: incidentsOuverts.length ? '#fef2f2' : '#f1f5f9', color: incidentsOuverts.length ? '#dc2626' : '#64748b',
-            }}>
-              <Ico name="alert" size={13} color={incidentsOuverts.length ? '#dc2626' : '#94a3b8'} /> {incidentsOuverts.length} incident(s)
-            </button>
+        {msg && (
+          <div style={{ position: 'fixed', bottom: 20, left: 16, right: 16, background: '#0f172a', color: '#fff', padding: '12px 16px', borderRadius: 12, zIndex: 9999, fontSize: 13, fontWeight: 600, textAlign: 'center', maxWidth: 560, margin: '0 auto' }}>
+            {msg}
           </div>
-          <div className="terrain-onglets" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {MODES.filter(m => !m.adminOnly || niveau === 'admin').map(m => (
-              <button key={m.id} type="button" onClick={() => setModeId(m.id)} style={{
-                ...BTN, padding: '8px 15px', borderRadius: 100,
-                background: modeId === m.id ? `linear-gradient(135deg, ${NAVY}, ${BLUE})` : '#f1f5f9',
-                color: modeId === m.id ? '#fff' : '#334155',
-                boxShadow: modeId === m.id ? '0 4px 12px -3px rgba(0,14,145,.4)' : 'none',
+        )}
+
+        <div className="scroll-x terrain-onglets" style={{ gap: 8, paddingBottom: 4 }}>
+          {MODES.filter(m => !m.adminOnly || niveau === 'admin').map(m => {
+            const actif = modeId === m.id
+            return (
+              <button key={m.id} type="button" onClick={() => setModeId(m.id)} className="btn-touch" style={{
+                padding: '0 16px', borderRadius: 20, fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap', border: 'none', cursor: 'pointer',
+                background: actif ? NAVY : '#fff', color: actif ? '#fff' : '#475569', boxShadow: actif ? 'none' : '0 1px 3px rgba(15,23,42,.08)',
               }}>
                 {m.label}
               </button>
-            ))}
+            )
+          })}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="scroll-x" style={{ gap: 6, flex: 1, minWidth: 0, paddingBottom: 2 }}>
+            {mode.vue !== 'groupes' && (mode.jourFixe ? (
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#64748b', padding: '0 4px' }}>Jour fixé : {fmtJour(mode.jourFixe)}</span>
+            ) : JOURS_CONF.map(j => (
+              <button key={j} type="button" onClick={() => setJour(j)} className="btn-touch" style={{
+                padding: '0 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                background: jourActif === j ? '#dbeafe' : '#fff', color: jourActif === j ? NAVY : '#64748b',
+                border: `1px solid ${jourActif === j ? BLUE : '#cbd5e1'}`,
+              }}>
+                {fmtJour(j)}
+              </button>
+            )))}
           </div>
+          <button type="button" onClick={() => setPanneauIncidents(v => !v)} className="btn-touch" style={{
+            ...BTN, flexShrink: 0, background: incidentsOuverts.length ? '#fef2f2' : '#fff', color: incidentsOuverts.length ? '#dc2626' : '#64748b',
+            border: `1px solid ${incidentsOuverts.length ? '#fecaca' : '#e2e8f0'}`,
+          }}>
+            <Ico name="alert" size={13} color={incidentsOuverts.length ? '#dc2626' : '#94a3b8'} /> {incidentsOuverts.length} incident(s)
+          </button>
         </div>
 
         {panneauIncidents && (
@@ -782,17 +792,17 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
         </div>
 
         {/* Recherche + filtres */}
-        <div className="terrain-carte terrain-filtres" style={{ ...CARTE, padding: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Rechercher (nom, organisation, dossier)…" style={{ ...INPUT, flex: 1, minWidth: 200, border: '1.5px solid #eef1f8', background: '#f8fafc' }} />
-          <select value={filtreCategorie} onChange={e => setFiltreCategorie(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
+        <div className="terrain-filtres" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="🔍 Rechercher nom, organisation, dossier…" className="input-mobile" style={{ flex: 1, minWidth: 180 }} />
+          <select value={filtreCategorie} onChange={e => setFiltreCategorie(e.target.value)} className="input-mobile" style={{ width: 'auto', flexGrow: 1 }}>
             <option value="tous">Toutes catégories</option>
             {Object.entries(CAT_LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
           </select>
-          <select value={filtreDelegation} onChange={e => setFiltreDelegation(e.target.value)} style={{ ...INPUT, width: 'auto', border: '1.5px solid #eef1f8', background: '#f8fafc' }}>
+          <select value={filtreDelegation} onChange={e => setFiltreDelegation(e.target.value)} className="input-mobile" style={{ width: 'auto', flexGrow: 1 }}>
             <option value="">Toutes délégations</option>
             {delegations.map(d => <option key={d} value={d}>{d}</option>)}
           </select>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: '#334155', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700, color: '#334155', cursor: 'pointer', minHeight: 44 }}>
             <input type="checkbox" checked={aFaireSeulement} onChange={e => setAFaireSeulement(e.target.checked)} /> À faire seulement
           </label>
         </div>
@@ -908,7 +918,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
                     })()}
                   </div>
                 </div>
-                <div className="terrain-actions" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <div className="terrain-actions" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                   {mode.etapes.map(e => {
                     const fait = p.etapes?.[e]
                     if (mode.lecture) {
@@ -918,21 +928,23 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
                         </span>
                       )
                     }
+                    const bloque = !fait && PREREQUIS[e] && !PREREQUIS[e].souple && !p.etapes?.[PREREQUIS[e].avant]
                     return fait ? (
-                      <button key={e} type="button" onClick={() => ouvrirAnnulation(p, e)} disabled={!enLigne} title="Cliquer pour annuler" style={{
-                        ...BTN, background: '#16a34a', color: '#fff', minWidth: 90, justifyContent: 'center',
-                      }}>
-                        <Ico name="check" size={11} color="#fff" /> {heure(fait.fait_le)} · {fait.fait_par}{e === 'tablette' && fait.valeur ? ` · N° ${fait.valeur}` : ''}{fait.mode === 'scan' ? ' 📷' : ''}
+                      <button key={e} type="button" onClick={() => ouvrirAnnulation(p, e)} disabled={!enLigne} title="Cliquer pour annuler" className="btn-touch" style={{ ...BOUTON_ETAPE, background: '#dcfce7', color: '#15803d', border: '1px solid #86efac' }}>
+                        <span>✓ {ETAPES[e].label}</span>
+                        <span style={{ fontSize: 10.5, fontWeight: 600, opacity: 0.85 }}>
+                          {heure(fait.fait_le)} · {fait.fait_par}{e === 'tablette' && fait.valeur ? ` · N° ${fait.valeur}` : ''}{fait.mode === 'scan' ? ' 📷' : ''}
+                        </span>
                       </button>
                     ) : (
-                      <button key={e} type="button" onClick={() => demarrerMarquage(p, e)} disabled={!enLigne}
-                        title={PREREQUIS[e] && !PREREQUIS[e].souple && !p.etapes?.[PREREQUIS[e].avant] ? `À faire d'abord : ${ETAPES[PREREQUIS[e].avant].label}` : undefined}
-                        style={{ ...BTN, background: '#eef2f7', color: '#334155', minWidth: 90, justifyContent: 'center', opacity: PREREQUIS[e] && !PREREQUIS[e].souple && !p.etapes?.[PREREQUIS[e].avant] ? 0.45 : 1 }}>
-                        {ETAPES[e].label}
+                      <button key={e} type="button" onClick={() => demarrerMarquage(p, e)} disabled={!enLigne} className="btn-touch"
+                        title={bloque ? `À faire d'abord : ${ETAPES[PREREQUIS[e].avant].label}` : undefined}
+                        style={{ ...BOUTON_ETAPE, background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', opacity: bloque ? 0.45 : 1 }}>
+                        + {ETAPES[e].label}
                       </button>
                     )
                   })}
-                  <button type="button" onClick={() => setModalIncident({ personne: p })} disabled={!enLigne} style={{ ...BTN, background: '#fef2f2', color: '#dc2626' }}>
+                  <button type="button" onClick={() => setModalIncident({ personne: p })} disabled={!enLigne} className="btn-touch" style={{ ...BOUTON_ETAPE, flexDirection: 'row', gap: 6, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
                     <Ico name="alert" size={12} color="#dc2626" /> Incident
                   </button>
                 </div>
