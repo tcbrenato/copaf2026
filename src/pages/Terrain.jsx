@@ -48,17 +48,25 @@ const ETAPES = {
   badge: { label: 'Badge et kit remis' },
   tablette: { label: 'Tablette remise', champValeur: true, placeholderValeur: 'N° tablette', valeurRequise: true },
   present: { label: 'Présent', parJour: true },
-  tablette_rendue: { label: 'Tablette restituée' },
   depart: { label: 'Transfert retour effectué' },
 }
 const TOUTES_ETAPES = Object.keys(ETAPES)
 
+// Ordre logique du parcours : accueil -> hotel -> kit puis tablette (numero) -> presence J1 -> retour.
+// Les tablettes repartent avec les participants : plus de restitution a suivre.
+// souple : on peut passer outre apres confirmation (ex. personne non accueillie a l'aeroport).
+const PREREQUIS = {
+  hotel: { avant: 'aeroport', souple: true },
+  badge: { avant: 'hotel' },
+  tablette: { avant: 'badge' },
+}
+
 const MODES = [
   { id: 'aeroport', label: 'Aéroport', etapes: ['aeroport'], tri: 'arrivee' },
-  { id: 'hotel', label: 'Hôtel', etapes: ['hotel', 'badge'], tri: 'nom' },
-  { id: 'conference', label: 'Conférence', etapes: ['present', 'badge', 'tablette'], tri: 'nom' },
+  { id: 'hotel', label: 'Hôtel & kit', etapes: ['hotel', 'badge', 'tablette'], tri: 'nom' },
+  { id: 'conference', label: 'Conférence', etapes: ['present'], tri: 'nom' },
   { id: 'visite', label: 'Visite J3', etapes: ['present'], tri: 'nom', jourFixe: '2026-10-21' },
-  { id: 'depart', label: 'Départ', etapes: ['tablette_rendue', 'depart'], tri: 'depart' },
+  { id: 'depart', label: 'Départ', etapes: ['depart'], tri: 'depart' },
   { id: 'tout', label: 'Tout', etapes: TOUTES_ETAPES, tri: 'nom', lecture: true },
   { id: 'arrivees', label: 'Arrivées & départs groupés', etapes: [], tri: 'nom', lecture: true, vue: 'groupes', adminOnly: true },
 ]
@@ -455,7 +463,11 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
     })
     if (error) {
       patchLocal(p, etapeId, avant)
-      setMsg(error.message?.includes('Numero de tablette') ? 'Numéro de tablette requis.' : "Échec de l'enregistrement.")
+      const dejaPris = error.message?.match(/deja attribue ((.+?))/)
+      if (dejaPris) {
+        const autre = (personnes || []).find(x => x.personne_id === dejaPris[1])
+        setMsg(`Ce numéro de tablette est déjà attribué à ${autre ? `${autre.prenom} ${autre.nom}` : dejaPris[1]}.`)
+      } else setMsg(error.message?.includes('Numero de tablette') ? 'Numéro de tablette requis.' : "Échec de l'enregistrement.")
       return
     }
     const r = Array.isArray(data) ? data[0] : data
@@ -464,6 +476,11 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
   }
 
   const demarrerMarquage = (p, etapeId) => {
+    const bloc = PREREQUIS[etapeId]
+    if (bloc && !p.etapes?.[bloc.avant]) {
+      if (!bloc.souple) { setMsg(`« ${ETAPES[bloc.avant].label} » doit être fait avant « ${ETAPES[etapeId].label} ».`); return }
+      if (!window.confirm(`« ${ETAPES[bloc.avant].label} » n'est pas marqué pour ${p.prenom} ${p.nom}. Marquer « ${ETAPES[etapeId].label} » quand même ?`)) return
+    }
     if (ETAPES[etapeId].champValeur) { setModalTablette({ personne: p, etape: etapeId }); return }
     marquer(p, etapeId, null)
   }
@@ -487,6 +504,11 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
 
   const marquerGroupe = async etapeId => {
     if (!filtreDelegation) return
+    const blocG = PREREQUIS[etapeId]
+    if (blocG && !blocG.souple) {
+      const manquants = (personnes || []).filter(p => p.delegation === filtreDelegation && !p.etapes?.[blocG.avant])
+      if (manquants.length) { setMsg(`${manquants.length} personne(s) de la délégation n'ont pas « ${ETAPES[blocG.avant].label} » : à faire d'abord.`); return }
+    }
     if (!window.confirm(`Marquer « ${ETAPES[etapeId].label} » pour toute la délégation « ${filtreDelegation} » (${affiches.length} personne(s) affichée(s)) ?`)) return
     const jourEtape = ETAPES[etapeId].parJour ? jourActif : null
     const { data, error } = await supabase.rpc('terrain_marquer_groupe', { p_delegation: filtreDelegation, p_etape: etapeId, p_jour: jourEtape, p_fait_par: auteurAffiche, ...acces })
@@ -775,7 +797,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
           <div className="terrain-carte" style={{ ...CARTE, padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a' }}>Visibilité pour l'équipe terrain (Yvette, Eliram, équipe Maroc…)</div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              {[['participant', 'Participants'], ['intervenant', 'Intervenants']].map(([cat, libelle]) => {
+              {[['participant', 'Participants'], ['intervenant', 'Intervenants'], ['organisation', 'Équipe / Comité']].map(([cat, libelle]) => {
                 const masquee = categoriesMasquees.includes(cat)
                 return (
                   <button key={cat} type="button" onClick={() => toggleCategorieMasquee(cat)} style={{
@@ -896,10 +918,12 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
                       <button key={e} type="button" onClick={() => ouvrirAnnulation(p, e)} disabled={!enLigne} title="Cliquer pour annuler" style={{
                         ...BTN, background: '#16a34a', color: '#fff', minWidth: 90, justifyContent: 'center',
                       }}>
-                        <Ico name="check" size={11} color="#fff" /> {heure(fait.fait_le)} · {fait.fait_par}{fait.mode === 'scan' ? ' 📷' : ''}
+                        <Ico name="check" size={11} color="#fff" /> {heure(fait.fait_le)} · {fait.fait_par}{e === 'tablette' && fait.valeur ? ` · N° ${fait.valeur}` : ''}{fait.mode === 'scan' ? ' 📷' : ''}
                       </button>
                     ) : (
-                      <button key={e} type="button" onClick={() => demarrerMarquage(p, e)} disabled={!enLigne} style={{ ...BTN, background: '#eef2f7', color: '#334155', minWidth: 90, justifyContent: 'center' }}>
+                      <button key={e} type="button" onClick={() => demarrerMarquage(p, e)} disabled={!enLigne}
+                        title={PREREQUIS[e] && !PREREQUIS[e].souple && !p.etapes?.[PREREQUIS[e].avant] ? `À faire d'abord : ${ETAPES[PREREQUIS[e].avant].label}` : undefined}
+                        style={{ ...BTN, background: '#eef2f7', color: '#334155', minWidth: 90, justifyContent: 'center', opacity: PREREQUIS[e] && !PREREQUIS[e].souple && !p.etapes?.[PREREQUIS[e].avant] ? 0.45 : 1 }}>
                         {ETAPES[e].label}
                       </button>
                     )
@@ -951,6 +975,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
           titre={`${ETAPES[modalTablette.etape].label} — ${modalTablette.personne.prenom} ${modalTablette.personne.nom}`}
           placeholder={ETAPES[modalTablette.etape].placeholderValeur}
           requise={ETAPES[modalTablette.etape].valeurRequise}
+          note={modalTablette.etape === 'tablette' ? "Rappelez à la personne d'apporter sa tablette demain, au Jour 1 de la conférence." : null}
           onValider={v => { marquer(modalTablette.personne, modalTablette.etape, v); setModalTablette(null) }}
           onFermer={() => setModalTablette(null)}
         />
@@ -974,13 +999,14 @@ const wrap = { minHeight: '100vh', display: 'flex', alignItems: 'center', justif
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,.5)', backdropFilter: 'blur(3px)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }
 const boiteModal = { background: '#fff', borderRadius: 18, width: '100%', maxWidth: 380, padding: 22, boxShadow: '0 24px 48px -12px rgba(15,23,42,.35)' }
 
-function ModalValeur({ titre, placeholder, requise, onValider, onFermer }) {
+function ModalValeur({ titre, placeholder, requise, note, onValider, onFermer }) {
   const [v, setV] = useState('')
   return (
     <div style={overlay} className="terrain-modal-overlay" onClick={onFermer}>
       <div style={boiteModal} className="terrain-modal-box" onClick={e => e.stopPropagation()}>
         <div style={{ fontSize: 14.5, fontWeight: 800, marginBottom: 12 }}>{titre}</div>
         <input autoFocus value={v} onChange={e => setV(e.target.value)} placeholder={placeholder} style={INPUT} />
+        {note && <div style={{ marginTop: 10, padding: '8px 10px', borderRadius: 10, background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', fontSize: 12.5, fontWeight: 600 }}>{note}</div>}
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
           <button type="button" disabled={requise && !v.trim()} onClick={() => onValider(v)} style={{ ...boutonAction(NAVY), flex: 1, opacity: requise && !v.trim() ? 0.5 : 1 }}>Valider</button>
           <button type="button" onClick={onFermer} style={{ ...BTN, background: '#f1f5f9', color: '#334155' }}>Annuler</button>
