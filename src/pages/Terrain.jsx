@@ -60,6 +60,7 @@ const MODES = [
   { id: 'conference', label: 'Conférence', etapes: ['present'], tri: 'nom' },
   { id: 'visite', label: 'Visite J3', etapes: ['present'], tri: 'nom', jourFixe: '2026-10-21' },
   { id: 'depart', label: 'Départ', etapes: ['depart'], tri: 'depart' },
+  { id: 'faits', label: 'Déjà traités', etapes: [], tri: 'nom', lecture: true, vue: 'faits' },
   { id: 'tout', label: 'Tout', etapes: TOUTES_ETAPES, tri: 'nom', lecture: true },
   { id: 'arrivees', label: 'Arrivées & départs groupés', etapes: [], tri: 'nom', lecture: true, vue: 'groupes', adminOnly: true },
 ]
@@ -277,6 +278,76 @@ function versCSV(entetes, lignes) {
 // donc pas de detection dossier+PIN ni de bandeau pleine page (le tableau de
 // bord fournit deja son propre cadre). /terrain reste la seule porte d'entree
 // pour les comptes dossier+PIN (Yvette, Eliram, equipe Maroc).
+// Liste a part de tout ce qui est deja coche (accueilli, arrive, kit, tablette, present, retour),
+// groupee par etape, la plus recente d'abord. Lecture seule + annulation d'une etape.
+function VueDejaFaits({ personnes, jour, enLigne, onAnnuler }) {
+  const [filtre, setFiltre] = useState('toutes')
+  if (personnes === null) return <p style={{ color: '#64748b', fontSize: 13.5 }}>Chargement…</p>
+
+  const groupes = TOUTES_ETAPES.map(id => ({
+    id,
+    label: id === 'present' ? `Présent le ${fmtJour(jour)}` : ETAPES[id].label,
+    lignes: personnes
+      .filter(p => p.etapes?.[id])
+      .map(p => ({ p, info: p.etapes[id] }))
+      .sort((a, b) => new Date(b.info.fait_le) - new Date(a.info.fait_le)),
+  }))
+  const total = groupes.reduce((n, g) => n + g.lignes.length, 0)
+  const visibles = groupes.filter(g => g.lignes.length && (filtre === 'toutes' || g.id === filtre))
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="scroll-x" style={{ gap: 6, paddingBottom: 2 }}>
+        {[{ id: 'toutes', label: 'Toutes les étapes', n: total }, ...groupes.map(g => ({ id: g.id, label: g.label, n: g.lignes.length }))].map(c => (
+          <button key={c.id} type="button" onClick={() => setFiltre(c.id)} className="btn-touch" style={{
+            padding: '0 12px', borderRadius: 100, fontSize: 12, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap',
+            background: filtre === c.id ? '#dcfce7' : '#fff', color: filtre === c.id ? '#166534' : '#64748b',
+            border: `1px solid ${filtre === c.id ? '#86efac' : '#cbd5e1'}`,
+          }}>
+            {c.label} · {c.n}
+          </button>
+        ))}
+      </div>
+
+      {visibles.length === 0 && (
+        <div style={{ padding: 32, textAlign: 'center', background: '#fff', borderRadius: 14, border: '1.5px dashed #cbd5e1', color: '#94a3b8', fontSize: 13, fontWeight: 600 }}>
+          Rien n'a encore été coché.
+        </div>
+      )}
+
+      {visibles.map(g => (
+        <div key={g.id} className="terrain-carte" style={{ ...CARTE, padding: 14 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 800, color: '#166534', marginBottom: 10 }}>✓ {g.label} · {g.lignes.length}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {g.lignes.map(({ p, info }) => {
+              const pill = PILL_CAT[p.categorie] || { bg: '#f1f5f9', fg: '#475569', bd: '#e2e8f0' }
+              return (
+                <div key={`${p.personne_type}:${p.personne_id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '10px 12px', background: '#f8faff', borderRadius: 10, flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 0, flex: '1 1 200px' }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      {p.prenom} {p.nom}
+                      <span style={{ fontSize: 10, fontWeight: 800, color: pill.fg, background: pill.bg, border: `1px solid ${pill.bd}`, borderRadius: 20, padding: '1px 8px' }}>{CAT_LABEL[p.categorie]}</span>
+                    </div>
+                    <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>{p.organisation || '—'} · {p.dossier}</div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#166534' }}>
+                      {heure(info.fait_le)} · {info.fait_par}{g.id === 'tablette' && info.valeur ? ` · N° ${info.valeur}` : ''}{info.mode === 'scan' ? ' 📷' : ''}
+                    </span>
+                    <button type="button" onClick={() => onAnnuler(p, g.id)} disabled={!enLigne} className="btn-touch" style={{ ...BTN, background: '#fff', color: '#64748b', border: '1px solid #e2e8f0', padding: '0 12px' }}>
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export default function Terrain({ embarque = false, authEmail = '' }) {
   // Detection du niveau d'acces au montage : compte Supabase Auth admin
   // (scope checkin/all) d'abord, sinon formulaire dossier+PIN (voir
@@ -770,6 +841,8 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
 
         {mode.vue === 'groupes' ? (
           <VueArriveesGroupees acces={acces} />
+        ) : mode.vue === 'faits' ? (
+          <VueDejaFaits personnes={personnes} jour={jourActif} enLigne={enLigne} onAnnuler={ouvrirAnnulation} />
         ) : (
         <>
         {/* Compteurs */}
