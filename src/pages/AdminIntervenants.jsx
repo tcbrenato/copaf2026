@@ -35,6 +35,8 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
   const [fonction, setFonction] = useState(initial?.fonction || '')
   const [pays, setPays] = useState(initial?.pays || '')
   const [email, setEmail] = useState(initial?.email || '')
+  const [email2, setEmail2] = useState(initial?.email_secondaire || '')
+  const [mission, setMission] = useState(initial?.mission || {})
   const [telephone, setTelephone] = useState(initial?.telephone || '')
   const [codeAcces, setCodeAcces] = useState(initial?.code_acces || 'COPAF2026-SPEAKER')
   const [equipe, setEquipe] = useState(!!initial?.equipe)
@@ -67,7 +69,8 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
     setSaving(true); setErreur('')
     const champs = {
       nom: nom.trim(), prenom: prenom.trim(), organisation: organisation.trim() || null,
-      fonction: fonction.trim() || null, pays: pays.trim() || null, email: email.trim() || null,
+      fonction: fonction.trim() || null, pays: pays.trim() || null, email: email.trim() || null, email_secondaire: email2.trim() || null,
+      mission,
       telephone: telephone.trim() || null, photo_url: photoUrl || null,
       code_acces: codeAcces.trim(), interventions: texteToInterventions(interventionsTxt), equipe,
     }
@@ -107,6 +110,10 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
           <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Email</label>
           <input value={email} onChange={e => setEmail(e.target.value)} style={INPUT} />
         </div>
+        <div style={{ gridColumn: '1 / -1' }}>
+          <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Email secondaire (optionnel — permet aussi de se connecter à l'espace)</label>
+          <input value={email2} onChange={e => setEmail2(e.target.value)} style={INPUT} />
+        </div>
         <div>
           <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Téléphone</label>
           <input value={telephone} onChange={e => setTelephone(e.target.value)} style={INPUT} />
@@ -127,11 +134,31 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
         </div>
         <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#334155', fontWeight: 600 }}>
           <input type="checkbox" checked={equipe} onChange={e => setEquipe(e.target.checked)} />
-          Membre de l'équipe COPAF (ajoute dans son espace les boutons Guide, Fiche de voyage, Programme et Attestation)
+          Membre de l'équipe / bénévole (ajoute dans son espace : Ma mission, planning, documents, badge digital, et les boutons Guide, Fiche de voyage, Programme, Attestation)
         </label>
       </div>
+      {equipe && (
+        <div style={{ border: '1.5px solid #bfdbfe', background: '#f8faff', borderRadius: 12, padding: 14, marginBottom: 12 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 800, color: '#0f172a', marginBottom: 10 }}>Ma mission (visible dans son espace)</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+            {[['role', 'Rôle'], ['equipe', 'Équipe'], ['responsable', 'Responsable (nom)'], ['responsable_tel', 'Responsable (téléphone)'], ['rdv', 'Point de rendez-vous'], ['tenue', 'Tenue / badge']].map(([cle, etiquette]) => (
+              <div key={cle}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>{etiquette}</label>
+                <input value={mission[cle] || ''} onChange={e => setMission(m => ({ ...m, [cle]: e.target.value }))} style={INPUT} />
+              </div>
+            ))}
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>Consignes</label>
+              <textarea value={mission.consignes || ''} onChange={e => setMission(m => ({ ...m, consignes: e.target.value }))} rows={3} style={{ ...INPUT, resize: 'vertical' }} />
+            </div>
+          </div>
+          <p style={{ fontSize: 11.5, color: '#64748b', margin: '8px 0 0' }}>
+            Planning : utilisez les lignes ci-dessous — Jour (1 = 19 oct., 2 = 20 oct., 3 = 21 oct.) | Horaire | Tâche | Lieu. Ex. : 1 | 08h00–12h00 | Accueil des participants | Hall d'entrée
+          </p>
+        </div>
+      )}
       <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>
-        Interventions — une par ligne : Jour | Horaire | Titre | Mention co-intervenant (optionnel, texte libre — ex. "Avec Mme X" ou "Assisté de M. Y")
+        {equipe ? 'Planning de mission — une ligne par créneau : Jour | Horaire | Tâche | Lieu' : 'Interventions — une par ligne : Jour | Horaire | Titre | Mention co-intervenant (optionnel, texte libre — ex. "Avec Mme X" ou "Assisté de M. Y")'}
       </label>
       <textarea
         value={interventionsTxt} onChange={e => setInterventionsTxt(e.target.value)} rows={4}
@@ -242,6 +269,14 @@ export default function AdminIntervenants() {
           <span>Lien de l'espace : <strong>{lienEspace}</strong></span>
           <button type="button" onClick={copierLien} style={{ ...BTN_GHOST, padding: '4px 10px' }}>{copie ? 'Copié !' : 'Copier'}</button>
         </div>
+      </div>
+
+      <div style={{ ...CARD, marginBottom: 20 }}>
+        <div style={{ fontSize: 13, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>Documents communs de l'équipe</div>
+        <p style={{ fontSize: 12.5, color: '#64748b', margin: 0 }}>
+          Charte du bénévole, programme, plan du site… : déposez-les ici une seule fois, ils apparaissent dans « Documents de la mission » de tous les membres de l'équipe (choisissez le type de chaque fichier).
+        </p>
+        <DocumentsSection dossier="EQUIPE" table="documents_intervenants" bucket="documents-intervenants" titre="Fichiers communs" />
       </div>
 
       {ajout && <FormeIntervenant nextOrdre={intervenants.length + 1} onCancel={() => setAjout(false)} onSaved={() => { setAjout(false); load() }} />}
