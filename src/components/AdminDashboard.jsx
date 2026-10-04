@@ -14,6 +14,7 @@ import EcrireBouton from './EcrireBouton'
 import AdminEmails from '../pages/AdminEmails'
 import AdminVoyage from '../pages/AdminVoyage'
 import AdminLettresInvitation from '../pages/AdminLettresInvitation'
+import AdminEquipe from '../pages/AdminEquipe'
 import Terrain from '../pages/Terrain'
 import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
@@ -96,6 +97,7 @@ const MODULES = [
   { id: 'emails',      label: 'Envoyer un email', icon: 'mail',     table: null,            scope: 'all', adminOnly: true },
   { id: 'voyage',      label: 'Voyages & Guide',  icon: 'globe',    table: null,            scope: 'all', adminOnly: true },
   { id: 'lettres-invitation', label: 'Lettres & ordres de mission', icon: 'mail', table: null,     scope: 'all', adminOnly: true },
+  { id: 'equipe',      label: 'Équipe',          icon: 'users',    table: null,            scope: 'all', adminOnly: true },
   { id: 'terrain',     label: 'Terrain',          icon: 'globe',    table: null,            scope: 'all', adminOnly: true },
 ]
 
@@ -2916,6 +2918,8 @@ export default function AdminPage() {
             <AdminEmails />
           ) : activeModule === 'voyage' ? (
             <AdminVoyage />
+          ) : activeModule === 'equipe' ? (
+            <AdminEquipe />
           ) : activeModule === 'lettres-invitation' ? (
             <AdminLettresInvitation />
           ) : activeModule === 'terrain' ? (

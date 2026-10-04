@@ -185,7 +185,7 @@ export default function DocumentsSection({ dossier, participantId = null, titre,
   }
 
   // Types proposes cote admin : « Badge », « Attestation » (et, pour l'equipe, « Guide » et « Fiche de voyage ») alimentent les boutons dedies
-  const typesDoc = [['autre', 'Autre', 'Other'], ['badge', 'Badge', 'Badge'], ...(table === 'documents_intervenants' ? [['guide', 'Guide du participant', 'Participant guide'], ['fiche', 'Fiche de voyage', 'Travel sheet'], ['charte', 'Charte du bénévole / mission', 'Volunteer charter'], ['programme', 'Programme', 'Programme'], ['plan', 'Plan du site', 'Site map']] : []), ['attestation', 'Attestation', 'Certificate']]
+  const typesDoc = [['autre', 'Autre', 'Other'], ['badge', 'Badge', 'Badge'], ...(table === 'documents_intervenants' ? [['guide', 'Guide du participant', 'Participant guide'], ['fiche', 'Fiche de voyage', 'Travel sheet']] : []), ['attestation', 'Attestation', 'Certificate']]
 
   if (loading) return null
 

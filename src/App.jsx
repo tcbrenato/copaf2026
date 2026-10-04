@@ -54,6 +54,7 @@ const BadgeToken           = lazy(() => import('./pages/BadgeToken'))
 const StaffScan            = lazy(() => import('./pages/StaffScan'))
 const Terrain               = lazy(() => import('./pages/Terrain'))
 const EspaceIntervenant    = lazy(() => import('./pages/EspaceIntervenant'))
+const EspaceEquipe         = lazy(() => import('./pages/EspaceEquipe'))
 
 // ─── Repli affiche pendant le telechargement d'une route secondaire ──────────
 const RouteFallback = () => (
@@ -227,6 +228,7 @@ function App() {
         <Route path="/badge"                  element={<BadgeToken />} />
         <Route path="/badge/:token"           element={<BadgeToken />} />
         <Route path="/intervenant"            element={<EspaceIntervenant />} />
+        <Route path="/espace-equipe"          element={<EspaceEquipe />} />
         <Route path="/staff/scan"             element={<StaffScan />} />
         <Route path="/terrain"                element={<Terrain />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />

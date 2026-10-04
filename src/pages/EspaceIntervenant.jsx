@@ -4,7 +4,6 @@ import { supabase } from '../supabase'
 import SeoHead from '../components/SeoHead'
 import DocumentsSection from '../components/DocumentsSection'
 import BoutonsEquipe from '../components/BoutonsEquipe'
-import EspaceMission from '../components/EspaceMission'
 import { Avatar } from '../utils/dossierUi'
 import { generateQrCard } from '../utils/generateQrCard'
 import { generateLettreInvitationPDF } from '../utils/generateLettreInvitationPDF'
@@ -576,7 +575,13 @@ export default function EspaceIntervenant() {
 
             {intervenant.equipe && (
               <div className="col-span-full" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <EspaceMission intervenant={intervenant} lang={lang} qr={qr} />
+                <a href="/espace-equipe" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', padding: '20px 24px', borderRadius: 20, background: 'linear-gradient(135deg, #00367F, #1798F4)', color: '#fff', textDecoration: 'none' }}>
+                  <span style={{ flex: '1 1 220px', minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 17, fontWeight: 800 }}>{lang === 'en' ? 'My team space' : 'Mon espace équipe'}</span>
+                    <span style={{ display: 'block', fontSize: 13, opacity: 0.92, marginTop: 3, lineHeight: 1.5 }}>{lang === 'en' ? 'Mission, schedule, documents and digital badge.' : 'Ma mission, mon planning, mes documents et mon badge digital.'}</span>
+                  </span>
+                  <span style={{ padding: '11px 20px', borderRadius: 12, background: '#fff', color: '#00367F', fontSize: 13.5, fontWeight: 800 }}>{lang === 'en' ? 'Open' : 'Ouvrir'}</span>
+                </a>
               </div>
             )}
 

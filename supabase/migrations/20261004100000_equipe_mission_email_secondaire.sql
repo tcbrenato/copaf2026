@@ -1,4 +1,4 @@
--- Espace équipe/bénévoles : « Ma mission » (rôle, équipe, responsable, tenue, consignes, point de
+-- Espace équipe : « Ma mission » (rôle, équipe, responsable, tenue, consignes, point de
 -- rendez-vous) saisie par l'admin, et deuxième adresse email acceptée pour la connexion.
 alter table public.intervenants add column if not exists email_secondaire text;
 alter table public.intervenants add column if not exists mission jsonb not null default '{}'::jsonb;
