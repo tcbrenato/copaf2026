@@ -185,6 +185,7 @@ export default function BadgeToken() {
   const [data, setData] = useState(tokenParam ? undefined : null)
   const [error, setError] = useState('')
   const [checkinLoading, setCheckinLoading] = useState(false)
+  const [bioOuverte, setBioOuverte] = useState(false)
   const [checkinResult, setCheckinResult] = useState(null)
   // Sans :token dans l'URL (/badge simple) : connexion "Mon espace" par
   // numero de dossier + secret personnel (code d'acces, ou email s'il est
@@ -402,6 +403,23 @@ export default function BadgeToken() {
                 </div>
               )}
 
+              {data.biographie && (
+                <div style={{ marginTop: 16 }}>
+                  <button type="button" onClick={() => setBioOuverte(o => !o)} aria-expanded={bioOuverte} style={{
+                    width: '100%', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${NAVY}`, background: bioOuverte ? '#eef2ff' : '#fff', color: NAVY,
+                    fontSize: 13.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  }}>
+                    <span>Biographie</span>
+                    <span aria-hidden="true" style={{ fontSize: 16 }}>{bioOuverte ? '▴' : '▾'}</span>
+                  </button>
+                  {bioOuverte && (
+                    <p style={{ margin: '10px 0 0', padding: '14px 16px', background: '#f8fafc', border: '1px solid #eef1f8', borderRadius: 12, fontSize: 14, lineHeight: 1.65, color: '#1e293b', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
+                      {data.biographie}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {contacts.length > 0 && (
                 <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
                   {contacts.map(c => (
@@ -427,7 +445,7 @@ export default function BadgeToken() {
                 Enregistrer le contact
               </button>
             </div>
-            <BandeauCategorie categorie="Intervenant" />
+            <BandeauCategorie categorie={data.est_equipe ? "Comité d'organisation" : "Intervenant"} />
             <PiedLogos organisation={data.organisation} />
           </div>
         </div>
