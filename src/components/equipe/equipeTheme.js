@@ -16,9 +16,10 @@ export const TZ = 'Africa/Casablanca'
 export const aujourdhui = () =>
   new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
 
-export const libelleJour = (jour, lang) =>
-  new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'fr-FR', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' })
-    .format(new Date(`${jour}T12:00:00Z`))
+export const libelleJour = (jour, lang) => {
+  const texte = new Intl.DateTimeFormat(lang === 'en' ? 'en-GB' : 'fr-FR', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(`${jour}T12:00:00Z`))
+  return texte.charAt(0).toUpperCase() + texte.slice(1)
+}
 
 export const initiales = nom =>
   String(nom || '').split(/\s+/).filter(Boolean).slice(0, 2).map(m => m[0]).join('').toUpperCase()

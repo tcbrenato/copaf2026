@@ -16,11 +16,15 @@ export default function EquipePlanning({ planning, lang, t }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <a href={t.programmeUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', flexDirection: 'column', gap: 2, padding: '12px 16px', borderRadius: 14, background: '#eaf5ff', border: '1.5px solid #bfdbfe', textDecoration: 'none' }}>
+        <span style={{ fontSize: 14.5, fontWeight: 800, color: NAVY }}>{t.voirProgramme} ↗</span>
+        <span style={{ fontSize: 12.5, color: MUTED }}>{t.programmeNote}</span>
+      </a>
       {jours.map(({ jour, lignes }) => {
         const estAujourdHui = jour === aujourdHui
         return (
           <section key={jour} style={{ ...CARTE, padding: 0, overflow: 'hidden', borderColor: estAujourdHui ? SKY : '#e2e8f0' }}>
-            <h3 style={{ margin: 0, padding: '12px 16px', background: estAujourdHui ? SKY : NAVY, color: '#fff', fontSize: 14, fontWeight: 800, textTransform: 'capitalize', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+            <h3 style={{ margin: 0, padding: '12px 16px', background: estAujourdHui ? SKY : NAVY, color: '#fff', fontSize: 14, fontWeight: 800, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
               <span>{libelleJour(jour, lang)}</span>
               {estAujourdHui && <span style={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t.aujourdhui}</span>}
             </h3>

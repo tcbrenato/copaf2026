@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
 const WHATSAPP_NUM = '2290169303019'
+// Espace équipe : l'espace publie ici le numéro de la coordination du membre connecté (voir EspaceEquipe.jsx)
+export const CLE_CONTACT_EQUIPE = 'copaf_equipe_coordination'
+export const EVT_CONTACT_EQUIPE = 'copaf:contact-equipe'
 
 const Ico = ({ name, size = 22, color = '#fff' }) => {
   const s = { width: size, height: size, display: 'block', flexShrink: 0 }
@@ -36,10 +40,10 @@ const TR = {
   },
 }
 
-const getShortcuts = t => [
+const getShortcuts = (t, num = WHATSAPP_NUM, texteWa = t.waText) => [
   { key: 'email', label: 'Email', icon: 'mail', href: 'mailto:contact@copaf-ports.com', color: '#0073F4' },
-  { key: 'whatsapp', label: 'WhatsApp', icon: 'whatsapp', href: `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(t.waText)}`, color: '#25D366', external: true },
-  { key: 'phone', label: t.phone, icon: 'phone', href: `tel:+${WHATSAPP_NUM}`, color: '#0073F4' },
+  { key: 'whatsapp', label: 'WhatsApp', icon: 'whatsapp', href: `https://wa.me/${num}?text=${encodeURIComponent(texteWa)}`, color: '#25D366', external: true },
+  { key: 'phone', label: t.phone, icon: 'phone', href: `tel:+${num}`, color: '#0073F4' },
   { key: 'linkedin', label: 'LinkedIn', icon: 'linkedin', href: 'https://www.linkedin.com/company/crfperfection/', color: '#0A66C2', external: true },
   // Pas de vrai Calendly configure pour l'instant — lien de secours par email
   // avec objet pre-rempli, a remplacer par une vraie URL Calendly des qu'un
@@ -50,8 +54,21 @@ const getShortcuts = t => [
 ]
 
 export default function ContactHub() {
-  const t = TR[useLang()]
-  const SHORTCUTS = getShortcuts(t)
+  const lang = useLang()
+  const t = TR[lang]
+  const { pathname } = useLocation()
+  const enEquipe = pathname.startsWith('/espace-equipe')
+  const [coordination, setCoordination] = useState(() => { try { return sessionStorage.getItem(CLE_CONTACT_EQUIPE) || '' } catch { return '' } })
+  useEffect(() => {
+    const maj = e => setCoordination(e.detail || '')
+    window.addEventListener(EVT_CONTACT_EQUIPE, maj)
+    return () => window.removeEventListener(EVT_CONTACT_EQUIPE, maj)
+  }, [])
+  const numeroEquipe = coordination.replace(/\D/g, '') || WHATSAPP_NUM
+  const texteEquipe = lang => (lang === 'en' ? 'Hello, I am a member of the COPAF 2026 team.' : "Bonjour, je suis membre de l'équipe COPAF 2026.")
+  const SHORTCUTS = enEquipe
+    ? getShortcuts(t, numeroEquipe, texteEquipe(lang)).filter(s => ['programme', 'whatsapp', 'phone'].includes(s.key))
+    : getShortcuts(t)
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
 

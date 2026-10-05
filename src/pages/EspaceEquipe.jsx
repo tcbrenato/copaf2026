@@ -17,6 +17,7 @@ import EquipePlanning from '../components/equipe/EquipePlanning'
 import EquipeDocuments from '../components/equipe/EquipeDocuments'
 import EquipeBadge from '../components/equipe/EquipeBadge'
 import EquipeProchaineEtape from '../components/equipe/EquipeProchaineEtape'
+import { CLE_CONTACT_EQUIPE, EVT_CONTACT_EQUIPE } from '../components/ContactHub'
 import { NAVY, SKY, INK, MUTED, CARTE, initiales } from '../components/equipe/equipeTheme'
 
 const CLE_SESSION = 'copaf_equipe_session'
@@ -37,6 +38,7 @@ const TR = {
     planningVide: 'Votre planning sera communiqué prochainement.', lieu: 'Lieu', aujourdhui: 'Aujourd’hui',
     docsVide: 'Les documents seront disponibles prochainement.', telecharger: 'Télécharger', bientot: 'Bientôt disponible',
     typesDoc: { charte: 'Charte de l’équipe', programme: 'Programme', plan: 'Plan du site' },
+    voirProgramme: 'Voir le programme de la conférence', programmeUrl: '/programmecopaf2026FRmaj.pdf', programmeNote: 'Le détail des sessions se trouve dans le programme.',
     attestation: 'Attestation de participation', attestationBtn: 'Télécharger mon attestation',
     attestationTexte: 'Disponible à partir du 21 octobre 2026.', attestationTexteOuverte: 'Votre attestation sera disponible ici dès qu’elle aura été déposée par l’organisation.',
     comiteMention: 'Comité d’organisation', biographie: 'Biographie', badgeTexte: 'Votre QR code personnel pour l’accréditation et le pointage. Présentez-le à l’accueil.',
@@ -57,6 +59,7 @@ const TR = {
     planningVide: 'Your schedule will be shared with you soon.', lieu: 'Place', aujourdhui: 'Today',
     docsVide: 'Documents will be available soon.', telecharger: 'Download', bientot: 'Coming soon',
     typesDoc: { charte: 'Team charter', programme: 'Programme', plan: 'Site map' },
+    voirProgramme: 'See the conference programme', programmeUrl: '/programmecopaf2026ENGmaj.pdf', programmeNote: 'Session details are in the programme.',
     attestation: 'Certificate of participation', attestationBtn: 'Download my certificate',
     attestationTexte: 'Available from 21 October 2026.', attestationTexteOuverte: 'Your certificate will be available here as soon as the organisation has uploaded it.',
     comiteMention: 'Organising committee', biographie: 'Biography', badgeTexte: 'Your personal QR code for accreditation and check-in. Show it at the welcome desk.',
@@ -130,6 +133,14 @@ export default function EspaceEquipe() {
     await connecter(dossier, email)
     setEnCours(false)
   }
+
+  // Le menu de contact flottant propose le numéro de la coordination (champ « En cas de problème ») tant qu'on est connecté
+  useEffect(() => {
+    const brut = String(donnees?.membre?.probleme_contact || '')
+    const numero = /^[+\d\s().-]{8,}$/.test(brut.trim()) ? brut.replace(/\D/g, '') : ''
+    try { if (numero) sessionStorage.setItem(CLE_CONTACT_EQUIPE, numero); else sessionStorage.removeItem(CLE_CONTACT_EQUIPE) } catch { /* stockage indisponible */ }
+    window.dispatchEvent(new CustomEvent(EVT_CONTACT_EQUIPE, { detail: numero }))
+  }, [donnees])
 
   const deconnecter = () => {
     ecrireSession(null)
