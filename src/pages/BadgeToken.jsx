@@ -186,6 +186,12 @@ export default function BadgeToken() {
   const [error, setError] = useState('')
   const [checkinLoading, setCheckinLoading] = useState(false)
   const [bioOuverte, setBioOuverte] = useState(false)
+  useEffect(() => {
+    if (!bioOuverte) return undefined
+    const surTouche = e => { if (e.key === 'Escape') setBioOuverte(false) }
+    window.addEventListener('keydown', surTouche)
+    return () => window.removeEventListener('keydown', surTouche)
+  }, [bioOuverte])
   const [checkinResult, setCheckinResult] = useState(null)
   // Sans :token dans l'URL (/badge simple) : connexion "Mon espace" par
   // numero de dossier + secret personnel (code d'acces, ou email s'il est
@@ -404,20 +410,12 @@ export default function BadgeToken() {
               )}
 
               {data.biographie && (
-                <div style={{ marginTop: 16 }}>
-                  <button type="button" onClick={() => setBioOuverte(o => !o)} aria-expanded={bioOuverte} style={{
-                    width: '100%', padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${NAVY}`, background: bioOuverte ? '#eef2ff' : '#fff', color: NAVY,
-                    fontSize: 13.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  }}>
-                    <span>Biographie</span>
-                    <span aria-hidden="true" style={{ fontSize: 16 }}>{bioOuverte ? '▴' : '▾'}</span>
-                  </button>
-                  {bioOuverte && (
-                    <p style={{ margin: '10px 0 0', padding: '14px 16px', background: '#f8fafc', border: '1px solid #eef1f8', borderRadius: 12, fontSize: 14, lineHeight: 1.65, color: '#1e293b', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>
-                      {data.biographie}
-                    </p>
-                  )}
-                </div>
+                <button type="button" onClick={() => setBioOuverte(true)} aria-haspopup="dialog" style={{
+                  width: '100%', marginTop: 16, padding: '12px 14px', borderRadius: 12, border: `1.5px solid ${NAVY}`, background: '#fff', color: NAVY,
+                  fontSize: 13.5, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                }}>
+                  Biographie
+                </button>
               )}
 
               {contacts.length > 0 && (
@@ -447,6 +445,22 @@ export default function BadgeToken() {
             </div>
             <BandeauCategorie categorie={data.est_equipe ? "Comité d'organisation" : "Intervenant"} />
             <PiedLogos organisation={data.organisation} />
+            {bioOuverte && data.biographie && (
+              <div onClick={() => setBioOuverte(false)} style={{ position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(15,23,42,.6)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+                <div role="dialog" aria-modal="true" aria-label="Biographie" onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 440, maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 48px -12px rgba(15,23,42,.4)', overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '16px 18px', background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`, color: '#fff' }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', opacity: 0.85 }}>Biographie</div>
+                      <div style={{ fontSize: 16, fontWeight: 900, overflowWrap: 'anywhere' }}>{data.prenom} {data.nom}</div>
+                    </div>
+                    <button type="button" onClick={() => setBioOuverte(false)} aria-label="Fermer" style={{ flexShrink: 0, width: 40, height: 40, borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,.18)', color: '#fff', fontSize: 20, lineHeight: 1, cursor: 'pointer', fontFamily: 'inherit' }}>×</button>
+                  </div>
+                  <div style={{ padding: '18px 20px 22px', overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.7, color: '#1e293b', whiteSpace: 'pre-line', overflowWrap: 'anywhere' }}>{data.biographie}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )
