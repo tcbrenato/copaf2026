@@ -16,6 +16,7 @@ import EquipeMission from '../components/equipe/EquipeMission'
 import EquipePlanning from '../components/equipe/EquipePlanning'
 import EquipeDocuments from '../components/equipe/EquipeDocuments'
 import EquipeBadge from '../components/equipe/EquipeBadge'
+import EquipeProchaineEtape from '../components/equipe/EquipeProchaineEtape'
 import { NAVY, SKY, INK, MUTED, CARTE, initiales } from '../components/equipe/equipeTheme'
 
 const CLE_SESSION = 'copaf_equipe_session'
@@ -29,7 +30,9 @@ const TR = {
     connecter: 'Accéder à mon espace', connexion: 'Connexion…', erreur: 'Dossier ou email incorrect.', trop: 'Trop de tentatives, réessayez dans 15 minutes.', reseau: 'Connexion impossible, réessayez.',
     deconnexion: 'Déconnexion', chargement: 'Chargement…',
     mission: 'Ma mission', planning: 'Mon planning', documents: 'Documents', badge: 'Mon badge digital',
-    role: 'Rôle', equipe: 'Équipe', responsable: 'Responsable', tenue: 'Tenue / badge', consignes: 'Consignes', rdv: 'Point de rendez-vous',
+    role: 'Rôle', equipe: 'Équipe', responsable: 'Responsable', tenue: 'Tenue', consignes: 'Consignes', rdv: 'Lieu de rendez-vous',
+    dates: 'Dates de mission', responsables: 'Responsables', whatsapp: 'WhatsApp', badgeLigne: 'Badge', arrivee: 'Horaire d’arrivée', ouvrirMaps: 'Ouvrir dans Google Maps',
+    probleme: 'En cas de problème', contactCoordination: 'Contact coordination', disponible: 'Disponible', prochaineEtape: 'Prochaine étape',
     missionVide: 'Votre mission vous sera communiquée prochainement.',
     planningVide: 'Votre planning sera communiqué prochainement.', lieu: 'Lieu', aujourdhui: 'Aujourd’hui',
     docsVide: 'Les documents seront disponibles prochainement.', telecharger: 'Télécharger', bientot: 'Bientôt disponible',
@@ -47,7 +50,9 @@ const TR = {
     connecter: 'Access my space', connexion: 'Signing in…', erreur: 'Incorrect file number or email.', trop: 'Too many attempts, try again in 15 minutes.', reseau: 'Could not sign in, please try again.',
     deconnexion: 'Sign out', chargement: 'Loading…',
     mission: 'My mission', planning: 'My schedule', documents: 'Documents', badge: 'My digital badge',
-    role: 'Role', equipe: 'Team', responsable: 'Manager', tenue: 'Outfit / badge', consignes: 'Instructions', rdv: 'Meeting point',
+    role: 'Role', equipe: 'Team', responsable: 'Manager', tenue: 'Outfit', consignes: 'Instructions', rdv: 'Meeting place',
+    dates: 'Mission dates', responsables: 'Managers', whatsapp: 'WhatsApp', badgeLigne: 'Badge', arrivee: 'Arrival time', ouvrirMaps: 'Open in Google Maps',
+    probleme: 'If there is a problem', contactCoordination: 'Coordination contact', disponible: 'Available', prochaineEtape: 'Next step',
     missionVide: 'Your mission will be shared with you soon.',
     planningVide: 'Your schedule will be shared with you soon.', lieu: 'Place', aujourdhui: 'Today',
     docsVide: 'Documents will be available soon.', telecharger: 'Download', bientot: 'Coming soon',
@@ -213,6 +218,7 @@ export default function EspaceEquipe() {
       </nav>
 
       <main style={{ maxWidth: 720, margin: '0 auto', padding: '16px 16px 64px' }}>
+        <EquipeProchaineEtape membre={membre} planning={donnees.planning} lang={lang} t={t} />
         {onglet === 'mission' && <EquipeMission membre={membre} t={t} />}
         {onglet === 'planning' && <EquipePlanning planning={donnees.planning} lang={lang} t={t} />}
         {onglet === 'documents' && <EquipeDocuments documents={donnees.documents} membre={membre} t={t} />}

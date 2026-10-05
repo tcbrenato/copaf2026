@@ -10,13 +10,16 @@ const CHAMPS_TEXTE = [
   ['nom', 'Nom *'], ['dossier', 'Dossier (INT2026-0XX, lien avec la fiche intervenant)'], ['email', 'Email de connexion'], ['email2', 'Email secondaire (connexion)'],
   ['role', 'Rôle'], ['equipe', 'Équipe'], ['comite', 'Comité'], ['titre', 'Titre professionnel (badge digital)'],
   ['responsable_nom', 'Responsable (nom)'], ['responsable_tel', 'Responsable (téléphone)'],
-  ['rdv_lieu', 'Point de rendez-vous : lieu'], ['rdv_detail', 'Point de rendez-vous : détail'],
+  ['dates_mission', 'Dates de mission'], ['prochaine_etape', 'Prochaine étape (encadré du haut ; vide = prochaine ligne du planning)'],
+  ['rdv_lieu', 'Lieu de rendez-vous : nom'], ['rdv_detail', 'Lieu de rendez-vous : détail'], ['rdv_lien', 'Lieu de rendez-vous : lien Google Maps'],
+  ['horaire_arrivee', 'Horaire d’arrivée'], ['badge_info', 'Badge (remise, port)'],
+  ['probleme_contact', 'En cas de problème : numéro de la coordination'], ['probleme_horaires', 'En cas de problème : horaires de disponibilité'],
   ['badge_url', 'Lien du badge (vide = badge public automatique)'], ['attestation_url', 'Lien de l’attestation (actif à partir du 21 oct.)'],
 ]
 
 // Fiche d'un membre : tous les champs de l'espace équipe + son planning.
 export default function AdminEquipeMembre({ membre, onSaved }) {
-  const [f, setF] = useState({ ...membre, consignesTxt: (membre.consignes || []).join('\n') })
+  const [f, setF] = useState({ ...membre, consignesTxt: (membre.consignes || []).join('\n'), responsables: Array.isArray(membre.responsables) ? membre.responsables : [] })
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
   const [photoEnCours, setPhotoEnCours] = useState(false)
@@ -45,6 +48,9 @@ export default function AdminEquipeMembre({ membre, onSaved }) {
       responsable_nom: vide(f.responsable_nom), responsable_tel: vide(f.responsable_tel), tenue: vide(f.tenue),
       consignes: String(f.consignesTxt || '').split('\n').map(l => l.trim()).filter(Boolean),
       rdv_lieu: vide(f.rdv_lieu), rdv_detail: vide(f.rdv_detail), badge_url: vide(f.badge_url), attestation_url: vide(f.attestation_url),
+      dates_mission: vide(f.dates_mission), prochaine_etape: vide(f.prochaine_etape), rdv_lien: vide(f.rdv_lien), horaire_arrivee: vide(f.horaire_arrivee),
+      badge_info: vide(f.badge_info), probleme_contact: vide(f.probleme_contact), probleme_horaires: vide(f.probleme_horaires),
+      responsables: (f.responsables || []).filter(r => String(r.nom || '').trim()).map(r => ({ nom: r.nom.trim(), role: String(r.role || '').trim(), tel: String(r.tel || '').trim(), whatsapp: String(r.whatsapp || '').trim() })),
       ordre: Number(f.ordre) || 0,
     }
     const { error } = await supabase.from('equipe_membres').update(champs).eq('id', membre.id)
@@ -79,7 +85,22 @@ export default function AdminEquipeMembre({ membre, onSaved }) {
       </div>
 
       <div>
-        <label style={ETIQ}>Tenue / badge</label>
+        <label style={ETIQ}>Responsables (nom, rôle, téléphone affiché, numéro WhatsApp si différent)</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {(f.responsables || []).map((r, i) => (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 6, padding: 8, border: '1px solid #eef2f7', borderRadius: 10, background: '#f8fafc' }}>
+              {[['nom', 'Nom'], ['role', 'Rôle (ex. accueil)'], ['tel', 'Téléphone'], ['whatsapp', 'WhatsApp']].map(([cle, ph]) => (
+                <input key={cle} value={r[cle] || ''} placeholder={ph} aria-label={ph} style={INPUT}
+                  onChange={e => maj('responsables', f.responsables.map((x, j) => (j === i ? { ...x, [cle]: e.target.value } : x)))} />
+              ))}
+              <button type="button" onClick={() => maj('responsables', f.responsables.filter((_, j) => j !== i))} style={{ ...INPUT, width: 'auto', cursor: 'pointer', color: '#dc2626', fontWeight: 700 }}>Retirer</button>
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={() => maj('responsables', [...(f.responsables || []), { nom: '', role: '', tel: '', whatsapp: '' }])} style={{ ...INPUT, width: 'auto', marginTop: 8, cursor: 'pointer', fontWeight: 700 }}>+ Ajouter un responsable</button>
+      </div>
+      <div>
+        <label style={ETIQ}>Tenue (écrivez {'{#00367F}'} pour afficher une pastille de couleur)</label>
         <textarea value={f.tenue || ''} onChange={e => maj('tenue', e.target.value)} rows={2} style={{ ...INPUT, resize: 'vertical' }} />
       </div>
       <div>
