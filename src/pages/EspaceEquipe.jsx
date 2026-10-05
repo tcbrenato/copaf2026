@@ -35,7 +35,8 @@ const TR = {
     dates: 'Dates de mission', responsables: 'Responsables', whatsapp: 'WhatsApp', badgeLigne: 'Badge', arrivee: 'Horaire d’arrivée', ouvrirMaps: 'Ouvrir dans Google Maps',
     probleme: 'En cas de problème', contactCoordination: 'Contact coordination', disponible: 'Disponible', prochaineEtape: 'Prochaine étape',
     missionVide: 'Votre mission vous sera communiquée prochainement.',
-    planningVide: 'Votre planning sera communiqué prochainement.', lieu: 'Lieu', aujourdhui: 'Aujourd’hui',
+    planningVide: 'Votre planning sera communiqué prochainement.', lieu: 'Lieu', aujourdhui: 'Aujourd’hui', heureCoord: 'Heure communiquée par la coordination',
+    missions: 'Mes missions',
     docsVide: 'Les documents seront disponibles prochainement.', telecharger: 'Télécharger', bientot: 'Bientôt disponible',
     typesDoc: { charte: 'Charte de l’équipe', programme: 'Programme', plan: 'Plan du site' },
     voirProgramme: 'Voir le programme de la conférence', programmeUrl: '/programmecopaf2026FRmaj.pdf', programmeNote: 'Le détail des sessions se trouve dans le programme.',
@@ -56,7 +57,8 @@ const TR = {
     dates: 'Mission dates', responsables: 'Managers', whatsapp: 'WhatsApp', badgeLigne: 'Badge', arrivee: 'Arrival time', ouvrirMaps: 'Open in Google Maps',
     probleme: 'If there is a problem', contactCoordination: 'Coordination contact', disponible: 'Available', prochaineEtape: 'Next step',
     missionVide: 'Your mission will be shared with you soon.',
-    planningVide: 'Your schedule will be shared with you soon.', lieu: 'Place', aujourdhui: 'Today',
+    planningVide: 'Your schedule will be shared with you soon.', lieu: 'Place', aujourdhui: 'Today', heureCoord: 'Time given by the coordination team',
+    missions: 'My missions',
     docsVide: 'Documents will be available soon.', telecharger: 'Download', bientot: 'Coming soon',
     typesDoc: { charte: 'Team charter', programme: 'Programme', plan: 'Site map' },
     voirProgramme: 'See the conference programme', programmeUrl: '/programmecopaf2026ENGmaj.pdf', programmeNote: 'Session details are in the programme.',
@@ -231,7 +233,7 @@ export default function EspaceEquipe() {
       <main style={{ maxWidth: 720, margin: '0 auto', padding: '16px 16px 64px' }}>
         <EquipeProchaineEtape membre={membre} planning={donnees.planning} lang={lang} t={t} />
         {onglet === 'mission' && <EquipeMission membre={membre} t={t} />}
-        {onglet === 'planning' && <EquipePlanning planning={donnees.planning} lang={lang} t={t} />}
+        {onglet === 'planning' && <EquipePlanning planning={donnees.planning} membre={membre} lang={lang} t={t} />}
         {onglet === 'documents' && <EquipeDocuments documents={donnees.documents} membre={membre} t={t} />}
         {onglet === 'badge' && <EquipeBadge membre={membre} photoUrl={photoUrl} badgeToken={badgeToken} t={t} />}
       </main>

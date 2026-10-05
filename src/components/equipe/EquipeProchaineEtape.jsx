@@ -1,14 +1,16 @@
-import { NAVY, SKY, aujourdhui, libelleJour } from './equipeTheme'
+import { NAVY, SKY, aujourdhui, libelleJour, nettoyer } from './equipeTheme'
 
 // Encadré « Prochaine étape » en haut de l'espace : texte saisi dans l'admin ; à défaut, la prochaine ligne du planning.
 export default function EquipeProchaineEtape({ membre, planning, lang, t }) {
-  let texte = String(membre.prochaine_etape || '').trim()
+  let texte = nettoyer(membre.prochaine_etape)
 
   if (!texte) {
-    const prochaine = (planning || []).find(l => l.jour >= aujourdhui())
+    const prochaine = (planning || []).find(l => l.jour >= aujourdhui() && nettoyer(l.tache))
     if (prochaine) {
-      const quand = [libelleJour(prochaine.jour, lang), prochaine.horaire].filter(Boolean).join(', ')
-      texte = `${quand} : ${prochaine.tache}${prochaine.lieu ? ` (${prochaine.lieu})` : ''}`
+      const horaire = nettoyer(prochaine.horaire)
+      const lieu = nettoyer(prochaine.lieu)
+      const quand = [libelleJour(prochaine.jour, lang), horaire].filter(Boolean).join(', ')
+      texte = `${quand} : ${nettoyer(prochaine.tache)}${lieu ? ` (${lieu})` : ''}`
     }
   }
   if (!texte) return null

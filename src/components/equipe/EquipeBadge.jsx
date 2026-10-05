@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
-import { CARTE, NAVY, SKY, INK, MUTED, initiales } from './equipeTheme'
+import { CARTE, NAVY, SKY, INK, MUTED, initiales, nettoyer } from './equipeTheme'
 
 const SITE = 'https://copaf-ports.com'
 
@@ -10,7 +10,8 @@ const SITE = 'https://copaf-ports.com'
 export default function EquipeBadge({ membre, photoUrl, badgeToken, t }) {
   const [qr, setQr] = useState('')
   const lienBadge = String(membre.badge_url || '').trim() || (badgeToken ? `${SITE}/badge/${badgeToken}` : '')
-  const titre = String(membre.titre || '').trim() || String(membre.role || '').trim()
+  const role = nettoyer(membre.role)
+  const titre = nettoyer(membre.titre) || role
   const biographie = String(membre.biographie || '').trim()
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function EquipeBadge({ membre, photoUrl, badgeToken, t }) {
         )}
         <h2 style={{ margin: '14px 0 4px', fontSize: 22, fontWeight: 900, letterSpacing: '-0.01em' }}>{membre.nom}</h2>
         {titre && <div style={{ fontSize: 14.5, fontWeight: 600, opacity: 0.95, lineHeight: 1.45 }}>{titre}</div>}
+        {role && role !== titre && <div style={{ marginTop: 4, fontSize: 13, fontWeight: 700, opacity: 0.9, lineHeight: 1.4 }}>{role}</div>}
         <div style={{ display: 'inline-block', marginTop: 12, padding: '6px 14px', borderRadius: 100, background: 'rgba(255,255,255,.16)', border: '1px solid rgba(255,255,255,.35)', fontSize: 12, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
           {t.comiteMention}
         </div>

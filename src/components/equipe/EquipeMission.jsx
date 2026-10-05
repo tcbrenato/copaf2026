@@ -1,4 +1,4 @@
-import { CARTE, NAVY, SKY, INK, MUTED } from './equipeTheme'
+import { CARTE, NAVY, SKY, INK, MUTED, nettoyerMembre } from './equipeTheme'
 
 const ETIQ = { fontSize: 11, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: SKY }
 const LIGNE = { display: 'flex', flexDirection: 'column', gap: 4, padding: '12px 0', borderBottom: '1px solid #f1f5f9' }
@@ -31,7 +31,8 @@ const IcoWa = () => (
 
 // Rubrique « Ma mission » : rôle, équipe, dates, responsables (appel + WhatsApp), tenue, badge, rendez-vous, arrivée,
 // consignes et bloc « En cas de problème ». Un champ vide n'affiche rien.
-export default function EquipeMission({ membre, t }) {
+export default function EquipeMission({ membre: membreBrut, t }) {
+  const membre = nettoyerMembre(membreBrut)
   const texte = v => String(v || '').trim()
 
   // Responsables : liste saisie dans l'admin ; à défaut l'ancien couple nom/téléphone
@@ -40,7 +41,8 @@ export default function EquipeMission({ membre, t }) {
     responsables = [{ nom: membre.responsable_nom, role: '', tel: membre.responsable_tel, whatsapp: '' }]
   }
 
-  const consignes = (membre.consignes || []).filter(c => texte(c))
+  const consignes = membre.consignes
+  const missions = membre.missions
   const lieu = [membre.rdv_lieu, membre.rdv_detail].map(texte).filter(Boolean).join(', ')
   const lienLieu = texte(membre.rdv_lien)
   const probleme = texte(membre.probleme_contact)
@@ -80,7 +82,7 @@ export default function EquipeMission({ membre, t }) {
     [t.arrivee, texte(membre.horaire_arrivee) && <span style={VALEUR}>{membre.horaire_arrivee}</span>],
   ].filter(([, contenu]) => contenu)
 
-  const vide = lignes.length === 0 && consignes.length === 0 && !probleme
+  const vide = lignes.length === 0 && consignes.length === 0 && missions.length === 0 && !probleme
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -93,6 +95,20 @@ export default function EquipeMission({ membre, t }) {
           </div>
         ))}
       </section>
+
+      {missions.length > 0 && (
+        <section style={CARTE} aria-label={t.missions}>
+          <span style={ETIQ}>{t.missions}</span>
+          <ul style={{ margin: '10px 0 0', padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {missions.map((c, i) => (
+              <li key={i} style={{ display: 'flex', gap: 10, fontSize: 14.5, lineHeight: 1.5, color: INK, fontWeight: 600 }}>
+                <span aria-hidden="true" style={{ marginTop: 7, width: 8, height: 8, borderRadius: '50%', background: NAVY, flexShrink: 0 }} />
+                <span>{c}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {consignes.length > 0 && (
         <section style={CARTE} aria-label={t.consignes}>

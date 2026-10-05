@@ -19,7 +19,7 @@ const CHAMPS_TEXTE = [
 
 // Fiche d'un membre : tous les champs de l'espace équipe + son planning.
 export default function AdminEquipeMembre({ membre, onSaved }) {
-  const [f, setF] = useState({ ...membre, consignesTxt: (membre.consignes || []).join('\n'), responsables: Array.isArray(membre.responsables) ? membre.responsables : [] })
+  const [f, setF] = useState({ ...membre, consignesTxt: (membre.consignes || []).join('\n'), missionsTxt: (membre.missions || []).join('\n'), responsables: Array.isArray(membre.responsables) ? membre.responsables : [] })
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
   const [photoEnCours, setPhotoEnCours] = useState(false)
@@ -47,6 +47,7 @@ export default function AdminEquipeMembre({ membre, onSaved }) {
       role: vide(f.role), equipe: vide(f.equipe), comite: vide(f.comite), titre: vide(f.titre), biographie: vide(f.biographie),
       responsable_nom: vide(f.responsable_nom), responsable_tel: vide(f.responsable_tel), tenue: vide(f.tenue),
       consignes: String(f.consignesTxt || '').split('\n').map(l => l.trim()).filter(Boolean),
+      missions: String(f.missionsTxt || '').split('\n').map(l => l.trim()).filter(Boolean),
       rdv_lieu: vide(f.rdv_lieu), rdv_detail: vide(f.rdv_detail), badge_url: vide(f.badge_url), attestation_url: vide(f.attestation_url),
       dates_mission: vide(f.dates_mission), prochaine_etape: vide(f.prochaine_etape), rdv_lien: vide(f.rdv_lien), horaire_arrivee: vide(f.horaire_arrivee),
       badge_info: vide(f.badge_info), probleme_contact: vide(f.probleme_contact), probleme_horaires: vide(f.probleme_horaires),
@@ -102,6 +103,10 @@ export default function AdminEquipeMembre({ membre, onSaved }) {
       <div>
         <label style={ETIQ}>Tenue (écrivez {'{#00367F}'} pour afficher une pastille de couleur)</label>
         <textarea value={f.tenue || ''} onChange={e => maj('tenue', e.target.value)} rows={2} style={{ ...INPUT, resize: 'vertical' }} />
+      </div>
+      <div>
+        <label style={ETIQ}>Missions — une puce par ligne (3 à 4 conseillées)</label>
+        <textarea value={f.missionsTxt} onChange={e => maj('missionsTxt', e.target.value)} rows={5} style={{ ...INPUT, resize: 'vertical' }} />
       </div>
       <div>
         <label style={ETIQ}>Consignes — une par ligne</label>

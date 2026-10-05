@@ -21,5 +21,26 @@ export const libelleJour = (jour, lang) => {
   return texte.charAt(0).toUpperCase() + texte.slice(1)
 }
 
+// Aucun texte provisoire n'est affiché : un fragment entre crochets (« [à confirmer] », « [heure] », « [lien] »…)
+// est retiré ; s'il ne reste rien, le champ est considéré comme vide et sa ligne n'apparaît pas.
+export const nettoyer = texte =>
+  String(texte ?? '')
+    .replace(/\s*\[[^\]]*\]\s*/g, ' ')
+    .replace(/\s+([,;.])/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^[\s,;:·–-]+|[\s,;:·–-]+$/g, '')
+    .trim()
+
+const CHAMPS_TEXTE = ['role', 'equipe', 'comite', 'titre', 'dates_mission', 'tenue', 'badge_info', 'rdv_lieu', 'rdv_detail', 'rdv_lien', 'horaire_arrivee', 'prochaine_etape', 'probleme_contact', 'probleme_horaires', 'responsable_nom']
+const CHAMPS_LISTE = ['consignes', 'missions']
+
+// Copie de la fiche du membre dont tous les textes passent par le filtre ci-dessus
+export const nettoyerMembre = membre => {
+  const copie = { ...membre }
+  CHAMPS_TEXTE.forEach(k => { copie[k] = nettoyer(membre[k]) })
+  CHAMPS_LISTE.forEach(k => { copie[k] = (membre[k] || []).map(nettoyer).filter(Boolean) })
+  return copie
+}
+
 export const initiales = nom =>
   String(nom || '').split(/\s+/).filter(Boolean).slice(0, 2).map(m => m[0]).join('').toUpperCase()
