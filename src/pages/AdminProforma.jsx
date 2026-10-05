@@ -4,6 +4,7 @@ import { supabase } from '../supabase'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
 import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitivePDF'
+import { argumentsFacture, instantaneFacture } from '../utils/factureFigee'
 import { generateConfirmationInscriptionPDF } from '../utils/generateConfirmationInscriptionPDF'
 import DocumentsSection from '../components/DocumentsSection'
 import ValidationDocuments from '../components/ValidationDocuments'
@@ -391,7 +392,7 @@ export default function AdminProforma() {
     setLoading(true); setError(''); setData(null); setPasseportRevealed(false)
     const { data: rows, error: err } = await supabase
       .from('inscriptions')
-      .select('id, dossier, participants, montant, paiement_status, note_interne, numero_facture, numero_passeport, nom_passeport, prenom_passeport, delegation_nom, participants_liste, tarif_type, code_promo, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
+      .select('id, dossier, participants, montant, paiement_status, note_interne, numero_facture, facture_snapshot, numero_passeport, nom_passeport, prenom_passeport, delegation_nom, participants_liste, tarif_type, code_promo, contacts(nom, prenom, organisation, poste, pays, email, telephone)')
       .eq('dossier', dossier.trim())
       .limit(1)
 
@@ -406,6 +407,7 @@ export default function AdminProforma() {
       statut: row.paiement_status,
       noteInterne: row.note_interne || '',
       numeroFacture: row.numero_facture || null,
+      factureSnapshot: row.facture_snapshot || null,
       numeroPasseport: row.numero_passeport || '',
       nomPasseport: row.nom_passeport || '',
       prenomPasseport: row.prenom_passeport || '',
@@ -640,14 +642,19 @@ export default function AdminProforma() {
     setGenLoading('facture')
     try {
       let numero = data.numeroFacture
+      let snapshot = data.factureSnapshot
       if (!numero) {
         const { data: rpcData, error: rpcErr } = await supabase.rpc('next_numero_facture')
         if (rpcErr) throw new Error(rpcErr.message)
         numero = rpcData
-        await supabase.from('inscriptions').update({ numero_facture: numero, facture_definitive_date: new Date().toISOString() }).eq('dossier', data.dossier)
-        setData(d => ({ ...d, numeroFacture: numero }))
+        const dateEmission = new Date().toISOString()
+        // Les données de la facture sont figées à l'émission
+        snapshot = instantaneFacture({ form: formData(), nb: Number(data.participants) || 1, total: Number(data.montant) || 0, numero, dateEmission })
+        await supabase.from('inscriptions').update({ numero_facture: numero, facture_definitive_date: dateEmission, facture_snapshot: snapshot }).eq('dossier', data.dossier)
+        setData(d => ({ ...d, numeroFacture: numero, factureSnapshot: snapshot }))
       }
-      await generateFactureDefinitivePDF({ form: formData(), dossier: data.dossier, numeroFacture: numero, nb: Number(data.participants) || 1, total: Number(data.montant) || 0, lang })
+      const args = argumentsFacture({ snapshot, formVivant: formData(), nb: Number(data.participants) || 1, total: Number(data.montant) || 0, numero })
+      await generateFactureDefinitivePDF({ ...args, dossier: data.dossier, lang })
       await logDocument(data.dossier, 'facture_definitive')
     } catch (err) {
       showToast('Erreur : ' + err.message)

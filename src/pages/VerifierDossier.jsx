@@ -4,6 +4,7 @@ import { supabase } from '../supabase'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
 import { generateFactureDefinitivePDF } from '../utils/generateFactureDefinitivePDF'
+import { argumentsFacture } from '../utils/factureFigee'
 import { generateICS } from '../utils/generateICS'
 import { Ico } from '../utils/dossierUi'
 import { normaliserDossier } from '../utils/dossierConstants'
@@ -282,11 +283,14 @@ export default function VerifierDossier() {
     const win = window.open('', '_blank')
     setGenLoading('facture')
     try {
+      // Copie figée à l'émission (si elle existe) : une facture déjà émise ne suit pas les changements de contact
+      const { data: snapshot } = await supabase.rpc('mon_facture', { p_numero: myDossier.numero_facture })
+      const args = argumentsFacture({ snapshot, formVivant: formData(), nb: myDossier.participants, total: myDossier.montant, numero: myDossier.numero_facture })
       if (win) {
-        const doc = await generateFactureDefinitivePDF({ form: formData(), dossier: myDossier.dossier, numeroFacture: myDossier.numero_facture, nb: myDossier.participants, total: myDossier.montant, lang, download: false })
+        const doc = await generateFactureDefinitivePDF({ ...args, dossier: myDossier.dossier, lang, download: false })
         win.location.href = doc.output('bloburl')
       } else {
-        await generateFactureDefinitivePDF({ form: formData(), dossier: myDossier.dossier, numeroFacture: myDossier.numero_facture, nb: myDossier.participants, total: myDossier.montant, lang })
+        await generateFactureDefinitivePDF({ ...args, dossier: myDossier.dossier, lang })
       }
     } finally { setGenLoading('') }
   }
