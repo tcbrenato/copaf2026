@@ -87,9 +87,11 @@ export default defineConfig({
         // EmailJS (edite hors de ce depot) comme image d'en-tete des emails
         // de confirmation. Aucune raison de le precacher pour les visiteurs.
         globIgnores: ['**/assets/*.svg', '**/coverscopaf.png'],
+        // Fichiers à télécharger (APK de l'appli Terrain) : jamais remplacés par la page d'accueil de l'application
+        navigateFallbackDenylist: [/^\/downloads\//],
         runtimeCaching: [
           {
-            urlPattern: ({ request }) => request.mode === 'navigate',
+            urlPattern: ({ request, url }) => request.mode === 'navigate' && !url.pathname.startsWith('/downloads/'),
             handler: 'NetworkFirst',
             options: { cacheName: 'pages-cache' },
           },

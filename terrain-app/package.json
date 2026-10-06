@@ -1,0 +1,14 @@
+{
+  "name": "copaf-terrain-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enveloppe Android de l'application COPAF Terrain (ouvre https://copaf-ports.com/terrain). Construite par GitHub Actions : voir .github/workflows/build-apk-terrain.yml",
+  "dependencies": {
+    "@capacitor/android": "latest",
+    "@capacitor/core": "latest"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "latest",
+    "@capacitor/cli": "latest"
+  }
+}

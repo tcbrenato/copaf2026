@@ -1,0 +1,14 @@
+{
+  "appId": "com.copaf.terrain",
+  "appName": "COPAF Terrain",
+  "webDir": "www",
+  "server": {
+    "url": "https://copaf-ports.com/terrain",
+    "cleartext": false,
+    "allowNavigation": ["copaf-ports.com"]
+  },
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#00367F"
+  }
+}

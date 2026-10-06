@@ -16,6 +16,7 @@ import HighlightsBanner from './components/HighlightsBanner'
 import Newsletter from './components/Newsletter'
 import CookieBanner from './components/CookieBanner'
 import ContactHub from './components/ContactHub'
+import ManifestTerrain from './components/ManifestTerrain'
 import InstallPrompt from './components/InstallPrompt'
 import PromoPopup from './components/PromoPopup'
 
@@ -55,6 +56,7 @@ const StaffScan            = lazy(() => import('./pages/StaffScan'))
 const Terrain               = lazy(() => import('./pages/Terrain'))
 const EspaceIntervenant    = lazy(() => import('./pages/EspaceIntervenant'))
 const EspaceEquipe         = lazy(() => import('./pages/EspaceEquipe'))
+const InstallerTerrain     = lazy(() => import('./pages/InstallerTerrain'))
 
 // ─── Repli affiche pendant le telechargement d'une route secondaire ──────────
 const RouteFallback = () => (
@@ -90,6 +92,7 @@ const ContactHubGate = () => {
   if (pathname.includes('/suivi-inscriptions')) return null
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
+  if (pathname === '/terrain-app') return null
   return <ContactHub />
 }
 
@@ -102,6 +105,7 @@ const InstallPromptGate = () => {
   if (pathname.includes('/suivi-inscriptions')) return null
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
+  if (pathname === '/terrain-app') return null
   return <InstallPrompt />
 }
 
@@ -129,7 +133,7 @@ const PromoPopupGate = () => {
   if (pathname === '/inscription') return null
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
-  if (pathname === '/staff/scan' || pathname === '/terrain' || pathname.startsWith('/badge/')) return null
+  if (pathname === '/staff/scan' || pathname === '/terrain' || pathname === '/terrain-app' || pathname.startsWith('/badge/')) return null
   return <PromoPopup />
 }
 
@@ -204,6 +208,7 @@ function App() {
       <ScrollToTop />
       <AnalyticsTracker />
       <CookieBannerGate />
+      <ManifestTerrain />
       <ContactHubGate />
       <InstallPromptGate />
       <PromoPopupGate />
@@ -231,6 +236,7 @@ function App() {
         <Route path="/espace-equipe"          element={<EspaceEquipe />} />
         <Route path="/staff/scan"             element={<StaffScan />} />
         <Route path="/terrain"                element={<Terrain />} />
+        <Route path="/terrain-app"            element={<InstallerTerrain />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/diagnostics"      element={<Navigate to="/admin" replace />} />

@@ -1,0 +1,21 @@
+{
+  "id": "/terrain",
+  "name": "COPAF Terrain",
+  "short_name": "COPAF Terrain",
+  "description": "Accueil et suivi terrain de la COPAF 2026 : aéroport, hôtel, badge, tablette, scan des badges.",
+  "lang": "fr",
+  "start_url": "/terrain",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#00367F",
+  "theme_color": "#00367F",
+  "icons": [
+    { "src": "/icons/terrain-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/terrain-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/terrain-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Scanner un badge", "short_name": "Scan", "url": "/staff/scan", "icons": [{ "src": "/icons/terrain-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ]
+}
