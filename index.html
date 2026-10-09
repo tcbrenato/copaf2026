@@ -10,11 +10,12 @@
     <script>
       (function () {
         try {
+          var cible = '/diagnostic'; // lien court /t/CODE : on arrive directement sur l'outil Diagnostic
           var m = location.pathname.match(/^\/t\/([A-Za-z0-9_-]+)\/?$/);
-          if (!m && location.pathname.replace(/\/+$/, '') === '/tablette') m = location.search.match(/[?&]t=([A-Za-z0-9_-]+)/);
+          if (!m && location.pathname.replace(/\/+$/, '') === '/tablette') { m = location.search.match(/[?&]t=([A-Za-z0-9_-]+)/); cible = '/tablette'; }
           if (!m) return;
           sessionStorage.setItem('copaf_tablette_t', m[1]);
-          history.replaceState(null, '', '/tablette');
+          history.replaceState(null, '', cible);
         } catch (e) {}
       })();
     </script>

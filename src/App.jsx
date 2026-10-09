@@ -1,5 +1,6 @@
 ﻿import { lazy, Suspense, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom'
+import { CLE_JETON_EN_ATTENTE } from './utils/tabletteSession'
 import HeaderStack from './components/HeaderStack'
 import Hero from './components/Hero'
 import About from './components/About'
@@ -76,6 +77,14 @@ const AnalyticsTracker = () => {
 const AdminTablettesRedirect = () => {
   try { localStorage.setItem('copaf_admin_active_module', 'tablettes') } catch { /* localStorage indisponible */ }
   return <Navigate to="/admin" replace />
+}
+
+// Lien court /t/CODE (si le script d'en-tête de index.html n'a pas déjà fait la redirection) : range le code puis
+// ouvre l'outil Diagnostic, qui échange le code contre la session et pré-remplit l'identité.
+const LienTablette = () => {
+  const { code } = useParams()
+  try { sessionStorage.setItem(CLE_JETON_EN_ATTENTE, code || '') } catch { /* stockage indisponible */ }
+  return <Navigate to="/diagnostic" replace />
 }
 
 // Tablettes remises aux participants : pas de bandeau cookies ni d'invitation a installer l'appli sur les pages
@@ -263,7 +272,7 @@ function App() {
         <Route path="/diagnostic/resultat/:id" element={<DiagnosticResultat />} />
         <Route path="/diagnostic/projection"   element={<ProjectionDiagnostic />} />
         <Route path="/tablette"                element={<TabletteHub />} />
-        <Route path="/t/:code"                 element={<TabletteHub />} />
+        <Route path="/t/:code"                 element={<LienTablette />} />
         <Route path="/outils"                  element={<OutilsHub />} />
         <Route path="/tirage"                  element={<TirageLive />} />
         <Route path="/visiter" element={<VisiterExposition />} />

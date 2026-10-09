@@ -43,8 +43,9 @@ export function lireJetonEnAttente() {
 export function oublierJeton() {
   effacer('sessionStorage', CLE_JETON_EN_ATTENTE)
   try {
-    const surLien = /^\/t\//.test(window.location.pathname) || new URLSearchParams(window.location.search).has('t')
-    if (surLien) window.history.replaceState(null, '', '/tablette')
+    // Lien court /t/CODE : on arrive sur l'outil Diagnostic ; ancien format /tablette?t= : on reste sur /tablette
+    if (/^\/t\//.test(window.location.pathname)) window.history.replaceState(null, '', '/diagnostic')
+    else if (new URLSearchParams(window.location.search).has('t')) window.history.replaceState(null, '', window.location.pathname)
   } catch { /* historique indisponible */ }
 }
 
@@ -59,6 +60,27 @@ export async function connecterParJeton(jeton) {
   ecrire('localStorage', CLE_SESSION, session)
   ecrire('localStorage', CLE_IDENTITE, JSON.stringify(identite))
   return { statut: 'ok', identite }
+}
+
+// Point d'entrée commun aux outils : échange le code du lien s'il y en a un, sinon revérifie la session gardée.
+// statut : 'ok' | 'absente' | 'invalide' | 'limite' | 'reseau'
+export async function ouvrirSessionTablette() {
+  const jeton = lireJetonEnAttente()
+  if (jeton) {
+    const r = await connecterParJeton(jeton)
+    if (r.statut !== 'reseau') oublierJeton() // en cas de coupure réseau on garde le code pour réessayer
+    return r
+  }
+  if (!lireSession()) return { statut: 'absente' }
+  return verifierSession()
+}
+
+// Identité complète (nom, e-mail, téléphone, port, pays, poste) pour pré-remplir l'outil Diagnostic. null si session invalide.
+export async function chargerIdentiteDiagnostic() {
+  const session = lireSession()
+  if (!session) return null
+  const { data, error } = await supabase.rpc('tablette_identite_diagnostic', { p_session: session })
+  return error || !data ? null : data
 }
 
 // Revérifie la session gardée. statut : 'ok' | 'absente' | 'invalide' | 'reseau'

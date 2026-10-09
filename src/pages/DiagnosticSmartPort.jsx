@@ -6,6 +6,7 @@ import RetourMenu from '../components/RetourMenu'
 import DiagnosticLiveMap from '../components/DiagnosticLiveMap'
 import { AXES, ECHELLE, BLOCS, txt } from '../utils/diagnosticAxes'
 import { RESEAUX, ORG_AUTRE, getOrganisationsByNetwork, findOrganisationById, searchOrganisations } from '../utils/diagnosticOrganisations'
+import { lireJetonEnAttente, lireSession, ouvrirSessionTablette, chargerIdentiteDiagnostic, effacerSession } from '../utils/tabletteSession'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -13,6 +14,9 @@ const BLUE = '#0073F4'
 const TR = {
   fr: {
     intro: "Évaluez le niveau de maturité digitale de votre port sur 10 dimensions, et repartez avec des recommandations personnalisées.",
+    bonjourTablette: 'Bonjour',
+    chargementTablette: 'Ouverture de votre diagnostic…',
+    lienInvalide: "Votre lien personnel est invalide ou a expiré. Saisissez vos informations ci-dessous, ou contactez l'organisation COPAF.",
     tabDossier: 'Par numéro de dossier',
     tabDirecte: 'Mes informations directement',
     dossierLabel: 'Votre numéro de dossier',
@@ -63,6 +67,9 @@ const TR = {
   },
   en: {
     intro: "Assess your port's digital maturity across 10 dimensions, and leave with personalised recommendations.",
+    bonjourTablette: 'Hello',
+    chargementTablette: 'Opening your diagnostic…',
+    lienInvalide: 'Your personal link is invalid or has expired. Enter your details below, or contact the COPAF organisation.',
     tabDossier: 'By registration number',
     tabDirecte: 'My information directly',
     dossierLabel: 'Your registration number',
@@ -174,6 +181,10 @@ export default function DiagnosticSmartPort() {
   const t = TR[lang]
 
   const [etape, setEtape] = useState(-1)
+
+  // Tablette connectée par lien personnel : identité pré-remplie, aucune saisie. chargement | aucune | invalide | ok
+  const [tabletteEtat, setTabletteEtat] = useState(() => (lireJetonEnAttente() || lireSession() ? 'chargement' : 'aucune'))
+  const [bonjour, setBonjour] = useState('')
 
   const [identMode, setIdentMode] = useState('dossier')
   const [rechercheDossier, setRechercheDossier] = useState('')
@@ -422,6 +433,39 @@ export default function DiagnosticSmartPort() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [etape])
 
+  useEffect(() => {
+    if (tabletteEtat !== 'chargement') return undefined
+    let actif = true
+    ;(async () => {
+      const r = await ouvrirSessionTablette()
+      if (!actif) return
+      if (r.statut !== 'ok') {
+        if (r.statut === 'invalide' || r.statut === 'limite') effacerSession()
+        setTabletteEtat(r.statut === 'invalide' || r.statut === 'limite' ? 'invalide' : 'aucune')
+        return
+      }
+      const id = await chargerIdentiteDiagnostic()
+      if (!actif) return
+      if (!id) { setTabletteEtat('aucune'); return }
+      setForm({
+        prenom: id.prenom || '', nom: id.nom || '', telephone: id.telephone || '',
+        email: id.email || '', organisation: id.organisation || '', pays: id.pays || '', poste: id.poste || '',
+      })
+      // Rattache au port du registre quand il est reconnu (comme le choix manuel), sinon on garde le texte de l'inscription
+      const sansParentheses = (id.organisation || '').replace(/\(.*?\)/g, '').trim()
+      let trouves = sansParentheses ? searchOrganisations(sansParentheses, lang) : []
+      if (trouves.length !== 1 && id.pays) trouves = searchOrganisations(id.pays, lang)
+      if (trouves.length === 1) {
+        setOrgId(trouves[0].id)
+        if (trouves[0].sites?.length === 1) setSiteId(trouves[0].sites[0].id)
+      }
+      setBonjour(`${id.prenom || ''} ${id.nom || ''}`.trim())
+      setTabletteEtat('ok')
+      setEtape(0)
+    })()
+    return () => { actif = false }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const wrap = { minHeight: '100vh', position: 'relative', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#f8fafc' }
   const bgImage = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: -2, backgroundColor: '#0b0f1c', backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.75) saturate(1.2)' }
   const bgOverlay = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: -1, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.55) 0%, rgba(9,13,22,0.78) 70%)' }
@@ -441,6 +485,15 @@ export default function DiagnosticSmartPort() {
   const inputStyle = { width: '100%', padding: '14px 18px', fontSize: 14.5, fontFamily: 'inherit', background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 12, color: '#fff', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }
   const labelStyle = { display: 'block', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }
 
+  if (tabletteEtat === 'chargement') {
+    return (
+      <div style={{ ...wrap, justifyContent: 'center' }}>
+        {Fond()}
+        <div style={{ fontSize: 17, fontWeight: 700, color: '#e2e8f0' }}>{t.chargementTablette}</div>
+      </div>
+    )
+  }
+
   if (etape === -1) {
     const reseauxAvecOrgs = getOrganisationsByNetwork()
     const resultatsRecherche = orgQuery.trim() ? searchOrganisations(orgQuery, lang) : null
@@ -456,6 +509,9 @@ export default function DiagnosticSmartPort() {
               COPAF 2026
             </div>
             <div style={{ fontSize: 28, fontWeight: 900, color: '#fff', marginBottom: 12, letterSpacing: '-0.5px' }}>Diagnostic Smart Port</div>
+            {tabletteEtat === 'invalide' && (
+              <p style={{ fontSize: 13.5, color: '#fbbf24', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: 12, padding: '10px 14px', margin: '0 auto 14px', maxWidth: 500, lineHeight: 1.5 }}>{t.lienInvalide}</p>
+            )}
             <p style={{ fontSize: 14.5, color: '#94a3b8', lineHeight: 1.6, maxWidth: 500, margin: '0 auto' }}>
               {t.intro}
             </p>
@@ -668,6 +724,7 @@ export default function DiagnosticSmartPort() {
         `}</style>
         <div style={{ ...card, maxWidth: 920 }}>
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            {bonjour && <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', marginBottom: 10 }}>{t.bonjourTablette} {bonjour}</div>}
             <div style={{ fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>{t.avantCommencer}</div>
             <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', marginBottom: 10, letterSpacing: '-0.5px' }}>{t.commentFonctionne}</div>
             <p style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.6, maxWidth: 580, margin: '0 auto' }}>

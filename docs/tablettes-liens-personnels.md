@@ -1,8 +1,11 @@
 # Tablettes : connexion automatique par lien court personnel
 
 Chaque participant a un lien court unique `https://copaf-ports.com/t/CODE` (CODE = 10 caractères, insensible à la casse, sans caractères
-ambigus : pas de 0, O, 1, I, L). Ouvert une fois sur sa tablette, il la connecte pour 30 jours (prolongés à chaque visite), sans mot de passe,
-puis redirige vers `/tablette` : le code disparaît de la barre d'adresse. L'ancien format long `/tablette?t=JETON` reste accepté.
+ambigus : pas de 0, O, 1, I, L). Ouvert sur sa tablette, il l'identifie et l'envoie directement sur l'outil **Diagnostic** : nom, e-mail, téléphone, poste et port
+sont pré-remplis depuis son inscription, le participant n'a plus rien à saisir (ni numéro de dossier ni informations) et la première page du
+diagnostic s'ouvre. La tablette reste connectée 30 jours (prolongés à chaque visite) : l'icône de l'écran d'accueil rouvre le Diagnostic déjà identifié.
+Sans lien (personne non inscrite), l'outil affiche le formulaire habituel. Un lien invalide, révoqué ou expiré affiche un message puis ce même formulaire.
+Le code disparaît de la barre d'adresse. L'ancien format long `/tablette?t=JETON` reste accepté (il ouvre le hub `/tablette`).
 
 ## Générer les liens
 1. Administration → onglet **Tablettes** (ou `copaf-ports.com/admin/tablettes`).
