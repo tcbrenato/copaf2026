@@ -1,0 +1,14 @@
+{
+  "name": "copaf-tablette-apps",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enveloppes Android (APK) des outils COPAF pour tablettes sans Play Store : COPAF 2026, Tablette, Diagnostic, Sondage. Construites par GitHub Actions : voir .github/workflows/build-apk-tablettes.yml",
+  "dependencies": {
+    "@capacitor/android": "latest",
+    "@capacitor/core": "latest"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "latest",
+    "@capacitor/cli": "latest"
+  }
+}

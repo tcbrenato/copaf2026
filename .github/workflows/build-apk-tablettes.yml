@@ -1,0 +1,66 @@
+name: 📱 Construire les APK COPAF Tablettes
+
+on:
+  workflow_dispatch:   # lancement manuel depuis l'onglet Actions
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app:
+          - { id: com.copaf.tablette,   name: 'COPAF Tablette',   url: 'https://copaf-ports.com/tablette',   file: COPAF-Tablette.apk }
+          - { id: com.copaf.site,       name: 'COPAF 2026',       url: 'https://copaf-ports.com/',           file: COPAF-2026.apk }
+          - { id: com.copaf.diagnostic, name: 'COPAF Diagnostic', url: 'https://copaf-ports.com/diagnostic', file: COPAF-Diagnostic.apk }
+          - { id: com.copaf.sondage,    name: 'COPAF Sondage',    url: 'https://copaf-ports.com/vote',       file: COPAF-Sondage.apk }
+    defaults:
+      run:
+        working-directory: tablette-apps
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Configuration de l'application
+        env:
+          APP_ID: ${{ matrix.app.id }}
+          APP_NAME: ${{ matrix.app.name }}
+          APP_URL: ${{ matrix.app.url }}
+        run: node make-config.cjs
+
+      - name: Installer Capacitor
+        run: npm install --no-audit --no-fund
+
+      - name: Créer le projet Android
+        run: npx cap add android
+
+      - name: Icônes de l'application
+        run: npx capacitor-assets generate --android --iconBackgroundColor '#FFFFFF' --iconBackgroundColorDark '#000E91'
+
+      - name: Synchroniser
+        run: npx cap sync android
+
+      - name: Construire l'APK
+        working-directory: tablette-apps/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Nommer le fichier
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk "${{ matrix.app.file }}"
+          ls -la "${{ matrix.app.file }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app.file }}
+          path: tablette-apps/${{ matrix.app.file }}
+          retention-days: 30
