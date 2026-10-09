@@ -27,11 +27,14 @@ export function effacerSession() {
   effacer('localStorage', CLE_IDENTITE)
 }
 
-// Jeton du lien : d'abord celui rangé par le script d'en-tête, sinon (navigateur sans cette étape) celui de l'adresse.
+// Code du lien : d'abord celui rangé par le script d'en-tête, sinon (navigateur sans cette étape) celui de l'adresse
+// (/t/CODE, ou l'ancien format /tablette?t=JETON).
 export function lireJetonEnAttente() {
   const range = lire('sessionStorage', CLE_JETON_EN_ATTENTE)
   if (range) return range
   try {
+    const court = window.location.pathname.match(/^\/t\/([A-Za-z0-9_-]+)\/?$/)
+    if (court) return court[1]
     const t = new URLSearchParams(window.location.search).get('t')
     return t ? t.trim() : null
   } catch { return null }
@@ -40,7 +43,8 @@ export function lireJetonEnAttente() {
 export function oublierJeton() {
   effacer('sessionStorage', CLE_JETON_EN_ATTENTE)
   try {
-    if (new URLSearchParams(window.location.search).has('t')) window.history.replaceState(null, '', window.location.pathname)
+    const surLien = /^\/t\//.test(window.location.pathname) || new URLSearchParams(window.location.search).has('t')
+    if (surLien) window.history.replaceState(null, '', '/tablette')
   } catch { /* historique indisponible */ }
 }
 

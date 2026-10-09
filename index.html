@@ -4,16 +4,17 @@
     <meta charset="UTF-8" />
     <!-- Navigateurs anciens (Chrome < 71) : globalThis n'existe pas et les bibliothèques le lisent dès leur chargement -->
     <script>if (typeof globalThis === 'undefined') { window.globalThis = window }</script>
-    <!-- Lien personnel des tablettes (/tablette?t=JETON) : le jeton est rangé dans sessionStorage et retiré de la barre d'adresse
-         AVANT le chargement de tout outil de mesure d'audience (Google, Facebook, LinkedIn), qui sinon le recevraient dans l'URL. -->
+    <!-- Lien personnel des tablettes (/t/CODE, ou ancien format /tablette?t=JETON) : le code est rangé dans sessionStorage et
+         retiré de la barre d'adresse (on redirige vers /tablette) AVANT le chargement de tout outil de mesure d'audience
+         (Google, Facebook, LinkedIn), qui sinon le recevraient dans l'URL. -->
     <script>
       (function () {
         try {
-          if (location.pathname.replace(/\/+$/, '') !== '/tablette') return;
-          var m = location.search.match(/[?&]t=([A-Za-z0-9_-]+)/);
+          var m = location.pathname.match(/^\/t\/([A-Za-z0-9_-]+)\/?$/);
+          if (!m && location.pathname.replace(/\/+$/, '') === '/tablette') m = location.search.match(/[?&]t=([A-Za-z0-9_-]+)/);
           if (!m) return;
           sessionStorage.setItem('copaf_tablette_t', m[1]);
-          history.replaceState(null, '', location.pathname);
+          history.replaceState(null, '', '/tablette');
         } catch (e) {}
       })();
     </script>

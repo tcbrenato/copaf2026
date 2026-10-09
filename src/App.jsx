@@ -80,7 +80,7 @@ const AdminTablettesRedirect = () => {
 
 // Tablettes remises aux participants : pas de bandeau cookies ni d'invitation a installer l'appli sur les pages
 // d'outils, ni sur les navigateurs anciens (classe « lite » posee par polyfills.js), pour ne pas masquer l'outil.
-const PAGES_OUTILS_TABLETTE = /^\/(tablette|diagnostic|vote|sondage-live)(\/|$)/
+const PAGES_OUTILS_TABLETTE = /^\/(tablette|diagnostic|vote|sondage-live|t)(\/|$)/
 const masquerSurTablette = pathname =>
   PAGES_OUTILS_TABLETTE.test(pathname) || document.documentElement.classList.contains('lite')
 
@@ -263,6 +263,7 @@ function App() {
         <Route path="/diagnostic/resultat/:id" element={<DiagnosticResultat />} />
         <Route path="/diagnostic/projection"   element={<ProjectionDiagnostic />} />
         <Route path="/tablette"                element={<TabletteHub />} />
+        <Route path="/t/:code"                 element={<TabletteHub />} />
         <Route path="/outils"                  element={<OutilsHub />} />
         <Route path="/tirage"                  element={<TirageLive />} />
         <Route path="/visiter" element={<VisiterExposition />} />

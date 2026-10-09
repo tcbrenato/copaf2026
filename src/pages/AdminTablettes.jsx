@@ -47,7 +47,7 @@ function telechargerCsv(nomFichier, lignes) {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-const lienComplet = jeton => `${window.location.origin}/tablette?t=${jeton}`
+const lienComplet = code => `${window.location.origin}/t/${code}`
 
 function LigneLien({ item }) {
   const [qr, setQr] = useState('')
@@ -70,6 +70,7 @@ function LigneLien({ item }) {
       <div style={{ width: 84, height: 84, flexShrink: 0 }}>{qr && <img src={qr} alt="QR code du lien" style={{ width: 84, height: 84 }} />}</div>
       <div style={{ flex: 1, minWidth: 240 }}>
         <div style={{ fontSize: 14, fontWeight: 800, color: '#0f172a' }}>{item.label} <span style={{ fontWeight: 600, color: '#64748b', fontSize: 12 }}>· {item.dossier}</span></div>
+        <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: 3, color: NAVY, fontFamily: 'monospace', marginTop: 2 }}>{item.token}</div>
         <input readOnly value={lien} onFocus={e => e.target.select()} style={{ ...INPUT, width: '100%', boxSizing: 'border-box', marginTop: 6, fontSize: 12, fontFamily: 'monospace' }} />
       </div>
       <button type="button" onClick={copier} style={BTN}>{copie ? 'Copié ✓' : 'Copier le lien'}</button>
@@ -148,8 +149,8 @@ export default function AdminTablettes() {
   }
 
   const exporterLiens = () => telechargerCsv('tablettes-liens.csv', [
-    ['Participant', 'Dossier', 'Lien', 'Statut'],
-    ...(genere || []).map(g => [g.label, g.dossier, lienComplet(g.token), 'Actif']),
+    ['Participant', 'Dossier', 'Code', 'Lien', 'Statut'],
+    ...(genere || []).map(g => [g.label, g.dossier, g.token, lienComplet(g.token), 'Actif']),
   ])
   const copierTous = async () => {
     try { await navigator.clipboard.writeText((genere || []).map(g => `${g.label} : ${lienComplet(g.token)}`).join('\n')) } catch { /* presse-papiers indisponible */ }
@@ -169,7 +170,7 @@ export default function AdminTablettes() {
       <div style={CARD}>
         <div style={{ fontSize: 15, fontWeight: 900, color: '#0f172a', marginBottom: 4 }}>Tablettes — liens personnels</div>
         <p style={{ margin: '0 0 12px', fontSize: 13, color: '#475569', lineHeight: 1.55 }}>
-          Chaque participant reçoit un lien unique (<code>/tablette?t=…</code>) : en l'ouvrant sur la tablette, il est connecté pour 30 jours, sans mot de passe.
+          Chaque participant reçoit un lien court unique (<code>copaf-ports.com/t/CODE</code>, 10 caractères faciles à taper) : en l'ouvrant sur la tablette, il est connecté pour 30 jours, sans mot de passe.
           Le lien n'est affiché qu'une fois, à la génération : exportez-le ou copiez-le tout de suite. Révoquer un lien déconnecte la tablette immédiatement.
         </p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', fontSize: 12.5, fontWeight: 700 }}>
@@ -272,7 +273,7 @@ export default function AdminTablettes() {
                   Ces liens ne seront plus jamais affichés. Copiez-les ou exportez le CSV maintenant, puis transmettez chaque lien à son participant (ne les publiez pas).
                 </p>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 }}>
-                  <button type="button" onClick={exporterLiens} style={BTN_PRIMARY}>Exporter le CSV (participant, lien, statut)</button>
+                  <button type="button" onClick={exporterLiens} style={BTN_PRIMARY}>Exporter le CSV (participant, code, lien, statut)</button>
                   <button type="button" onClick={copierTous} style={BTN}>Copier tous les liens</button>
                 </div>
                 {genere.map(g => <LigneLien key={g.token_id} item={g} />)}
