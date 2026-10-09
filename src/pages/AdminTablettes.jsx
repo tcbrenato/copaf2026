@@ -30,6 +30,9 @@ const cle = p => `${p.personne_type}|${p.personne_id}`
 const nomComplet = p => `${p.prenom || ''} ${p.nom || ''}`.trim()
 const dateCourte = d => (d ? new Date(d).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—')
 
+// Numéro de tablette (T01, T02…) porté par l'étiquette du lien : « T07 · Prénom NOM »
+const numeroTablette = p => { const m = /^(T\d+) · /.exec(p.token_label || ''); return m ? m[1] : '' }
+
 function statutLien(p) {
   if (!p.token_id) return 'aucun'
   if (p.token_revoque_le) return 'revoque'
@@ -156,8 +159,8 @@ export default function AdminTablettes() {
     try { await navigator.clipboard.writeText((genere || []).map(g => `${g.label} : ${lienComplet(g.token)}`).join('\n')) } catch { /* presse-papiers indisponible */ }
   }
   const exporterEtat = () => telechargerCsv('tablettes-etat.csv', [
-    ['Participant', 'Dossier', 'Organisation', 'Pays', 'Statut du lien', 'Créé le', 'Dernière utilisation', 'Utilisations'],
-    ...visibles.map(p => [nomComplet(p), p.dossier, p.organisation, p.pays, STATUTS[statutLien(p)].label, dateCourte(p.token_cree_le), dateCourte(p.derniere_utilisation), p.utilisations]),
+    ['Tablette', 'Participant', 'Dossier', 'Organisation', 'Pays', 'Statut du lien', 'Créé le', 'Dernière utilisation', 'Utilisations'],
+    ...visibles.map(p => [numeroTablette(p), nomComplet(p), p.dossier, p.organisation, p.pays, STATUTS[statutLien(p)].label, dateCourte(p.token_cree_le), dateCourte(p.derniere_utilisation), p.utilisations]),
   ])
 
   if (erreur && liste === null) return <p style={{ color: '#dc2626', fontSize: 13 }}>{erreur}</p>
@@ -230,7 +233,10 @@ export default function AdminTablettes() {
                       <input type="checkbox" checked={!!choisis[cle(p)]} onChange={() => bascule(p)} aria-label={`Sélectionner ${nomComplet(p)}`} style={{ width: 18, height: 18 }} />
                     </td>
                     <td style={TD}>
-                      <div style={{ fontWeight: 800 }}>{nomComplet(p)}</div>
+                      <div style={{ fontWeight: 800 }}>
+                        {numeroTablette(p) && <span style={{ background: NAVY, color: '#fff', borderRadius: 6, padding: '1px 7px', fontSize: 11.5, marginRight: 8 }}>{numeroTablette(p)}</span>}
+                        {nomComplet(p)}
+                      </div>
                       <div style={{ fontSize: 11.5, color: '#64748b' }}>{p.dossier} · {CATEGORIES[p.categorie] || p.categorie}</div>
                     </td>
                     <td style={TD}>{p.organisation || '—'}{p.pays ? <div style={{ fontSize: 11.5, color: '#64748b' }}>{p.pays}</div> : null}</td>
