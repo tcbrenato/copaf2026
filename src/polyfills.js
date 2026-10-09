@@ -42,6 +42,14 @@ if (!Promise.allSettled) {
   }
 }
 
+// Mode allégé : navigateurs anciens (Chrome < 88, sans aspect-ratio) = appareils lents.
+// La classe « lite » désactive flous et transitions (voir index.css) et fige le diaporama de l'accueil.
+try {
+  if (typeof CSS === 'undefined' || !CSS.supports || !CSS.supports('aspect-ratio', '1 / 1')) {
+    document.documentElement.classList.add('lite')
+  }
+} catch { /* sans effet */ }
+
 // Identifiant aléatoire sûr (crypto.getRandomValues) quand crypto.randomUUID n'existe pas
 if (typeof crypto !== 'undefined' && !crypto.randomUUID && crypto.getRandomValues) {
   crypto.randomUUID = function randomUUID() {

@@ -337,7 +337,9 @@ const Navbar = () => {
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999,
         background: '#000e91',
         transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
-        transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+        // Fermé = vraiment caché (certains vieux navigateurs laissaient le tiroir à moitié visible)
+        visibility: menuOpen ? 'visible' : 'hidden',
+        transition: `transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear ${menuOpen ? '0s' : '0.35s'}`,
         overflowY: 'auto', paddingTop: 80, paddingBottom: 32,
       }}>
         <button onClick={closeMobileMenu} style={{

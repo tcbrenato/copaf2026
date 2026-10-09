@@ -34,6 +34,8 @@ const Hero = () => {
   const [statsIn, setStatsIn] = useState(false)
 
   useEffect(() => {
+    // Appareil ancien/lent (classe « lite ») : une seule image de fond, pas de diaporama
+    if (document.documentElement.classList.contains('lite')) return undefined
     const interval = setInterval(() => {
       setFade(false)
       setTimeout(() => {

@@ -14,3 +14,10 @@ body {
   color: #FFFFFF;
   overflow-x: hidden;
 }
+/* Mode allégé (navigateurs anciens / appareils lents) : pas de flou ni de transition, rendu plus rapide */
+html.lite *, html.lite *::before, html.lite *::after {
+  transition: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  scroll-behavior: auto !important;
+}
