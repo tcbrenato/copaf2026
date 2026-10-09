@@ -148,6 +148,7 @@ const PromoPopupGate = () => {
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
   if (pathname === '/staff/scan' || pathname === '/terrain' || pathname === '/terrain-app' || pathname.startsWith('/badge/')) return null
+  if (masquerSurTablette(pathname)) return null
   return <PromoPopup />
 }
 
