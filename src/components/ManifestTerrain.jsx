@@ -11,7 +11,7 @@ const APPLIS = [
     test: p => p === '/terrain' || p.startsWith('/terrain/') || p === '/terrain-app' || p.startsWith('/staff/scan'),
     manifeste: '/terrain.webmanifest', icone: '/icons/terrain-192.png', titre: 'COPAF Terrain', couleur: '#00367F',
   },
-  { test: p => p === '/tablette' || p.startsWith('/tablette/'), manifeste: '/tablette.webmanifest', titre: 'COPAF Tablette' },
+  { test: p => p === '/tablette' || p.startsWith('/tablette/'), manifeste: '/tablette.webmanifest', titre: 'COPAF Tablette', couleur: '#0000A6' },
   { test: p => p === '/vote', manifeste: '/sondage.webmanifest', titre: 'COPAF Sondage' },
   {
     test: p => (p === '/diagnostic' || p.startsWith('/diagnostic/')) && p !== '/diagnostic/projection',

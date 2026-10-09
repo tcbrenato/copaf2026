@@ -4,6 +4,29 @@
     <meta charset="UTF-8" />
     <!-- Navigateurs anciens (Chrome < 71) : globalThis n'existe pas et les bibliothèques le lisent dès leur chargement -->
     <script>if (typeof globalThis === 'undefined') { window.globalThis = window }</script>
+    <!-- Lien personnel des tablettes (/tablette?t=JETON) : le jeton est rangé dans sessionStorage et retiré de la barre d'adresse
+         AVANT le chargement de tout outil de mesure d'audience (Google, Facebook, LinkedIn), qui sinon le recevraient dans l'URL. -->
+    <script>
+      (function () {
+        try {
+          if (location.pathname.replace(/\/+$/, '') !== '/tablette') return;
+          var m = location.search.match(/[?&]t=([A-Za-z0-9_-]+)/);
+          if (!m) return;
+          sessionStorage.setItem('copaf_tablette_t', m[1]);
+          history.replaceState(null, '', location.pathname);
+        } catch (e) {}
+      })();
+    </script>
+    <!-- Écran de secours : si l'application ne démarre pas (JavaScript non compatible, réseau coupé), proposer de recharger -->
+    <script>
+      setTimeout(function () {
+        if (window.__copafPret || location.pathname.indexOf('/tablette') !== 0) return;
+        var d = document.createElement('div');
+        d.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#0000A6;color:#fff;padding:18px 16px;text-align:center;font:600 16px sans-serif';
+        d.innerHTML = 'La page n’a pas pu se charger. <button onclick="location.reload()" style="margin-left:12px;padding:12px 24px;border:0;border-radius:10px;background:#fff;color:#0000A6;font:800 16px sans-serif">Recharger</button>';
+        document.body.appendChild(d);
+      }, 15000);
+    </script>
     <link rel="icon" type="image/png" href="/copaf.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#000E91" />
@@ -128,6 +151,9 @@
       erreur fatale et fait echouer tout le build. Comportement identique
       pour l'utilisateur (fallback si JS desactive), juste au bon endroit.
     -->
+    <noscript>
+      <div style="position:fixed;left:0;right:0;top:0;z-index:99999;background:#0000A6;color:#fff;padding:18px 16px;text-align:center;font:600 16px sans-serif">JavaScript est désactivé ou non pris en charge par ce navigateur. Activez-le puis <a href="" style="color:#fff;font-weight:800">rechargez la page</a>.</div>
+    </noscript>
     <noscript>
       <img height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=9446066&fmt=gif" />
     </noscript>

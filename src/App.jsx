@@ -72,6 +72,12 @@ const AnalyticsTracker = () => {
   return null
 }
 
+// /admin/tablettes : ouvre l'onglet « Tablettes » de l'administration (l'onglet actif est gardé dans localStorage)
+const AdminTablettesRedirect = () => {
+  try { localStorage.setItem('copaf_admin_active_module', 'tablettes') } catch { /* localStorage indisponible */ }
+  return <Navigate to="/admin" replace />
+}
+
 // Tablettes remises aux participants : pas de bandeau cookies ni d'invitation a installer l'appli sur les pages
 // d'outils, ni sur les navigateurs anciens (classe « lite » posee par polyfills.js), pour ne pas masquer l'outil.
 const PAGES_OUTILS_TABLETTE = /^\/(tablette|diagnostic|vote|sondage-live)(\/|$)/
@@ -245,6 +251,7 @@ function App() {
         <Route path="/staff/scan"             element={<StaffScan />} />
         <Route path="/terrain"                element={<Terrain />} />
         <Route path="/terrain-app"            element={<InstallerTerrain />} />
+        <Route path="/admin/tablettes"        element={<AdminTablettesRedirect />} />
         <Route path="/admin/proforma"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/sondages"         element={<Navigate to="/admin" replace />} />
         <Route path="/admin/diagnostics"      element={<Navigate to="/admin" replace />} />

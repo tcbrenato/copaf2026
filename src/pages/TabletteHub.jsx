@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import QRCode from 'qrcode'
 import LangToggle from '../components/LangToggle'
 import { useLang } from '../i18n/useLang'
+import { lireJetonEnAttente, oublierJeton, connecterParJeton, verifierSession, lireSession, lireIdentiteLocale, effacerSession } from '../utils/tabletteSession'
+
+const CONTACT_EMAIL = 'contact@copaf-ports.com'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
@@ -28,6 +31,16 @@ const TR = {
     hint: "Touchez une tuile pour accéder à l'outil ou à la section souhaitée.",
     qrAlt: 'QR code',
     scan: 'Scannez pour ouvrir cette page sur votre propre téléphone.',
+    bonjour: 'Bonjour',
+    chargement: 'Chargement…',
+    invalideTitre: 'Lien invalide ou expiré',
+    invalideTexte: "Ce lien personnel ne fonctionne plus. Contactez l'organisation COPAF pour en recevoir un nouveau.",
+    limiteTexte: "Trop de tentatives. Patientez quelques minutes puis réessayez, ou contactez l'organisation COPAF.",
+    reseauTitre: 'Connexion impossible',
+    reseauTexte: 'La tablette ne parvient pas à joindre le serveur. Vérifiez le Wi-Fi puis réessayez.',
+    reessayer: 'Réessayer',
+    contactLabel: 'Contact :',
+    horsLigne: 'Connexion perdue — reconnexion automatique dès que le réseau revient',
     tuiles: [
       { titre: 'Diagnostic Smart Port', sousTitre: 'Évaluez la maturité digitale de votre port', href: '/diagnostic', icone: 'radar', accent: true },
       { titre: 'Sondage en direct', sousTitre: 'Votez en temps réel pendant les sessions', href: '/vote', icone: 'poll', accent: true },
@@ -44,6 +57,16 @@ const TR = {
     hint: 'Tap a tile to open the tool or section you want.',
     qrAlt: 'QR code',
     scan: 'Scan to open this page on your own phone.',
+    bonjour: 'Hello',
+    chargement: 'Loading…',
+    invalideTitre: 'Invalid or expired link',
+    invalideTexte: 'This personal link no longer works. Please contact the COPAF organisation to get a new one.',
+    limiteTexte: 'Too many attempts. Please wait a few minutes and try again, or contact the COPAF organisation.',
+    reseauTitre: 'Cannot connect',
+    reseauTexte: 'The tablet cannot reach the server. Check the Wi-Fi and try again.',
+    reessayer: 'Try again',
+    contactLabel: 'Contact:',
+    horsLigne: 'Connection lost — reconnecting automatically when the network is back',
     tuiles: [
       { titre: 'Smart Port Diagnostic', sousTitre: "Assess your port's digital maturity", href: '/diagnostic', icone: 'radar', accent: true },
       { titre: 'Live poll', sousTitre: 'Vote in real time during the sessions', href: '/vote', icone: 'poll', accent: true },
@@ -57,9 +80,98 @@ const TR = {
   },
 }
 
+const FOND = '#0000A6'
+
+// Plein écran sur tablette 8-10 pouces (portrait et paysage) : grandes zones tactiles, aucun survol requis.
+function useEnLigne() {
+  const [enLigne, setEnLigne] = useState(typeof navigator === 'undefined' ? true : navigator.onLine !== false)
+  const etaitHorsLigne = useRef(false)
+  useEffect(() => {
+    const perdu = () => { etaitHorsLigne.current = true; setEnLigne(false) }
+    const revenu = () => {
+      setEnLigne(true)
+      // Retour du réseau après une coupure : rechargement automatique pour repartir d'un état propre
+      if (etaitHorsLigne.current) window.location.reload()
+    }
+    window.addEventListener('offline', perdu)
+    window.addEventListener('online', revenu)
+    return () => { window.removeEventListener('offline', perdu); window.removeEventListener('online', revenu) }
+  }, [])
+  return enLigne
+}
+
+function EcranMessage({ copy, titre, texte, onReessayer }) {
+  return (
+    <div style={{ minHeight: '100vh', background: FOND, color: '#fff', fontFamily: "'Plus Jakarta Sans',sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, textAlign: 'center' }}>
+      <div style={{ maxWidth: 520 }}>
+        <div style={{ display: 'inline-block', background: '#fff', borderRadius: 14, padding: '10px 18px', marginBottom: 28 }}>
+          <img src="/logocopaf.png" alt="COPAF" style={{ height: 44, width: 'auto', display: 'block' }} />
+        </div>
+        <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 12 }}>{titre}</div>
+        <p style={{ fontSize: 17, lineHeight: 1.5, color: 'rgba(255,255,255,0.85)', margin: '0 0 24px' }}>{texte}</p>
+        {onReessayer && (
+          <button type="button" onClick={onReessayer} style={{ minHeight: 56, padding: '0 32px', borderRadius: 14, border: 'none', background: '#fff', color: FOND, fontSize: 17, fontWeight: 800, cursor: 'pointer', marginBottom: 20, fontFamily: 'inherit' }}>
+            {copy.reessayer}
+          </button>
+        )}
+        <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.8)' }}>
+          {copy.contactLabel} <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: '#fff', fontWeight: 800 }}>{CONTACT_EMAIL}</a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function TabletteHub() {
   const copy = TR[useLang()]
   const [qrDataUrl, setQrDataUrl] = useState('')
+  // chargement | ok | public | invalide | limite | reseau  (sans lien ni session : accueil public tout de suite)
+  const [etat, setEtat] = useState(() => (lireJetonEnAttente() || lireSession() ? 'chargement' : 'public'))
+  const [identite, setIdentite] = useState(null)
+  const enLigne = useEnLigne()
+
+  const demarrer = useCallback(async () => {
+    const jeton = lireJetonEnAttente()
+    if (jeton) {
+      const r = await connecterParJeton(jeton)
+      if (r.statut === 'reseau') {
+        // Pas de réseau : on garde le jeton (non consommé) pour réessayer ; si une session existe déjà, on l'utilise.
+        setIdentite(lireIdentiteLocale())
+        setEtat(lireSession() ? 'ok' : 'reseau')
+        return
+      }
+      oublierJeton()
+      if (r.statut === 'ok') { setIdentite(r.identite); setEtat('ok') } else setEtat(r.statut)
+      return
+    }
+    const r = await verifierSession()
+    if (r.statut === 'ok') { setIdentite(r.identite); setEtat('ok') }
+    else if (r.statut === 'reseau') { setIdentite(lireIdentiteLocale()); setEtat('ok') }
+    else { effacerSession(); setIdentite(null); setEtat('invalide') }
+  }, [])
+
+  const reessayer = () => { setEtat('chargement'); demarrer() }
+
+  useEffect(() => {
+    if (etat !== 'chargement') return undefined
+    const t = setTimeout(demarrer, 0)
+    return () => clearTimeout(t)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Révocation immédiate : la session est revérifiée toutes les 5 minutes et au retour sur la tablette
+  useEffect(() => {
+    if (etat !== 'ok') return undefined
+    const verifier = async () => {
+      if (!lireSession()) return
+      const r = await verifierSession()
+      if (r.statut === 'ok') setIdentite(r.identite)
+      else if (r.statut === 'invalide') { effacerSession(); setIdentite(null); setEtat('invalide') }
+    }
+    const minuteur = setInterval(verifier, 5 * 60 * 1000)
+    const auRetour = () => { if (!document.hidden) verifier() }
+    document.addEventListener('visibilitychange', auRetour)
+    return () => { clearInterval(minuteur); document.removeEventListener('visibilitychange', auRetour) }
+  }, [etat])
 
   useEffect(() => {
     const url = typeof window !== 'undefined' ? `${window.location.origin}/tablette` : 'https://copaf-ports.com/tablette'
@@ -68,25 +180,52 @@ export default function TabletteHub() {
       .catch(() => {})
   }, [])
 
-  const wrap = { minHeight: '100vh', position: 'relative', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '40px 20px', color: '#f8fafc' }
-  const bgImage = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: -2, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.75) saturate(1.2)' }
-  const bgOverlay = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: -1, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.55) 0%, rgba(9,13,22,0.78) 70%)' }
+  if (etat === 'chargement') {
+    return <EcranMessage copy={copy} titre={copy.chargement} texte="" />
+  }
+  if (etat === 'invalide' || etat === 'limite') {
+    return <EcranMessage copy={copy} titre={copy.invalideTitre} texte={etat === 'limite' ? copy.limiteTexte : copy.invalideTexte} />
+  }
+  if (etat === 'reseau') {
+    return <EcranMessage copy={copy} titre={copy.reseauTitre} texte={copy.reseauTexte} onReessayer={reessayer} />
+  }
+
+  const wrap = { minHeight: '100vh', position: 'relative', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '0 20px 40px', color: '#f8fafc', background: FOND }
+  const bgImage = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: -2, backgroundColor: FOND, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.35 }
+  const bgOverlay = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: -1, backgroundImage: 'linear-gradient(180deg, rgba(0,0,166,0.55) 0%, rgba(0,0,90,0.85) 100%)' }
+  const nomComplet = identite ? `${identite.prenom || ''} ${identite.nom || ''}`.trim() : ''
 
   return (
     <div style={wrap}>
       <div style={bgImage} />
       <div style={bgOverlay} />
+
+      {!enLigne && (
+        <div role="status" style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, background: '#b91c1c', color: '#fff', textAlign: 'center', padding: '12px 16px', fontSize: 16, fontWeight: 800 }}>
+          {copy.horsLigne}
+        </div>
+      )}
+
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', margin: '0 -20px 28px', padding: '16px 24px', background: FOND, borderBottom: '1px solid rgba(255,255,255,0.18)' }}>
+        <div style={{ background: '#fff', borderRadius: 12, padding: '8px 16px', marginRight: 16, marginBottom: 4 }}>
+          <img src="/logocopaf.png" alt="COPAF 2026" style={{ height: 40, width: 'auto', display: 'block' }} />
+        </div>
+        {nomComplet ? (
+          <div style={{ textAlign: 'right', marginBottom: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)' }}>{copy.bonjour}</div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>{nomComplet}</div>
+            {identite && identite.organisation && <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)' }}>{identite.organisation}</div>}
+          </div>
+        ) : <div />}
+      </header>
       <LangToggle />
 
       <div style={{ maxWidth: 920, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 12px', background: 'rgba(0, 115, 244, 0.1)', border: '1px solid rgba(0, 115, 244, 0.3)', borderRadius: 20, fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 14 }}>
-            COPAF 2026
-          </div>
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: 30, fontWeight: 900, color: '#fff', letterSpacing: '-0.5px', marginBottom: 8 }}>
             {copy.welcome}
           </div>
-          <p style={{ fontSize: 14.5, color: '#94a3b8' }}>
+          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.8)', margin: 0 }}>
             {copy.hint}
           </p>
         </div>
@@ -103,18 +242,16 @@ export default function TabletteHub() {
               href={t.href}
               {...(t.telechargement ? { download: true, target: '_blank', rel: 'noopener' } : {})}
               style={{
-                display: 'flex', flexDirection: 'column', gap: 14, padding: '26px 22px',
+                display: 'flex', flexDirection: 'column', padding: '26px 22px',
                 borderRadius: 20, textDecoration: 'none', cursor: 'pointer',
-                background: t.accent ? 'linear-gradient(135deg, rgba(0,115,244,0.22), rgba(0,14,145,0.35))' : 'rgba(15, 23, 42, 0.7)',
-                backdropFilter: 'blur(12px)',
-                border: t.accent ? '1px solid rgba(0,115,244,0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
-                boxShadow: t.accent ? '0 10px 30px rgba(0,115,244,0.25)' : '0 10px 30px rgba(0,0,0,0.5)',
+                background: t.accent ? 'linear-gradient(135deg, rgba(0,115,244,0.45), rgba(0,14,145,0.6))' : 'rgba(10, 16, 60, 0.72)',
+                border: t.accent ? '1px solid rgba(96,165,250,0.6)' : '1px solid rgba(255, 255, 255, 0.14)',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.35)',
                 minHeight: 150,
-                transition: 'transform .15s',
               }}
             >
               <div style={{
-                width: 50, height: 50, borderRadius: 14,
+                width: 50, height: 50, borderRadius: 14, marginBottom: 14,
                 background: t.accent ? 'linear-gradient(135deg,#0073F4,#000E91)' : 'rgba(96,165,250,0.15)',
                 border: t.accent ? 'none' : '1px solid rgba(96,165,250,0.3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -122,27 +259,27 @@ export default function TabletteHub() {
                 <Ico name={t.icone} size={26} color={t.accent ? '#fff' : '#60a5fa'} />
               </div>
               <div>
-                <div style={{ fontSize: 16.5, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{t.titre}</div>
-                <div style={{ fontSize: 12.5, color: t.accent ? 'rgba(255,255,255,0.8)' : '#94a3b8', lineHeight: 1.4 }}>{t.sousTitre}</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', marginBottom: 4 }}>{t.titre}</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', lineHeight: 1.4 }}>{t.sousTitre}</div>
               </div>
             </a>
           ))}
         </div>
 
         <div style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20,
-          background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.08)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(10, 16, 60, 0.7)', border: '1px solid rgba(255,255,255,0.14)',
           borderRadius: 20, padding: 20, maxWidth: 440, margin: '0 auto',
         }}>
           {qrDataUrl && (
-            <img src={qrDataUrl} alt={copy.qrAlt} style={{ width: 84, height: 84, borderRadius: 8, flexShrink: 0 }} />
+            <img src={qrDataUrl} alt={copy.qrAlt} style={{ width: 84, height: 84, borderRadius: 8, flexShrink: 0, marginRight: 20 }} />
           )}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-              <Ico name="globe" size={14} color="#60a5fa" />
-              <span style={{ fontSize: 12, fontWeight: 700, color: '#cbd5e1' }}>copaf-ports.com/tablette</span>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
+              <Ico name="globe" size={14} color="#93c5fd" />
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', marginLeft: 6 }}>copaf-ports.com/tablette</span>
             </div>
-            <p style={{ fontSize: 11.5, color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', margin: 0, lineHeight: 1.5 }}>
               {copy.scan}
             </p>
           </div>
