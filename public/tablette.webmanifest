@@ -1,0 +1,17 @@
+{
+  "id": "/tablette",
+  "name": "COPAF Tablette",
+  "short_name": "COPAF Tablette",
+  "description": "Hub COPAF 2026 pour tablettes : diagnostic, sondage, programme et outils.",
+  "lang": "fr",
+  "start_url": "/tablette",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000E91",
+  "theme_color": "#000E91",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

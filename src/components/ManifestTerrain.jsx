@@ -1,14 +1,23 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 
-// Sur /terrain, /staff/scan et /terrain-app, le navigateur propose d'installer l'application « COPAF Terrain »
-// (nom, icône et page de démarrage dédiés) au lieu de l'application du site. Ailleurs, on remet le manifeste d'origine.
+// Chaque outil a son propre manifeste : « Ajouter à l'écran d'accueil » crée alors un raccourci qui ouvre CET outil
+// (nom, icône et page de démarrage dédiés) au lieu de la page d'accueil du site. Ailleurs, manifeste d'origine.
 const MANIFESTE_SITE = '/manifest.json'
-const MANIFESTE_TERRAIN = '/terrain.webmanifest'
 const ICONE_SITE = '/icons/icon-192.png'
-const ICONE_TERRAIN = '/icons/terrain-192.png'
 
-const estPageTerrain = chemin => chemin === '/terrain' || chemin.startsWith('/terrain/') || chemin === '/terrain-app' || chemin.startsWith('/staff/scan')
+const APPLIS = [
+  {
+    test: p => p === '/terrain' || p.startsWith('/terrain/') || p === '/terrain-app' || p.startsWith('/staff/scan'),
+    manifeste: '/terrain.webmanifest', icone: '/icons/terrain-192.png', titre: 'COPAF Terrain', couleur: '#00367F',
+  },
+  { test: p => p === '/tablette' || p.startsWith('/tablette/'), manifeste: '/tablette.webmanifest', titre: 'COPAF Tablette' },
+  { test: p => p === '/vote', manifeste: '/sondage.webmanifest', titre: 'COPAF Sondage' },
+  {
+    test: p => (p === '/diagnostic' || p.startsWith('/diagnostic/')) && p !== '/diagnostic/projection',
+    manifeste: '/diagnostic.webmanifest', titre: 'COPAF Diagnostic',
+  },
+]
 
 function reglerMeta(nom, valeur) {
   let meta = document.head.querySelector(`meta[name="${nom}"]`)
@@ -20,14 +29,14 @@ export default function ManifestTerrain() {
   const { pathname } = useLocation()
 
   useEffect(() => {
-    const terrain = estPageTerrain(pathname)
+    const appli = APPLIS.find(a => a.test(pathname))
     let lien = document.head.querySelector('link[rel="manifest"]')
     if (!lien) { lien = document.createElement('link'); lien.rel = 'manifest'; document.head.appendChild(lien) }
-    lien.setAttribute('href', terrain ? MANIFESTE_TERRAIN : MANIFESTE_SITE)
+    lien.setAttribute('href', appli ? appli.manifeste : MANIFESTE_SITE)
     const icone = document.head.querySelector('link[rel="apple-touch-icon"]')
-    if (icone) icone.setAttribute('href', terrain ? ICONE_TERRAIN : ICONE_SITE)
-    reglerMeta('apple-mobile-web-app-title', terrain ? 'COPAF Terrain' : 'COPAF 2026')
-    reglerMeta('theme-color', terrain ? '#00367F' : '#000E91')
+    if (icone) icone.setAttribute('href', appli?.icone || ICONE_SITE)
+    reglerMeta('apple-mobile-web-app-title', appli ? appli.titre : 'COPAF 2026')
+    reglerMeta('theme-color', appli?.couleur || '#000E91')
   }, [pathname])
 
   return null
