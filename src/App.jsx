@@ -72,6 +72,12 @@ const AnalyticsTracker = () => {
   return null
 }
 
+// Tablettes remises aux participants : pas de bandeau cookies ni d'invitation a installer l'appli sur les pages
+// d'outils, ni sur les navigateurs anciens (classe « lite » posee par polyfills.js), pour ne pas masquer l'outil.
+const PAGES_OUTILS_TABLETTE = /^\/(tablette|diagnostic|vote|sondage-live)(\/|$)/
+const masquerSurTablette = pathname =>
+  PAGES_OUTILS_TABLETTE.test(pathname) || document.documentElement.classList.contains('lite')
+
 // ─── Bandeau cookies : partout sauf /admin, meme exclusion que le tracking
 // analytics lui-meme (voir useAnalytics.js) — pas de sens a demander un
 // consentement de tracking sur une page qui n'est pas trackee.
@@ -79,6 +85,7 @@ const CookieBannerGate = () => {
   const location = useLocation()
   if (location.pathname.includes('/admin')) return null
   if (location.pathname.includes('/suivi-inscriptions')) return null
+  if (masquerSurTablette(location.pathname)) return null
   return <CookieBanner />
 }
 
@@ -106,6 +113,7 @@ const InstallPromptGate = () => {
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
   if (pathname === '/terrain-app') return null
+  if (masquerSurTablette(pathname)) return null
   return <InstallPrompt />
 }
 
