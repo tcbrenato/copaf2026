@@ -27,6 +27,16 @@ AddDefaultCharset UTF-8
   Header always set Strict-Transport-Security "max-age=15552000"
 </IfModule>
 
+# Pages HTML, service worker et manifestes : toujours revalider avec le serveur.
+# Sans cela, certains navigateurs (tablettes anciennes) gardent plusieurs jours une ancienne page
+# d'accueil qui pointe vers d'anciens scripts, et ne voient pas les corrections deployees.
+# Les fichiers de /assets/ ont un nom different a chaque version : ils ne sont pas concernes.
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$|^sw\.js$|^registerSW\.js$|^workbox-.*\.js$|\.webmanifest$|^manifest\.json$">
+    Header always set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
 # Fichiers caches (.env, .git...) jamais servis
 <FilesMatch "^\.(env|git|htpasswd)">
   Require all denied
