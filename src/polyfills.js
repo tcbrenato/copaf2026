@@ -1,3 +1,5 @@
+import { installerFlexGap } from './flexGapPolyfill.js'
+
 // Petites fonctions manquantes aux navigateurs anciens (tablettes Android 8.1 / Chrome 69).
 // Chaque ajout est conditionnel : rien n'est modifié sur un navigateur récent.
 
@@ -47,6 +49,8 @@ if (!Promise.allSettled) {
 try {
   if (typeof CSS === 'undefined' || !CSS.supports || !CSS.supports('aspect-ratio', '1 / 1')) {
     document.documentElement.classList.add('lite')
+    // Avant Chrome 84, `gap` ne s'applique pas aux conteneurs flex : conversion en marges
+    installerFlexGap()
   }
 } catch { /* sans effet */ }
 
