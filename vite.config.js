@@ -106,6 +106,9 @@ export default defineConfig({
   ],
   base: '/',
   build: {
+    // Les tablettes d'entrée de gamme (Android 8.1, Chrome 69) ne lisent ni `?.` ni `??=` ni
+    // `inset` : on compile la syntaxe JS et CSS pour ce navigateur plutôt que pour les récents.
+    target: ['chrome69', 'safari12'],
     chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
