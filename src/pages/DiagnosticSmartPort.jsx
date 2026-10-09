@@ -724,7 +724,7 @@ export default function DiagnosticSmartPort() {
         `}</style>
         <div style={{ ...card, maxWidth: 920 }}>
           <div style={{ textAlign: 'center', marginBottom: 28 }}>
-            {bonjour && <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', marginBottom: 10 }}>{t.bonjourTablette} {bonjour}</div>}
+            {bonjour && <div style={{ fontSize: 20, fontWeight: 900, color: '#fff', margin: '36px 0 14px' }}>{t.bonjourTablette} {bonjour}</div>}
             <div style={{ fontSize: 11, fontWeight: 800, color: BLUE, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>{t.avantCommencer}</div>
             <div style={{ fontSize: 24, fontWeight: 900, color: '#fff', marginBottom: 10, letterSpacing: '-0.5px' }}>{t.commentFonctionne}</div>
             <p style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.6, maxWidth: 580, margin: '0 auto' }}>
