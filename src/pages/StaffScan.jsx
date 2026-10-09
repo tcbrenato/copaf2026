@@ -291,7 +291,7 @@ export default function StaffScan() {
           <div id="staff-scan-reader" style={{ borderRadius: 14, overflow: 'hidden' }} />
           {banniere && (
             <div style={{
-              position: 'absolute', inset: 0, borderRadius: 14, display: 'flex', flexDirection: 'column',
+              position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, borderRadius: 14, display: 'flex', flexDirection: 'column',
               alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16, textAlign: 'center',
               background: banniere.erreur ? '#dc2626' : banniere.deja ? '#d97706' : '#16a34a', color: '#fff',
             }}>

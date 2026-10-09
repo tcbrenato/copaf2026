@@ -266,7 +266,7 @@ export default function RecommandationsActes() {
         paddingTop: 'calc(var(--copaf-header-h, 140px) + 32px)', paddingBottom: 32,
         background: `linear-gradient(160deg, ${NAVY} 0%, ${NAVY_DEEP} 100%)`,
       }}>
-        <div style={{ position: 'absolute', inset: 0, opacity: 0.08, backgroundImage: 'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)', backgroundSize: '26px 26px' }} />
+        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0.08, backgroundImage: 'radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px)', backgroundSize: '26px 26px' }} />
         <div style={{ position: 'relative', zIndex: 1, padding: '0 20px', maxWidth: 760, margin: '0 auto' }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', marginBottom: 18,

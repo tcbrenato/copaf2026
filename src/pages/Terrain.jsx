@@ -1083,7 +1083,7 @@ export default function Terrain({ embarque = false, authEmail = '' }) {
 
 const thTd = { border: '1px solid #333', padding: '6px 8px', textAlign: 'left', fontSize: 12 }
 const wrap = { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: '#f8fafc', fontFamily: "'Plus Jakarta Sans', sans-serif" }
-const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,.5)', backdropFilter: 'blur(3px)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }
+const overlay = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(15,23,42,.5)', backdropFilter: 'blur(3px)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }
 const boiteModal = { background: '#fff', borderRadius: 18, width: '100%', maxWidth: 380, padding: 22, boxShadow: '0 24px 48px -12px rgba(15,23,42,.35)' }
 
 function ModalMotif({ titre, onValider, onFermer }) {

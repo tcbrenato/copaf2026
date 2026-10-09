@@ -71,7 +71,7 @@ const Hero = () => {
     >
       {/* Background image */}
       <div style={{
-        position: 'absolute', inset: 0,
+        position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
         backgroundImage: `url(${images[currentImg]})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -82,7 +82,7 @@ const Hero = () => {
 
       {/* Overlay */}
       <div style={{
-        position: 'absolute', inset: 0,
+        position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
         background: 'linear-gradient(120deg, rgba(2,12,58,0.94) 0%, rgba(0,30,80,0.86) 60%, rgba(0,70,160,0.65) 100%)',
         zIndex: 1,
       }} />
@@ -207,7 +207,7 @@ const Hero = () => {
                 }}
               />
               <div style={{
-                position: 'absolute', inset: 0,
+                position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
                 background: 'linear-gradient(to top, rgba(0,8,40,0.78) 0%, transparent 55%)',
               }} />
 

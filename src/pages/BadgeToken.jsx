@@ -142,7 +142,7 @@ const FLOCONS = [
 
 function FondNeige() {
   return (
-    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+    <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
       {FLOCONS.map((f, i) => (
         <img
           key={i} src="/icons/icon-512.png" alt=""
@@ -446,7 +446,7 @@ export default function BadgeToken() {
             <BandeauCategorie categorie={data.est_equipe ? "Comité d'organisation" : "Intervenant"} />
             <PiedLogos organisation={data.organisation} />
             {bioOuverte && data.biographie && (
-              <div onClick={() => setBioOuverte(false)} style={{ position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(15,23,42,.6)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+              <div onClick={() => setBioOuverte(false)} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: 3000, background: 'rgba(15,23,42,.6)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
                 <div role="dialog" aria-modal="true" aria-label="Biographie" onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 440, maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 48px -12px rgba(15,23,42,.4)', overflow: 'hidden' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '16px 18px', background: `linear-gradient(135deg, ${NAVY}, ${BLUE})`, color: '#fff' }}>
                     <div style={{ minWidth: 0 }}>

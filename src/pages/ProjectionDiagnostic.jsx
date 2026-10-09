@@ -436,8 +436,8 @@ export default function ProjectionDiagnostic() {
   const axesPrioritaires = axesTries.slice(-3).reverse()
 
   const wrap = { minHeight: '100vh', width: '100vw', position: 'relative', overflow: 'auto', fontFamily: "'Plus Jakarta Sans',sans-serif", color: '#f8fafc', display: 'flex', flexDirection: 'column' }
-  const bgImage = { position: 'fixed', inset: 0, zIndex: -3, backgroundColor: '#0b0f1c', backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.55) saturate(1.25)' }
-  const bgOverlay = { position: 'fixed', inset: 0, zIndex: -2, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.6) 0%, rgba(6,9,18,0.9) 75%)' }
+  const bgImage = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: -3, backgroundColor: '#0b0f1c', backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.55) saturate(1.25)' }
+  const bgOverlay = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: -2, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.6) 0%, rgba(6,9,18,0.9) 75%)' }
   const bgGlow = { position: 'fixed', top: '-20%', left: '50%', transform: 'translateX(-50%)', width: '80vw', height: '80vw', zIndex: -1, background: `radial-gradient(circle, ${BLUE}22 0%, transparent 65%)`, pointerEvents: 'none' }
 
   const card = { background: 'rgba(15, 23, 42, 0.68)', backdropFilter: 'blur(14px)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 22, boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }
@@ -744,7 +744,7 @@ export default function ProjectionDiagnostic() {
           precedent/suivant pour parcourir tous les ports en direct). */}
       {individuelOuvert !== null && individuelsAffiches[individuelOuvert] && createPortal((
         <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(6,9,18,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(6,9,18,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
           onClick={() => setIndividuelOuvert(null)}
         >
           <div style={{ ...card, maxWidth: 1000, width: '100%', maxHeight: '88vh', overflowY: 'auto', padding: '32px 36px', position: 'relative' }} onClick={e => e.stopPropagation()}>
@@ -777,7 +777,7 @@ export default function ProjectionDiagnostic() {
       {/* Modale d'analyse detaillee */}
       {vueOuverte && createPortal((
         <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(6,9,18,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(6,9,18,0.85)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
           onClick={() => setVueOuverte(null)}
         >
           <div style={{ ...card, maxWidth: 1000, width: '100%', maxHeight: '88vh', overflowY: 'auto', padding: '32px 36px', position: 'relative' }} onClick={e => e.stopPropagation()}>

@@ -339,7 +339,7 @@ export default function EmailComposer({ initialTo = [], dossier = null, onSent }
       </div>
 
       {apercu && (
-        <div onClick={() => setApercu(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(10,17,40,.6)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div onClick={() => setApercu(null)} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(10,17,40,.6)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 16, width: '100%', maxWidth: 720, height: '88vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: '1px solid #e2e8f0' }}>
               <strong style={{ fontSize: 14 }}>Aperçu - {objet || '(sans objet)'}</strong>

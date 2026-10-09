@@ -3,7 +3,7 @@ import { NUMEROS_TABLETTES } from '../utils/terrainEtapes'
 
 const NAVY = '#000E91'
 const BTN = { padding: '9px 14px', borderRadius: 10, border: 'none', fontSize: 12.5, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 6 }
-const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,.5)', backdropFilter: 'blur(3px)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }
+const overlay = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(15,23,42,.5)', backdropFilter: 'blur(3px)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12 }
 const boite = { background: '#fff', borderRadius: 18, width: '100%', maxWidth: 440, padding: 22, boxShadow: '0 24px 48px -12px rgba(15,23,42,.35)', maxHeight: '92vh', overflow: 'auto' }
 
 // Grille T01-T35. pris : { 'T07': 'Prenom Nom' } = numeros deja remis (grises).

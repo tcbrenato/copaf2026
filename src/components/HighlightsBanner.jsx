@@ -159,7 +159,7 @@ const HighlightModal = ({ onClose, children, wide }) =>
   createPortal((
     <div
       style={{
-        position: 'fixed', inset: 0, background: 'rgba(10, 17, 40, 0.6)',
+        position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(10, 17, 40, 0.6)',
         backdropFilter: 'blur(8px)', zIndex: 9999,
         display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
       }}
@@ -306,7 +306,7 @@ const HighlightsBanner = () => {
         }
         .highlight-banner-card { position: relative; }
         .highlight-banner-peek {
-          position: absolute; inset: 14px -10px -14px 24px;
+          position: absolute; top: 14px; right: -10px; bottom: -14px; left: 24px;
           background: linear-gradient(90deg, #1798F4, #5CC3FF);
           border-radius: 18px;
           z-index: 0;
@@ -354,7 +354,7 @@ const HighlightsBanner = () => {
         .highlight-banner-cta:hover { color: #fff; transform: translateX(2px); }
         @media (max-width: 700px) {
           .highlight-banner-main { flex-direction: column; align-items: flex-start; text-align: left; }
-          .highlight-banner-peek { inset: 10px -8px -10px 16px; }
+          .highlight-banner-peek { top: 10px; right: -8px; bottom: -10px; left: 16px; }
         }
 
         .infos-carousel-wrap { position: relative; }

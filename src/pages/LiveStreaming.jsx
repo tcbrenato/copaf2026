@@ -118,7 +118,7 @@ export default function LiveStreaming() {
             <iframe
               src={`https://www.youtube.com/embed/live_stream?channel=${YOUTUBE_CHANNEL_ID}`}
               title={t.iframeTitle}
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }}
+              style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />

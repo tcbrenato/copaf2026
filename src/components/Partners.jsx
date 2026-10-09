@@ -25,7 +25,7 @@ const Partners = () => {
     }}>
       {/* Arrière-plan réseau digital SVG */}
       <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 0 }}
+        style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="xMidYMid slice"
         viewBox="0 0 1440 600"
@@ -51,7 +51,7 @@ const Partners = () => {
 
       {/* Overlay de lisibilité */}
       <div style={{
-        position: 'absolute', inset: 0,
+        position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
         background: 'rgba(238,242,255,0.78)',
         zIndex: 1,
       }} />

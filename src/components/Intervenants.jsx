@@ -102,7 +102,7 @@ const Intervenants = () => {
       `}</style>
       {/* Overlay subtil */}
       <div style={{
-        position: 'absolute', inset: 0,
+        position: 'absolute', top: 0, right: 0, bottom: 0, left: 0,
         background: 'linear-gradient(180deg, rgba(248,249,255,0.95) 0%, rgba(240,244,255,0.98) 100%)',
         zIndex: 0,
       }} />
@@ -232,7 +232,7 @@ const Intervenants = () => {
             (sinon le header fixe, avec le même z-index, passe par-dessus sur mobile). */}
         {activeModal && createPortal((
           <div style={{
-            position: 'fixed', inset: 0,
+            position: 'fixed', top: 0, right: 0, bottom: 0, left: 0,
             background: 'rgba(10, 17, 40, 0.6)',
             backdropFilter: 'blur(8px)',
             zIndex: 9999,

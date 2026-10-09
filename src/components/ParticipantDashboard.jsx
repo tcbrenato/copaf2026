@@ -364,7 +364,7 @@ function TabProgramme({ myDossier, tt, lang, onRefresh }) {
 function ModalProgrammeJour({ day, indexJour, tt, agendaKeys, pending, onToggle, onClose }) {
   const accent = day.accent || '#000E91'
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.55)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+    <div onClick={onClose} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(15,23,42,.55)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 520, maxHeight: '85vh', overflow: 'auto' }}>
         <div style={{ background: accent, color: '#fff', padding: '20px 24px', borderRadius: '20px 20px 0 0', position: 'sticky', top: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>

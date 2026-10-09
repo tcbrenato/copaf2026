@@ -40,7 +40,7 @@ const About = () => {
 
       {/* SVG réseau en fond */}
       <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 0 }}
+        style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="xMidYMid slice"
         viewBox="0 0 1440 1200"
@@ -63,7 +63,7 @@ const About = () => {
           <circle key={i} cx={cx} cy={cy} r={i % 5 === 0 ? 5 : 3} fill={i % 7 === 0 ? '#0073F4' : '#818cf8'} opacity="0.45" />
         ))}
       </svg>
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(249,250,251,0.82)', zIndex: 1 }} />
+      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(249,250,251,0.82)', zIndex: 1 }} />
 
       <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 2 }}>
 

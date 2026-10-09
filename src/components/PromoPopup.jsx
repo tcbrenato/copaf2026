@@ -49,7 +49,7 @@ export default function PromoPopup() {
     <div
       onClick={close}
       style={{
-        position: 'fixed', inset: 0, zIndex: 10000,
+        position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: 10000,
         background: 'rgba(0, 14, 145, 0.55)', backdropFilter: 'blur(6px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: 20, animation: 'promoFadeIn 0.25s ease',

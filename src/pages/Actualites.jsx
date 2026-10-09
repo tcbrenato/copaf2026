@@ -59,8 +59,8 @@ export default function Actualites() {
         position: 'relative', paddingTop: 'clamp(110px, 14vw, 150px)', paddingBottom: 64,
         textAlign: 'center', overflow: 'hidden',
       }}>
-        <div style={{ position: 'absolute', inset: 0, zIndex: 0, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.55) saturate(1.1)' }} />
-        <div style={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(180deg, rgba(0,14,145,0.75) 0%, rgba(10,17,40,0.9) 100%)' }} />
+        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 0, backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.55) saturate(1.1)' }} />
+        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, zIndex: 1, background: 'linear-gradient(180deg, rgba(0,14,145,0.75) 0%, rgba(10,17,40,0.9) 100%)' }} />
         <div style={{ position: 'relative', zIndex: 2, padding: '0 20px' }}>
           <span style={{
             display: 'inline-block', padding: '6px 18px', borderRadius: 50,

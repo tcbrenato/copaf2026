@@ -163,7 +163,7 @@ const Programme = () => {
         }
       `}</style>
 
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.88)', zIndex: 1, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(255,255,255,0.88)', zIndex: 1, pointerEvents: 'none' }} />
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 clamp(16px, 5vw, 60px)', position: 'relative', zIndex: 2 }}>
 
@@ -435,7 +435,7 @@ const Programme = () => {
       {/* ── MODAL ── */}
       {activeSession && (
         <div onClick={() => setActiveSession(null)} style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,14,145,0.45)',
+          position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(0,14,145,0.45)',
           backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center',
           justifyContent: 'center', zIndex: 9999, padding: 20,
         }}>

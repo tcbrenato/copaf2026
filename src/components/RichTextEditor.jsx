@@ -112,12 +112,12 @@ export default function RichTextEditor({ initialHtml = '', onChange, minHeight =
         <label title="Couleur du texte" style={{ ...btn, position: 'relative', cursor: 'pointer' }} onMouseDown={sauverSelection}>
           <Baseline size={16} />
           <input type="color" defaultValue="#000E91" aria-label="Couleur du texte" onChange={(e) => cmd('foreColor', e.target.value)}
-            style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }} />
+            style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }} />
         </label>
         <label title="Surlignage" style={{ ...btn, position: 'relative', cursor: 'pointer' }} onMouseDown={sauverSelection}>
           <Highlighter size={16} />
           <input type="color" defaultValue="#fef08a" aria-label="Couleur de surlignage" onChange={(e) => cmd('hiliteColor', e.target.value)}
-            style={{ position: 'absolute', inset: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }} />
+            style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }} />
         </label>
         <span style={sep} />
         <Bouton titre="Aligner à gauche" onClick={() => cmd('justifyLeft')}><AlignLeft size={16} /></Bouton>

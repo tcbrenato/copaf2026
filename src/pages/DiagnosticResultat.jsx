@@ -411,8 +411,8 @@ export default function DiagnosticResultat() {
   }
 
   const wrap = { minHeight: '100vh', position: 'relative', fontFamily: "'Plus Jakarta Sans',sans-serif", padding: '40px 20px', color: '#f8fafc' }
-  const bgImage = { position: 'fixed', inset: 0, zIndex: -2, backgroundColor: '#0b0f1c', backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.75) saturate(1.2)' }
-  const bgOverlay = { position: 'fixed', inset: 0, zIndex: -1, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.55) 0%, rgba(9,13,22,0.78) 70%)' }
+  const bgImage = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: -2, backgroundColor: '#0b0f1c', backgroundImage: 'url(/hero1.png)', backgroundSize: 'cover', backgroundPosition: 'center', filter: 'brightness(0.75) saturate(1.2)' }
+  const bgOverlay = { position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, zIndex: -1, backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(13,27,62,0.55) 0%, rgba(9,13,22,0.78) 70%)' }
   const Fond = () => <><div style={bgImage} /><div style={bgOverlay} /></>
   const BoutonMenu = () => (
     <a href="/tablette" style={{
@@ -890,7 +890,7 @@ export default function DiagnosticResultat() {
       {prioriteOuverte !== null && diag?.recommandations_v2?.prioritesInvestissement?.[prioriteOuverte] && (() => {
         const p = diag.recommandations_v2.prioritesInvestissement[prioriteOuverte]
         return (
-          <div onClick={() => setPrioriteOuverte(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(6,9,18,0.75)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div onClick={() => setPrioriteOuverte(null)} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(6,9,18,0.75)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
             <div onClick={e => e.stopPropagation()} style={{ ...panelStyle, maxWidth: 560, width: '100%', maxHeight: '85vh', overflowY: 'auto', padding: 28, position: 'relative' }}>
               <button onClick={() => setPrioriteOuverte(null)} aria-label={t.fermer} style={{ position: 'absolute', top: 18, right: 18, width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Ico name="close" size={14} color="#cbd5e1" />
@@ -917,7 +917,7 @@ export default function DiagnosticResultat() {
         const c = couleurNiveau(v)
         const items = axe.actions?.[tier] || []
         return (
-          <div onClick={() => setDimensionOuverte(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(6,9,18,0.75)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div onClick={() => setDimensionOuverte(null)} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(6,9,18,0.75)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
             <div onClick={e => e.stopPropagation()} style={{ ...panelStyle, maxWidth: 560, width: '100%', maxHeight: '85vh', overflowY: 'auto', padding: 28, position: 'relative' }}>
               <button onClick={() => setDimensionOuverte(null)} aria-label={t.fermer} style={{ position: 'absolute', top: 18, right: 18, width: 32, height: 32, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.06)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Ico name="close" size={14} color="#cbd5e1" />

@@ -254,7 +254,7 @@ const AxesThematiques = () => {
         const r = RESEAUX[activeReseau]
         return (
           <div onClick={() => setActiveReseau(null)} style={{
-            position: "fixed", inset: 0, background: "rgba(0,14,145,0.45)",
+            position: "fixed", top: 0, right: 0, bottom: 0, left: 0, background: "rgba(0,14,145,0.45)",
             backdropFilter: "blur(6px)", display: "flex", alignItems: "center",
             justifyContent: "center", zIndex: 9999, padding: 20,
           }}>
@@ -333,7 +333,7 @@ const AxesThematiques = () => {
       {/* MODAL DU JOUR */}
       {activeAxe && (
         <div onClick={() => setActiveAxe(null)} style={{
-          position: "fixed", inset: 0, background: "rgba(0,14,145,0.45)",
+          position: "fixed", top: 0, right: 0, bottom: 0, left: 0, background: "rgba(0,14,145,0.45)",
           backdropFilter: "blur(6px)", display: "flex", alignItems: "center",
           justifyContent: "center", zIndex: 9999, padding: 20,
         }}>

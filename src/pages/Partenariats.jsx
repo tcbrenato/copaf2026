@@ -478,7 +478,7 @@ function Field({ label, children }) {
 // ─── MODAL RGPD ───────────────────────────────────────────────────────────────
 function ModalRgpd({ onClose, t }) {
   return (
-    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,.55)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+    <div onClick={onClose} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(15,23,42,.55)', backdropFilter: 'blur(4px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div onClick={e => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 620, maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 60px rgba(0,0,0,.2)', overflow: 'hidden' }}>
         <div style={{ padding: '22px 26px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>{t.rgpdModalTitle}</div>
@@ -608,7 +608,7 @@ export default function Partenariats() {
   return (
     <div style={{ minHeight: '100vh', fontFamily: "'Plus Jakarta Sans','Helvetica Neue',sans-serif", color: '#0f172a', backgroundImage: 'url(/bg2.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed', backgroundRepeat: 'no-repeat', position: 'relative' }}>
 
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(248,250,255,0.93)', zIndex: 0, pointerEvents: 'none' }} />
+      <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(248,250,255,0.93)', zIndex: 0, pointerEvents: 'none' }} />
 
       {rgpdModal && <ModalRgpd onClose={() => setRgpdModal(false)} t={t} />}
 
@@ -643,7 +643,7 @@ export default function Partenariats() {
         `}</style>
 
         <div style={{ backgroundImage: 'url(/bg2.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', position: 'relative', overflow: 'hidden', padding: isMobile ? '80px 20px 52px' : 'clamp(100px,14vw,160px) clamp(24px,5vw,64px) clamp(64px,8vw,110px)', textAlign: 'center' }}>
-          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,14,145,0.88)' }} />
+          <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(0,14,145,0.88)' }} />
           <div style={{ position: 'absolute', top: -80, right: -80, width: 260, height: 260, borderRadius: '50%', background: 'rgba(255,255,255,.05)', pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', bottom: -60, left: -40, width: 180, height: 180, borderRadius: '50%', background: 'rgba(0,115,244,.15)', pointerEvents: 'none' }} />
 

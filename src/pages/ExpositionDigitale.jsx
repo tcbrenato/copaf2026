@@ -472,7 +472,7 @@ export default function ExpositionDigitale() {
         .form-row-2 { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-bottom:14px; }
         @media(max-width:520px){ .form-row-2 { grid-template-columns:minmax(0,1fr); } }
 
-        .modal-overlay { position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(6px);z-index:10000;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease; }
+        .modal-overlay { position:fixed;top: 0; right: 0; bottom: 0; left: 0;background:rgba(15,23,42,.5);backdrop-filter:blur(6px);z-index:10000;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease; }
         .modal-box { background:#fff;border-radius:24px 24px 0 0;width:100%;max-height:88vh;padding:36px 24px 48px;overflow-y:auto;position:relative;box-shadow:0 -8px 40px rgba(0,0,0,.15);animation:slideUp .3s ease; }
         @media(min-width:640px){ .modal-overlay { align-items:center;padding:24px; } .modal-box { border-radius:24px;max-width:520px;max-height:80vh;padding:44px; } }
 
@@ -511,7 +511,7 @@ export default function ExpositionDigitale() {
         backgroundRepeat: 'no-repeat',
         position: 'relative', overflow: 'hidden', textAlign: 'center',
       }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(1px)' }} />
+        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(255,255,255,0.82)', backdropFilter: 'blur(1px)' }} />
         <div style={{ maxWidth: 680, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <div className="fade-up" style={{ display: 'inline-block', padding: '7px 18px', background: 'rgba(0,115,244,.1)', color: '#0073F4', borderRadius: 100, fontSize: 10, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 24 }}>
             {t.heroBadge}
@@ -697,7 +697,7 @@ export default function ExpositionDigitale() {
       </Section>
 
       <section id="inscription" style={{ padding: 'clamp(56px,8vw,100px) clamp(16px,5vw,60px)', backgroundImage: 'url(/bg9.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,14,145,0.88)' }} />
+        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(0,14,145,0.88)' }} />
         <div style={{ maxWidth: 640, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <div style={{ background: '#fff', borderRadius: 24, padding: 'clamp(24px,5vw,52px)', boxShadow: '0 24px 60px rgba(0,0,0,.2)' }}>
             {formSent ? (

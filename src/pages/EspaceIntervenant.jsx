@@ -331,7 +331,7 @@ export default function EspaceIntervenant() {
             alt="COPAF 2026" 
             style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} 
           />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.9) 100%)' }} />
+          <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.9) 100%)' }} />
         </div>
 
         <div style={{ maxWidth: 1100, margin: '-50px auto 0', padding: '0 24px 24px', position: 'relative', zIndex: 2 }}>

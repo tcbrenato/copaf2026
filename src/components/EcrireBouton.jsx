@@ -48,7 +48,7 @@ export default function EcrireBouton({ dossier }) {
       </button>
 
       {ouvert && createPortal((
-        <div onClick={() => setOuvert(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(10,17,40,.6)', zIndex: 9000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 20, overflowY: 'auto' }}>
+        <div onClick={() => setOuvert(false)} style={{ position: 'fixed', top: 0, right: 0, bottom: 0, left: 0, background: 'rgba(10,17,40,.6)', zIndex: 9000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 20, overflowY: 'auto' }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 780, margin: 'auto', padding: 28, position: 'relative' }}>
             <button type="button" onClick={() => setOuvert(false)} aria-label="Fermer" style={{ position: 'absolute', top: 16, right: 16, background: '#f1f5f9', border: 'none', borderRadius: '50%', width: 34, height: 34, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <X size={16} />

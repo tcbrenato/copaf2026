@@ -495,7 +495,7 @@ async function createDelegationMembres(inscriptionId, dossier, membres, lang) {
 
 function ModalInclus({ onClose, t }) {
   return (
-    <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(15,23,42,.55)', backdropFilter:'blur(4px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
+    <div onClick={onClose} style={{ position:'fixed', top: 0, right: 0, bottom: 0, left: 0, background:'rgba(15,23,42,.55)', backdropFilter:'blur(4px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
       <div onClick={e => e.stopPropagation()} style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:480, boxShadow:'0 24px 60px rgba(0,0,0,.2)', overflow:'hidden' }}>
         <div style={{ padding:'24px 28px 20px', borderBottom:'1px solid #f1f5f9', display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
@@ -532,7 +532,7 @@ function ModalDocument({ type, onClose, t }) {
   const title   = isCgv ? t.cgvModalTitle : t.rgpdModalTitle
 
   return (
-    <div onClick={onClose} style={{ position:'fixed', inset:0, background:'rgba(15,23,42,.55)', backdropFilter:'blur(4px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
+    <div onClick={onClose} style={{ position:'fixed', top: 0, right: 0, bottom: 0, left: 0, background:'rgba(15,23,42,.55)', backdropFilter:'blur(4px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
       <div onClick={e => e.stopPropagation()} style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:660, maxHeight:'88vh', display:'flex', flexDirection:'column', boxShadow:'0 24px 60px rgba(0,0,0,.2)', overflow:'hidden' }}>
 
         <div style={{ padding:'24px 28px 20px', borderBottom:'1px solid #f1f5f9', display:'flex', justifyContent:'space-between', alignItems:'flex-start', flexShrink:0 }}>
@@ -878,7 +878,7 @@ export default function Inscription() {
       {modal && <ModalDocument type={modal} onClose={() => setModal(null)} t={t} />}
 
       {showVideo && (
-        <div onClick={() => setShowVideo(false)} style={{ position:'fixed', inset:0, background:'rgba(15,23,42,.7)', backdropFilter:'blur(4px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
+        <div onClick={() => setShowVideo(false)} style={{ position:'fixed', top: 0, right: 0, bottom: 0, left: 0, background:'rgba(15,23,42,.7)', backdropFilter:'blur(4px)', zIndex:2000, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px' }}>
           <div onClick={e => e.stopPropagation()} style={{ background:'#000', borderRadius:16, width:'100%', maxWidth:820, boxShadow:'0 24px 60px rgba(0,0,0,.4)', overflow:'hidden', position:'relative' }}>
             <button onClick={() => setShowVideo(false)} style={{ position:'absolute', top:12, right:12, background:'rgba(255,255,255,.15)', border:'none', width:36, height:36, borderRadius:'50%', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1 }}>
               <Ico name="close" size={16} color="#fff" />
@@ -891,7 +891,7 @@ export default function Inscription() {
       {showInclus && <ModalInclus onClose={() => setShowInclus(false)} t={t} />}
 
       <section id="inscription" style={{ padding:'clamp(64px,10vw,120px) 0', background:'linear-gradient(180deg,#f0f6ff 0%,#f8faff 100%)', fontFamily:"'Plus Jakarta Sans',sans-serif", position:'relative', minHeight:'100vh', overflow:'hidden' }}>
-        <div style={{ position:'absolute', inset:0, pointerEvents:'none', background:'radial-gradient(circle at 10% 15%,rgba(0,115,244,.08) 0%,transparent 50%),radial-gradient(circle at 90% 85%,rgba(0,14,145,.06) 0%,transparent 50%)' }} />
+        <div style={{ position:'absolute', top: 0, right: 0, bottom: 0, left: 0, pointerEvents:'none', background:'radial-gradient(circle at 10% 15%,rgba(0,115,244,.08) 0%,transparent 50%),radial-gradient(circle at 90% 85%,rgba(0,14,145,.06) 0%,transparent 50%)' }} />
 
         <div style={{ position:'relative', maxWidth:1100, margin:'0 auto', padding:'0 clamp(16px,5vw,48px)', minWidth:0 }}>
 
