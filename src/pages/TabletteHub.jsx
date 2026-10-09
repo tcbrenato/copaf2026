@@ -206,7 +206,7 @@ export default function TabletteHub() {
         </div>
       )}
 
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', margin: '0 -20px 28px', padding: '16px 24px', background: FOND, borderBottom: '1px solid rgba(255,255,255,0.18)' }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', margin: '0 -20px 28px', padding: '16px 150px 16px 24px', background: FOND, borderBottom: '1px solid rgba(255,255,255,0.18)' }}>
         <div style={{ background: '#fff', borderRadius: 12, padding: '8px 16px', marginRight: 16, marginBottom: 4 }}>
           <img src="/logocopaf.png" alt="COPAF 2026" style={{ height: 40, width: 'auto', display: 'block' }} />
         </div>
