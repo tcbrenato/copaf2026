@@ -86,7 +86,7 @@ export default function VerifierAttestation() {
     setPdfEnCours(true); setErreurPdf(false)
     try {
       const { genererAttestationPDF } = await import('../utils/generateAttestationPDF')
-      const blob = await genererAttestationPDF(resultat, { langue: langueAffichee, origine: window.location.origin })
+      const blob = await genererAttestationPDF(resultat, { langue: langueAffichee })
       telecharger(blob, `COPAF-2026_Attestation_${resultat.code}_${langueAffichee}.pdf`)
     } catch { setErreurPdf(true) }
     setPdfEnCours(false)

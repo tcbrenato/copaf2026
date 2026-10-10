@@ -87,7 +87,8 @@ export function extraireCodeAttestation(texte) {
   return normaliserCodeAttestation(dansUrl ? decodeURIComponent(dansUrl[1]) : t)
 }
 
-export const urlVerification = (code, origine = 'https://copaf-ports.com') => `${origine}/verifier/${code}`
+export const ORIGINE_OFFICIELLE = 'https://copaf-ports.com'
+export const urlVerification = (code, origine = ORIGINE_OFFICIELLE) => `${origine}/verifier/${code}`
 
 // ─── Civilité ───
 export function normaliserCivilite(valeur) {

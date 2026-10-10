@@ -226,17 +226,17 @@ export default function AdminAttestations() {
   }
 
   // ── Exports ──
-  const lignesExport = liste => [ENTETES_EXPORT, ...liste.map(a => [a.prenom, a.nom, a.fonction, a.autorite_portuaire, a.pays, a.langue, a.code, a.code ? urlVerification(a.code, window.location.origin) : ''])]
+  const lignesExport = liste => [ENTETES_EXPORT, ...liste.map(a => [a.prenom, a.nom, a.fonction, a.autorite_portuaire, a.pays, a.langue, a.code, a.code ? urlVerification(a.code) : ''])]
   const exporterListeXlsx = async () => telecharger(await ecrireXlsx(lignesExport(cible), { nomFeuille: 'Attestations', largeurs: [18, 20, 40, 36, 18, 8, 24, 52] }), 'COPAF-2026_attestations_liste.xlsx')
   const exporterListeCsv = () => telecharger(ecrireCsv(lignesExport(cible)), 'COPAF-2026_attestations_liste.csv')
   const avecCode = cible.filter(a => a.code)
-  const csvQr = liste => ecrireCsv([['Code', 'Prénom', 'Nom', 'URL', 'Nom du fichier QR'], ...liste.map(a => [a.code, a.prenom, a.nom, urlVerification(a.code, window.location.origin), `${a.code}_${nomFichier(a.nom)}.png`])])
+  const csvQr = liste => ecrireCsv([['Code', 'Prénom', 'Nom', 'URL', 'Nom du fichier QR'], ...liste.map(a => [a.code, a.prenom, a.nom, urlVerification(a.code), `${a.code}_${nomFichier(a.nom)}.png`])])
   const exporterQr = async () => {
     if (!avecCode.length) { message('Aucune ligne avec un code : générez d\'abord les codes.', true); return }
     setOccupe('Création des QR codes…')
     const zip = new JSZip()
     for (const a of avecCode) {
-      const url = urlVerification(a.code, window.location.origin)
+      const url = urlVerification(a.code)
       const base = `${a.code}_${nomFichier(a.nom)}`
       const png = await QRCode.toDataURL(url, { errorCorrectionLevel: 'H', margin: 2, width: 600 })
       zip.file(`PNG/${base}.png`, png.split(',')[1], { base64: true })
@@ -255,7 +255,7 @@ export default function AdminAttestations() {
       const a = avecCode[i]
       setOccupe(`Attestation ${i + 1} / ${avecCode.length}…`)
       try {
-        const blob = await genererAttestationPDF(a, { origine: window.location.origin, cache })
+        const blob = await genererAttestationPDF(a, { cache })
         zip.file(`${a.code}_${nomFichier(a.nom)}_${a.langue}.pdf`, blob)
       } catch (err) { setOccupe(''); message(`PDF impossible pour ${complet(a)} : ${err.message}`, true); return }
     }

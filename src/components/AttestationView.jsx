@@ -57,7 +57,7 @@ export default function AttestationView({ att, langue }) {
 
   useEffect(() => {
     let actif = true
-    QRCode.toDataURL(urlVerification(att.code, window.location.origin), { errorCorrectionLevel: 'H', margin: 1, width: 320, color: { dark: NAVY, light: '#ffffff' } })
+    QRCode.toDataURL(urlVerification(att.code), { errorCorrectionLevel: 'H', margin: 1, width: 320, color: { dark: NAVY, light: '#ffffff' } })
       .then(u => { if (actif) setQr(u) }).catch(() => {})
     return () => { actif = false }
   }, [att.code])
