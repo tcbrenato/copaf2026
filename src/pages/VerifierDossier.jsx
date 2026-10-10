@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabase'
 import { generateRecapPDF } from '../utils/generateRecapPDF'
 import { generateProformaPDF } from '../utils/generateProformaPDF'
@@ -9,6 +10,8 @@ import { generateICS } from '../utils/generateICS'
 import { Ico } from '../utils/dossierUi'
 import { normaliserDossier } from '../utils/dossierConstants'
 import ParticipantDashboard from '../components/ParticipantDashboard'
+import ScanAttestation from '../components/ScanAttestation'
+import { extraireCodeAttestation } from '../utils/attestationsConfig'
 
 const CONTACT_PHONE = '+229 01 69 30 30 19'
 const OFFICIAL_IBAN = 'BJ66BJ1040100103762812010162'
@@ -34,7 +37,8 @@ const TR = {
     kicker: 'Vérification & suivi de dossier',
     title: 'Vérifiez vos informations COPAF 2026',
     subtitle: "Entrez votre numéro de dossier ou collez l'IBAN reçu pour confirmer l'authenticité de votre demande, et accédez ensuite à votre espace personnel.",
-    searchPh: 'N° de dossier ou IBAN officiel...',
+    searchPh: "N° de dossier, IBAN officiel ou n° d'attestation...",
+    attestationAide: "Vous avez une attestation ? Saisissez son numéro COPAF-2026-EXEC-XXXX ci-dessus, ou scannez son QR code.",
     searchBtn: 'Vérifier',
     genericError: 'Erreur lors de la vérification. Réessayez ou contactez-nous directement.',
     ibanTitle: 'RIB Officiel Certifié & Authentique',
@@ -85,7 +89,8 @@ const TR = {
     kicker: 'Verification & file tracking',
     title: 'Verify your COPAF 2026 information',
     subtitle: 'Enter your file reference number or paste the IBAN you received to confirm the authenticity of your request, then access your personal space.',
-    searchPh: 'File reference or official IBAN...',
+    searchPh: 'File reference, official IBAN or certificate number...',
+    attestationAide: 'Do you have a certificate? Enter its number COPAF-2026-EXEC-XXXX above, or scan its QR code.',
     searchBtn: 'Verify',
     genericError: 'An error occurred during verification. Please try again or contact us directly.',
     ibanTitle: 'Certified & Authentic Official Bank Details',
@@ -139,6 +144,7 @@ export default function VerifierDossier() {
   const lang = i18n.language?.startsWith('en') ? 'en' : 'fr'
   const t = TR[lang]
   const STATUTS = STATUT_LABEL[lang]
+  const navigate = useNavigate()
 
   const [input,   setInput]   = useState('')
   const [loading, setLoading] = useState(false)
@@ -157,6 +163,9 @@ export default function VerifierDossier() {
   const executeVerification = async (rawValue) => {
     const cleanedInput = rawValue.trim()
     if (!cleanedInput) return
+
+    const codeAttestation = extraireCodeAttestation(cleanedInput)
+    if (codeAttestation) { navigate(`/verifier/${codeAttestation}`); return }
 
     setLoading(true); setError(''); setResult(undefined)
 
@@ -358,6 +367,9 @@ export default function VerifierDossier() {
             {t.searchBtn}
           </button>
         </form>
+
+        <p style={{ textAlign: 'center', fontSize: 13, color: '#64748b', margin: '-8px 0 12px', lineHeight: 1.5 }}>{t.attestationAide}</p>
+        <ScanAttestation lang={lang} />
 
         {error && (
           <div style={{ background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: 14, padding: '14px 18px', marginBottom: 24, color: '#dc2626', fontSize: 13.5 }}>

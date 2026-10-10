@@ -16,6 +16,7 @@ import AdminVoyage from '../pages/AdminVoyage'
 import AdminLettresInvitation from '../pages/AdminLettresInvitation'
 import AdminEquipe from '../pages/AdminEquipe'
 import AdminTablettes from '../pages/AdminTablettes'
+import AdminAttestations from '../pages/AdminAttestations'
 import Terrain from '../pages/Terrain'
 import AdminProforma from '../pages/AdminProforma'
 import AdminSondages from '../pages/AdminSondages'
@@ -101,6 +102,7 @@ const MODULES = [
   { id: 'equipe',      label: 'Équipe',          icon: 'users',    table: null,            scope: 'all', adminOnly: true },
   { id: 'terrain',     label: 'Terrain',          icon: 'globe',    table: null,            scope: 'all', adminOnly: true },
   { id: 'tablettes',   label: 'Tablettes',        icon: 'monitor',  table: null,            scope: 'all', adminOnly: true },
+  { id: 'attestations', label: 'Attestations',    icon: 'check',    table: null,            scope: 'all', adminOnly: true },
 ]
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -2924,6 +2926,8 @@ export default function AdminPage() {
             <AdminEquipe />
           ) : activeModule === 'tablettes' ? (
             <AdminTablettes />
+          ) : activeModule === 'attestations' ? (
+            <AdminAttestations />
           ) : activeModule === 'lettres-invitation' ? (
             <AdminLettresInvitation />
           ) : activeModule === 'terrain' ? (

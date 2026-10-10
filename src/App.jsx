@@ -58,6 +58,7 @@ const Terrain               = lazy(() => import('./pages/Terrain'))
 const EspaceIntervenant    = lazy(() => import('./pages/EspaceIntervenant'))
 const EspaceEquipe         = lazy(() => import('./pages/EspaceEquipe'))
 const InstallerTerrain     = lazy(() => import('./pages/InstallerTerrain'))
+const VerifierAttestation  = lazy(() => import('./pages/VerifierAttestation'))
 
 // ─── Repli affiche pendant le telechargement d'une route secondaire ──────────
 const RouteFallback = () => (
@@ -128,6 +129,7 @@ const InstallPromptGate = () => {
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
   if (pathname === '/terrain-app') return null
+  if (/^\/verifier\/[^/]+/.test(pathname)) return null
   if (masquerSurTablette(pathname)) return null
   return <InstallPrompt />
 }
@@ -157,6 +159,7 @@ const PromoPopupGate = () => {
   if (/^\/sondage-live\/[^/]+/.test(pathname)) return null
   if (pathname === '/diagnostic/projection') return null
   if (pathname === '/staff/scan' || pathname === '/terrain' || pathname === '/terrain-app' || pathname.startsWith('/badge/')) return null
+  if (/^\/verifier\/[^/]+/.test(pathname)) return null
   if (masquerSurTablette(pathname)) return null
   return <PromoPopup />
 }
@@ -241,6 +244,7 @@ function App() {
         <Route path="/"                       element={<MainSite />} />
         <Route path="/inscription"            element={<InscriptionPage />} />
         <Route path="/verifier"               element={<VerifierPage />} />
+        <Route path="/verifier/:code"         element={<VerifierAttestation />} />
         <Route path="/partenariats"           element={<Partenariats />} />
         <Route path="/exposition-digitale"    element={<ExpositionDigitale />} />
         <Route path="/actualites"             element={<Actualites />} />
