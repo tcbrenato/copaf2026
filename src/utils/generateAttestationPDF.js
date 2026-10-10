@@ -119,7 +119,7 @@ export async function genererAttestationPDF(att, { langue, origine = 'https://co
 
   // ── En-tête : logos ──
   const logos = await Promise.all(LOGOS.map(l => imageEnCache(cache, l.src)))
-  const hLogo = 50
+  const hLogo = 56
   const largeurs = logos.map(l => (l ? (l.l / l.h) * hLogo : 0))
   const total = largeurs.reduce((a, b) => a + b, 0) + 26 * (logos.filter(Boolean).length - 1)
   let x = centreX - total / 2
@@ -128,27 +128,27 @@ export async function genererAttestationPDF(att, { langue, origine = 'https://co
     doc.addImage(l.data, 'PNG', x * MM, 64 * MM, largeurs[i] * MM, hLogo * MM)
     x += largeurs[i] + 26
   })
-  texteCentre(T.organisateurs, 64 + hLogo + 18, 11.5, { style: 'bold', couleur: or, espacement: 3 })
-  texteCentre(T.conference, 64 + hLogo + 38, 14, { style: 'bold', espacement: 1.5 })
+  texteCentre(T.organisateurs, 141, 11.5, { style: 'bold', couleur: or, espacement: 3 })
+  texteCentre(T.conference, 161, 15, { style: 'bold', espacement: 1.5 })
 
   // ── Titre ──
-  texteCentre(T.titre, 190, 29, { police: 'times', style: 'bold', espacement: 0.8 })
-  doc.setDrawColor(...or); doc.setLineWidth(2 * MM); doc.line((centreX - 85) * MM, 203 * MM, (centreX + 85) * MM, 203 * MM)
-  texteCentre(T.certifie, 232, 19, { police: 'times', style: 'italic' })
+  texteCentre(T.titre, 209, 31, { police: 'times', style: 'bold', espacement: 0.8 })
+  doc.setDrawColor(...or); doc.setLineWidth(2 * MM); doc.line((centreX - 85) * MM, 230 * MM, (centreX + 85) * MM, 230 * MM)
+  texteCentre(T.certifie, 268, 21, { police: 'times', style: 'italic' })
 
   // ── Identité (drapeau, nom, logo de l'autorité si fourni) ──
   const nomComplet = `${civiliteAffichee(att.civilite, lang)} ${prenomAffiche(att.prenom)} ${nomAffiche(att.nom)}`.trim()
   const drapeau = att.pays_iso2 ? await imageEnCache(cache, `https://flagcdn.com/w160/${String(att.pays_iso2).toLowerCase()}.png`) : null
   const logoAutorite = att.logo_url ? await imageEnCache(cache, att.logo_url) : null
-  doc.setFont(sans, 'bold'); doc.setFontSize(34 * MM * 2.8346)
+  doc.setFont(sans, 'bold'); doc.setFontSize(32 * MM * 2.8346)
   const largeurNom = doc.getTextWidth(nomComplet) / MM
-  const hDrapeau = 34
+  const hDrapeau = 38
   const lDrapeau = drapeau ? (drapeau.l / drapeau.h) * hDrapeau : 0
   const hLogoAut = 44
   const lLogoAut = logoAutorite ? (logoAutorite.l / logoAutorite.h) * hLogoAut : 0
   const ligneTotale = (drapeau ? lDrapeau + 16 : 0) + largeurNom + (logoAutorite ? lLogoAut + 18 : 0)
   let xi = centreX - ligneTotale / 2
-  const yNom = 283
+  const yNom = 323
   if (drapeau) {
     doc.addImage(drapeau.data, 'PNG', xi * MM, (yNom - 26) * MM, lDrapeau * MM, hDrapeau * MM)
     doc.setDrawColor(...melange(marine, 0.35)); doc.setLineWidth(1 * MM); doc.rect(xi * MM, (yNom - 26) * MM, lDrapeau * MM, hDrapeau * MM)
@@ -160,20 +160,20 @@ export async function genererAttestationPDF(att, { langue, origine = 'https://co
 
   // Fonction / organisme : intitulé doré, valeur en gras
   const ligneLibelle = (libelle, valeur, y) => {
-    doc.setFont(sans, 'bold'); doc.setFontSize(15 * MM * 2.8346)
+    doc.setFont(sans, 'bold'); doc.setFontSize(16.5 * MM * 2.8346)
     const l1 = doc.getTextWidth(libelle) / MM
     const l2 = doc.getTextWidth(valeur || '') / MM
     const x0 = centreX - (l1 + l2) / 2
     doc.setTextColor(...or); doc.text(libelle, x0 * MM, y * MM)
     doc.setTextColor(...marine); doc.text(valeur || '', (x0 + l1) * MM, y * MM)
   }
-  ligneLibelle(T.fonction, att.fonction, 318)
-  ligneLibelle(T.organisme, att.autorite_portuaire, 342)
+  ligneLibelle(T.fonction, att.fonction, 361)
+  ligneLibelle(T.organisme, att.autorite_portuaire, 386)
 
   // ── Corps du texte ──
-  let y = bloc(T.suivi, 380, 15, 840, 23)
-  y = bloc(T.tenue, y + 10, 15, 840, 22)
-  texteCentre(T.delivre, y + 16, 18, { police: 'times', style: 'italic' })
+  let y = bloc(T.suivi, 430, 16, 860, 25)
+  y = bloc(T.tenue, y + 6, 16, 860, 24)
+  texteCentre(T.delivre, y + 14, 21, { police: 'times', style: 'italic' })
 
   // ── Pied : signatures et QR de vérification ──
   const baseSignature = HAUTEUR - 62 - 44

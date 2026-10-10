@@ -53,13 +53,15 @@ export default function VerifierAttestation() {
 
   // Pas d'indexation par les moteurs de recherche
   useEffect(() => {
-    const meta = document.createElement('meta')
-    meta.name = 'robots'
+    // modifie la balise robots du site si elle existe (sinon deux directives contradictoires), et la rétablit en partant
+    let meta = document.head.querySelector('meta[name="robots"]')
+    const cree = !meta
+    if (cree) { meta = document.createElement('meta'); meta.name = 'robots'; document.head.appendChild(meta) }
+    const avant = meta.content
     meta.content = 'noindex, nofollow'
-    document.head.appendChild(meta)
     const titre = document.title
     document.title = 'Vérification d\'attestation - COPAF 2026'
-    return () => { document.head.removeChild(meta); document.title = titre }
+    return () => { if (cree) document.head.removeChild(meta); else meta.content = avant; document.title = titre }
   }, [])
 
   useEffect(() => {

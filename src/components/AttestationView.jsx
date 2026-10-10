@@ -96,36 +96,36 @@ export default function AttestationView({ att, langue }) {
             {/* En-tête : logos et organisateurs */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {LOGOS.map((l, i) => (
-                <img key={l.src} src={l.src} alt={l.alt} crossOrigin="anonymous" style={{ height: 50, width: 'auto', objectFit: 'contain', marginLeft: i ? 26 : 0 }} />
+                <img key={l.src} src={l.src} alt={l.alt} crossOrigin="anonymous" style={{ height: 56, width: 'auto', objectFit: 'contain', marginLeft: i ? 26 : 0 }} />
               ))}
             </div>
-            <div style={{ marginTop: 8, fontSize: 11.5, fontWeight: 800, letterSpacing: 3, color: OR }}>{T.organisateurs}</div>
-            <div style={{ marginTop: 2, fontSize: 14, fontWeight: 800, letterSpacing: 1.5 }}>{T.conference}</div>
+            <div style={{ marginTop: 10, fontSize: 11.5, fontWeight: 800, letterSpacing: 3, color: OR }}>{T.organisateurs}</div>
+            <div style={{ marginTop: 3, fontSize: 15, fontWeight: 800, letterSpacing: 1.5 }}>{T.conference}</div>
 
             {/* Titre */}
-            <div style={{ marginTop: 12, fontFamily: SERIF, fontSize: 31, fontWeight: 700, letterSpacing: 1, lineHeight: 1.1 }}>{T.titre}</div>
-            <div style={{ width: 170, height: 2, background: OR, margin: '9px auto 0' }} />
+            <div style={{ marginTop: 16, fontFamily: SERIF, fontSize: 33, fontWeight: 700, letterSpacing: 1, lineHeight: 1.1 }}>{T.titre}</div>
+            <div style={{ width: 170, height: 2, background: OR, margin: '12px auto 0' }} />
 
-            <div style={{ marginTop: 12, fontFamily: SERIF, fontStyle: 'italic', fontSize: 19 }}>{T.certifie}</div>
+            <div style={{ marginTop: 18, fontFamily: SERIF, fontStyle: 'italic', fontSize: 21 }}>{T.certifie}</div>
 
             {/* Identité */}
-            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {att.pays_iso2 && (
                 <img src={`https://flagcdn.com/w160/${String(att.pays_iso2).toLowerCase()}.png`} alt={pays} title={pays} crossOrigin="anonymous"
-                  style={{ height: 34, width: 'auto', border: '1px solid rgba(11,31,102,0.25)', marginRight: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
+                  style={{ height: 38, width: 'auto', border: '1px solid rgba(11,31,102,0.25)', marginRight: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
               )}
-              <div style={{ fontFamily: SERIF, fontSize: 38, fontWeight: 700, lineHeight: 1.1 }}>{nomComplet}</div>
+              <div style={{ fontFamily: SERIF, fontSize: 42, fontWeight: 700, lineHeight: 1.1 }}>{nomComplet}</div>
               {att.logo_url && (
                 <img src={att.logo_url} alt={att.autorite_portuaire || ''} crossOrigin="anonymous" style={{ height: 44, width: 'auto', objectFit: 'contain', marginLeft: 18 }} />
               )}
             </div>
-            <div style={{ marginTop: 7, fontSize: 15 }}><span style={{ color: OR, fontWeight: 800 }}>{T.fonction}</span><strong>{att.fonction}</strong></div>
-            <div style={{ marginTop: 3, fontSize: 15 }}><span style={{ color: OR, fontWeight: 800 }}>{T.organisme}</span><strong>{att.autorite_portuaire}</strong></div>
+            <div style={{ marginTop: 12, fontSize: 17 }}><span style={{ color: OR, fontWeight: 800 }}>{T.fonction}</span><strong>{att.fonction}</strong></div>
+            <div style={{ marginTop: 5, fontSize: 17 }}><span style={{ color: OR, fontWeight: 800 }}>{T.organisme}</span><strong>{att.autorite_portuaire}</strong></div>
 
             {/* Corps */}
-            <div style={{ marginTop: 12, maxWidth: 840, fontSize: 15, lineHeight: 1.5 }}>{T.suivi}</div>
-            <div style={{ marginTop: 7, fontSize: 15, lineHeight: 1.45 }}>{T.tenue}</div>
-            <div style={{ marginTop: 7, fontFamily: SERIF, fontStyle: 'italic', fontSize: 18 }}>{T.delivre}</div>
+            <div style={{ marginTop: 20, maxWidth: 860, fontSize: 16, lineHeight: 1.55 }}>{T.suivi}</div>
+            <div style={{ marginTop: 10, maxWidth: 860, fontSize: 16, lineHeight: 1.5 }}>{T.tenue}</div>
+            <div style={{ marginTop: 12, fontFamily: SERIF, fontStyle: 'italic', fontSize: 21 }}>{T.delivre}</div>
 
             {/* Pied : signatures et vérification */}
             <div style={{ marginTop: 'auto', width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
