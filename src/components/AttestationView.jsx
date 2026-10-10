@@ -103,7 +103,7 @@ export default function AttestationView({ att, langue }) {
             <div style={{ marginTop: 3, fontSize: 15, fontWeight: 800, letterSpacing: 1.5 }}>{T.conference}</div>
 
             {/* Titre */}
-            <div style={{ marginTop: 16, fontFamily: SERIF, fontSize: 33, fontWeight: 700, letterSpacing: 1, lineHeight: 1.1 }}>{T.titre}</div>
+            <div style={{ marginTop: 16, fontFamily: SERIF, fontSize: 30, fontWeight: 700, letterSpacing: 1, lineHeight: 1.1 }}>{T.titre}</div>
             <div style={{ width: 170, height: 2, background: OR, margin: '12px auto 0' }} />
 
             <div style={{ marginTop: 18, fontFamily: SERIF, fontStyle: 'italic', fontSize: 21 }}>{T.certifie}</div>

@@ -104,10 +104,16 @@ export async function genererAttestationPDF(att, { langue, origine = 'https://co
 
   // ── Aides de dessin (coordonnées en pixels de la grille d'affichage) ──
   const centreX = LARGEUR / 2
-  const texteCentre = (txt, y, taille, { police = sans, style = 'normal', couleur = marine, espacement = 0 } = {}) => {
-    doc.setFont(police, style); doc.setFontSize(taille * MM * 2.8346); doc.setTextColor(...couleur)
-    if (doc.setCharSpace) doc.setCharSpace(espacement * MM * 2.8346)
-    doc.text(txt, centreX * MM, y * MM, { align: 'center', baseline: 'alphabetic' })
+  // Texte centré, avec espacement des lettres (en pixels de la grille) ; si largeurMax est donnée, la taille est réduite pour tenir dedans
+  const texteCentre = (txt, y, taille, { police = sans, style = 'normal', couleur = marine, espacement = 0, largeurMax = 0 } = {}) => {
+    doc.setFont(police, style); doc.setTextColor(...couleur)
+    const largeurA = t => { doc.setFontSize(t * MM * 2.8346); return doc.getTextWidth(txt) / MM + Math.max(0, txt.length - 1) * espacement * (t / taille) }
+    let t = taille
+    if (largeurMax) while (t > 12 && largeurA(t) > largeurMax) t -= 0.5
+    const largeur = largeurA(t)
+    doc.setFontSize(t * MM * 2.8346)
+    if (doc.setCharSpace) doc.setCharSpace(espacement * (t / taille) * MM)
+    doc.text(txt, (centreX - largeur / 2) * MM, y * MM, { baseline: 'alphabetic' })
     if (doc.setCharSpace) doc.setCharSpace(0)
   }
   const bloc = (txt, y, taille, largeurPx, interligne, opts = {}) => {
@@ -132,7 +138,7 @@ export async function genererAttestationPDF(att, { langue, origine = 'https://co
   texteCentre(T.conference, 161, 15, { style: 'bold', espacement: 1.5 })
 
   // ── Titre ──
-  texteCentre(T.titre, 209, 31, { police: 'times', style: 'bold', espacement: 0.8 })
+  texteCentre(T.titre, 209, 31, { police: 'times', style: 'bold', espacement: 0.8, largeurMax: 900 })
   doc.setDrawColor(...or); doc.setLineWidth(2 * MM); doc.line((centreX - 85) * MM, 230 * MM, (centreX + 85) * MM, 230 * MM)
   texteCentre(T.certifie, 268, 21, { police: 'times', style: 'italic' })
 
