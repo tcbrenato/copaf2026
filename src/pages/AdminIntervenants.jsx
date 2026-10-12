@@ -39,6 +39,7 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
   const [telephone, setTelephone] = useState(initial?.telephone || '')
   const [codeAcces, setCodeAcces] = useState(initial?.code_acces || 'COPAF2026-SPEAKER')
   const [equipe, setEquipe] = useState(!!initial?.equipe)
+  const [traducteur, setTraducteur] = useState(!!initial?.traducteur)
   const [interventionsTxt, setInterventionsTxt] = useState(interventionsToTexte(initial?.interventions))
   const [photoUrl, setPhotoUrl] = useState(initial?.photo_url || '')
   const [photoUploading, setPhotoUploading] = useState(false)
@@ -70,7 +71,7 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
       nom: nom.trim(), prenom: prenom.trim(), organisation: organisation.trim() || null,
       fonction: fonction.trim() || null, pays: pays.trim() || null, email: email.trim() || null, email_secondaire: email2.trim() || null,
       telephone: telephone.trim() || null, photo_url: photoUrl || null,
-      code_acces: codeAcces.trim(), interventions: texteToInterventions(interventionsTxt), equipe,
+      code_acces: codeAcces.trim(), interventions: texteToInterventions(interventionsTxt), equipe, traducteur,
     }
     const resultat = initial
       ? await supabase.from('intervenants').update(champs).eq('id', initial.id)
@@ -133,6 +134,10 @@ function FormeIntervenant({ initial, nextOrdre, onCancel, onSaved }) {
         <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#334155', fontWeight: 600 }}>
           <input type="checkbox" checked={equipe} onChange={e => setEquipe(e.target.checked)} />
           Membre de l'équipe (lien vers l'espace équipe et boutons Guide, Fiche de voyage, Programme, Attestation — la mission et le planning se gèrent dans l'onglet Équipe)
+        </label>
+        <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#334155', fontWeight: 600 }}>
+          <input type="checkbox" checked={traducteur} onChange={e => setTraducteur(e.target.checked)} />
+          Traducteur / interprète (accès à l'espace traducteurs : l'e-mail est obligatoire pour se connecter — le contenu se gère dans l'onglet Traducteurs)
         </label>
       </div>
       <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', display: 'block', marginBottom: 4 }}>

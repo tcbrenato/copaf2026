@@ -573,6 +573,18 @@ export default function EspaceIntervenant() {
               </div>
             )}
 
+            {intervenant.traducteur && (
+              <div className="col-span-full">
+                <a href="/espace-traducteur" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', padding: '20px 24px', borderRadius: 20, background: 'linear-gradient(135deg, #00367F, #1798F4)', color: '#fff', textDecoration: 'none' }}>
+                  <span style={{ flex: '1 1 220px', minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 17, fontWeight: 800 }}>{lang === 'en' ? 'My interpreters space' : 'Mon espace traducteur'}</span>
+                    <span style={{ display: 'block', fontSize: 13, opacity: 0.92, marginTop: 3, lineHeight: 1.5 }}>{lang === 'en' ? 'Key information, programme, schedule, glossary and documents.' : 'Infos clés, programme, planning, glossaire et documents.'}</span>
+                  </span>
+                  <span style={{ padding: '11px 20px', borderRadius: 12, background: '#fff', color: '#00367F', fontSize: 13.5, fontWeight: 800 }}>{lang === 'en' ? 'Open' : 'Ouvrir'}</span>
+                </a>
+              </div>
+            )}
+
             {intervenant.equipe && (
               <div className="col-span-full" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <a href="/espace-equipe" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', padding: '20px 24px', borderRadius: 20, background: 'linear-gradient(135deg, #00367F, #1798F4)', color: '#fff', textDecoration: 'none' }}>
