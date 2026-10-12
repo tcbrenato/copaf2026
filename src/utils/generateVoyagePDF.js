@@ -563,7 +563,7 @@ function contenuGuide(m, lang) {
       { icone: 'van', titre: t('Transferts', 'Transfers'), segs: t("De l'aéroport à l'hôtel, aller et retour", 'From the airport to the hotel, round trip') },
       { icone: 'hotel', titre: t('Hébergement', 'Accommodation'), segs: [t('Hôtel 4 étoiles · 4 nuitées', '4-star hotel · 4 nights'), BR, t('Du 18 au 22 octobre 2026', '18 to 22 October 2026')] },
       { icone: 'bus', titre: t('Navette quotidienne', 'Daily shuttle'), segs: t("Entre l'hôtel et le Port de Casablanca, chaque jour de la conférence", 'Between the hotel and the Port of Casablanca, every conference day') },
-      { icone: 'utensils', titre: t('Repas', 'Meals'), segs: t('Inclus dans votre participation', 'Included in your participation') },
+      { icone: 'utensils', titre: t('Repas', 'Meals'), segs: [t('Petit déjeuner, déjeuner et pauses-café', 'Breakfast, lunch and coffee breaks'), BR, B(t('Dîner non inclus', 'Dinner not included'))] },
       { icone: 'conf', titre: t('Conférences et ateliers', 'Conferences and workshops'), segs: t("Accès à l'ensemble du programme", 'Access to the whole programme') },
       { icone: 'ship', titre: t('Visite guidée', 'Guided visit'), segs: t('Du Port de Casablanca (Jour 3)', 'Port of Casablanca (Day 3)') },
       { icone: 'tablet', titre: t('Tablette', 'Tablet'), segs: (() => {

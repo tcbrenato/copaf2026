@@ -99,8 +99,22 @@ Deno.serve(async req => {
     }
 
     const { data: p } = await supabase.rpc('_personne_dossier', { p_dossier: dossier.trim() })
-    const personne = Array.isArray(p) ? p[0] : p
+    let personne = Array.isArray(p) ? p[0] : p
     if (!personne) return json({ success: true }) // dossier inconnu : reponse neutre
+    // Un dossier peut etre partage (contact de l'inscription + participant du meme dossier) : pour l'envoi admin,
+    // l'email vise est verifie en base parmi les participants de ce dossier (jamais pris tel quel du client).
+    if (action === 'envoyer' && typeof corps.email === 'string' && corps.email.trim().length < 200) {
+      const cible = corps.email.trim().toLowerCase()
+      if (String(personne.email || '').toLowerCase() !== cible) {
+        const { data: lignes } = await supabase.from('inscription_participants')
+          .select('dossier, nom, prenom, email, langue, inscriptions(langue)').ilike('dossier', dossier.trim())
+        const autre = (lignes || []).find((l: any) => String(l.dossier || '').toLowerCase() === dossier.trim().toLowerCase() && String(l.email || '').toLowerCase() === cible)
+        if (autre) {
+          const insc: any = Array.isArray(autre.inscriptions) ? autre.inscriptions[0] : autre.inscriptions
+          personne = { ...personne, nom: autre.nom, prenom: autre.prenom, email: autre.email, langue: autre.langue || insc?.langue || 'fr' }
+        }
+      }
+    }
     const langue: Langue = personne.langue === 'en' ? 'en' : 'fr'
     const nomComplet = `${personne.prenom || ''} ${personne.nom || ''}`.trim()
 

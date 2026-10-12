@@ -103,6 +103,7 @@ function OngletGuide({ config, setConfig, publie, setPublie, personnes, recharge
   const [occupe, setOccupe] = useState(false)
   const [seulementConfirmes, setSeulementConfirmes] = useState(true)
   const [choisis, setChoisis] = useState({})
+  const [recherche, setRecherche] = useState('')
   const [envoi, setEnvoi] = useState(null)
 
   const manqFr = guideChampsManquants(config, 'fr')
@@ -132,8 +133,14 @@ function OngletGuide({ config, setConfig, publie, setPublie, personnes, recharge
     ouvrirBlob(doc)
   }
 
-  const destinataires = useMemo(() => personnes.filter(p => p.email && (!seulementConfirmes || p.paiement === 'confirme')), [personnes, seulementConfirmes])
-  const selection = destinataires.filter(p => choisis[p.dossier])
+  // Un dossier peut être partagé par deux personnes (contact + participant) : la sélection se fait par dossier ET email
+  const cle = p => `${p.dossier}|${p.email || ''}`
+  const destinataires = useMemo(() => {
+    const q = recherche.trim().toLowerCase()
+    return personnes.filter(p => p.email && (!seulementConfirmes || p.paiement === 'confirme')
+      && (!q || [p.nom, p.prenom, p.dossier, p.email, p.organisation].some(v => String(v || '').toLowerCase().includes(q))))
+  }, [personnes, seulementConfirmes, recherche])
+  const selection = destinataires.filter(p => choisis[cle(p)])
   const langues = [...new Set(selection.map(p => p.langue))]
   const bloque = langues.some(l => guideChampsManquants(config, l).length > 0)
 
@@ -153,7 +160,7 @@ function OngletGuide({ config, setConfig, publie, setPublie, personnes, recharge
           cache[p.langue] = { pdf: pdfEnBase64(doc), filename }
         }
         const { data, error } = await supabase.functions.invoke('voyage-notify', {
-          body: { action: 'envoyer', kind: 'guide', dossier: p.dossier, pdf: cache[p.langue].pdf, filename: cache[p.langue].filename },
+          body: { action: 'envoyer', kind: 'guide', dossier: p.dossier, email: p.email, pdf: cache[p.langue].pdf, filename: cache[p.langue].filename },
         })
         if (error || !data?.success) echecs.push(`${p.prenom || ''} ${p.nom || ''} (${p.dossier})`.trim())
       } catch { echecs.push(`${p.prenom || ''} ${p.nom || ''} (${p.dossier})`.trim()) }
@@ -248,13 +255,14 @@ function OngletGuide({ config, setConfig, publie, setPublie, personnes, recharge
           <input type="checkbox" checked={seulementConfirmes} onChange={e => setSeulementConfirmes(e.target.checked)} />
           Uniquement les inscriptions dont le paiement est confirmé
         </label>
+        <input type="search" value={recherche} onChange={e => setRecherche(e.target.value)} placeholder="Rechercher un nom, un email, un dossier…" style={{ ...INPUT, marginBottom: 10 }} />
         <div style={{ maxHeight: 320, overflow: 'auto', border: '1px solid #f1f5f9', borderRadius: 12 }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ background: '#f8faff', position: 'sticky', top: 0 }}>
                 <th style={{ padding: '8px 12px', width: 30 }}>
                   <input type="checkbox" checked={destinataires.length > 0 && selection.length === destinataires.length}
-                    onChange={e => setChoisis(e.target.checked ? Object.fromEntries(destinataires.map(p => [p.dossier, true])) : {})} />
+                    onChange={e => setChoisis(e.target.checked ? Object.fromEntries(destinataires.map(p => [cle(p), true])) : {})} />
                 </th>
                 <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, color: '#64748b' }}>PERSONNE</th>
                 <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, color: '#64748b' }}>ORGANISATION</th>
@@ -265,8 +273,8 @@ function OngletGuide({ config, setConfig, publie, setPublie, personnes, recharge
             <tbody>
               {destinataires.length === 0 && <tr><td colSpan={5} style={{ padding: 16, color: '#64748b' }}>Aucune personne avec email pour ce filtre.</td></tr>}
               {destinataires.map(p => (
-                <tr key={p.dossier} style={{ borderTop: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '8px 12px' }}><input type="checkbox" checked={!!choisis[p.dossier]} onChange={e => setChoisis(c => ({ ...c, [p.dossier]: e.target.checked }))} /></td>
+                <tr key={cle(p)} style={{ borderTop: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '8px 12px' }}><input type="checkbox" checked={!!choisis[cle(p)]} onChange={e => setChoisis(c => ({ ...c, [cle(p)]: e.target.checked }))} /></td>
                   <td style={{ padding: '8px 12px', fontWeight: 600 }}>
                     {p.prenom} {p.nom}
                     {p.type === 'intervenant' && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#7c3aed', background: '#f3e8ff', borderRadius: 100, padding: '1px 7px' }}>Intervenant</span>}
