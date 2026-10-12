@@ -202,11 +202,15 @@ function moteur(doc, font, icones, config, lang) {
     let cur = null
     norm(segs).forEach(s => {
       if (s.br) { toks.push({ br: true, pieces: [] }); cur = null; return }
-      s.t.split(/( +)/).forEach(p => {
-        if (p === '') return
-        if (/^ +$/.test(p)) { cur = null; return }
-        if (!cur) { cur = { pieces: [] }; toks.push(cur) }
-        cur.pieces.push({ ...s, t: p })
+      // Un retour à la ligne saisi dans un champ de l'admin (ex. une liste de contacts) devient une vraie ligne du PDF
+      s.t.split('\n').forEach((ligne, li) => {
+        if (li > 0) { toks.push({ br: true, pieces: [] }); cur = null }
+        ligne.split(/( +)/).forEach(p => {
+          if (p === '') return
+          if (/^ +$/.test(p)) { cur = null; return }
+          if (!cur) { cur = { pieces: [] }; toks.push(cur) }
+          cur.pieces.push({ ...s, t: p })
+        })
       })
     })
     const collee = []
@@ -654,6 +658,11 @@ function contenuGuide(m, lang) {
       { icone: 'wifi', titre: t('Connexion', 'Internet'), segs: t("Wi-Fi gratuit à l'hôtel", 'Free Wi-Fi at the hotel') },
       { icone: 'bell', titre: t("Point d'accueil", 'Welcome desk'), segs: t("Un point d'accueil du comité d'organisation est présent à l'hôtel pendant toute la durée du séjour.", 'An organising-committee welcome desk is present at the hotel throughout your stay.') },
     ], { minH: 34 }),
+    m.bNote([
+      B(t('Informations susceptibles d’évoluer. ', 'Information subject to change. ')),
+      t("Certaines informations pratiques de ce guide (horaires, lieux de rendez-vous, navettes, contacts…) peuvent être modifiées. Les mises à jour vous seront communiquées sur place par l'équipe d'organisation ou dans un document remis à l'accueil.",
+        'Some of the practical information in this guide (times, meeting points, shuttles, contacts…) may change. Updates will be announced on site by the organising team or in a document handed out at the welcome desk.'),
+    ]),
   )
 
   // ── Page 6 : contacts + espace participant ──
