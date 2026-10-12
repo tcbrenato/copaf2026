@@ -57,12 +57,14 @@ export const GUIDE_FIELDS = [
   { key: 'contact_logistique', fr: 'Contact : transferts et logistique à Casablanca', en: 'Contact: transfers and logistics in Casablanca', hint: 'Nom · téléphone local' },
   { key: 'contact_urgence', fr: 'Numéro d’urgence 24h/24', en: '24/7 emergency number', hint: '+212 …' },
   { key: 'navette', fr: 'Navette hôtel → port (fiches de voyage)', en: 'Hotel → port shuttle (travel sheets)', hint: "Départ de l'hôtel à 8h00, du 19 au 21 octobre · rendez-vous dans le hall" },
+  { key: 'chauffeur', fr: 'Référent transferts (fiches de voyage)', en: 'Transfer contact (travel sheets)', hint: 'Fatima +212 … · Wiame +212 …' },
+  { key: 'retour_transfert', fr: 'Transfert hôtel → aéroport, retour (fiches de voyage)', en: 'Hotel → airport transfer, return (travel sheets)', hint: "L'heure vous sera indiquée à votre arrivée à l'hôtel ou par WhatsApp" },
   { key: 'referent_nom', fr: 'Référent sur place (nom) - fiches de voyage', en: 'On-site contact (name) - travel sheets', hint: 'M. …' },
   { key: 'referent_tel', fr: 'Référent sur place (téléphone) - fiches de voyage', en: 'On-site contact (phone) - travel sheets', hint: '+212 …' },
 ]
 
 // Champs communs aux fiches de voyage (pas necessaires a l'envoi du guide)
-export const CHAMPS_COMMUNS_FICHE = ['navette', 'referent_nom', 'referent_tel']
+export const CHAMPS_COMMUNS_FICHE = ['navette', 'retour_transfert', 'chauffeur', 'referent_nom', 'referent_tel']
 const CLES_GUIDE = GUIDE_FIELDS.filter(f => !CHAMPS_COMMUNS_FICHE.includes(f.key)).map(f => f.key)
 
 // Texte imprime pour la case « Tablette » selon le choix de l'admin
@@ -613,14 +615,14 @@ function contenuGuide(m, lang) {
     etiq: t('19 – 21 octobre', '19 – 21 October'), titre: t('Pendant la conférence', 'During the conference'),
     contenu: [{ type: 'puces', items: fr
       ? [
-        [B('Navette quotidienne'), " : une navette assure chaque jour la liaison entre votre hôtel et le Port de Casablanca. L'horaire de départ figure dans votre Fiche de Voyage et vous est rappelé au point d'accueil de l'hôtel."],
+        [B('Navette quotidienne'), " : une navette assure chaque jour la liaison entre votre hôtel et le Port de Casablanca. L'horaire de départ vous est indiqué à votre arrivée à l'hôtel, puis rappelé au point d'accueil ou par WhatsApp."],
         [B('Retrait du badge et accueil'), ' : ', f('badge_lieu_horaires'), '. Le port du badge est obligatoire pendant tout l’événement.'],
         [B("Accès au port"), " : le port est une zone à accès réglementé. Munissez-vous de votre pièce d'identité et suivez les consignes de sécurité communiquées par les organisateurs, en particulier lors de la visite du Jour 3."],
         [B('Jour 3, immersion terrain'), ' : visite technique du Port de Casablanca (infrastructures IT et IA). Rendez-vous : ', f('jour3_rdv'), '.'],
         [B('Photos et vidéos'), " : l'événement est retransmis en direct sur YouTube (@copafports). En participant, vous acceptez d'apparaître sur les captations."],
       ]
       : [
-        [B('Daily shuttle'), ': a shuttle runs every day between your hotel and the Port of Casablanca. The departure time is shown on your Individual Travel Sheet and is repeated at the hotel welcome desk.'],
+        [B('Daily shuttle'), ': a shuttle runs every day between your hotel and the Port of Casablanca. The departure time is given to you when you arrive at the hotel, and repeated at the welcome desk or via WhatsApp.'],
         [B('Badge collection and reception'), ': ', f('badge_lieu_horaires'), '. Wearing your badge is mandatory throughout the event.'],
         [B('Access to the port'), ': the port is a restricted-access area. Bring your ID and follow the security instructions given by the organisers, especially during the Day 3 visit.'],
         [B('Day 3, field immersion'), ': technical visit of the Port of Casablanca (IT and AI infrastructure). Meeting point: ', f('jour3_rdv'), '.'],
@@ -632,8 +634,8 @@ function contenuGuide(m, lang) {
   m.saut()
   m.poser(m.bBande({
     etiq: t('22 octobre', '22 October'), titre: t('À votre départ', 'When you leave'),
-    contenu: [{ segs: t("Un transfert retour vers l'aéroport Mohammed V est organisé selon l'horaire de votre vol. Merci de vous assurer que vos informations de vol retour sont à jour dans votre dossier.",
-      'A return transfer to Mohammed V Airport is organised according to your flight time. Please make sure your return flight details are up to date in your file.') },
+    contenu: [{ segs: t("Un transfert retour vers l'aéroport Mohammed V est organisé selon l'horaire de votre vol. Merci de vous assurer que vos informations de vol retour sont à jour dans votre dossier. L'heure de départ de l'hôtel vous sera indiquée à votre arrivée à l'hôtel ou par WhatsApp.",
+      'A return transfer to Mohammed V Airport is organised according to your flight time. Please make sure your return flight details are up to date in your file. The hotel departure time will be given to you when you arrive at the hotel, or via WhatsApp.') },
       { segs: t('Les nuitées supplémentaires après le 22 octobre restent à votre charge.', 'Additional nights after 22 October remain at your own expense.') }],
   }))
   m.poser(m.bBande({
@@ -890,9 +892,9 @@ export async function generateFichePDF({ voyage, config, lang = 'fr', download =
     hotel_adresse: fiche.hotel_adresse,
     hotel_confirmation: fiche.hotel_confirmation,
     pickup: fiche.pickup,
-    chauffeur: fiche.chauffeur,
+    chauffeur: fiche.chauffeur || val('chauffeur'),
     navette: fiche.navette || val('navette'),
-    retour_transfert: fiche.retour_transfert,
+    retour_transfert: fiche.retour_transfert || val('retour_transfert'),
     referent_nom: fiche.referent_nom || val('referent_nom'),
     referent_tel: fiche.referent_tel || val('referent_tel'),
   }

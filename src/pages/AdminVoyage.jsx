@@ -519,7 +519,7 @@ const LB = {
 // Nombre de caracteres a partir duquel le texte est reduit puis tronque dans la case du PDF
 const CAPACITE = { hotel: 90, hotel_adresse: 88, hotel_confirmation: 88, pickup: 80, chauffeur: 80, navette: 80, retour_transfert: 80, referent_nom: 85, referent_tel: 70 }
 const CHAMPS_FICHE = ['hotel', 'hotel_adresse', 'hotel_confirmation', 'pickup', 'chauffeur', 'navette', 'retour_transfert', 'referent_nom', 'referent_tel']
-const COMMUNS = ['navette', 'referent_nom', 'referent_tel']
+const COMMUNS = ['navette', 'retour_transfert', 'chauffeur', 'referent_nom', 'referent_tel']
 const BLEU_FICHE = '#0000AD'
 
 function Section({ titre, children }) {
