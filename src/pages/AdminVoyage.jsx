@@ -136,9 +136,13 @@ function OngletGuide({ config, setConfig, publie, setPublie, personnes, recharge
   // Un dossier peut être partagé par deux personnes (contact + participant) : la sélection se fait par dossier ET email
   const cle = p => `${p.dossier}|${p.email || ''}`
   const destinataires = useMemo(() => {
-    const q = recherche.trim().toLowerCase()
-    return personnes.filter(p => p.email && (!seulementConfirmes || p.paiement === 'confirme')
-      && (!q || [p.nom, p.prenom, p.dossier, p.email, p.organisation].some(v => String(v || '').toLowerCase().includes(q))))
+    // Chaque mot saisi doit se retrouver quelque part (prénom, nom, dossier, email, organisation), dans n'importe quel ordre
+    const mots = recherche.trim().toLowerCase().split(/\s+/).filter(Boolean)
+    return personnes.filter(p => {
+      if (!p.email || (seulementConfirmes && p.paiement !== 'confirme')) return false
+      const texte = [p.prenom, p.nom, p.dossier, p.email, p.organisation].map(v => String(v || '').toLowerCase()).join(' ')
+      return mots.every(m => texte.includes(m))
+    })
   }, [personnes, seulementConfirmes, recherche])
   const selection = destinataires.filter(p => choisis[cle(p)])
   const langues = [...new Set(selection.map(p => p.langue))]
