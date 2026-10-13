@@ -28,6 +28,7 @@ const intervenants = [
   },
   {
     initiales: 'DN',
+    photo: '/dieudonne.jpg',
     nom: 'Dr Dieudonné NYOUMI MBALLA',
     titreKey: 'nyoumiTitre',
     organisation: 'Afrique Compétences',
