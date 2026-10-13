@@ -36,14 +36,6 @@ const intervenants = [
     bioKey: 'nyoumiBio',
   },
   {
-    initiales: 'EM',
-    photo: '/intervenant3.jpg',
-    nom: 'Expert Maroc',
-    titreKey: 'panelMarocTitre',
-    organisationKey: 'toConfirm',
-    bioKey: 'bioComingSoon',
-  },
-  {
     initiales: 'MB',
     photo: '/marc.jpg',
     nom: 'M. Marc BIEGNIEBE',

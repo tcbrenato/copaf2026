@@ -112,7 +112,7 @@
         "sessions": [
           { "heure": "09h00 – 10h30", "type": "Plénière", "titre": "Opérations nautiques et gestion des transports multimodaux", "desc": "Prédictions des arrivées (ETA) et gestion intelligente des transports multimodaux (camions et ferroviaires).", "intervenant": "Marc BIEGNIEBE", "categorie": "Recruté" },
           { "heure": "10h30 – 11h00", "type": "Pause", "titre": "Pause café", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
-          { "heure": "11h00 – 12h30", "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "M. Marc BIEGNIEBE (animateur) / Expert Maroc", "categorie": "Partenaire" },
+          { "heure": "11h00 – 12h30", "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "M. Marc BIEGNIEBE", "categorie": "Partenaire" },
           { "heure": "12h30 – 13h30", "type": "Pause", "titre": "Déjeuner", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
           { "heure": "13h30 – 14h45", "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Dr Dieudonné NYOUMI MBALLA", "categorie": "Recruté" },
           { "heure": "14h45 – 15h15", "type": "Pause", "titre": "Pause café", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
@@ -311,7 +311,7 @@
         "level": "Opérations & Sécurité", "duration": "7h15",
         "activities": [
           { "type": "Plénière", "titre": "Opérations nautiques et gestion des transports multimodaux", "desc": "Prédictions des arrivées (ETA) et gestion intelligente des transports multimodaux (camions et ferroviaires).", "intervenant": "Marc BIEGNIEBE", "categorie": "Recruté" },
-          { "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "M. Marc BIEGNIEBE (animateur) / Expert Maroc", "categorie": "Partenaire" },
+          { "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "M. Marc BIEGNIEBE", "categorie": "Partenaire" },
           { "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "Dr Dieudonné NYOUMI MBALLA", "categorie": "Recruté" },
           { "type": "Table Ronde", "titre": "Feuille de route", "desc": "Pilotage en temps réel et aide à la décision.", "intervenant": "Dr William ODAH", "categorie": "Maison" },
           { "type": "Clôture", "titre": "Remise d'attestation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }

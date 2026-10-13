@@ -112,7 +112,7 @@
         "sessions": [
           { "heure": "9:00 – 10:30 AM", "type": "Plenary", "titre": "Nautical operations and multimodal transport management", "desc": "Estimated time of arrival (ETA) predictions and smart management of multimodal transport (trucking and rail).", "intervenant": "Marc BIEGNIEBE", "categorie": "Recruté" },
           { "heure": "10:30 – 11:00 AM", "type": "Break", "titre": "Coffee break", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
-          { "heure": "11:00 AM – 12:30 PM", "type": "Panel", "titre": "Safety & Security", "desc": "AI for automatic anomaly detection (scanners, video surveillance).", "intervenant": "M. Marc BIEGNIEBE (moderator) / Expert Maroc", "categorie": "Partenaire" },
+          { "heure": "11:00 AM – 12:30 PM", "type": "Panel", "titre": "Safety & Security", "desc": "AI for automatic anomaly detection (scanners, video surveillance).", "intervenant": "M. Marc BIEGNIEBE", "categorie": "Partenaire" },
           { "heure": "12:30 – 1:30 PM", "type": "Break", "titre": "Lunch", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
           { "heure": "1:30 – 2:45 PM", "type": "Workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Dr Dieudonné NYOUMI MBALLA", "categorie": "Recruté" },
           { "heure": "2:45 – 3:15 PM", "type": "Break", "titre": "Coffee break", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
@@ -311,7 +311,7 @@
         "level": "Operations & Security", "duration": "7h15",
         "activities": [
           { "type": "Plenary", "titre": "Nautical operations and multimodal transport management", "desc": "Estimated time of arrival (ETA) predictions and smart management of multimodal transport (trucking and rail).", "intervenant": "Marc BIEGNIEBE", "categorie": "Recruté" },
-          { "type": "Panel", "titre": "Safety & Security", "desc": "AI for automatic anomaly detection (scanners, video surveillance).", "intervenant": "M. Marc BIEGNIEBE (moderator) / Expert Maroc", "categorie": "Partenaire" },
+          { "type": "Panel", "titre": "Safety & Security", "desc": "AI for automatic anomaly detection (scanners, video surveillance).", "intervenant": "M. Marc BIEGNIEBE", "categorie": "Partenaire" },
           { "type": "Workshop", "titre": "Port cybersecurity", "desc": "How to protect a connected port against criminal threats.", "intervenant": "Dr Dieudonné NYOUMI MBALLA", "categorie": "Recruté" },
           { "type": "Round Table", "titre": "Roadmap", "desc": "Real-time monitoring and decision support.", "intervenant": "Dr William ODAH", "categorie": "Maison" },
           { "type": "Closing", "titre": "Certificate presentation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
