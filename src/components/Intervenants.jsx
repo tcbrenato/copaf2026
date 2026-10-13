@@ -12,11 +12,10 @@ const intervenants = [
     bioKey: 'abialaBio',
   },
   {
-    initiales: 'EM',
-    photo: '/intervenant2.jpg',
-    nom: 'Expert Maroc',
+    initiales: 'NF',
+    nom: "M. N'faye FELIBIGOU",
     titreKey: 'atelierMarocTitre',
-    organisationKey: 'toConfirm',
+    organisation: 'Port Autonome de Lomé',
     bioKey: 'bioComingSoon',
   },
   {

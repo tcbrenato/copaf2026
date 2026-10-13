@@ -100,9 +100,9 @@
           { "heure": "10h15 – 11h30", "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Modeste ABIALA", "categorie": "Recruté" },
           { "heure": "11h30 – 12h45", "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire - session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
           { "heure": "12h45 – 13h45", "type": "Pause", "titre": "Déjeuner", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
-          { "heure": "13h45 – 15h00", "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
+          { "heure": "13h45 – 15h00", "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "M. N'faye FELIBIGOU", "categorie": "Recruté" },
           { "heure": "15h00 – 15h30", "type": "Pause", "titre": "Pause café", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
-          { "heure": "15h30 – 16h45", "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Rénato TCHOBO / M. Dieudonné NYOUMI MBALLA", "categorie": "Maison" }
+          { "heure": "15h30 – 16h45", "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Rénato TCHOBO (assisté de M. Dieudonné NYOUMI MBALLA)", "categorie": "Maison" }
         ]
       },
       {
@@ -112,7 +112,7 @@
         "sessions": [
           { "heure": "09h00 – 10h30", "type": "Plénière", "titre": "Opérations nautiques et gestion des transports multimodaux", "desc": "Prédictions des arrivées (ETA) et gestion intelligente des transports multimodaux (camions et ferroviaires).", "intervenant": "Marc BIEGNIEBE", "categorie": "Recruté" },
           { "heure": "10h30 – 11h00", "type": "Pause", "titre": "Pause café", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
-          { "heure": "11h00 – 12h30", "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
+          { "heure": "11h00 – 12h30", "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "M. Marc BIEGNIEBE (animateur) / Expert Maroc", "categorie": "Partenaire" },
           { "heure": "12h30 – 13h30", "type": "Pause", "titre": "Déjeuner", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
           { "heure": "13h30 – 14h45", "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "M. Dieudonné NYOUMI MBALLA", "categorie": "Recruté" },
           { "heure": "14h45 – 15h15", "type": "Pause", "titre": "Pause café", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
@@ -266,7 +266,7 @@
     "aglOrg": "AGL Bénin (ex Groupe Bolloré)",
     "atelierMarocTitre": "Atelier : Modèle économique de développement d'un projet technologique portuaire",
     "odahTitre": "Directeur Général CRF Perfection & Directeur du Comité scientifique de la COPAF 2026",
-    "nyoumiTitre": "Table ronde : Automatisation et gouvernance de la donnée · Atelier : Cybersécurité portuaire",
+    "nyoumiTitre": "Atelier : Cybersécurité portuaire",
     "panelMarocTitre": "Panel : Sécurité & Sûreté - détection automatique des anomalies",
     "biegniebeTitre": "Directeur Général",
     "bioComingSoon": "Biographie à venir. Cet intervenant sera annoncé prochainement.",
@@ -300,8 +300,8 @@
           { "type": "Ouverture", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "CRF PERFECTION / AGPAOC / ANPUAPNA", "categorie": "Partenaire" },
           { "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Modeste ABIALA", "categorie": "Recruté" },
           { "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire - session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
-          { "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
-          { "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Rénato TCHOBO / M. Dieudonné NYOUMI MBALLA", "categorie": "Maison" }
+          { "type": "Atelier", "titre": "Modèle économique de développement d'un projet technologique portuaire", "desc": "ROI, cas de succès et d'échecs.", "intervenant": "M. N'faye FELIBIGOU", "categorie": "Recruté" },
+          { "type": "Table Ronde", "titre": "Automatisation et gouvernance de la donnée", "desc": "Automatisation des opérations portuaires par l'IA et gouvernance de la donnée.", "intervenant": "M. Rénato TCHOBO (assisté de M. Dieudonné NYOUMI MBALLA)", "categorie": "Maison" }
         ]
       },
       {
@@ -310,7 +310,7 @@
         "level": "Opérations & Sécurité", "duration": "7h15",
         "activities": [
           { "type": "Plénière", "titre": "Opérations nautiques et gestion des transports multimodaux", "desc": "Prédictions des arrivées (ETA) et gestion intelligente des transports multimodaux (camions et ferroviaires).", "intervenant": "Marc BIEGNIEBE", "categorie": "Recruté" },
-          { "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "Expert Maroc", "categorie": "Partenaire" },
+          { "type": "Panel", "titre": "Sécurité & Sûreté", "desc": "L'IA pour la détection automatique des anomalies (scanners, vidéosurveillance).", "intervenant": "M. Marc BIEGNIEBE (animateur) / Expert Maroc", "categorie": "Partenaire" },
           { "type": "Atelier", "titre": "Cybersécurité portuaire", "desc": "Comment protéger un port connecté contre les menaces criminelles.", "intervenant": "M. Dieudonné NYOUMI MBALLA", "categorie": "Recruté" },
           { "type": "Table Ronde", "titre": "Feuille de route", "desc": "Pilotage en temps réel et aide à la décision.", "intervenant": "Dr William ODAH", "categorie": "Maison" },
           { "type": "Clôture", "titre": "Remise d'attestation", "desc": "", "intervenant": "—", "categorie": "Partenaire" }
