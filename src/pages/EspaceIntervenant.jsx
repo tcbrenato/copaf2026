@@ -28,7 +28,6 @@ const VISUELS_INTERVENANT = {
   'INT2026-002': '/TCHOBO YVES.jpeg',
   'INT2026-003': '/ABIALA.jpeg',
   'INT2026-004': '/BIEGNIEBE.jpeg',
-  'INT2026-005': '/BABEL.jpeg',
 }
 
 const TR = {

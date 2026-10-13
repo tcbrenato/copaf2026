@@ -28,12 +28,11 @@ const intervenants = [
     bioKey: 'odahBio',
   },
   {
-    initiales: 'BB',
-    photo: '/babel.jpg',
-    nom: 'Mme Babel BALSOMI',
-    titreKey: 'balsomiTitre',
-    organisation: 'Hiero Digital International',
-    bioKey: 'balsomiBio',
+    initiales: 'DN',
+    nom: 'M. Dieudonné NYOUMI MBALLA',
+    titreKey: 'nyoumiTitre',
+    organisationKey: 'toConfirm',
+    bioKey: 'bioComingSoon',
   },
   {
     initiales: 'EM',

@@ -22,7 +22,7 @@ function loadImage(src) {
 /**
  * @param {object} params
  * @param {string} params.qrDataUrl   - dataURL du QR deja genere (ex. via QRCode.toDataURL)
- * @param {string} params.nomPrenom   - ex. "Babel BALSOMI"
+ * @param {string} params.nomPrenom   - ex. "Rénato TCHOBO"
  * @param {string} [params.sousTitre] - ex. fonction/poste ou organisation
  * @param {string} params.dossier     - ex. "INT2026-001" ou "COPAF2026-45210"
  * @param {boolean} [params.download=true]
