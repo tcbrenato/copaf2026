@@ -28,10 +28,10 @@ const intervenants = [
   },
   {
     initiales: 'DN',
-    nom: 'M. Dieudonné NYOUMI MBALLA',
+    nom: 'Dr Dieudonné NYOUMI MBALLA',
     titreKey: 'nyoumiTitre',
-    organisationKey: 'toConfirm',
-    bioKey: 'bioComingSoon',
+    organisation: 'Afrique Compétences',
+    bioKey: 'nyoumiBio',
   },
   {
     initiales: 'EM',
