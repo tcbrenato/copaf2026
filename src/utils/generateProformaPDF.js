@@ -9,6 +9,10 @@
 //    a l'organisation / la delegation, detail ligne par ligne (dossier, nom
 //    & prenom, poste, montant), pagination automatique si necessaire.
 //
+// Mode FACTURE (option `facture`) : meme mise en page, mais document intitule FACTURE (numero FA-<dossier>, date
+// d'emission, echeance, statut NON PAYEE, reference a la proforma). Pour les clients dont la banque refuse de regler
+// sur proforma. Ce n'est PAS la facture definitive post-paiement (generateFactureDefinitivePDF.js).
+//
 // Normes facture pro ajoutees (aout 2026) :
 //  - Montant total en toutes lettres (protection anti-falsification)
 //  - Ligne "OBJET" isolee et lisible
@@ -85,6 +89,16 @@ const TXT = {
     dateEmission: "DATE D'ÉMISSION",
     validite: 'VALIDITÉ',
     validite30: '30 jours',
+    factureBandeau: 'FACTURE',
+    numFacture: 'N° DE FACTURE',
+    echeance: 'ÉCHÉANCE',
+    statut: 'STATUT',
+    nonPayee: 'NON PAYÉE',
+    refProforma: (num, date) => `Réf. proforma ${num} du ${date}`,
+    montantDu: 'MONTANT TOTAL DÛ',
+    lettresFacture: 'Montant total de la présente facture arrêté à la somme de :',
+    reglementFacture: num => `Règlement par virement bancaire aux coordonnées ci-dessus, en rappelant le n° de facture ${num}. Frais de virement à la charge du donneur d'ordre.`,
+    mentionFacture: ech => `Le règlement est dû au plus tard le ${ech}. La participation est confirmée à réception du règlement intégral.`,
     objetLabel: 'OBJET',
     objetTexte: 'Frais de participation à la COPAF 2026',
     objetTexteGroupe: 'Frais de participation à la COPAF 2026 (délégation)',
@@ -124,6 +138,16 @@ const TXT = {
     dateEmission: 'ISSUE DATE',
     validite: 'VALIDITY',
     validite30: '30 days',
+    factureBandeau: 'INVOICE',
+    numFacture: 'INVOICE NO.',
+    echeance: 'PAYMENT DUE',
+    statut: 'STATUS',
+    nonPayee: 'UNPAID',
+    refProforma: (num, date) => `Ref. proforma ${num} of ${date}`,
+    montantDu: 'TOTAL AMOUNT DUE',
+    lettresFacture: 'Total amount of this invoice set at the sum of:',
+    reglementFacture: num => `Payment by bank transfer to the details above, quoting invoice no. ${num}. Transfer fees are the responsibility of the remitter.`,
+    mentionFacture: ech => `Payment is due on or before ${ech}. Participation is confirmed upon receipt of the full payment.`,
     objetLabel: 'SUBJECT',
     objetTexte: 'Participation fee for COPAF 2026',
     objetTexteGroupe: 'Participation fee for COPAF 2026 (delegation)',
@@ -298,7 +322,7 @@ async function loadLogoCompressed(src, targetHeightPx = 220) {
 
 export async function generateProformaPDF({
   form, dossier, nb, total, lang = 'fr', download = true, logoSrc = '/crflogo.png',
-  participants = [], delegationName = '',
+  participants = [], delegationName = '', facture = null,
 }) {
   const L = TXT[lang] || TXT.fr
   const PRESTATIONS_INCLUSES = PRESTATIONS[lang] || PRESTATIONS.fr
@@ -310,7 +334,7 @@ export async function generateProformaPDF({
   const contentW = W - M * 2
   let y = 0
 
-  const numero = `PF-${dossier}`
+  const numero = facture ? facture.numero : `PF-${dossier}`
   const prixU = nb > 0 ? total / nb : total
   const FOOTER_TOP = H - 62
 
@@ -370,7 +394,7 @@ export async function generateProformaPDF({
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(14)
   doc.setTextColor(...WHITE)
-  doc.text(L.bandeau, W - M - bannerW / 2, 20 + bannerH / 2 + 5, { align: 'center' })
+  doc.text(facture ? L.factureBandeau : L.bandeau, W - M - bannerW / 2, 20 + bannerH / 2 + 5, { align: 'center' })
 
   y = Math.max(84, 14 + logoH + 22)
   doc.setDrawColor(...MAROON)
@@ -436,14 +460,24 @@ export async function generateProformaPDF({
   const infoH = 42
   doc.setFillColor(...LIGHT_BG)
   doc.roundedRect(M, y, contentW, infoH, 5, 5, 'F')
-  const infoColW = contentW / 3
-  const infos = [
-    [L.numProforma, numero],
-    [L.dateEmission, fmtDateLong(new Date(), lang)],
-    [L.validite, L.validite30],
-  ]
+  const infos = facture
+    ? [
+        [L.numFacture, numero],
+        [L.dateEmission, fmtDateLong(facture.dateEmission || new Date(), lang)],
+        [L.echeance, fmtDateLong(facture.echeance, lang)],
+        [L.statut, L.nonPayee],
+      ]
+    : [
+        [L.numProforma, numero],
+        [L.dateEmission, fmtDateLong(new Date(), lang)],
+        [L.validite, L.validite30],
+      ]
+  // facture : 1re colonne plus large (numero long), les autres se partagent le reste
+  const infoXs = facture
+    ? [16, 16 + contentW * 0.37, 16 + contentW * 0.37 + contentW * 0.25, 16 + contentW * 0.37 + contentW * 0.25 + contentW * 0.22]
+    : [16, 16 + contentW / 3, 16 + (2 * contentW) / 3]
   infos.forEach(([label, value], i) => {
-    const x = M + 16 + i * infoColW
+    const x = M + infoXs[i]
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7)
     doc.setTextColor(...GOLD)
@@ -469,6 +503,12 @@ export async function generateProformaPDF({
   doc.setFontSize(9.5)
   doc.setTextColor(...MAROON)
   doc.text(isGroupe ? L.objetTexteGroupe : L.objetTexte, M + 14, y + 20)
+  if (facture && facture.refProformaDate) {
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7.5)
+    doc.setTextColor(...GRAY)
+    doc.text(L.refProforma(`PF-${dossier}`, fmtDateLong(facture.refProformaDate, lang)), W - M - 14, y + 20, { align: 'right' })
+  }
   y += objetH + 10
 
   // ══════════════════════════════════════════
@@ -597,7 +637,7 @@ export async function generateProformaPDF({
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
   doc.setTextColor(220, 200, 150)
-  doc.text(L.montantTotalTtc, W - M - totalW + 14, y + 15)
+  doc.text(facture ? L.montantDu : L.montantTotalTtc, W - M - totalW + 14, y + 15)
   doc.setFontSize(14)
   doc.setTextColor(...WHITE)
   doc.text(fmtEur(total), W - M - 14, y + 27, { align: 'right' })
@@ -606,7 +646,7 @@ export async function generateProformaPDF({
   // ══════════════════════════════════════════
   // MONTANT EN TOUTES LETTRES — protection anti-falsification
   // ══════════════════════════════════════════
-  const lettresText = `${L.montantLettresPrefix} ${amountInWords(total, lang)} (${fmtEur(total)}).`
+  const lettresText = `${facture ? L.lettresFacture : L.montantLettresPrefix} ${amountInWords(total, lang)} (${fmtEur(total)}).`
   const lettresWrapped = doc.setFont('helvetica', 'italic').setFontSize(7.5).splitTextToSize(lettresText, contentW - 20)
   const lettresH = lettresWrapped.length * 9.5 + 12
   doc.setFillColor(...LIGHT_BG)
@@ -724,7 +764,7 @@ export async function generateProformaPDF({
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(7)
   doc.setTextColor(...DARK)
-  const reglementWrapped = doc.splitTextToSize(L.reglementNote, ribBoxW - 4)
+  const reglementWrapped = doc.splitTextToSize(facture ? L.reglementFacture(numero) : L.reglementNote, ribBoxW - 4)
   doc.text(reglementWrapped, M, y)
   y += Math.max(reglementWrapped.length * 9, qrCaptionWrapped.length * 8) + 8
 
@@ -734,7 +774,7 @@ export async function generateProformaPDF({
   doc.setFont('helvetica', 'italic')
   doc.setFontSize(6.5)
   doc.setTextColor(...GRAY)
-  const mention = doc.splitTextToSize(L.mention, contentW)
+  const mention = doc.splitTextToSize(facture ? L.mentionFacture(fmtDateLong(facture.echeance, lang)) : L.mention, contentW)
   if (y + mention.length * 8 > FOOTER_TOP - 10) {
     drawFooter()
     doc.addPage()
