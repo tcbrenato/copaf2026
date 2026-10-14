@@ -13,7 +13,7 @@ const intervenants = [
   },
   {
     initiales: 'NF',
-    photo: '/nfaye.jpg',
+    photo: '/nfaye2.jpg',
     nom: "M. N'faye FELIBIGOU",
     titreKey: 'atelierMarocTitre',
     organisation: 'Port Autonome de Lomé',
