@@ -275,16 +275,20 @@ export default function AdminLettresInvitation() {
     // prioritaire pour ces courriers officiels — le nom d'usage (nom/prenom)
     // ne sert que de repli si la personne n'a pas encore renseigne le sien.
     const nom = iv.nom_passeport || iv.nom || ''
-    const prenom = iv.prenom_passeport || iv.prenom || ''
+    // Le titre « Dr » peut figurer devant le prenom d'usage (affichage partout) : sur les courriers il passe en civilite.
+    const prenomBrut = iv.prenom_passeport || iv.prenom || ''
+    const docteur = !iv.prenom_passeport && /^dr\.?\s+/i.test(prenomBrut)
+    const prenom = docteur ? prenomBrut.replace(/^dr\.?\s+/i, '') : prenomBrut
+    const civiliteIv = docteur ? 'Dr' : iv.civilite
     if (estInvitation) {
       setFormInv(f => ({
-        ...f, dossier: iv.dossier, civilite: iv.civilite || f.civilite, prenom, nom,
+        ...f, dossier: iv.dossier, civilite: civiliteIv || f.civilite, prenom, nom,
         fonction: iv.fonction || '', institution: iv.organisation || '',
         villePays: f.villePays || iv.pays || '', nationalite: nationaliteDepuisPays(iv.pays), passeport: iv.numero_passeport || '',
       }))
     } else {
       setFormOm(f => ({
-        ...f, dossier: iv.dossier, civilite: iv.civilite || f.civilite, prenom, nom,
+        ...f, dossier: iv.dossier, civilite: civiliteIv || f.civilite, prenom, nom,
         fonction: iv.fonction || '', nationalite: nationaliteDepuisPays(iv.pays), passeport: iv.numero_passeport || '',
       }))
     }
