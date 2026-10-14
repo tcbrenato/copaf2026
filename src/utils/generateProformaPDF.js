@@ -13,6 +13,9 @@
 // d'emission, echeance, statut NON PAYEE, reference a la proforma). Pour les clients dont la banque refuse de regler
 // sur proforma. Ce n'est PAS la facture definitive post-paiement (generateFactureDefinitivePDF.js).
 //
+// Option `devise` ({ code: 'FCFA', taux: 655.957 }) : montants convertis depuis l'euro (parite fixe EUR/XOF) et arrondis
+// par participant ; le total est la somme des lignes arrondies ; la mention d'equivalence en euros est ajoutee.
+//
 // Normes facture pro ajoutees (aout 2026) :
 //  - Montant total en toutes lettres (protection anti-falsification)
 //  - Ligne "OBJET" isolee et lisible
@@ -285,6 +288,14 @@ function numberToWordsEN(n) {
   return parts.join(' ').trim()
 }
 
+const espacesMilliers = n => String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+
+function amountInWordsDevise(n, lang) {
+  const entier = Math.round(Number(n) || 0)
+  const mots = lang === 'en' ? numberToWordsEN(entier) : numberToWordsFR(entier)
+  return capitalize(`${mots} ${lang === 'en' ? 'CFA francs' : 'francs CFA'}`)
+}
+
 function amountInWords(n, lang) {
   const num = Math.round((Number(n) || 0) * 100) / 100
   const intPart = Math.floor(num)
@@ -322,7 +333,7 @@ async function loadLogoCompressed(src, targetHeightPx = 220) {
 
 export async function generateProformaPDF({
   form, dossier, nb, total, lang = 'fr', download = true, logoSrc = '/crflogo.png',
-  participants = [], delegationName = '', facture = null,
+  participants = [], delegationName = '', facture = null, devise = null,
 }) {
   const L = TXT[lang] || TXT.fr
   const PRESTATIONS_INCLUSES = PRESTATIONS[lang] || PRESTATIONS.fr
@@ -335,6 +346,11 @@ export async function generateProformaPDF({
   let y = 0
 
   const numero = facture ? facture.numero : `PF-${dossier}`
+  // Montants : en euros par defaut, ou convertis (arrondi par ligne, total = somme des lignes arrondies)
+  const conv = n => Math.round((Number(n) || 0) * devise.taux)
+  const fmtM = n => (devise ? `${espacesMilliers(conv(n))} ${devise.code}` : fmtEur(n))
+  const totalDevise = devise ? (isGroupe ? participants.reduce((somme, p) => somme + conv(p.tarif ?? p.montant ?? 0), 0) : conv(total)) : null
+  const fmtTotal = devise ? `${espacesMilliers(totalDevise)} ${devise.code}` : fmtEur(total)
   const prixU = nb > 0 ? total / nb : total
   const FOOTER_TOP = H - 62
 
@@ -553,8 +569,8 @@ export async function generateProformaPDF({
     doc.setFontSize(9.5)
     doc.setTextColor(...DARK)
     doc.text(String(nb), M + colDesc + colQte / 2, y + 22, { align: 'center' })
-    doc.text(fmtEur(prixU), M + colDesc + colQte + colPU / 2, y + 22, { align: 'center' })
-    doc.text(fmtEur(total), M + contentW - 10, y + 22, { align: 'right' })
+    doc.text(fmtM(prixU), M + colDesc + colQte + colPU / 2, y + 22, { align: 'center' })
+    doc.text(fmtTotal, M + contentW - 10, y + 22, { align: 'right' })
     y += rowH + 8
   } else {
     // ── Mode groupe : une ligne par participant ──
@@ -610,7 +626,7 @@ export async function generateProformaPDF({
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8.5)
       doc.setTextColor(...DARK)
-      doc.text(fmtEur(p.tarif ?? p.montant ?? 0), M + contentW - 10, y + 13.5, { align: 'right' })
+      doc.text(fmtM(p.tarif ?? p.montant ?? 0), M + contentW - 10, y + 13.5, { align: 'right' })
 
       y += rowH
     })
@@ -640,13 +656,18 @@ export async function generateProformaPDF({
   doc.text(facture ? L.montantDu : L.montantTotalTtc, W - M - totalW + 14, y + 15)
   doc.setFontSize(14)
   doc.setTextColor(...WHITE)
-  doc.text(fmtEur(total), W - M - 14, y + 27, { align: 'right' })
+  doc.text(fmtTotal, W - M - 14, y + 27, { align: 'right' })
   y += totalH + 10
 
   // ══════════════════════════════════════════
   // MONTANT EN TOUTES LETTRES — protection anti-falsification
   // ══════════════════════════════════════════
-  const lettresText = `${facture ? L.lettresFacture : L.montantLettresPrefix} ${amountInWords(total, lang)} (${fmtEur(total)}).`
+  const equivalence = devise
+    ? (lang === 'en'
+      ? ` Equivalent of ${fmtEur(total)} at the fixed rate of ${String(devise.taux).replace('.', ',')} ${devise.code} per EUR.`
+      : ` Équivalent de ${fmtEur(total)} au taux fixe de ${String(devise.taux).replace('.', ',')} ${devise.code} pour 1 EUR.`)
+    : ''
+  const lettresText = `${facture ? L.lettresFacture : L.montantLettresPrefix} ${devise ? amountInWordsDevise(totalDevise, lang) : amountInWords(total, lang)} (${fmtTotal}).${equivalence}`
   const lettresWrapped = doc.setFont('helvetica', 'italic').setFontSize(7.5).splitTextToSize(lettresText, contentW - 20)
   const lettresH = lettresWrapped.length * 9.5 + 12
   doc.setFillColor(...LIGHT_BG)
