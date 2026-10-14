@@ -15,9 +15,9 @@ const intervenants = [
     initiales: 'NF',
     photo: '/nfaye.jpg',
     nom: "M. N'faye FELIBIGOU",
-    titreKey: 'atelierMarocTitre',
+    titreKey: 'felibigouTitre',
     organisation: 'Port Autonome de Lomé',
-    bioKey: 'bioComingSoon',
+    bioKey: 'felibigouBio',
   },
   {
     initiales: 'WO',
