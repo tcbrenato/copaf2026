@@ -91,6 +91,9 @@ const Intervenants = () => {
           transition: background 0.2s ease;
         }
         .interv-bio-btn:hover { background: #0073F4; }
+        .interv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        @media (max-width: 960px) { .interv-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .interv-grid { grid-template-columns: 1fr; } }
       `}</style>
       {/* Overlay subtil */}
       <div style={{
@@ -130,11 +133,7 @@ const Intervenants = () => {
         </div>
 
         {/* Grille des intervenants */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))',
-          gap: 30,
-        }}>
+        <div className="interv-grid">
           {intervenants.map((raw, i) => {
             const p = resolve(raw)
             return (
