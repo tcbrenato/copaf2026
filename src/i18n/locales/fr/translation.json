@@ -97,6 +97,7 @@
         "accent": "#0073f4",
         "sessions": [
           { "heure": "09h00 – 09h45", "type": "Ouverture", "titre": "Allocutions d'ouverture et présentation", "desc": "Mot de bienvenue et lancement officiel de la COPAF 2026.", "intervenant": "CRF PERFECTION / AGPAOC / ANPUAPNA", "categorie": "Partenaire" },
+          { "heure": "09h45 – 10h15", "type": "Pause", "titre": "Pause café", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
           { "heure": "10h15 – 11h30", "type": "Plénière", "titre": "L'IA au cœur de la révolution du Smart Port", "desc": "Panorama mondial et spécificités africaines.", "intervenant": "M. Modeste ABIALA", "categorie": "Recruté" },
           { "heure": "11h30 – 12h45", "type": "Panel", "titre": "Diagnostic de maturité digitale", "desc": "Évaluez la maturité digitale de votre autorité portuaire - session phare, en direct sur tablette.", "intervenant": "Dr William ODAH / M. Rénato TCHOBO", "categorie": "Maison" },
           { "heure": "12h45 – 13h45", "type": "Pause", "titre": "Déjeuner", "desc": "", "intervenant": "—", "categorie": "Partenaire" },
