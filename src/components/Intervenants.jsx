@@ -8,15 +8,15 @@ const intervenants = [
     photo: '/modeste.jpg',
     nom: 'M. Modeste ABIALA',
     titreKey: 'abialaTitre',
-    organisationKey: 'aglOrg',
+    organisationKey: 'abialaOrg',
     bioKey: 'abialaBio',
   },
   {
     initiales: 'NF',
     photo: '/nfaye2.jpg',
     nom: "M. N'faye FELIBIGOU",
-    titreKey: 'atelierMarocTitre',
-    organisation: 'Port Autonome de Lomé',
+    titreKey: 'felibigouTitre',
+    organisationKey: 'felibigouOrg',
     bioKey: 'felibigouBio',
   },
   {
@@ -24,7 +24,7 @@ const intervenants = [
     photo: '/odah.jpg',
     nom: 'Dr William ODAH',
     titreKey: 'odahTitre',
-    organisation: '',
+    organisationKey: 'odahOrg',
     bioKey: 'odahBio',
   },
   {
@@ -32,7 +32,7 @@ const intervenants = [
     photo: '/dieudonne.jpg',
     nom: 'Dr Dieudonné NYOUMI MBALLA',
     titreKey: 'nyoumiTitre',
-    organisation: 'Afrique Compétences',
+    organisationKey: 'nyoumiOrg',
     bioKey: 'nyoumiBio',
   },
   {
@@ -40,7 +40,7 @@ const intervenants = [
     photo: '/marc.jpg',
     nom: 'M. Marc BIEGNIEBE',
     titreKey: 'biegniebeTitre',
-    organisation: 'ANAXAR',
+    organisationKey: 'biegniebeOrg',
     bioKey: 'biegniebeBio',
   },
   {
@@ -48,7 +48,7 @@ const intervenants = [
     photo: '/renato.jpg',
     nom: 'M. Rénato TCHOBO',
     titreKey: 'tchoboTitre',
-    organisation: 'CRF Perfection',
+    organisationKey: 'tchoboOrg',
     bioKey: 'tchoboBio',
   },
 ]
