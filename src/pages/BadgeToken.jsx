@@ -395,7 +395,7 @@ export default function BadgeToken() {
           <div style={{ ...cardStyle, position: 'relative', zIndex: 1, padding: 0, overflow: 'hidden', textAlign: 'left' }}>
             <EnteteBadge dossier={data.dossier} />
             {data.photo_url ? (
-              <img src={data.photo_url} alt="" style={{ width: '100%', height: 260, objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
+              <img src={data.photo_url} alt="" style={{ width: '100%', aspectRatio: '1 / 1', objectFit: 'cover', objectPosition: 'center 28%', display: 'block' }} />
             ) : (
               <div style={{ height: 100, background: `linear-gradient(135deg, ${NAVY}, ${BLUE})` }} />
             )}
@@ -477,7 +477,7 @@ export default function BadgeToken() {
           <div style={{ ...cardStyle, position: 'relative', zIndex: 1, padding: 0, overflow: 'hidden', textAlign: 'left' }}>
             <EnteteBadge dossier={data.dossier} />
             {data.photo_url ? (
-              <img src={data.photo_url} alt="" style={{ width: '100%', height: 260, objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
+              <img src={data.photo_url} alt="" style={{ width: '100%', aspectRatio: '1 / 1', objectFit: 'cover', objectPosition: 'center 28%', display: 'block' }} />
             ) : (
               <div style={{ height: 100, background: `linear-gradient(135deg, ${NAVY}, ${BLUE})` }} />
             )}
@@ -612,7 +612,7 @@ export default function BadgeToken() {
             <div style={{ fontSize: 10, color: BLUE, fontWeight: 700, letterSpacing: 1.5, textTransform: 'uppercase' }}>{data.categorie || 'Participant'}</div>
             <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>{data.prenom} {data.nom}</div>
           </div>
-          {data.photo_url && <img src={data.photo_url} alt="" style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'cover', objectPosition: 'top', flexShrink: 0 }} />}
+          {data.photo_url && <img src={data.photo_url} alt="" style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'cover', objectPosition: 'center 28%', flexShrink: 0 }} />}
         </div>
 
         {[
