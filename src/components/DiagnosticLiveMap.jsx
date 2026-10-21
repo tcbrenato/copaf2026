@@ -1,5 +1,5 @@
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
-import worldAtlas from 'world-atlas/countries-50m.json'
+import { ATLAS_MONDE } from '../utils/atlasMonde'
 import { COUNTRY_ISO_BY_NAME, RESEAU_COLORS, NEUTRAL_COUNTRY_COLOR } from '../data/diagnosticCountries'
 
 const COUNTRY_BY_NUMERIC = new Map(
@@ -22,7 +22,7 @@ export default function DiagnosticLiveMap({ liveCountries, activeCountry, onHove
       height={720}
       style={{ width: '100%', height: 'auto' }}
     >
-      <Geographies geography={worldAtlas}>
+      <Geographies geography={ATLAS_MONDE}>
         {({ geographies }) =>
           geographies.map(geo => {
             const country = COUNTRY_BY_NUMERIC.get(geo.id)

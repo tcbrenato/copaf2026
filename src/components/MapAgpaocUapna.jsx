@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
-import worldAtlas from 'world-atlas/countries-50m.json'
+import { ATLAS_MONDE } from '../utils/atlasMonde'
 import { AGPAOC_UAPNA_COUNTRIES, GROUP_COLORS, NEUTRAL_COUNTRY_COLOR } from '../data/agpaocUapnaCountries'
 
 const CYCLE_MS = 4000
@@ -125,7 +125,7 @@ export default function MapAgpaocUapna() {
               height={720}
               style={{ width: '100%', height: 'auto' }}
             >
-              <Geographies geography={worldAtlas}>
+              <Geographies geography={ATLAS_MONDE}>
                 {({ geographies }) =>
                   geographies.map((geo) => {
                     const country = COUNTRY_BY_NUMERIC.get(geo.id)

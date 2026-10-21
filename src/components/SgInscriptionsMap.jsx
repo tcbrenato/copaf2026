@@ -1,5 +1,5 @@
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
-import worldAtlas from 'world-atlas/countries-50m.json'
+import { ATLAS_MONDE } from '../utils/atlasMonde'
 import { AGPAOC_UAPNA_COUNTRIES, NEUTRAL_COUNTRY_COLOR } from '../data/agpaocUapnaCountries'
 
 const NUMERIC_TO_COUNTRY = new Map(AGPAOC_UAPNA_COUNTRIES.map((c) => [c.isoNumeric, c]))
@@ -31,7 +31,7 @@ export default function SgInscriptionsMap({ countsByCountry }) {
         height={640}
         style={{ width: '100%', height: 'auto' }}
       >
-        <Geographies geography={worldAtlas}>
+        <Geographies geography={ATLAS_MONDE}>
           {({ geographies }) =>
             geographies.map((geo) => {
               const country = NUMERIC_TO_COUNTRY.get(geo.id)
