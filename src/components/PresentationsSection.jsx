@@ -4,14 +4,14 @@ const TR = {
   fr: {
     titre: 'Présentations de la conférence',
     intro: 'Les présentations des intervenants, en français et en anglais. Réservées aux participants et intervenants de la conférence.',
-    jour: 'Jour', fr: 'Français', en: 'English', chargement: 'Chargement…', photosTitre: 'Photos de la conférence', photosOuvrir: 'Ouvrir l’album',
+    jour: 'Jour', fr: 'Français', en: 'English', chargement: 'Chargement…', photosTitre: 'Photos et documents', photosOuvrir: 'Ouvrir l’album',
     vide: 'Les présentations seront disponibles ici très prochainement.',
     erreur: 'Impossible de charger les présentations pour le moment. Réessayez plus tard.',
   },
   en: {
     titre: 'Conference presentations',
     intro: 'The speakers’ presentations, in French and English. Available to conference participants and speakers only.',
-    jour: 'Day', fr: 'Français', en: 'English', chargement: 'Loading…', photosTitre: 'Conference photos', photosOuvrir: 'Open the album',
+    jour: 'Day', fr: 'Français', en: 'English', chargement: 'Loading…', photosTitre: 'Photos and documents', photosOuvrir: 'Open the album',
     vide: 'The presentations will be available here very soon.',
     erreur: 'Unable to load the presentations right now. Please try again later.',
   },

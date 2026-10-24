@@ -4,6 +4,8 @@ import { supabase } from '../supabase'
 import SeoHead from '../components/SeoHead'
 import DocumentsSection from '../components/DocumentsSection'
 import PresentationsSection from '../components/PresentationsSection'
+import ReseauSection from '../components/ReseauSection'
+import { demanderContact } from '../utils/reseauApi'
 import BoutonsEquipe from '../components/BoutonsEquipe'
 import { Avatar } from '../utils/dossierUi'
 import { generateQrCard } from '../utils/generateQrCard'
@@ -184,6 +186,19 @@ export default function EspaceIntervenant() {
   const dossierPres = intervenant?.dossier
   const chargerPresentations = useCallback(
     () => supabase.rpc('presentations_intervenant', { p_dossier: dossierPres, p_email: email.trim() }),
+    [dossierPres, email],
+  )
+
+  const chargerReseau = useCallback(
+    () => supabase.rpc('reseau_liste_intervenant', { p_dossier: dossierPres, p_email: email.trim() }),
+    [dossierPres, email],
+  )
+  const demanderReseau = useCallback(
+    cibleId => demanderContact(cibleId, { dossier: dossierPres, email: email.trim() }),
+    [dossierPres, email],
+  )
+  const visibiliteReseau = useCallback(
+    v => supabase.rpc('reseau_visibilite_intervenant', { p_dossier: dossierPres, p_email: email.trim(), p_visible: v }),
     [dossierPres, email],
   )
 
@@ -617,6 +632,11 @@ export default function EspaceIntervenant() {
             {/* Presentations de la conference (FR/EN) : reservees aux espaces personnels */}
             <div className="bento-card-light col-span-full" style={{ padding: 28 }}>
               <PresentationsSection charger={chargerPresentations} lang={lang} />
+            </div>
+
+            {/* Reseau : demandes de contact avec consentement */}
+            <div className="bento-card-light col-span-full" style={{ padding: 28 }}>
+              <ReseauSection charger={chargerReseau} demander={demanderReseau} visibilite={visibiliteReseau} lang={lang} />
             </div>
 
             {/* Bento Card 3 : Espace Documents (Plein Largeur) */}

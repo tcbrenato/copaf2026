@@ -6,10 +6,12 @@ import { Ico, Card, DocRow, ProgressTimeline, Avatar } from '../utils/dossierUi'
 import { fmtEur, WHATSAPP_NUMBER, BANK_INFO, cardBtnStyle } from '../utils/dossierConstants'
 import BoutonsEvenement from './BoutonsEvenement'
 import PresentationsSection from './PresentationsSection'
+import ReseauSection from './ReseauSection'
+import { demanderContact } from '../utils/reseauApi'
 
 const TR = {
   fr: {
-    tabApercu: 'Aperçu', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & paiement', tabSupport: 'Support', tabVoyage: 'Voyage', tabPresentations: 'Présentations & photos',
+    tabApercu: 'Aperçu', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & paiement', tabSupport: 'Support', tabVoyage: 'Voyage', tabPresentations: 'Présentations & photos', tabReseau: 'Réseau',
     guideTitre: 'Guide du participant', guideBtn: 'Télécharger le guide (PDF)', guideAVenir: 'Le guide du participant sera disponible ici prochainement.',
     livretTitre: 'Livret du participant', livretBtn: 'Livret du participant', livretNote: 'Ouvrez-le avec Adobe Acrobat Reader (gratuit) pour le remplir et l\'enregistrer.',
     ficheTitre: 'Ma fiche de voyage', ficheBtn: 'Télécharger ma fiche (PDF)', ficheEnPrep: 'Votre fiche de voyage est en préparation : elle apparaîtra ici dès que votre hébergement et vos transferts seront confirmés.',
@@ -32,7 +34,7 @@ const TR = {
     supportVisaText: 'Les conditions d\'entrée au Maroc varient selon votre nationalité : renseignez-vous auprès du consulat ou de l\'ambassade du Maroc le plus proche avant de réserver votre voyage.',
   },
   en: {
-    tabApercu: 'Overview', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & payment', tabSupport: 'Support', tabVoyage: 'Travel', tabPresentations: 'Presentations & photos',
+    tabApercu: 'Overview', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & payment', tabSupport: 'Support', tabVoyage: 'Travel', tabPresentations: 'Presentations & photos', tabReseau: 'Network',
     guideTitre: 'Participant guide', guideBtn: 'Download the guide (PDF)', guideAVenir: 'The participant guide will be available here soon.',
     livretTitre: 'Participant notebook', livretBtn: 'Participant notebook', livretNote: 'Open it with Adobe Acrobat Reader (free) to fill it in and save it.',
     ficheTitre: 'My travel sheet', ficheBtn: 'Download my travel sheet (PDF)', ficheEnPrep: 'Your travel sheet is being prepared: it will appear here as soon as your accommodation and transfers are confirmed.',
@@ -67,6 +69,7 @@ const TABS = [
   { id: 'badge',      icon: 'badge' },
   { id: 'programme',  icon: 'calendar' },
   { id: 'presentations', icon: 'download' },
+  { id: 'reseau',      icon: 'user' },
   { id: 'documents',  icon: 'receipt' },
   { id: 'voyage',     icon: 'hotel' },
   { id: 'support',    icon: 'headset' },
@@ -90,9 +93,12 @@ export default function ParticipantDashboard({
 
   // Reference stable : PresentationsSection recharge quand `charger` change
   const chargerPresentations = useCallback(() => supabase.rpc('presentations_participant'), [])
+  const chargerReseau = useCallback(() => supabase.rpc('reseau_liste_participant'), [])
+  const demanderReseau = useCallback(cibleId => demanderContact(cibleId), [])
+  const visibiliteReseau = useCallback(v => supabase.rpc('reseau_visibilite_participant', { p_visible: v }), [])
 
   const tabLabel = {
-    apercu: tt.tabApercu, badge: tt.tabBadge, programme: tt.tabProgramme, presentations: tt.tabPresentations, documents: tt.tabDocuments, support: tt.tabSupport, voyage: tt.tabVoyage,
+    apercu: tt.tabApercu, badge: tt.tabBadge, programme: tt.tabProgramme, presentations: tt.tabPresentations, reseau: tt.tabReseau, documents: tt.tabDocuments, support: tt.tabSupport, voyage: tt.tabVoyage,
   }
 
   return (
@@ -167,6 +173,11 @@ export default function ParticipantDashboard({
           {tab === 'presentations' && (
             <Card icon="download" title={tt.tabPresentations}>
               <PresentationsSection charger={chargerPresentations} lang={lang} />
+            </Card>
+          )}
+          {tab === 'reseau' && (
+            <Card icon="user" title={tt.tabReseau}>
+              <ReseauSection charger={chargerReseau} demander={demanderReseau} visibilite={visibiliteReseau} lang={lang} />
             </Card>
           )}
           {tab === 'documents' && (
