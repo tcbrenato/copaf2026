@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import i18n from '../i18n/i18n'
 import { Ico, Card, DocRow, ProgressTimeline, Avatar } from '../utils/dossierUi'
 import { fmtEur, WHATSAPP_NUMBER, BANK_INFO, cardBtnStyle } from '../utils/dossierConstants'
 import BoutonsEvenement from './BoutonsEvenement'
+import PresentationsSection from './PresentationsSection'
 
 const TR = {
   fr: {
-    tabApercu: 'Aperçu', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & paiement', tabSupport: 'Support', tabVoyage: 'Voyage',
+    tabApercu: 'Aperçu', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & paiement', tabSupport: 'Support', tabVoyage: 'Voyage', tabPresentations: 'Présentations',
     guideTitre: 'Guide du participant', guideBtn: 'Télécharger le guide (PDF)', guideAVenir: 'Le guide du participant sera disponible ici prochainement.',
     livretTitre: 'Livret du participant', livretBtn: 'Livret du participant', livretNote: 'Ouvrez-le avec Adobe Acrobat Reader (gratuit) pour le remplir et l\'enregistrer.',
     ficheTitre: 'Ma fiche de voyage', ficheBtn: 'Télécharger ma fiche (PDF)', ficheEnPrep: 'Votre fiche de voyage est en préparation : elle apparaîtra ici dès que votre hébergement et vos transferts seront confirmés.',
@@ -31,7 +32,7 @@ const TR = {
     supportVisaText: 'Les conditions d\'entrée au Maroc varient selon votre nationalité : renseignez-vous auprès du consulat ou de l\'ambassade du Maroc le plus proche avant de réserver votre voyage.',
   },
   en: {
-    tabApercu: 'Overview', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & payment', tabSupport: 'Support', tabVoyage: 'Travel',
+    tabApercu: 'Overview', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & payment', tabSupport: 'Support', tabVoyage: 'Travel', tabPresentations: 'Presentations',
     guideTitre: 'Participant guide', guideBtn: 'Download the guide (PDF)', guideAVenir: 'The participant guide will be available here soon.',
     livretTitre: 'Participant notebook', livretBtn: 'Participant notebook', livretNote: 'Open it with Adobe Acrobat Reader (free) to fill it in and save it.',
     ficheTitre: 'My travel sheet', ficheBtn: 'Download my travel sheet (PDF)', ficheEnPrep: 'Your travel sheet is being prepared: it will appear here as soon as your accommodation and transfers are confirmed.',
@@ -65,6 +66,7 @@ const TABS = [
   { id: 'apercu',     icon: 'user' },
   { id: 'badge',      icon: 'badge' },
   { id: 'programme',  icon: 'calendar' },
+  { id: 'presentations', icon: 'download' },
   { id: 'documents',  icon: 'receipt' },
   { id: 'voyage',     icon: 'hotel' },
   { id: 'support',    icon: 'headset' },
@@ -86,8 +88,11 @@ export default function ParticipantDashboard({
     return () => { annule = true }
   }, [myDossier.dossier])
 
+  // Reference stable : PresentationsSection recharge quand `charger` change
+  const chargerPresentations = useCallback(() => supabase.rpc('presentations_participant'), [])
+
   const tabLabel = {
-    apercu: tt.tabApercu, badge: tt.tabBadge, programme: tt.tabProgramme, documents: tt.tabDocuments, support: tt.tabSupport, voyage: tt.tabVoyage,
+    apercu: tt.tabApercu, badge: tt.tabBadge, programme: tt.tabProgramme, presentations: tt.tabPresentations, documents: tt.tabDocuments, support: tt.tabSupport, voyage: tt.tabVoyage,
   }
 
   return (
@@ -158,6 +163,11 @@ export default function ParticipantDashboard({
           )}
           {tab === 'programme' && (
             <TabProgramme myDossier={myDossier} tt={tt} lang={lang} onRefresh={onRefresh} />
+          )}
+          {tab === 'presentations' && (
+            <Card icon="download" title={tt.tabPresentations}>
+              <PresentationsSection charger={chargerPresentations} lang={lang} />
+            </Card>
           )}
           {tab === 'documents' && (
             <TabDocuments

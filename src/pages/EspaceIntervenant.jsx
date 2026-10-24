@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { supabase } from '../supabase'
 import SeoHead from '../components/SeoHead'
 import DocumentsSection from '../components/DocumentsSection'
+import PresentationsSection from '../components/PresentationsSection'
 import BoutonsEquipe from '../components/BoutonsEquipe'
 import { Avatar } from '../utils/dossierUi'
 import { generateQrCard } from '../utils/generateQrCard'
@@ -179,6 +180,12 @@ export default function EspaceIntervenant() {
     })
     return () => { cancelled = true }
   }, [intervenant?.dossier, email])
+
+  const dossierPres = intervenant?.dossier
+  const chargerPresentations = useCallback(
+    () => supabase.rpc('presentations_intervenant', { p_dossier: dossierPres, p_email: email.trim() }),
+    [dossierPres, email],
+  )
 
   const telechargerLettreInvitation = async () => {
     if (!lettreInvitation) return
@@ -606,6 +613,11 @@ export default function EspaceIntervenant() {
                 <span style={{ fontSize: 13, color: '#78350F', lineHeight: 1.5 }}>{t.deadlineTexte} <strong>{t.deadlineDate}</strong>.</span>
               </div>
             </div>}
+
+            {/* Presentations de la conference (FR/EN) : reservees aux espaces personnels */}
+            <div className="bento-card-light col-span-full" style={{ padding: 28 }}>
+              <PresentationsSection charger={chargerPresentations} lang={lang} />
+            </div>
 
             {/* Bento Card 3 : Espace Documents (Plein Largeur) */}
             <div className="bento-card-light col-span-full" style={{ padding: 28 }}>

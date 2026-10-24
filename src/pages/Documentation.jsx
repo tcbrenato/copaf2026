@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import SeoHead from '../components/SeoHead'
+import DemandePresentations from '../components/DemandePresentations'
 import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
@@ -117,6 +118,8 @@ export default function Documentation() {
           {t.docs.map(doc => <DocCard key={doc.href} doc={doc} t={t} />)}
           <DocCard doc={{ ...t.logistics, href: null }} t={t} />
         </div>
+
+        <DemandePresentations lang={lang} />
       </div>
 
       <Footer />
