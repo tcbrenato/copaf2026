@@ -9,7 +9,7 @@ import PresentationsSection from './PresentationsSection'
 
 const TR = {
   fr: {
-    tabApercu: 'Aperçu', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & paiement', tabSupport: 'Support', tabVoyage: 'Voyage', tabPresentations: 'Présentations',
+    tabApercu: 'Aperçu', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & paiement', tabSupport: 'Support', tabVoyage: 'Voyage', tabPresentations: 'Présentations & photos',
     guideTitre: 'Guide du participant', guideBtn: 'Télécharger le guide (PDF)', guideAVenir: 'Le guide du participant sera disponible ici prochainement.',
     livretTitre: 'Livret du participant', livretBtn: 'Livret du participant', livretNote: 'Ouvrez-le avec Adobe Acrobat Reader (gratuit) pour le remplir et l\'enregistrer.',
     ficheTitre: 'Ma fiche de voyage', ficheBtn: 'Télécharger ma fiche (PDF)', ficheEnPrep: 'Votre fiche de voyage est en préparation : elle apparaîtra ici dès que votre hébergement et vos transferts seront confirmés.',
@@ -32,7 +32,7 @@ const TR = {
     supportVisaText: 'Les conditions d\'entrée au Maroc varient selon votre nationalité : renseignez-vous auprès du consulat ou de l\'ambassade du Maroc le plus proche avant de réserver votre voyage.',
   },
   en: {
-    tabApercu: 'Overview', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & payment', tabSupport: 'Support', tabVoyage: 'Travel', tabPresentations: 'Presentations',
+    tabApercu: 'Overview', tabBadge: 'Badge', tabProgramme: 'Programme', tabDocuments: 'Documents & payment', tabSupport: 'Support', tabVoyage: 'Travel', tabPresentations: 'Presentations & photos',
     guideTitre: 'Participant guide', guideBtn: 'Download the guide (PDF)', guideAVenir: 'The participant guide will be available here soon.',
     livretTitre: 'Participant notebook', livretBtn: 'Participant notebook', livretNote: 'Open it with Adobe Acrobat Reader (free) to fill it in and save it.',
     ficheTitre: 'My travel sheet', ficheBtn: 'Download my travel sheet (PDF)', ficheEnPrep: 'Your travel sheet is being prepared: it will appear here as soon as your accommodation and transfers are confirmed.',
