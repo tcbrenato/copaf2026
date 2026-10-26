@@ -20,6 +20,7 @@ import ContactHub from './components/ContactHub'
 import ManifestTerrain from './components/ManifestTerrain'
 import InstallPrompt from './components/InstallPrompt'
 import PromoPopup from './components/PromoPopup'
+import MerciConference from './components/MerciConference'
 
 // ─── Routes secondaires chargees a la demande (code-splitting) ───────────────
 // Seule la homepage (import ci-dessus) a besoin d'etre disponible des le
@@ -176,6 +177,7 @@ const MainSite = () => (
     <HeaderStack />
     <main style={{ paddingTop: 'var(--copaf-header-h, 130px)' }}>
       <Hero />
+      <MerciConference />
       <MapAgpaocUapna />
       <HighlightsBanner />
       <Partners />

@@ -3,7 +3,7 @@ import { useLang } from '../i18n/useLang'
 
 const NAVY = '#000E91'
 const BLUE = '#0073F4'
-const STORAGE_KEY = 'copaf_promo_popup_seen_v1'
+const STORAGE_KEY = 'copaf_promo_popup_seen_v2_merci'
 const DELAY_MS = 4000
 
 // Popup promotionnel plein ecran, affiche UNE SEULE FOIS par visiteur (memorise
@@ -78,13 +78,29 @@ export default function PromoPopup() {
           ✕
         </button>
 
-        <a href="/inscription" onClick={close} style={{ display: 'block', lineHeight: 0 }}>
-          <img
-            src="/popup-flyer.png"
-            alt={lang === 'en' ? 'COPAF 2026 - October 19, 20 & 21, Port of Casablanca' : 'COPAF 2026 - 19, 20 & 21 Octobre, Port de Casablanca'}
-            style={{ width: '100%', height: 'auto', display: 'block' }}
-          />
-        </a>
+        {/* Apres la conference : le flyer d'inscription est remplace par un remerciement qui renvoie vers la lettre du DG */}
+        <div style={{ background: 'url(/merci/fond.jpg) center/cover, #001E4E', color: '#fff', textAlign: 'center', padding: '34px 26px 30px', position: 'relative' }}>
+          <div aria-hidden="true" style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'linear-gradient(180deg, rgba(5,67,152,.5), rgba(0,21,57,.85))' }} />
+          <div style={{ position: 'relative' }}>
+            <img src="/merci/copaf-blanc.png" alt="COPAF" width="200" height="75" style={{ height: 52, width: 'auto' }} />
+            <div style={{ marginTop: 18, fontWeight: 700, fontSize: 11, letterSpacing: '.2em', color: '#A9C8F0' }}>COPAF 2026 · 19 – 21 {lang === 'en' ? 'OCTOBER' : 'OCTOBRE'}</div>
+            <div style={{ margin: '10px 0 0', fontWeight: 800, fontSize: 38, lineHeight: 1.1 }}>
+              {lang === 'en' ? 'THANK YOU ' : 'MERCI '}<span style={{ color: '#1798F4' }}>{lang === 'en' ? 'ALL' : 'À TOUS'}</span>
+            </div>
+            <p style={{ margin: '14px 0 22px', fontSize: 14.5, lineHeight: 1.6, color: '#E8F3FD' }}>
+              {lang === 'en'
+                ? 'Thank you to everyone who made the African Ports Conference a success.'
+                : 'Merci à toutes celles et ceux qui ont fait de la Conférence des Ports Africains un succès.'}
+            </p>
+            <a
+              href="#merci"
+              onClick={close}
+              style={{ display: 'inline-block', padding: '13px 26px', borderRadius: 12, background: 'linear-gradient(135deg, #1798F4, #0A5BB5)', color: '#fff', fontWeight: 700, fontSize: 14, textDecoration: 'none', boxShadow: '0 6px 20px rgba(23,152,244,.45)' }}
+            >
+              {lang === 'en' ? 'Read the Director General’s letter' : 'Lire la lettre du Directeur Général'}
+            </a>
+          </div>
+        </div>
       </div>
 
       <style>{`
