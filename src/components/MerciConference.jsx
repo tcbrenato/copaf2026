@@ -44,7 +44,7 @@ export default function MerciConference() {
   const nb = s => (lang === 'en' ? s : s.replace(/ ([;:?!»])/g, ' $1').replace(/«/g, '« '))
 
   return (
-    <section id="merci" aria-labelledby="merci-titre" style={{ position: 'relative', overflow: 'hidden', color: '#fff', textAlign: 'center', background: 'url(/merci/fond.jpg) center/cover, #001E4E', fontFamily: "'Poppins', 'Plus Jakarta Sans', system-ui, sans-serif" }}>
+    <section id="merci" aria-labelledby="merci-titre" style={{ position: 'relative', overflow: 'hidden', scrollMarginTop: 'var(--copaf-header-h, 130px)', color: '#fff', textAlign: 'center', background: 'url(/merci/fond.jpg) center/cover, #001E4E', fontFamily: "'Poppins', 'Plus Jakarta Sans', system-ui, sans-serif" }}>
       <style>{`
         @font-face{font-family:'Poppins';font-weight:400;font-display:swap;src:url(/fonts/Poppins-Regular.ttf) format('truetype')}
         @font-face{font-family:'Poppins';font-weight:500;font-display:swap;src:url(/fonts/Poppins-Medium.ttf) format('truetype')}
