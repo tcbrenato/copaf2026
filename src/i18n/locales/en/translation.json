@@ -13,7 +13,8 @@
     "visit": "Visit",
     "resources": "Resources",
     "recommendations": "Official Recommendations & Proceedings",
-    "livret": "Participant notebook"
+    "livret": "Participant notebook",
+    "edition2026": "See the 2026 edition"
   },
   "languageSwitcher": { "fr": "FR", "en": "EN" },
   "hero": {

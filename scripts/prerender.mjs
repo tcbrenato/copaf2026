@@ -34,6 +34,7 @@ const ROUTES = [
   '/politique-confidentialite',
   '/live',
   '/documentation',
+  '/edition-2026',
   '/recommandations',
   '/infos-pratiques',
   '/mot-du-dg',

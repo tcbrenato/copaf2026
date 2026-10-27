@@ -60,6 +60,7 @@ const EspaceIntervenant    = lazy(() => import('./pages/EspaceIntervenant'))
 const EspaceEquipe         = lazy(() => import('./pages/EspaceEquipe'))
 const EspaceTraducteur     = lazy(() => import('./pages/EspaceTraducteur'))
 const ReseauReponse        = lazy(() => import('./pages/ReseauReponse'))
+const Edition2026          = lazy(() => import('./pages/Edition2026'))
 const InstallerTerrain     = lazy(() => import('./pages/InstallerTerrain'))
 const VerifierAttestation  = lazy(() => import('./pages/VerifierAttestation'))
 
@@ -268,6 +269,7 @@ function App() {
         <Route path="/espace-equipe"          element={<EspaceEquipe />} />
         <Route path="/espace-traducteur"      element={<EspaceTraducteur />} />
         <Route path="/reseau/repondre"        element={<ReseauReponse />} />
+        <Route path="/edition-2026"           element={<Edition2026 />} />
         <Route path="/staff/scan"             element={<StaffScan />} />
         <Route path="/terrain"                element={<Terrain />} />
         <Route path="/terrain-app"            element={<InstallerTerrain />} />

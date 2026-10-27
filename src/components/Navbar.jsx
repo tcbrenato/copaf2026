@@ -250,6 +250,20 @@ const Navbar = () => {
             </button></li>
           )}
 
+          <li>
+            <a href="/edition-2026" style={{
+              display: 'inline-block', padding: '8px 16px', borderRadius: 999,
+              border: '1.5px solid #1798F4', background: window.location.pathname === '/edition-2026' ? '#1798F4' : 'rgba(23,152,244,0.14)',
+              color: '#FFFFFF', textDecoration: 'none', whiteSpace: 'nowrap',
+              fontFamily: 'inherit', fontSize: 12, fontWeight: 700, letterSpacing: 1.2, textTransform: 'uppercase',
+              transition: 'background 0.2s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#1798F4' }}
+              onMouseLeave={e => { e.currentTarget.style.background = window.location.pathname === '/edition-2026' ? '#1798F4' : 'rgba(23,152,244,0.14)' }}>
+              {t('navbar.edition2026')}
+            </a>
+          </li>
+
           <li ref={dropdownRef} style={{ position: 'relative' }}
             onMouseEnter={openDropdown} onMouseLeave={closeDropdown}>
             <button style={{ ...btnBase, display: 'flex', alignItems: 'center', gap: 5, color: isDropdownActive ? '#0073f4' : '#FFFFFF' }}
@@ -390,6 +404,10 @@ const Navbar = () => {
               {t('navbar.contact')}
             </button>
           )}
+
+          <a href="/edition-2026" onClick={closeMobileMenu} style={{ ...mobileItemStyle(), color: '#1798F4', fontWeight: 800 }}>
+            {t('navbar.edition2026')}
+          </a>
 
           <div>
             <button onClick={() => setMobilePartenairesOpen(p => !p)} style={{

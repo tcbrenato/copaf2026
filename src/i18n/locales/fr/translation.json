@@ -13,7 +13,8 @@
     "visit": "Visiter",
     "resources": "Ressources",
     "recommendations": "Recommandations Officielles & Actes",
-    "livret": "Livret du participant"
+    "livret": "Livret du participant",
+    "edition2026": "Voir l'édition 2026"
   },
   "languageSwitcher": { "fr": "FR", "en": "EN" },
   "hero": {
