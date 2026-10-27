@@ -92,6 +92,12 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/downloads\//],
         runtimeCaching: [
           {
+            // Photos de la galerie Edition 2026 : fichiers immuables, servis depuis le cache apres la 1re visite
+            urlPattern: ({ url }) => url.pathname.includes('/storage/v1/object/public/edition-2026/'),
+            handler: 'CacheFirst',
+            options: { cacheName: 'edition-2026-photos', expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 }, cacheableResponse: { statuses: [0, 200] } },
+          },
+          {
             urlPattern: ({ request, url }) => request.mode === 'navigate' && !url.pathname.startsWith('/downloads/'),
             handler: 'NetworkFirst',
             options: { cacheName: 'pages-cache' },
