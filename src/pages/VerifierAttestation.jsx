@@ -24,6 +24,7 @@ const TR = {
     prepaAide: "Cette attestation sera disponible à partir du 21 octobre 2026. Merci de revenir à cette date.",
     authentique: '✔ Attestation authentique',
     pdf: 'Télécharger en PDF', pdfEnCours: 'Préparation du PDF…', imprimer: 'Imprimer', copier: 'Copier le lien', copie: 'Lien copié ✓',
+    documentRemis: 'Voir l’attestation remise',
     autreLangue: 'English', retour: 'Vérifier un autre numéro', trop: 'Trop de tentatives. Réessayez dans une minute.', erreur: 'Vérification impossible pour le moment. Réessayez.',
     pdfErreur: 'Le PDF n\'a pas pu être généré. Utilisez « Imprimer » puis « Enregistrer au format PDF ».',
   },
@@ -35,6 +36,7 @@ const TR = {
     prepaAide: 'This certificate will be available from 21 October 2026. Please come back on that date.',
     authentique: '✔ Authentic certificate',
     pdf: 'Download PDF', pdfEnCours: 'Preparing the PDF…', imprimer: 'Print', copier: 'Copy link', copie: 'Link copied ✓',
+    documentRemis: 'View the issued certificate',
     autreLangue: 'Français', retour: 'Verify another number', trop: 'Too many attempts. Please try again in a minute.', erreur: 'Verification is unavailable right now. Please try again.',
     pdfErreur: 'The PDF could not be generated. Use "Print" then "Save as PDF".',
   },
@@ -133,6 +135,9 @@ export default function VerifierAttestation() {
           </div>
           <AttestationView att={resultat} langue={langueAffichee} />
           <div className="no-print-attestation" style={{ maxWidth: 1123, margin: '18px auto 0', display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {resultat.document_url && (
+              <a href={resultat.document_url} target="_blank" rel="noopener noreferrer" style={{ ...BTN, margin: '0 8px 10px', display: 'inline-flex', alignItems: 'center', textDecoration: 'none', borderColor: '#10b981', color: '#065f46' }}>{T.documentRemis}</a>
+            )}
             <button type="button" onClick={telechargerPdf} disabled={pdfEnCours} style={{ ...BTN, background: NAVY, color: '#fff', margin: '0 8px 10px', opacity: pdfEnCours ? 0.7 : 1 }}>{pdfEnCours ? T.pdfEnCours : T.pdf}</button>
             <button type="button" onClick={() => window.print()} style={{ ...BTN, margin: '0 8px 10px' }}>{T.imprimer}</button>
             <button type="button" onClick={copierLien} style={{ ...BTN, margin: '0 8px 10px', borderColor: OR, color: '#7a5a12' }}>{copie ? T.copie : T.copier}</button>
