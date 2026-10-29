@@ -24,7 +24,7 @@ const TR = {
     prepaAide: "Cette attestation sera disponible à partir du 21 octobre 2026. Merci de revenir à cette date.",
     authentique: '✔ Attestation authentique',
     pdf: 'Télécharger en PDF', pdfEnCours: 'Préparation du PDF…', imprimer: 'Imprimer', copier: 'Copier le lien', copie: 'Lien copié ✓',
-    documentRemis: 'Voir l’attestation remise',
+    documentRemis: 'Voir l’attestation remise', pdfFichier: 'Télécharger en PDF',
     autreLangue: 'English', retour: 'Vérifier un autre numéro', trop: 'Trop de tentatives. Réessayez dans une minute.', erreur: 'Vérification impossible pour le moment. Réessayez.',
     pdfErreur: 'Le PDF n\'a pas pu être généré. Utilisez « Imprimer » puis « Enregistrer au format PDF ».',
   },
@@ -36,7 +36,7 @@ const TR = {
     prepaAide: 'This certificate will be available from 21 October 2026. Please come back on that date.',
     authentique: '✔ Authentic certificate',
     pdf: 'Download PDF', pdfEnCours: 'Preparing the PDF…', imprimer: 'Print', copier: 'Copy link', copie: 'Link copied ✓',
-    documentRemis: 'View the issued certificate',
+    documentRemis: 'View the issued certificate', pdfFichier: 'Download PDF',
     autreLangue: 'Français', retour: 'Verify another number', trop: 'Too many attempts. Please try again in a minute.', erreur: 'Verification is unavailable right now. Please try again.',
     pdfErreur: 'The PDF could not be generated. Use "Print" then "Save as PDF".',
   },
@@ -96,6 +96,9 @@ export default function VerifierAttestation() {
 
   const carte = { maxWidth: 560, margin: '0 auto', background: '#fff', border: '1.5px solid #e2e8f0', borderRadius: 18, padding: '28px 22px', textAlign: 'center', boxShadow: '0 8px 28px rgba(11,31,102,.08)' }
   const statut = resultat && resultat.statut
+  // Attestations d'intervenants, d'équipe et d'interprètes : on affiche le document émis (le modèle généré est celui des participants)
+  const documentEmis = !!(resultat && resultat.type && resultat.type !== 'participant' && resultat.document_url)
+  const prenomNom = resultat ? `${resultat.prenom || ''} ${resultat.nom || ''}`.trim() : ''
 
   return (
     <div style={{ minHeight: '100vh', background: FOND, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", padding: '28px 14px 60px' }}>
@@ -133,13 +136,21 @@ export default function VerifierAttestation() {
           <div className="no-print-attestation" style={{ maxWidth: 1123, margin: '0 auto 16px', background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: 14, padding: '13px 18px', color: '#065f46', fontSize: 17, fontWeight: 900, textAlign: 'center' }} role="status">
             {T.authentique}
           </div>
-          <AttestationView att={resultat} langue={langueAffichee} />
+          {documentEmis
+            ? <img src={resultat.document_url} alt={`${prenomNom} - ${resultat.code}`} style={{ display: 'block', width: '100%', maxWidth: 1123, margin: '0 auto', height: 'auto', borderRadius: 10, boxShadow: '0 8px 28px rgba(11,31,102,.18)' }} />
+            : <AttestationView att={resultat} langue={langueAffichee} />}
           <div className="no-print-attestation" style={{ maxWidth: 1123, margin: '18px auto 0', display: 'flex', flexWrap: 'wrap', justifyContent: 'center' }}>
-            {resultat.document_url && (
-              <a href={resultat.document_url} target="_blank" rel="noopener noreferrer" style={{ ...BTN, margin: '0 8px 10px', display: 'inline-flex', alignItems: 'center', textDecoration: 'none', borderColor: '#10b981', color: '#065f46' }}>{T.documentRemis}</a>
+            {documentEmis ? (
+              <a href={resultat.document_url.replace(/\.jpg$/i, '.pdf')} target="_blank" rel="noopener noreferrer" style={{ ...BTN, background: NAVY, color: '#fff', margin: '0 8px 10px', display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>{T.pdfFichier}</a>
+            ) : (
+              <>
+                {resultat.document_url && (
+                  <a href={resultat.document_url} target="_blank" rel="noopener noreferrer" style={{ ...BTN, margin: '0 8px 10px', display: 'inline-flex', alignItems: 'center', textDecoration: 'none', borderColor: '#10b981', color: '#065f46' }}>{T.documentRemis}</a>
+                )}
+                <button type="button" onClick={telechargerPdf} disabled={pdfEnCours} style={{ ...BTN, background: NAVY, color: '#fff', margin: '0 8px 10px', opacity: pdfEnCours ? 0.7 : 1 }}>{pdfEnCours ? T.pdfEnCours : T.pdf}</button>
+                <button type="button" onClick={() => window.print()} style={{ ...BTN, margin: '0 8px 10px' }}>{T.imprimer}</button>
+              </>
             )}
-            <button type="button" onClick={telechargerPdf} disabled={pdfEnCours} style={{ ...BTN, background: NAVY, color: '#fff', margin: '0 8px 10px', opacity: pdfEnCours ? 0.7 : 1 }}>{pdfEnCours ? T.pdfEnCours : T.pdf}</button>
-            <button type="button" onClick={() => window.print()} style={{ ...BTN, margin: '0 8px 10px' }}>{T.imprimer}</button>
             <button type="button" onClick={copierLien} style={{ ...BTN, margin: '0 8px 10px', borderColor: OR, color: '#7a5a12' }}>{copie ? T.copie : T.copier}</button>
           </div>
           {erreurPdf && <p className="no-print-attestation" style={{ textAlign: 'center', color: '#b91c1c', fontSize: 13.5, fontWeight: 700 }}>{T.pdfErreur}</p>}
